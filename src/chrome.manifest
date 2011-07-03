@@ -1,0 +1,6 @@
+content		mozt			chrome/content/
+skin		mozt	classic/1.0	chrome/skin/
+locale		mozt	en-US		chrome/locale/en-US/
+resource	mozt			modules/
+
+overlay		chrome://browser/content/browser.xul	chrome://mozt/content/overlay.xul

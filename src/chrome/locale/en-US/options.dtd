@@ -1,0 +1,13 @@
+<!ENTITY prefwindow.title "Skip Cert Error preferences">
+<!ENTITY pane1.title "Skip Cert Error preferences">
+<!ENTITY bool_enabled.label "Enable bypass">
+<!ENTITY bool_enabled.accesskey "E">
+<!ENTITY bool_add_temporary_exceptions.label "Add the exceptions as temporary">
+<!ENTITY bool_add_temporary_exceptions.accesskey "T">
+<!ENTITY bool_notify.label "Notifications">
+<!ENTITY bool_notify.accesskey "N">
+<!ENTITY bypass_errors "Bypass error when cert is:">
+<!ENTITY bool_bypass_issuer_unknown.label "from unknown issuer">
+<!ENTITY bool_bypass_issuer_unknown.accesskey "I">
+<!ENTITY bool_bypass_self_signed.label "self-signed">
+<!ENTITY bool_bypass_self_signed.accesskey "G">
