@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<!DOCTYPE prefwindow SYSTEM "chrome://sce/locale/options.dtd">
-<prefwindow id="sce-preferences"
+<!DOCTYPE prefwindow SYSTEM "chrome://mozt/locale/options.dtd">
+<prefwindow id="mozt-preferences"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
             title="&prefwindow.title;"
             onload= "mozt.UIOptions.onLoad()">

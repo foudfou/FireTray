@@ -1,6 +1,6 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-Components.utils.import("resource://sce/commons.js");
+Components.utils.import("resource://mozt/commons.js");
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
