@@ -21,17 +21,11 @@ mozt.Main = {
       return false;
     }
 
-
     LibGtkStatusIcon.init();
-/*
-    GtkStatusIcon *tray_icon = gtk_status_icon_new();
-    GdkPixbuf *default_icon = gdk_pixbuf_new_from_xpm_data(firefox_xpm);
-    gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(tray_icon),
-                                    GDK_PIXBUF(default_icon));
-*/
     this.tray_icon  = LibGtkStatusIcon.gtk_status_icon_new();
-    // var pixmap = "hi";          // TODO: read pixmap from file
-    // LibGtkStatusIcon.gdk_pixbuf_new_from_xpm_data(pixmap);
+    var icon_filename = "chrome/skin/firefox32.png";
+    LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
+                                                   icon_filename);
 
     mozt.Debug.dump('Moztray LOADED !');
     this.initialized = true;

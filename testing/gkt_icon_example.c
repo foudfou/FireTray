@@ -23,10 +23,13 @@ static GtkStatusIcon *create_tray_icon() {
                          "popup-menu",
                          G_CALLBACK(tray_icon_on_menu), NULL);
 
-        GdkPixbuf *default_icon = gdk_pixbuf_new_from_xpm_data(firefox_xpm);
+        /* GdkPixbuf *default_icon = gdk_pixbuf_new_from_xpm_data(firefox_xpm); */
 
-        gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(tray_icon),
-                                        GDK_PIXBUF(default_icon));
+        /* gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(tray_icon), */
+        /*                                 GDK_PIXBUF(default_icon)); */
+        const gchar *default_icon_filename = "firefox32.png";
+        gtk_status_icon_set_from_file(tray_icon,
+                                      default_icon_filename);
         gtk_status_icon_set_tooltip(tray_icon, 
                                     "Example Tray Icon");
         gtk_status_icon_set_visible(tray_icon, TRUE);

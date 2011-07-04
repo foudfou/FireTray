@@ -49,7 +49,6 @@ var LibGtkStatusIcon = {
     this.GtkStatusIconRef = ctypes.PointerType(this.GtkStatusIcon);
     this.GdkPixbuf = ctypes.StructType("GdkPixbuf");
     this.GdkPixbufRef = ctypes.PointerType(this.GdkPixbuf);
-    this.Pixbuf = ctypes.PointerType(ctypes.char.ptr);
 
     // Consts
     this.INDICATOR_MESSAGES_SERVER_TYPE = "message";
@@ -62,18 +61,12 @@ var LibGtkStatusIcon = {
       this.GtkStatusIconRef
     );
 
-    this.gdk_pixbuf_new_from_xpm_data = this._lib.declare(
-      "gdk_pixbuf_new_from_xpm_data",
+    this.gtk_status_icon_set_from_file = this._lib.declare(
+      "gtk_status_icon_set_from_file",
       ctypes.default_abi,
-      this.GdkPixbufRef,
-      this.Pixbuf
-    );
-
-    this.gtk_status_icon_set_from_pixbuf = this._lib.declare(
-      "gtk_status_icon_set_from_pixbuf",
-      ctypes.default_abi,
+      ctypes.void_t,
       this.GtkStatusIconRef,
-      this.GdkPixbufRef
+      ctypes.char.ptr
     );
 
   }
