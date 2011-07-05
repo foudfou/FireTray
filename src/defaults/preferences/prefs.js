@@ -1,5 +1,5 @@
 // https://developer.mozilla.org/en/Localizing_extension_descriptions
-pref("extensions.skipcerterror@foudil.fr.description", "chrome://mozt/locale/overlay.properties");
+pref("extensions.moztray@foudil.fr.description", "chrome://mozt/locale/overlay.properties");
 
 // Extension prefs
 pref("extensions.mozt.enabled", true);

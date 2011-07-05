@@ -3,6 +3,9 @@
 Components.utils.import("resource://mozt/commons.js");
 Components.utils.import("resource://mozt/LibGtkStatusIcon.js");
 
+const MOZT_ICON_DIR = "chrome/skin/";
+const MOZT_ICON_FIREFOX = "firefox32.png";
+
 mozt.Main = {
 
   onLoad: function() {
@@ -23,7 +26,7 @@ mozt.Main = {
 
     LibGtkStatusIcon.init();
     this.tray_icon  = LibGtkStatusIcon.gtk_status_icon_new();
-    var icon_filename = "chrome/skin/firefox32.png";
+    var icon_filename = MOZT_ICON_DIR + MOZT_ICON_FIREFOX;
     LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
                                                    icon_filename);
 
@@ -37,7 +40,7 @@ mozt.Main = {
     mozt.Utils.prefService.removeObserver("", this);
     LibGtkStatusIcon.shutdown();
 
-    mozt.Debug.dump('SkipCertError UNLOADED !');
+    mozt.Debug.dump('Moztray UNLOADED !');
     this.initialized = false;
   },
 

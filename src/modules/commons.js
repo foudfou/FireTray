@@ -32,7 +32,7 @@ mozt.Debug = {
   init: function() {
     if (this.initialized) return;
     this.consoleService = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService);
-    this.dump("SkipCertError Debug initialized");
+    this.dump("Moztray Debug initialized");
     this.initialized = true;
   },
 

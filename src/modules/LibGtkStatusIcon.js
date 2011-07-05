@@ -51,7 +51,7 @@ var LibGtkStatusIcon = {
     this.GdkPixbufRef = ctypes.PointerType(this.GdkPixbuf);
 
     // Consts
-    this.INDICATOR_MESSAGES_SERVER_TYPE = "message";
+    // this.INDICATOR_MESSAGES_SERVER_TYPE = "message";
 
     // Functions
 
