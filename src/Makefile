@@ -22,7 +22,7 @@ help:
 	@echo "Have fun !"
 
 # The UUID of the extension.
-extension_uuid := moztrayray@foudil.fr
+extension_uuid := moztray@foudil.fr
 
 # The name of the profile dir where the extension can be installed.
 profile_dir := mozilla-dev

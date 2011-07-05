@@ -21,10 +21,7 @@ if ("undefined" == typeof(moztray)) {
 };
 
 moztray.Debug = {
-
-  _initialized: false,
-
-  _consoleService: null,
+  initialized: false,
 
   /**
    * Object constructor.

@@ -16,7 +16,6 @@ moztray.Main = {
     try {
       // Set up preference change observer
       moztray.Utils.prefService.QueryInterface(Ci.nsIPrefBranch2);
-      // must stay out of _toggle()
       moztray.Utils.prefService.addObserver("", this, false);
     }
     catch (ex) {
@@ -50,10 +49,10 @@ moztray.Main = {
     moztray.Debug.dump('Pref changed: '+data);
 
     switch(data) {
-    case 'enabled':
-      var enable = moztray.Utils.prefService.getBoolPref('enabled');
-      this._toggle(enable);
-      break;
+    // case 'enabled':
+    //   var enable = moztray.Utils.prefService.getBoolPref('enabled');
+    //   this._toggle(enable);
+    //   break;
     }
   },
 

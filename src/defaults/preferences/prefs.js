@@ -1,5 +1,5 @@
 // https://developer.mozilla.org/en/Localizing_extension_descriptions
-pref("extensions.moztrayray@foudil.fr.description", "chrome://moztray/locale/overlay.properties");
+pref("extensions.moztray@foudil.fr.description", "chrome://moztray/locale/overlay.properties");
 
 // Extension prefs
 pref("extensions.moztray.enabled", true);
