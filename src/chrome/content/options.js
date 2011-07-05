@@ -1,14 +1,14 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-Components.utils.import("resource://mozt/commons.js");
+Components.utils.import("resource://moztray/commons.js");
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-mozt.UIOptions = {
+moztray.UIOptions = {
 
   onLoad: function() {
-    this.toggleDisable_All(mozt.Utils.prefService.getBoolPref('enabled'));
+    this.toggleDisable_All(moztray.Utils.prefService.getBoolPref('enabled'));
     this.toggleCheck_BypassIssuerUnknown(
       document.getElementById('ui_bypass_self_signed').checked);
   },

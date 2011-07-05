@@ -22,7 +22,7 @@ help:
 	@echo "Have fun !"
 
 # The UUID of the extension.
-extension_uuid := moztray@foudil.fr
+extension_uuid := moztrayray@foudil.fr
 
 # The name of the profile dir where the extension can be installed.
 profile_dir := mozilla-dev
@@ -151,7 +151,7 @@ $(build_dir)/$(chrome_source_root)/%.js: $(chrome_source_root)/%.js
     cp -f $< $@; \
   else \
     echo "Stripping comments from JS file $<"; \
-    sed '/mozt\.Debug\.dump/d' $< > $@; \
+    sed '/moztray\.Debug\.dump/d' $< > $@; \
   fi
 
 $(build_dir)/$(modules_dir)/commons.js: $(modules_dir)/commons.js

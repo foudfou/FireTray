@@ -6,21 +6,21 @@
  * http://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
  */
 
-var EXPORTED_SYMBOLS = [ "mozt" ];
+var EXPORTED_SYMBOLS = [ "moztray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 /**
- * mozt namespace.
+ * moztray namespace.
  */
-if ("undefined" == typeof(mozt)) {
-  var mozt = {
+if ("undefined" == typeof(moztray)) {
+  var moztray = {
     DEBUG_MODE: true,
   };
 };
 
-mozt.Debug = {
+moztray.Debug = {
 
   _initialized: false,
 
@@ -43,12 +43,12 @@ mozt.Debug = {
    * IT'S IMPORTANT THAT DEBUG CALLS ARE WRITTEN ON A SINGLE LINE !
    */
   dump: function(message) { // Debuging function -- prints to javascript console
-    if(!mozt.DEBUG_MODE) return;
+    if(!moztray.DEBUG_MODE) return;
     this.consoleService.logStringMessage(message);
   },
 
   dumpObj: function(obj) {
-    if(!mozt.DEBUG_MODE) return;
+    if(!moztray.DEBUG_MODE) return;
     var str = "";
     for(i in obj) {
       try {
@@ -62,12 +62,12 @@ mozt.Debug = {
 
 };
 // build it !
-mozt.Debug.init();
+moztray.Debug.init();
 
 
-mozt.Utils = {
+moztray.Utils = {
 
   prefService: Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
-    .getBranch("extensions.mozt."),
+    .getBranch("extensions.moztray."),
 
 };

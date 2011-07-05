@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<!DOCTYPE prefwindow SYSTEM "chrome://mozt/locale/options.dtd">
-<prefwindow id="mozt-preferences"
+<!DOCTYPE prefwindow SYSTEM "chrome://moztray/locale/options.dtd">
+<prefwindow id="moztray-preferences"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
             title="&prefwindow.title;"
-            onload= "mozt.UIOptions.onLoad()">
+            onload= "moztray.UIOptions.onLoad()">
 
   <script type="application/x-javascript" src="options.js" />
 
@@ -12,15 +12,15 @@
 
     <preferences>
       <preference id="pref_bool_enabled"
-                  name="extensions.mozt.enabled" type="bool"/>
+                  name="extensions.moztray.enabled" type="bool"/>
       <preference id="pref_bool_add_temporary_exceptions"
-                  name="extensions.mozt.add_temporary_exceptions" type="bool"/>
+                  name="extensions.moztray.add_temporary_exceptions" type="bool"/>
       <preference id="pref_bool_notify"
-                  name="extensions.mozt.notify" type="bool"/>
+                  name="extensions.moztray.notify" type="bool"/>
       <preference id="pref_bool_bypass_issuer_unknown"
-                  name="extensions.mozt.bypass_issuer_unknown" type="bool"/>
+                  name="extensions.moztray.bypass_issuer_unknown" type="bool"/>
       <preference id="pref_bool_bypass_self_signed"
-                  name="extensions.mozt.bypass_self_signed" type="bool"/>
+                  name="extensions.moztray.bypass_self_signed" type="bool"/>
     </preferences>
 
     <groupbox>
@@ -28,7 +28,7 @@
       <checkbox id="ui_enabled" preference="pref_bool_enabled"
                 label="&bool_enabled.label;"
                 accesskey="&bool_enabled.accesskey;"
-                onclick="mozt.UIOptions.toggleDisable_All(!this.checked); // checked=before click"/>
+                onclick="moztray.UIOptions.toggleDisable_All(!this.checked); // checked=before click"/>
       </caption>
       <checkbox id="ui_add_temporary_exceptions"
                 preference="pref_bool_add_temporary_exceptions"
@@ -47,7 +47,7 @@
                   preference="pref_bool_bypass_self_signed"
                   label="&bool_bypass_self_signed.label;"
                   accesskey="&bool_bypass_self_signed.accesskey;"
-                  onclick="mozt.UIOptions.toggleCheck_BypassIssuerUnknown(!this.checked);"/>
+                  onclick="moztray.UIOptions.toggleCheck_BypassIssuerUnknown(!this.checked);"/>
       </groupbox>
     </groupbox>
 

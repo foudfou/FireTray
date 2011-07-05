@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet href="chrome://mozt/skin/overlay.css" type="text/css"?>
-<!DOCTYPE overlay SYSTEM "chrome://mozt/locale/overlay.dtd">
-<overlay id="mozt-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<?xml-stylesheet href="chrome://moztray/skin/overlay.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://moztray/locale/overlay.dtd">
+<overlay id="moztray-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script src="overlay.js"/>
 
   <stringbundleset id="stringbundleset">
-    <stringbundle id="mozt-strings" src="chrome://mozt/locale/overlay.properties"/>
+    <stringbundle id="moztray-strings" src="chrome://moztray/locale/overlay.properties"/>
   </stringbundleset>
 
 </overlay>
