@@ -6,31 +6,31 @@
  * http://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
  */
 
-var EXPORTED_SYMBOLS = [ "moztray" ];
+var EXPORTED_SYMBOLS = [ "mozt" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 /**
- * moztray namespace.
+ * mozt namespace.
  */
-if ("undefined" == typeof(moztray)) {
-  var moztray = {
+if ("undefined" == typeof(mozt)) {
+  var mozt = {
     DEBUG_MODE: true,
   };
 };
 
-moztray.Debug = {
-  initialized: false,
+mozt.Debug = {
+  _initialized: false,
 
   /**
    * Object constructor.
    */
   init: function() {
-    if (this.initialized) return;
-    this.consoleService = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService);
+    if (this._initialized) return;
+    this._consoleService = Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService);
     this.dump("Moztray Debug initialized");
-    this.initialized = true;
+    this._initialized = true;
   },
 
   /* Console logging functions */
@@ -40,12 +40,12 @@ moztray.Debug = {
    * IT'S IMPORTANT THAT DEBUG CALLS ARE WRITTEN ON A SINGLE LINE !
    */
   dump: function(message) { // Debuging function -- prints to javascript console
-    if(!moztray.DEBUG_MODE) return;
-    this.consoleService.logStringMessage(message);
+    if(!mozt.DEBUG_MODE) return;
+    this._consoleService.logStringMessage(message);
   },
 
   dumpObj: function(obj) {
-    if(!moztray.DEBUG_MODE) return;
+    if(!mozt.DEBUG_MODE) return;
     var str = "";
     for(i in obj) {
       try {
@@ -59,10 +59,10 @@ moztray.Debug = {
 
 };
 // build it !
-moztray.Debug.init();
+mozt.Debug.init();
 
 
-moztray.Utils = {
+mozt.Utils = {
 
   prefService: Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
     .getBranch("extensions.moztray."),
