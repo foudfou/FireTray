@@ -4,13 +4,11 @@ Components.utils.import("resource://moztray/commons.js");
 Components.utils.import("resource://moztray/LibGtkStatusIcon.js");
 
 const MOZT_ICON_DIR = "chrome/skin/";
-const MOZT_ICON_FIREFOX = "firefox32.png";
+const MOZT_ICON_SUFFIX = "32.png";
 
 mozt.Main = {
 
   onLoad: function() {
-    mozt.Debug.dump('Moztray GO !');
-
     // initialization code
     this.initialized = null;
     this.strings = document.getElementById("moztray-strings");
@@ -27,7 +25,8 @@ mozt.Main = {
 
     LibGtkStatusIcon.init();
     this.tray_icon  = LibGtkStatusIcon.gtk_status_icon_new();
-    var icon_filename = MOZT_ICON_DIR + MOZT_ICON_FIREFOX;
+    var mozApp = mozt.Utils.appInfoService.name.toLowerCase();
+    var icon_filename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
     LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
                                                    icon_filename);
 

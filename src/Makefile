@@ -10,7 +10,8 @@ help:
 	@echo "  DEBUG=on make all"
 	@echo
 	@echo "to create the dev profile:"
-	@echo "  firefox -no-remote -P	# then create '$(profile_dir)'"
+	@echo "  firefox -no-remote -P	# then create '$(profile_id)'"
+	@echo "  thunderbird -no-remote -P	# then create '$(profile_id)'"
 	@echo
 	@echo "to deploy to dev profile:"
 	@echo "  make clean"
@@ -18,6 +19,7 @@ help:
 	@echo
 	@echo "to test with dev profile:"
 	@echo "  firefox -no-remote -P mozilla-dev"
+	@echo "  thunderbird -no-remote -P mozilla-dev"
 	@echo
 	@echo "Have fun !"
 
@@ -25,7 +27,7 @@ help:
 extension_uuid := moztray@foudil.fr
 
 # The name of the profile dir where the extension can be installed.
-profile_dir := mozilla-dev
+profile_id := mozilla-dev
 
 # The zip application to be used.
 ZIP := zip
@@ -33,24 +35,10 @@ ZIP := zip
 # The target location of the build and build files.
 build_dir := ../build
 
-# The type of operating system this make command is running on.
-# os_type := $(patsubst darwin%,darwin,$(shell echo $(OSTYPE)))
-# we don't want to: export OSTYPE; make install
-os_type := $(patsubst darwin%,darwin,$(shell echo $$OSTYPE))
-
-# The location of the extension profile.
-ifeq ($(os_type), darwin)
-  profile_location := \
-    ~/Library/Application\ Support/Firefox/Profiles/$(profile_dir)/extensions
-else
-  ifeq ($(os_type), linux-gnu)
-    profile_location := \
-      ~/.mozilla/firefox/$(profile_dir)/extensions
-  else
-    profile_location := \
-      "$(subst \,\\,$(APPDATA))\\Mozilla\\Firefox\\Profiles\\$(profile_dir)\\extensions"
-  endif
-endif
+# The location of the extension profile. (this extension is intended for Linux only)
+profile_locations := \
+  ~/.mozilla/firefox/$(profile_id)/extensions \
+  ~/.thunderbird/$(profile_id)/extensions
 
 # The license file
 license := LICENSE
@@ -128,9 +116,11 @@ clean: clean_build clean_profile
 # This builds everything except for the actual XPI, and then it copies it to the
 # specified profile directory, allowing a quick update that requires no install.
 .PHONY: install
-install: $(xpi_built) $(profile_location)
-	@echo "Installing in profile folder: $(profile_location)"
-	@cp -f $(xpi_built) $(profile_location)/$(xpi_deployed)
+install: $(xpi_built) $(profile_locations)
+	@echo "Installing in profile folder: $(profile_locations)"
+	@for p in $(profile_locations) ; do \
+  cp -f $(xpi_built) $$p/$(xpi_deployed); \
+  done
 	@echo "Installing in profile folder. Done!"
 	@echo
 
@@ -151,7 +141,7 @@ $(build_dir)/$(chrome_source_root)/%.js: $(chrome_source_root)/%.js
     cp -f $< $@; \
   else \
     echo "Stripping comments from JS file $<"; \
-    sed '/moztray\.Debug\.dump/d' $< > $@; \
+    sed '/mozt\.Debug\.dump/d' $< > $@; \
   fi
 
 $(build_dir)/$(modules_dir)/commons.js: $(modules_dir)/commons.js
@@ -170,17 +160,21 @@ $(build_dir):
     mkdir -p $(build_dir); \
   fi
 
-$(profile_location):
-	@echo "Creating extension folder: $(profile_location)"
-	@if [ ! -x $(profile_location) ]; \
+$(profile_locations):
+	@echo "Creating extension folder: $(profile_locations)"
+	@for p in $(profile_locations) ; do \
+  if [ ! -x "$$p" ]; \
   then \
-    mkdir -p $(profile_location); \
-  fi
+    mkdir -p $$p; \
+  fi; \
+  done
 
 clean_build:
 	@echo "Removing build dir: $(build_dir)"
 	@rm -rf $(build_dir)
 
 clean_profile:
-	@echo "Removing extension from extension folder: $(profile_location)"
-	@rm -f $(profile_location)/$(xpi_deployed)
+	@echo "Removing extension from extension folders: $(profile_locations)"
+	@for p in $(profile_locations) ; do \
+  rm -f $$p/$(xpi_deployed); \
+  done
