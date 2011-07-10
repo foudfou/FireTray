@@ -1,10 +1,23 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
+// TODO: Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://moztray/commons.js");
 Components.utils.import("resource://moztray/LibGtkStatusIcon.js");
+Components.utils.import("resource://moztray/LibGObject.js");
 
 const MOZT_ICON_DIR = "chrome/skin/";
 const MOZT_ICON_SUFFIX = "32.png";
+
+
+var mozt_hideWinCb;
+/* NOTE: arguments come obviously from the GCallbackFunction definition:
+ * [gpointer, guint, gpointer]
+ */
+var mozt_hideWinJs = function(aInstance, aTimestamp, aUserData) {
+  try {
+    alert("Hide");
+  } catch(e) {Cu.reportError(ex);}
+};
 
 mozt.Main = {
 
@@ -29,6 +42,15 @@ mozt.Main = {
     var icon_filename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
     LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
                                                    icon_filename);
+        // gtk_status_icon_set_tooltip(tray_icon,
+        //                             "Example Tray Icon");
+        // gtk_status_icon_set_visible(tray_icon, TRUE);
+
+    mozt_hideWinCb = LibGObject.GCallbackFunction(mozt_hideWinJs);
+
+    LibGObject.g_signal_connect(this.tray_icon, "activate",
+                                mozt_hideWinCb, null);
+
 
     mozt.Debug.dump('Moztray LOADED !');
     this.initialized = true;
