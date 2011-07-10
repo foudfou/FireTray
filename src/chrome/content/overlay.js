@@ -29,6 +29,11 @@ mozt.Main = {
     var icon_filename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
     LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
                                                    icon_filename);
+    // TODO: produces:
+    // (firefox-bin:5302): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
+    // (thunderbird-bin:5380): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
+    LibGtkStatusIcon.gtk_status_icon_set_tooltip(this.tray_icon,
+                                                 "Moztray");
 
     mozt.Debug.dump('Moztray LOADED !');
     this.initialized = true;
