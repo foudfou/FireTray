@@ -69,8 +69,8 @@ var LibGtkStatusIcon = {
       ctypes.char.ptr
     );
 
-    this.gtk_status_icon_set_tooltip = this._lib.declare(
-      "gtk_status_icon_set_tooltip",
+    this.gtk_status_icon_set_tooltip_text = this._lib.declare(
+      "gtk_status_icon_set_tooltip_text",
       ctypes.default_abi,
       ctypes.void_t,
       this.GtkStatusIconRef,
