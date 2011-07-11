@@ -2,81 +2,91 @@
 
 var EXPORTED_SYMBOLS = ["LibGtkStatusIcon"];
 
+const LIB_GTK = "libgtk-x11-2.0.so";
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-const LIB_GTK = "libgtk-x11-2.0.so";
+Cu.import("resource://gre/modules/ctypes.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-var LibGtkStatusIcon = {
+XPCOMUtils.defineLazyGetter(this, "libgtk", function() {
+  var libgtk = ctypes.open(LIB_GTK);
+  if (!libgtk)
+    throw "libgtk is unavailable";
 
-  _lib: null,
+  return libgtk;
+});
 
-  init: function() {
-    // If ctypes doesn't exist, try to get it
-    Cu.import("resource://gre/modules/ctypes.jsm");
-      // If we still don't have ctypes, this isn't going to work...
-    if (typeof(ctypes) == "undefined") {
-      throw ("Could not load JS-Ctypes");
-    }
+// Types
+XPCOMUtils.defineLazyGetter(this, "GtkStatusIcon", function() {
+  return ctypes.StructType("GtkStatusIcon");
+});
 
-    try {
-      // Try to start up dependencies - if they fail, they'll throw
-      // exceptions. ex: GObjectLib.init();
+// Functions
+XPCOMUtils.defineLazyGetter(this, "gtk_status_icon_new", function() {
+  var gtk_status_icon_new = libgtk.declare(
+    "gtk_status_icon_new",
+    ctypes.default_abi,
+    this.GtkStatusIcon.ptr
+  );
 
-      this._lib = ctypes.open(LIB_GTK);
-      if (!this._lib)
-        throw ("Could not load " + LIB_GTK);
+  if (!gtk_status_icon_new)
+    throw "gtk_status_icon_new is unavailable";
 
-    } catch (e) {
-      this.shutdown();
-      throw(e);
-    }
+  return gtk_status_icon_new;
+});
 
-    // Ok, we got everything - let's declare.
-    this._declare();
-  },
-
-  shutdown: function() {
-    // Close our connection to the library.
-    if (this._lib)
-      this._lib.close();
-  },
-
-  _declare: function() {
-    // Types
-    this.GtkStatusIcon = ctypes.StructType("GtkStatusIcon");
-    this.GtkStatusIconRef = ctypes.PointerType(this.GtkStatusIcon);
-    this.GdkPixbuf = ctypes.StructType("GdkPixbuf");
-    this.GdkPixbufRef = ctypes.PointerType(this.GdkPixbuf);
-
-    // Consts
-    // this.INDICATOR_MESSAGES_SERVER_TYPE = "message";
-
-    // Functions
-
-    this.gtk_status_icon_new = this._lib.declare(
-      "gtk_status_icon_new",
-      ctypes.default_abi,
-      this.GtkStatusIconRef
-    );
-
-    this.gtk_status_icon_set_from_file = this._lib.declare(
+XPCOMUtils.defineLazyGetter(this, "gtk_status_icon_set_from_file", function() {
+    var gtk_status_icon_set_from_file = libgtk.declare(
       "gtk_status_icon_set_from_file",
       ctypes.default_abi,
       ctypes.void_t,
-      this.GtkStatusIconRef,
+      this.GtkStatusIcon.ptr,
       ctypes.char.ptr
     );
 
-    this.gtk_status_icon_set_tooltip_text = this._lib.declare(
+  if (!gtk_status_icon_new)
+    throw "gtk_status_icon_set_from_file is unavailable";
+
+  return gtk_status_icon_set_from_file;
+});
+
+XPCOMUtils.defineLazyGetter(this, "gtk_status_icon_set_tooltip_text", function() {
+    var gtk_status_icon_set_tooltip_text = libgtk.declare(
       "gtk_status_icon_set_tooltip_text",
       ctypes.default_abi,
       ctypes.void_t,
-      this.GtkStatusIconRef,
+      this.GtkStatusIcon.ptr,
       ctypes.char.ptr
     );
 
-  }
+  if (!gtk_status_icon_set_tooltip_text)
+    throw "gtk_status_icon_set_tooltip_text is unavailable";
 
+  return gtk_status_icon_set_tooltip_text;
+});
+
+var LibGtkStatusIcon = {
+  /*
+   * FIXME: for now, we manually close the lib, but m_conley said: well, the
+   * first idea that comes to mind is to add an "unload" or "shutdown" function
+   * to the main MessagingMenu object that listens for an xpcom shutdown event,
+   * and then unloads the library
+   */
+  shutdown: function() {
+    if (libgtk) libgtk.close();
+  },
+
+  // Types
+  GtkStatusIcon: GtkStatusIcon,
+
+  // Constants
+  // INDICATOR_MESSAGES_SERVER_TYPE: "message",
+
+  // Functions
+  gtk_status_icon_new: gtk_status_icon_new,
+  gtk_status_icon_set_from_file: gtk_status_icon_set_from_file,
+  gtk_status_icon_set_tooltip_text: gtk_status_icon_set_tooltip_text,
 };
