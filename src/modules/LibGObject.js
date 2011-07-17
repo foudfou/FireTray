@@ -56,11 +56,11 @@ XPCOMUtils.defineLazyGetter(this, "libgobject", function() {
 });
 
 XPCOMUtils.defineLazyGetter(this, "GCallback", function() {
-  return ctypes.voidptr_t;
+  return ctypes.void_t.ptr;
 });
 
 XPCOMUtils.defineLazyGetter(this, "gpointer", function() {
-  return ctypes.voidptr_t;
+  return ctypes.void_t.ptr;
 });
 
 XPCOMUtils.defineLazyGetter(this, "gulong", function() {
@@ -139,6 +139,69 @@ XPCOMUtils.defineLazyGetter(this, "g_object_unref", function() {
   return g_object_unref;
 });
 
+
+XPCOMUtils.defineLazyGetter(this, "GFunc", function() {
+  return ctypes.void_t.ptr;
+});
+
+// intended for g_list_foreach.
+/* NOTE: if we needed more/different args, we'd need to implement another
+   FunctionType */
+XPCOMUtils.defineLazyGetter(this, "GFunc_t", function() {
+  var GFunc_t = ctypes.FunctionType(
+    ctypes.default_abi, ctypes.void_t,
+    [gpointer]
+  ).ptr;
+  if (!GFunc_t)
+    throw "GFunc_t is unavailable";
+
+  return GFunc_t;
+});
+
+XPCOMUtils.defineLazyGetter(this, "GList", function() {
+  return ctypes.StructType("GList");
+});
+
+// void                g_list_free                         (GList *list);
+XPCOMUtils.defineLazyGetter(this, "g_list_free", function() {
+  var g_list_free = libgobject.declare(
+    "g_list_free", ctypes.default_abi, ctypes.void_t,
+    GList.ptr
+  );
+
+  if (!g_list_free)
+    throw "g_list_free is unavailable";
+
+  return g_list_free;
+});
+
+// guint               g_list_length                       (GList *list);
+XPCOMUtils.defineLazyGetter(this, "g_list_length", function() {
+  var g_list_length = libgobject.declare(
+    "g_list_length", ctypes.default_abi, guint,
+    GList.ptr
+  );
+
+  if (!g_list_length)
+    throw "g_list_length is unavailable";
+
+  return g_list_length;
+});
+
+XPCOMUtils.defineLazyGetter(this, "g_list_foreach", function() {
+  var g_list_foreach = libgobject.declare(
+    "g_list_foreach", ctypes.default_abi, ctypes.void_t,
+    GList.ptr,
+    GFunc, // func
+    gpointer // user_data
+  );
+
+  if (!g_list_foreach)
+    throw "g_list_foreach is unavailable";
+
+  return g_list_foreach;
+});
+
 var LibGObject = {
   GCallback: GCallback,
   GCallbackFunction: GCallbackFunction,
@@ -156,5 +219,12 @@ var LibGObject = {
   g_signal_connect: function(instance, detailed_signal, handler, data) {
       return g_signal_connect_data(instance, detailed_signal,
                                    handler, data, null, 0);
-  }
+  },
+
+  GList: GList,
+  GFunc: GFunc,
+  GFunc_t: GFunc_t,
+  g_list_free: g_list_free,
+  g_list_length: g_list_length,
+  g_list_foreach: g_list_foreach,
 };

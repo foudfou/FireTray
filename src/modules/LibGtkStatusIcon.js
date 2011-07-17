@@ -15,14 +15,17 @@ var LibGtkStatusIcon = {
   init: function() {
     // If ctypes doesn't exist, try to get it
     Cu.import("resource://gre/modules/ctypes.jsm");
-      // If we still don't have ctypes, this isn't going to work...
+    // If we still don't have ctypes, this isn't going to work...
     if (typeof(ctypes) == "undefined") {
       throw ("Could not load JS-Ctypes");
     }
 
+    Cu.import("resource://moztray/LibGObject.js");
+    Cu.import("resource://moztray/LibGdkWindow.js");
+
     try {
       // Try to start up dependencies - if they fail, they'll throw
-      // exceptions. ex: GObjectLib.init();
+      // exceptions. ex: LibGObject.init();
 
       this._lib = ctypes.open(LIB_GTK);
       if (!this._lib)
@@ -47,8 +50,24 @@ var LibGtkStatusIcon = {
     // Types
     this.GtkStatusIcon = ctypes.StructType("GtkStatusIcon");
     this.GtkStatusIconRef = ctypes.PointerType(this.GtkStatusIcon);
-    this.GdkPixbuf = ctypes.StructType("GdkPixbuf");
-    this.GdkPixbufRef = ctypes.PointerType(this.GdkPixbuf);
+
+    this.GtkWindow = ctypes.StructType(
+      "GtkWindow", [
+      ]);
+
+    this.GtkStyle = ctypes.StructType("GtkStyle");
+    this.GtkRequisition = ctypes.StructType("GtkRequisition");
+    this.GtkAllocation = ctypes.StructType("GtkAllocation");
+    this.GtkWidget = ctypes.StructType("GtkWidget");
+    /* FIXME: unable to fix "struct field types must have defined and nonzero
+     * size" */
+    // this.GtkWidget.define([
+    //     { "style": this.GtkStyle.ptr },
+    //     { "requisition": this.GtkRequisition },
+    //     { "allocation": this.GtkAllocation },
+    //     { "window": LibGdkWindow.GdkWindow.ptr },
+    //     { "parent": ctypes.PointerType(ctypes.void_t) } // this.GtkWidget.ptr
+    //   ]);
 
     // Consts
     // this.INDICATOR_MESSAGES_SERVER_TYPE = "message";
@@ -67,6 +86,20 @@ var LibGtkStatusIcon = {
       ctypes.void_t,
       this.GtkStatusIconRef,
       ctypes.char.ptr
+    );
+
+    this.gtk_window_list_toplevels = this._lib.declare(
+      "gtk_window_list_toplevels", ctypes.default_abi, LibGObject.GList.ptr
+    );
+
+    this.gtk_widget_show = this._lib.declare(
+      "gtk_widget_show", ctypes.default_abi, ctypes.void_t,
+      this.GtkWidget.ptr
+    );
+
+    this.gtk_widget_hide = this._lib.declare(
+      "gtk_widget_hide", ctypes.default_abi, ctypes.void_t,
+      this.GtkWidget.ptr
     );
 
   }

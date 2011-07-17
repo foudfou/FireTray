@@ -23,6 +23,10 @@ XPCOMUtils.defineLazyGetter(this, "FILE", function() {
   return ctypes.StructType("FILE");
 });
 
+XPCOMUtils.defineLazyGetter(this, "pid_t", function() {
+  return ctypes.int;
+});
+
 XPCOMUtils.defineLazyGetter(this, "fdopen", function() {
   var fdopen = libc.declare(
     "fdopen", ctypes.default_abi, FILE.ptr,
@@ -74,12 +78,27 @@ XPCOMUtils.defineLazyGetter(this, "fflush", function() {
   return fflush;
 });
 
+// pid_t getpid(void);
+XPCOMUtils.defineLazyGetter(this, "getpid", function() {
+  var getpid = libc.declare(
+    "getpid", ctypes.default_abi, pid_t
+  );
+
+  if (!getpid)
+    throw "getpid is unavailable";
+
+  return getpid;
+});
+
 var LibC = {
   stderr: this.fdopen(2, "a"),
 
   FILE: FILE,
+  pid_t: pid_t,
+
   fdopen: fdopen,
   puts: puts,
   fputs: fputs,
   fflush: fflush,
+  getpid: getpid,
 }

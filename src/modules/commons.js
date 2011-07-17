@@ -6,7 +6,7 @@
  * http://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
  */
 
-var EXPORTED_SYMBOLS = [ "mozt", "Cc", "Ci" ];
+var EXPORTED_SYMBOLS = [ "mozt", "Cc", "Ci", "Cu" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -84,4 +84,32 @@ mozt.Utils = {
 
   appInfoService: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo), // appInfoService.name.toLower
 
+  observerService: Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService),
+
 };
+
+
+// var xpcomShutdownObserver = {
+// 	observe: function(subject, topic, data) {
+// 		if (topic == "xpcom-will-shutdown") {
+// 			mozt.Debug.debug('event: '
+//                        + 'subj: ' + subject
+//                        + 'topic ' + topic
+//                        + 'data ' + data);
+// 		}
+// 	},
+
+// 	get observerService() {
+// 		return Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+// 	},
+
+// 	register: function() {
+// 		this.observerService.addObserver(this, "xpcom-will-shutdown", false);
+// 	},
+
+// 	unregister: function() {
+// 		this.observerService.removeObserver(this, "xpcom-will-shutdown");
+// 	},
+// };
+
+// xpcomShutdownObserver.register();
