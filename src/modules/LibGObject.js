@@ -150,7 +150,7 @@ XPCOMUtils.defineLazyGetter(this, "GFunc", function() {
 XPCOMUtils.defineLazyGetter(this, "GFunc_t", function() {
   var GFunc_t = ctypes.FunctionType(
     ctypes.default_abi, ctypes.void_t,
-    [gpointer]
+    [gpointer, gpointer]
   ).ptr;
   if (!GFunc_t)
     throw "GFunc_t is unavailable";

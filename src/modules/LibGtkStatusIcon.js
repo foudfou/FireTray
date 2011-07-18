@@ -56,18 +56,28 @@ var LibGtkStatusIcon = {
       ]);
 
     this.GtkStyle = ctypes.StructType("GtkStyle");
-    this.GtkRequisition = ctypes.StructType("GtkRequisition");
-    this.GtkAllocation = ctypes.StructType("GtkAllocation");
+    this.GtkRequisition = ctypes.StructType(
+      "GtkRequisition", [
+        { width: LibGObject.gint },
+        { height: LibGObject.gint }
+      ]);
+    this.GtkAllocation = ctypes.StructType(
+      "GtkAllocation", [
+        { x: LibGObject.gint },
+        { y: LibGObject.gint },
+        { width: LibGObject.gint },
+        { height: LibGObject.gint }
+      ]);
+    /* NOTE: recursive struct needs define() and included structs MUST be
+     * defined ! */
     this.GtkWidget = ctypes.StructType("GtkWidget");
-    /* FIXME: unable to fix "struct field types must have defined and nonzero
-     * size" */
-    // this.GtkWidget.define([
-    //     { "style": this.GtkStyle.ptr },
-    //     { "requisition": this.GtkRequisition },
-    //     { "allocation": this.GtkAllocation },
-    //     { "window": LibGdkWindow.GdkWindow.ptr },
-    //     { "parent": ctypes.PointerType(ctypes.void_t) } // this.GtkWidget.ptr
-    //   ]);
+    this.GtkWidget.define([
+        { "style": this.GtkStyle.ptr },
+        { "requisition": this.GtkRequisition },
+        { "allocation": this.GtkAllocation },
+        { "window": LibGdkWindow.GdkWindow.ptr },
+        { "parent": this.GtkWidget.ptr }
+      ]);
 
     // Consts
     // this.INDICATOR_MESSAGES_SERVER_TYPE = "message";

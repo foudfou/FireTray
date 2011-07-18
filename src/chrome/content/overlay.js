@@ -48,6 +48,14 @@ var mozt_getAllWindows = function() {
     baseWindows[baseWindows.length] = mozt_getBaseWindow(w);
   }
 
+  // e = wm.getEnumerator(null);
+  // // e = wm.getXULWindowEnumerator(null);
+  // while(e.hasMoreElements()) {
+  //   let win = e.getNext().QueryInterface(Components.interfaces.nsIDOMChromeWindow);
+  //   // let win = e.getNext().QueryInterface(Components.interfaces.nsIXULWindow);
+  //   mozt.Debug.debug("WINDOW TITLE = " + win.document.documentElement.getAttribute("title") );
+  // }
+
   return baseWindows;
 };
 
@@ -107,20 +115,18 @@ var mozt_trayCbJS = function() {
 };
 
 var mozt_func;
-var mozt_funcGdkJS = function(a1, a2, a3) {
+var mozt_funcGdkJS = function(data, userData) {
   try {
     mozt.Debug.debug("GDK Window");
-    mozt.Debug.debug(a1);
-    // mozt.Debug.debug(a2);
-    // mozt.Debug.debug(a3);
+    mozt.Debug.debug(data + "\t" + userData);
   } catch(e) {mozt.Debug.debug(ex);}
 };
 
-var mozt_funcGtkJS = function(win) {
+var mozt_funcGtkJS = function(data, userData) {
   try {
-    ctypes.cast(win, LibGtkStatusIcon.GtkWidget.ptr);
-    mozt.Debug.debug("GTK Window " + win);
-    LibGtkStatusIcon.gtk_widget_hide(win);
+    ctypes.cast(data, LibGtkStatusIcon.GtkWidget.ptr);
+    mozt.Debug.debug("GTK Window " + data);
+    LibGtkStatusIcon.gtk_widget_hide(data);
   } catch(e) {mozt.Debug.debug(ex);}
 };
 
