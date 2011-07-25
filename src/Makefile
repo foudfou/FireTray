@@ -140,8 +140,9 @@ $(build_dir)/$(chrome_source_root)/%.js: $(chrome_source_root)/%.js
   then \
     cp -f $< $@; \
   else \
-    echo "Stripping comments from JS file $<"; \
+    echo "Stripping debug calls from JS file $<"; \
     sed '/mozt\.Debug\.dump/d' $< > $@; \
+    sed '/mozt\.Debug\.debug/d' $< > $@; \
   fi
 
 $(build_dir)/$(modules_dir)/commons.js: $(modules_dir)/commons.js

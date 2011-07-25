@@ -25,12 +25,11 @@ const CHATZILLA_ID = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
  * mozt namespace.
  */
 if ("undefined" == typeof(mozt)) {
-  var mozt = {
-    DEBUG_MODE: true,
-  };
+  var mozt = {};
 };
 
 mozt.Debug = {
+  DEBUG_MODE: true,
   _initialized: false,
 
   /**
@@ -50,12 +49,12 @@ mozt.Debug = {
    * IT'S IMPORTANT THAT DEBUG CALLS ARE WRITTEN ON A SINGLE LINE !
    */
   dump: function(message) { // Debuging function -- prints to javascript console
-    if(!mozt.DEBUG_MODE) return;
+    if(!this.DEBUG_MODE) return;
     this._consoleService.logStringMessage(message);
   },
 
   dumpObj: function(obj) {
-    if(!mozt.DEBUG_MODE) return;
+    if(!this.DEBUG_MODE) return;
     var str = "";
     for(i in obj) {
       try {
@@ -78,14 +77,12 @@ mozt.Debug.init();
 
 
 mozt.Utils = {
-
   prefService: Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
     .getBranch("extensions.moztray."),
 
   appInfoService: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo), // appInfoService.name.toLower
 
-  observerService: Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService),
-
+  windowMediator: Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator)
 };
 
 

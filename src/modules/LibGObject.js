@@ -95,17 +95,17 @@ XPCOMUtils.defineLazyGetter(this, "GClosureNotify", function() {
   return gpointer;
 });
 
-XPCOMUtils.defineLazyGetter(this, "GCallbackFunction", function() {
-  var GCallbackFunction =
+XPCOMUtils.defineLazyGetter(this, "GCallback_t", function() {
+  var GCallback_t =
     ctypes.FunctionType(ctypes.default_abi,
                         ctypes.void_t,
                         [gpointer,
                          guint,
                          gpointer]).ptr;
-  if (!GCallbackFunction)
-    throw "GCallbackFunction is unavailable";
+  if (!GCallback_t)
+    throw "GCallback_t is unavailable";
 
-  return GCallbackFunction;
+  return GCallback_t;
 });
 
 XPCOMUtils.defineLazyGetter(this, "g_signal_connect_data", function() {
@@ -204,7 +204,7 @@ XPCOMUtils.defineLazyGetter(this, "g_list_foreach", function() {
 
 var LibGObject = {
   GCallback: GCallback,
-  GCallbackFunction: GCallbackFunction,
+  GCallback_t: GCallback_t,
   gpointer: gpointer,
   gulong: gulong,
   guint: guint,

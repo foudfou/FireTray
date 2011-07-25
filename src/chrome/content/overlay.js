@@ -4,7 +4,6 @@
 Components.utils.import("resource://gre/modules/ctypes.jsm");
 Components.utils.import("resource://moztray/LibC.js");
 Components.utils.import("resource://moztray/LibGObject.js");
-Components.utils.import("resource://moztray/LibGdkWindow.js");
 Components.utils.import("resource://moztray/LibGtkStatusIcon.js");
 Components.utils.import("resource://moztray/commons.js");
 
@@ -12,130 +11,110 @@ const MOZT_ICON_DIR = "chrome/skin/";
 const MOZT_ICON_SUFFIX = "32.png";
 
 
-
-var mozt_getBaseWindow = function(win) {
-  var bw;
-  try {
-    bw = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-      .getInterface(Components.interfaces.nsIWebNavigation)
-      .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
-      .treeOwner
-      .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-      .getInterface(Components.interfaces.nsIXULWindow)
-      .docShell
-      .QueryInterface(Components.interfaces.nsIBaseWindow);
-  } catch (ex) {
-    bw = null;
-    setTimeout(function() {throw ex; }, 0);
-    // ignore no-interface exception
-  }
-  return bw;
+/**
+ * mozt namespace.
+ */
+if ("undefined" == typeof(mozt)) {
+  var mozt = {};
 };
 
-var mozt_getAllWindows = function() {
-  try {
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-      .getService(Components.interfaces.nsIWindowMediator);
-  } catch (err) {
-    alert(err);
-    return;
-  }
+mozt.Handler = {
+  _windowsHidden: false,
 
-  var baseWindows = new Array();
-  var e = wm.getEnumerator(null);
-  while (e.hasMoreElements()) {
-    var w = e.getNext();
-    baseWindows[baseWindows.length] = mozt_getBaseWindow(w);
-  }
+  _getBaseWindow: function(win) {
+    var bw;
+    try { // thx Neil Deakin !!
+      bw = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+        .getInterface(Components.interfaces.nsIWebNavigation)
+        .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+        .treeOwner
+        .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+        .getInterface(Components.interfaces.nsIBaseWindow);
+    } catch (ex) {
+      bw = null;
+      setTimeout(function() {throw ex; }, 0);
+      // ignore no-interface exception
+    }
+    return bw;
+  },
 
-  // e = wm.getEnumerator(null);
-  // // e = wm.getXULWindowEnumerator(null);
-  // while(e.hasMoreElements()) {
-  //   let win = e.getNext().QueryInterface(Components.interfaces.nsIDOMChromeWindow);
-  //   // let win = e.getNext().QueryInterface(Components.interfaces.nsIXULWindow);
-  //   mozt.Debug.debug("WINDOW TITLE = " + win.document.documentElement.getAttribute("title") );
-  // }
+  _getAllWindows: function() {
+    mozt.Debug.debug("_getAllWindows");
+    var baseWindows = new Array();
+    var e = mozt.Utils.windowMediator.getEnumerator(null);
+    while (e.hasMoreElements()) {
+      var w = e.getNext();
+      baseWindows[baseWindows.length] = this._getBaseWindow(w);
+    }
+    return baseWindows;
+  },
 
-  return baseWindows;
-};
+  /*
+   * might need to remember position...
+   * var outX = {}, outY = {}, outCX = {}, outCY = {};
+   * bw.getPositionAndSize(outX, outY, outCX, outCY);
+   * mozt.Debug.debug("pos: "
+   *                  + outX.value + ", "
+   *                  + outY.value + ", "
+   *                  + outCX.value + ", "
+   *                  + outCY.value
+   *                 );
+   */
+  showHideToTray: function(a1, a2, a3) {
+    mozt.Debug.debug("showHideToTray");
 
-var mozt_hideToTray = function() {
-  mozt.Debug.debug("mozt_hideToTray");
-/*
-  var toto = gBrowser.getBrowserForDocument(content.document)
-    .docShell
-    .QueryInterface(Components.interfaces.nsIBaseWindow)
-    .parentNativeWindow;
-  mozt.Debug.debug("toto: " + toto);
-*/
-  var baseWindows = mozt_getAllWindows();
-  mozt.Debug.dump("baseWindows: " + baseWindows.length);
-  for(var i=0; i<baseWindows.length; i++) {
-    var bw = baseWindows[i];
-    // bw.visibility = false;
-    // mozt.Debug.dumpObj(bw);
-    if (bw instanceof Ci.nsIBaseWindow) {
+    var baseWindows;
+    try {
+      baseWindows = this._getAllWindows();
+    } catch (x) {
+      mozt.Debug.debug(x);
+    }
+    mozt.Debug.debug("baseWindows: " + baseWindows.length);
+    for(var i=0; i<baseWindows.length; i++) {
+      var bw = baseWindows[i];
+
+      mozt.Debug.debug('isHidden: ' + this._windowsHidden);
       mozt.Debug.debug("bw.visibility: " + bw.visibility);
+      try {
+        if (this._windowsHidden) {
+          bw.visibility = true;
+        } else {
+          bw.visibility = false;
+        }
+      } catch (x) {
+        mozt.Debug.debug(x);
+      }
+      mozt.Debug.debug("bw.visibility: " + bw.visibility);
+
       mozt.Debug.debug("bw.title: " + bw.title);
       mozt.Debug.debug("bw.parentNativeWindow: " + bw.parentNativeWindow);
-
-      // try {
-      //   bw.visibility = false;
-      //   // bw.parentNativeWindow = null;
-      // } catch (x) {
-      //   mozt.Debug.debug(x);
-      // }
-
     }
 
-    // var parentWin = bw.parentNativeWindow;
-    // var gdkWin = new LibGdkWindow.GdkWindow.ptr;
-    // try {
-    //   // gdkWin = ctypes.cast(tmp, LibGdkWindow.GdkWindow.ptr);
-    // } catch (x) {
-    //   mozt.Debug.debug(x);
-    // }
-    // if (!gdkWin) mozt.Debug.debug("gdkWin undefined");
-    // mozt.Debug.dumpObj(gdkWin);
-    // LibGdkWindow.GdkWindowHide(gdkWin);
-  }
+    if (this._windowsHidden) {
+      this._windowsHidden = false;
+    } else {
+      this._windowsHidden = true;
+    }
 
-}
+  },
 
-var mozt_trayCb;
-var mozt_isHidden = false;
-var mozt_trayCbJS = function() {
-  if (mozt_isHidden) {
-    mozt_isHidden = false;
-    mozt_restoreFromTray();
-  } else {
-    mozt_isHidden = true;
-    mozt_hideToTray();
-  }
-};
+}; // mozt.Handler
 
-var mozt_func;
-var mozt_funcGdkJS = function(data, userData) {
-  try {
-    mozt.Debug.debug("GDK Window");
-    mozt.Debug.debug(data + "\t" + userData);
-  } catch(e) {mozt.Debug.debug(ex);}
-};
 
-var mozt_funcGtkJS = function(data, userData) {
-  try {
-    ctypes.cast(data, LibGtkStatusIcon.GtkWidget.ptr);
-    mozt.Debug.debug("GTK Window " + data);
-    LibGtkStatusIcon.gtk_widget_hide(data);
-  } catch(e) {mozt.Debug.debug(ex);}
-};
-
+var mozt_activateCb;            // pointer to JS function. should not be eaten
+                                // by GC ("Running global cleanup code from
+                                // study base classes" ?)
 
 mozt.Main = {
+  initialized: false,
 
   onLoad: function() {
+    if (this.initialized)
+      return true;              // prevent creating multiple tray icon
+
+    mozt.Debug.debug('initialized: ' + this.initialized);
+
     // initialization code
-    this.initialized = null;
     this.strings = document.getElementById("moztray-strings");
 
     try {
@@ -148,23 +127,35 @@ mozt.Main = {
       return false;
     }
 
-    LibGtkStatusIcon.init();
-    this.tray_icon  = LibGtkStatusIcon.gtk_status_icon_new();
-    var mozApp = mozt.Utils.appInfoService.name.toLowerCase();
-    var icon_filename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
-    LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
-                                                   icon_filename);
-        // gtk_status_icon_set_tooltip(tray_icon,
-        //                             "Example Tray Icon");
-        // gtk_status_icon_set_visible(tray_icon, TRUE);
-
-    mozt_trayCb = LibGObject.GCallbackFunction(mozt_trayCbJS);
-
-    LibGObject.g_signal_connect(this.tray_icon, "activate",
-                                mozt_trayCb, null);
-
     try {
-      // Experimental stuff...
+
+      // instanciate tray icon
+      LibGtkStatusIcon.init();
+      this.tray_icon  = LibGtkStatusIcon.gtk_status_icon_new();
+      var mozApp = mozt.Utils.appInfoService.name.toLowerCase();
+      var iconFilename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
+      LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
+                                                     iconFilename);
+      // gtk_status_icon_set_tooltip(tray_icon,
+      //                             "Example Tray Icon");
+      // gtk_status_icon_set_visible(tray_icon, TRUE);
+      LibGtkStatusIcon.shutdown();
+
+      // watch out for binding problems !
+      mozt_activateCb = LibGObject.GCallback_t(
+        function(){mozt.Handler.showHideToTray();});
+      LibGObject.g_signal_connect(this.tray_icon, "activate",
+                                  mozt_activateCb, null);
+
+    } catch (x) {
+      Components.utils.reportError(ex);
+      return false;
+    }
+
+/*
+    try {
+      // Experimental stuff... needs
+      // Components.utils.import("resource://moztray/LibGdkWindow.js");
 
       var gdkScreen = LibGdkWindow.GdkScreenGetDefault();
       var tl = LibGdkWindow.GdkScreenGetToplevelWindows(gdkScreen);
@@ -188,6 +179,7 @@ mozt.Main = {
     } catch (x) {
       mozt.Debug.debug(x);
     }
+*/
 
     mozt.Debug.debug('Moztray LOADED !');
     this.initialized = true;
@@ -197,16 +189,15 @@ mozt.Main = {
   onQuit: function() {
     // Remove observer
     mozt.Utils.prefService.removeObserver("", this);
-    LibGtkStatusIcon.shutdown();
 
-    mozt.Debug.dump('Moztray UNLOADED !');
+    mozt.Debug.debug('Moztray UNLOADED !');
     this.initialized = false;
   },
 
   observe: function(subject, topic, data) {
     // Observer for pref changes
     if (topic != "nsPref:changed") return;
-    mozt.Debug.dump('Pref changed: '+data);
+    mozt.Debug.debug('Pref changed: '+data);
 
     switch(data) {
     // case 'enabled':
