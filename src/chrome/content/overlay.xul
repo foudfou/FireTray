@@ -2,7 +2,7 @@
 <?xml-stylesheet href="chrome://moztray/skin/overlay.css" type="text/css"?>
 <!DOCTYPE overlay SYSTEM "chrome://moztray/locale/overlay.dtd">
 <overlay id="moztray-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script src="overlay.js"/>
+  <script type="application/javascript;version=1.7" src="overlay.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="moztray-strings" src="chrome://moztray/locale/overlay.properties"/>
