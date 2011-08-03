@@ -23,14 +23,15 @@ mozt.Main = {
       return false;
     }
 
+    LibGtkStatusIcon.init();
     this.tray_icon  = LibGtkStatusIcon.gtk_status_icon_new();
     var mozApp = mozt.Utils.appInfoService.name;
     var icon_filename = MOZT_ICON_DIR + mozApp.toLowerCase() + MOZT_ICON_SUFFIX;
     LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
                                                    icon_filename);
-    // FIXME: hover on icno produces:
-    // (firefox-bin:5302): Gdk-CRITICAL **: IA__gdk_window_get_root_coords:
-    // assertion `GDK_IS_WINDOW (window)' failed
+    // TODO: produces:
+    // (firefox-bin:5302): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
+    // (thunderbird-bin:5380): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
     LibGtkStatusIcon.gtk_status_icon_set_tooltip_text(this.tray_icon,
                                                       mozApp);
 
