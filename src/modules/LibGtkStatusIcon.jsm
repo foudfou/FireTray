@@ -20,8 +20,8 @@ var LibGtkStatusIcon = {
       throw ("Could not load JS-Ctypes");
     }
 
-    Cu.import("resource://moztray/LibGObject.js");
-    Cu.import("resource://moztray/LibGdkWindow.js");
+    Cu.import("resource://moztray/LibGObject.jsm");
+    Cu.import("resource://moztray/LibGdkWindow.jsm");
 
     try {
       // Try to start up dependencies - if they fail, they'll throw

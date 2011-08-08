@@ -12,7 +12,8 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://moztray/LibC.js");
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://moztray/LibC.jsm");
 
 const FIREFOX_ID = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
 const THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
@@ -77,12 +78,7 @@ mozt.Debug.init();
 
 
 mozt.Utils = {
-  prefService: Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
-    .getBranch("extensions.moztray."),
-
-  appInfoService: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo), // appInfoService.name.toLower
-
-  windowMediator: Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator)
+  prefService: Services.prefs.getBranch("extensions.moztray.")
 };
 
 

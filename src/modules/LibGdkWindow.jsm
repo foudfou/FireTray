@@ -46,7 +46,7 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://moztray/LibGObject.js");
+Cu.import("resource://moztray/LibGObject.jsm");
 
 XPCOMUtils.defineLazyGetter(this, "libgdkwindow", function() {
   var libgdkwindow = ctypes.open(LIB_GDKWINDOW);

@@ -1,10 +1,9 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-// TODO: Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/ctypes.jsm");
-Components.utils.import("resource://moztray/LibC.js");
-Components.utils.import("resource://moztray/LibGObject.js");
-Components.utils.import("resource://moztray/LibGtkStatusIcon.js");
+Components.utils.import("resource://moztray/LibGObject.jsm");
+Components.utils.import("resource://moztray/LibGtkStatusIcon.jsm");
 Components.utils.import("resource://moztray/commons.js");
 
 const MOZT_ICON_DIR = "chrome/skin/";
@@ -41,7 +40,7 @@ mozt.Handler = {
   _getAllWindows: function() {
     mozt.Debug.debug("_getAllWindows");
     var baseWindows = new Array();
-    var e = mozt.Utils.windowMediator.getEnumerator(null);
+    var e = Services.wm.getEnumerator(null);
     while (e.hasMoreElements()) {
       var w = e.getNext();
       baseWindows[baseWindows.length] = this._getBaseWindow(w);
@@ -132,7 +131,7 @@ mozt.Main = {
       // instanciate tray icon
       LibGtkStatusIcon.init();
       this.tray_icon  = LibGtkStatusIcon.gtk_status_icon_new();
-      var mozApp = mozt.Utils.appInfoService.name.toLowerCase();
+      var mozApp = Services.appinfo.name.toLowerCase();
       var iconFilename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
       LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
                                                      iconFilename);
@@ -153,7 +152,7 @@ mozt.Main = {
                                   mozt_activateCb, null);
 
     } catch (x) {
-      Components.utils.reportError(ex);
+      Components.utils.reportError(x);
       return false;
     }
 
@@ -220,3 +219,4 @@ mozt.Main = {
 // https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
 window.addEventListener("load", function (e) { mozt.Main.onLoad(); }, false);
 window.addEventListener("unload", function(e) { mozt.Main.onQuit(); }, false);
+// TODO: put all mozt into a module (jsm) so it's loaded only once
