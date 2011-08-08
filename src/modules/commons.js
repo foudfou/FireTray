@@ -1,11 +1,5 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-/*
- * should contain our business logic in JSM, available through service objects,
- * and keep chrome scripts limited to handle presentation logic.
- * http://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
- */
-
 var EXPORTED_SYMBOLS = [ "mozt", "Cc", "Ci", "Cu" ];
 
 const Cc = Components.classes;
