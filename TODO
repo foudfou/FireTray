@@ -1,0 +1,4 @@
+* BUG: windows aren't restored at the same position, or with the same z-order
+https://developer.mozilla.org/en/nsIWindowMediator#getZOrderXULWindowEnumerator%28%29
+
+* make multi-platform. At least have js-ctypes library call dependant on OS detection. (best would be to have the OS-dependant modules loaded at startup) 

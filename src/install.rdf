@@ -12,6 +12,7 @@
     <em:description>A system tray extension for linux.</em:description>
     <!-- <em:optionsURL>chrome://moztray/content/options.xul</em:optionsURL> -->
     <em:iconURL>chrome://moztray/skin/icon32.png</em:iconURL>
+    <em:targetPlatform>Linux</em:targetPlatform> <!-- only Linux supported for now -->
 
     <em:targetApplication>
       <Description>

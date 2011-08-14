@@ -20,9 +20,9 @@ mozt.Main = {
     }
 
     if (!mozt.Handler.initialized)
-      mozt.Handler.init();
+      var initOK = mozt.Handler.init();
 
-    mozt.Debug.debug('Moztray LOADED !');
+    mozt.Debug.debug('Moztray LOADED: ' + initOK);
     return true;
   },
 
@@ -52,6 +52,14 @@ mozt.Main = {
 // should be sufficient for a delayed Startup (no need for window.setTimeout())
 // https://developer.mozilla.org/en/Extensions/Performance_best_practices_in_extensions
 // https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
-window.addEventListener("load", function (e) { mozt.Main.onLoad(); }, false);
-window.addEventListener("unload", function(e) { mozt.Main.onQuit(); }, false);
-// TODO: put all mozt into a module (jsm) so it's loaded only once
+// https://developer.mozilla.org/en/Extensions/Performance_best_practices_in_extensions#Removing_Event_Listeners
+window.addEventListener(
+  'load', function (e) {
+    removeEventListener('load', arguments.callee, true);
+    mozt.Main.onLoad(); },
+  false);
+window.addEventListener(
+  'unload', function (e) {
+    removeEventListener('unload', arguments.callee, true);
+    mozt.Main.onQuit(); },
+  false);

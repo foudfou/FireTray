@@ -35,76 +35,83 @@ var mozt_activateCb;            // pointer to JS function. should not be eaten
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 mozt.Handler = {
   initialized: false,
-
   _windowsHidden: false,
+  _handledDOMWindows: [],
 
-  _getBaseWindow: function(win) {
-    var bw;
-    try { // thx Neil Deakin !!
-      bw = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-        .getInterface(Components.interfaces.nsIWebNavigation)
-        .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+  _getBaseOrXULWindowFromDOMWindow: function(win, winType) {
+    let winInterface, winOut;
+    try {                       // thx Neil Deakin !!
+      winInterface =  win.QueryInterface(Ci.nsIInterfaceRequestor)
+        .getInterface(Ci.nsIWebNavigation)
+        .QueryInterface(Ci.nsIDocShellTreeItem)
         .treeOwner
-        .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-        .getInterface(Components.interfaces.nsIBaseWindow);
+        .QueryInterface(Ci.nsIInterfaceRequestor);
     } catch (ex) {
-      bw = null;
-      setTimeout(function() {throw ex; }, 0);
       // ignore no-interface exception
+      mozt.Debug.debug(ex);
+      Components.utils.reportError(ex);
+      return null;
     }
-    return bw;
-  },
 
-  _getAllWindows: function() {
-    mozt.Debug.debug("_getAllWindows");
-    var baseWindows = new Array();
-    var e = Services.wm.getEnumerator(null);
-    while (e.hasMoreElements()) {
-      var w = e.getNext();
-      baseWindows[baseWindows.length] = this._getBaseWindow(w);
+    if (winType == "BaseWindow")
+      winOut = winInterface.getInterface(Ci.nsIBaseWindow);
+    else if (winType == "XUL")
+      winOut = winInterface.getInterface(Ci.nsIXULWindow);
+    else {
+      Components.utils.reportError("MOZTRAY: unknown winType '" + winType + "'");
+      return null;
     }
-    return baseWindows;
+
+    return winOut;
   },
 
   /*
-   * might need to remember position...
-   * var outX = {}, outY = {}, outCX = {}, outCY = {};
-   * bw.getPositionAndSize(outX, outY, outCX, outCY);
-   * mozt.Debug.debug("pos: "
-   *                  + outX.value + ", "
-   *                  + outY.value + ", "
-   *                  + outCX.value + ", "
-   *                  + outCY.value
-   *                 );
+   * DAMN IT ! getZOrderDOMWindowEnumerator doesn't work on Linux :-(
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=156333, and all windows
+   * seem to have the same zlevel ("normalZ") which is different from the
+   * z-order. There seems to be no means to get/set the z-order at this
+   * time...
    */
+  _updateHandledDOMWindows: function() {
+    mozt.Debug.debug("_updateHandledDOMWindows");
+    this._handledDOMWindows = [];
+    var windowsEnumerator = Services.wm.getEnumerator(null); // returns a nsIDOMWindow
+    while (windowsEnumerator.hasMoreElements()) {
+      this._handledDOMWindows[this._handledDOMWindows.length] =
+        windowsEnumerator.getNext();
+    }
+  },
+
   showHideToTray: function(a1, a2, a3) {
     mozt.Debug.debug("showHideToTray");
 
-    var baseWindows;
     try {
-      baseWindows = this._getAllWindows();
+      this._updateHandledDOMWindows();
     } catch (x) {
       mozt.Debug.debug(x);
     }
-    mozt.Debug.debug("baseWindows: " + baseWindows.length);
-    for(var i=0; i<baseWindows.length; i++) {
-      var bw = baseWindows[i];
+    mozt.Debug.debug("nb Windows: " + this._handledDOMWindows.length);
+
+    for(let i=0; i<this._handledDOMWindows.length; i++) {
+      let bw = this._getBaseOrXULWindowFromDOMWindow(
+        this._handledDOMWindows[i], "BaseWindow");
 
       mozt.Debug.debug('isHidden: ' + this._windowsHidden);
       mozt.Debug.debug("bw.visibility: " + bw.visibility);
       try {
-        if (this._windowsHidden) {
+        if (this._windowsHidden) { // show
           bw.visibility = true;
-        } else {
+        } else {                // hide
           bw.visibility = false;
+          let x = {}, y = {};
+          bw.getPosition(x, y);
+          mozt.Debug.debug("bw.position: " + x.value + ", " + y.value);
         }
       } catch (x) {
         mozt.Debug.debug(x);
       }
       mozt.Debug.debug("bw.visibility: " + bw.visibility);
-
       mozt.Debug.debug("bw.title: " + bw.title);
-      mozt.Debug.debug("bw.parentNativeWindow: " + bw.parentNativeWindow);
     }
 
     if (this._windowsHidden) {
@@ -116,6 +123,17 @@ mozt.Handler = {
   },
 
   init: function() {            // creates icon
+
+    // platform checks
+    let runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
+    let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0 will be checked ing install, so we shouldn't need to care
+    mozt.Debug.debug("OS=" + runtimeOS + ", XULrunner=" + xulVer);
+    if (runtimeOS != "Linux") {
+      Components.utils.reportError("MOZTRAY: only Linux platform supported at this time. Moztray not loaded");
+      return;
+      // Cu.import("resource://moztray/MoztHandler-Linux.jsm");
+    }
+
     try {
 
       // instanciate tray icon
