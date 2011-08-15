@@ -5,7 +5,7 @@ Components.utils.import("resource://moztray/MoztHandler.jsm");
 
 mozt.Main = {
 
-  onLoad: function() {
+  onLoad: function(e) {
     // initialization code
     this.strings = document.getElementById("moztray-strings");
 
@@ -22,16 +22,31 @@ mozt.Main = {
     if (!mozt.Handler.initialized)
       var initOK = mozt.Handler.init();
 
+    // prevent window closing.
+    if (mozt.Utils.prefService.getBoolPref('close_hides'))
+      window.addEventListener(
+        'close', function(event){mozt.Main.onClose(event);}, true);
+
     mozt.Debug.debug('Moztray LOADED: ' + initOK);
     return true;
   },
 
-  onQuit: function() {
+  onQuit: function(e) {
     // Remove observer
     mozt.Utils.prefService.removeObserver("", this);
 
     mozt.Debug.debug('Moztray UNLOADED !');
-    mozt.Handler.initialized = false;
+    /*
+     *  NOTE: don't mozt.Handler.initialized=false here, otherwise after a
+     *  window close, a new window will create a new handler (and hence, a new
+     *  tray icon)
+     */
+  },
+
+  onClose: function(event) {
+    mozt.Debug.debug('Moztray CLOSE');
+    mozt.Handler.showHideToTray();
+    event.preventDefault();
   },
 
   observe: function(subject, topic, data) {
@@ -40,10 +55,15 @@ mozt.Main = {
     mozt.Debug.debug('Pref changed: '+data);
 
     switch(data) {
-    // case 'enabled':
-    //   var enable = mozt.Utils.prefService.getBoolPref('enabled');
-    //   this._toggle(enable);
-    //   break;
+    case 'close_hides':         // prevent window closing.
+      // TODO: apply to all windows !!
+      if (mozt.Utils.prefService.getBoolPref('close_hides'))
+        window.addEventListener(
+          'close', function(event){mozt.Main.onClose(event);}, true);
+      else
+        window.removeEventListener(
+          'close', function(event){mozt.Main.onClose(event);}, true);
+      break;
     }
   },
 

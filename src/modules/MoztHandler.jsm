@@ -85,11 +85,16 @@ mozt.Handler = {
   showHideToTray: function(a1, a2, a3) {
     mozt.Debug.debug("showHideToTray");
 
-    try {
+    /*
+     * we update _handledDOMWindows only when hiding, because remembered{X,Y}
+     * properties are attached to them, and we suppose there won't be
+     * created/delete windows when all are hidden.
+     *
+     * NOTE: this may not be a good design if we want to show/hide one window
+     * at a time...
+     */
+    if (!this._windowsHidden)   // hide
       this._updateHandledDOMWindows();
-    } catch (x) {
-      mozt.Debug.debug(x);
-    }
     mozt.Debug.debug("nb Windows: " + this._handledDOMWindows.length);
 
     for(let i=0; i<this._handledDOMWindows.length; i++) {
@@ -100,13 +105,29 @@ mozt.Handler = {
       mozt.Debug.debug("bw.visibility: " + bw.visibility);
       try {
         if (this._windowsHidden) { // show
+
+          // correct position
+          let x = this._handledDOMWindows[i].rememberedX;
+          let y = this._handledDOMWindows[i].rememberedY;
+          mozt.Debug.debug("set bw.position: " + x + ", " + y);
+          bw.setPosition(x, y);
+
           bw.visibility = true;
+
         } else {                // hide
-          bw.visibility = false;
+
+          // remember position
           let x = {}, y = {};
           bw.getPosition(x, y);
-          mozt.Debug.debug("bw.position: " + x.value + ", " + y.value);
+          mozt.Debug.debug("remember bw.position: " + x.value + ", " + y.value);
+          this._handledDOMWindows[i].rememberedX = x.value;
+          this._handledDOMWindows[i].rememberedY = y.value;
+          // var windowID = win.QueryInterface(Ci.nsIInterfaceRequestor)
+          //   .getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
+
+          bw.visibility = false;
         }
+
       } catch (x) {
         mozt.Debug.debug(x);
       }
@@ -134,6 +155,9 @@ mozt.Handler = {
       // Cu.import("resource://moztray/MoztHandler-Linux.jsm");
     }
 
+    // init all handled windows
+    this._updateHandledDOMWindows();
+
     try {
 
       // instanciate tray icon
@@ -145,7 +169,7 @@ mozt.Handler = {
                                                      iconFilename);
 
       // set tooltip.
-      // TODO: produces:
+      // GTK bug:
       // (firefox-bin:5302): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
       // (thunderbird-bin:5380): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
       LibGtkStatusIcon.gtk_status_icon_set_tooltip_text(this.tray_icon,

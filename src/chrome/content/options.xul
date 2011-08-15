@@ -4,51 +4,21 @@
 <prefwindow id="moztray-preferences"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
             title="&prefwindow.title;"
-            onload= "moztray.UIOptions.onLoad()">
+            onload= "mozt.UIOptions.onLoad()">
 
   <script type="application/x-javascript" src="options.js" />
 
   <prefpane id="pane1" label="&pane1.title;">
 
     <preferences>
-      <preference id="pref_bool_enabled"
-                  name="extensions.moztray.enabled" type="bool"/>
-      <preference id="pref_bool_add_temporary_exceptions"
-                  name="extensions.moztray.add_temporary_exceptions" type="bool"/>
-      <preference id="pref_bool_notify"
-                  name="extensions.moztray.notify" type="bool"/>
-      <preference id="pref_bool_bypass_issuer_unknown"
-                  name="extensions.moztray.bypass_issuer_unknown" type="bool"/>
-      <preference id="pref_bool_bypass_self_signed"
-                  name="extensions.moztray.bypass_self_signed" type="bool"/>
+      <preference id="pref_bool_close_hides"
+                  name="extensions.moztray.close_hides" type="bool"/>
     </preferences>
 
     <groupbox>
-      <caption>
-      <checkbox id="ui_enabled" preference="pref_bool_enabled"
-                label="&bool_enabled.label;"
-                accesskey="&bool_enabled.accesskey;"
-                onclick="moztray.UIOptions.toggleDisable_All(!this.checked); // checked=before click"/>
-      </caption>
-      <checkbox id="ui_add_temporary_exceptions"
-                preference="pref_bool_add_temporary_exceptions"
-                label="&bool_add_temporary_exceptions.label;"
-                accesskey="&bool_add_temporary_exceptions.accesskey;"/>
-      <checkbox id="ui_notify" preference="pref_bool_notify"
-                label="&bool_notify.label;"
-                accesskey="&bool_notify.accesskey;"/>
-      <groupbox id="ui_bypass_errors">
-        <caption label="&bypass_errors;"/>
-        <checkbox id="ui_bypass_issuer_unknown"
-                  preference="pref_bool_bypass_issuer_unknown"
-                  label="&bool_bypass_issuer_unknown.label;"
-                  accesskey="&bool_bypass_issuer_unknown.accesskey;"/>
-        <checkbox id="ui_bypass_self_signed"
-                  preference="pref_bool_bypass_self_signed"
-                  label="&bool_bypass_self_signed.label;"
-                  accesskey="&bool_bypass_self_signed.accesskey;"
-                  onclick="moztray.UIOptions.toggleCheck_BypassIssuerUnknown(!this.checked);"/>
-      </groupbox>
+      <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
+                label="&bool_close_hides.label;"
+                accesskey="&bool_close_hides.accesskey;"/>
     </groupbox>
 
   </prefpane>

@@ -1,4 +1,5 @@
-* BUG: windows aren't restored at the same position, or with the same z-order
-https://developer.mozilla.org/en/nsIWindowMediator#getZOrderXULWindowEnumerator%28%29
+* fix 'close_hides' option behavior
+
+* add 'quit' to icon menu + add option UI for close_all_tabs
 
 * make multi-platform. At least have js-ctypes library call dependant on OS detection. (best would be to have the OS-dependant modules loaded at startup) 
