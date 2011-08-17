@@ -6,7 +6,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-const LIB_GTK = "libgtk-x11-2.0.so";
+const LIB_GTK = "libgtk-x11-2.0.so.0";
 
 var LibGtkStatusIcon = {
 
