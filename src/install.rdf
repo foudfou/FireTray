@@ -11,7 +11,8 @@
     <em:homepageURL>https://github.com/foudfou/moztray</em:homepageURL>
     <em:description>A system tray extension for linux.</em:description>
     <em:optionsURL>chrome://moztray/content/options.xul</em:optionsURL>
-    <em:iconURL>chrome://moztray/skin/icon32.png</em:iconURL>
+    <em:iconURL>chrome://moztray/skin/moztray48.png</em:iconURL>
+    <em:icon64URL>chrome://moztray/skin/moztray64.png</em:icon64URL>
     <em:targetPlatform>Linux</em:targetPlatform> <!-- only Linux supported for now -->
 
     <em:targetApplication>
