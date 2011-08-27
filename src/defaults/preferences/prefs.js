@@ -3,7 +3,3 @@ pref("extensions.moztray@foudil.fr.description", "chrome://moztray/locale/overla
 
 // Extension prefs
 pref("extensions.moztray.close_hides", true);
-
-// Set the environment settings
-pref("browser.ssl_override_behavior", 2);
-pref("browser.xul.error_pages.expert_bad_cert", true);

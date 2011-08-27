@@ -5,9 +5,15 @@ Components.utils.import("resource://moztray/commons.js");
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
+/**
+ * mozt namespace.
+ */
+if ("undefined" == typeof(mozt)) {
+  var mozt = {};
+};
+
 mozt.UIOptions = {
 
-  onLoad: function() {
-  },
+  onLoad: function() {}
 
 };

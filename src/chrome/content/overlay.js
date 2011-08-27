@@ -3,6 +3,13 @@
 Components.utils.import("resource://moztray/commons.js");
 Components.utils.import("resource://moztray/MoztHandler.jsm");
 
+/**
+ * mozt namespace.
+ */
+if ("undefined" == typeof(mozt)) {
+  var mozt = {};
+};
+
 mozt.Main = {
 
   onLoad: function(e) {
@@ -12,29 +19,31 @@ mozt.Main = {
     try {
       // Set up preference change observer
       mozt.Utils.prefService.QueryInterface(Ci.nsIPrefBranch2);
-      mozt.Utils.prefService.addObserver("", this, false);
+      let that = this;
+      mozt.Utils.prefService.addObserver("", that, false);
     }
     catch (ex) {
       Components.utils.reportError(ex);
       return false;
     }
 
-    if (!mozt.Handler.initialized)
-      var initOK = mozt.Handler.init();
+    let init = mozt.Handler.initialized || mozt.Handler.init();
 
     // prevent window closing.
-    if (mozt.Utils.prefService.getBoolPref('close_hides'))
-      window.addEventListener(
-        'close', function(event){mozt.Main.onClose(event);}, true);
+    if (mozt.Utils.prefService.getBoolPref('close_hides')) {
+      mozt.Debug.debug('close_hides set');
+      let that = this;
+      window.addEventListener('close', that.onClose, true);
+    }
 
-    mozt.Debug.debug('Moztray LOADED: ' + initOK);
+    mozt.Debug.debug('Moztray LOADED: ' + init);
     return true;
   },
 
   onQuit: function(e) {
     // Remove observer
-    mozt.Utils.prefService.removeObserver("", this);
-
+    let that = this;
+    mozt.Utils.prefService.removeObserver("", that);
     mozt.Debug.debug('Moztray UNLOADED !');
     /*
      *  NOTE: don't mozt.Handler.initialized=false here, otherwise after a
@@ -43,12 +52,15 @@ mozt.Main = {
      */
   },
 
+  // TODO: prevent preceding warning about closing multiple tabs
   onClose: function(event) {
     mozt.Debug.debug('Moztray CLOSE');
     mozt.Handler.showHideToTray();
     event.preventDefault();
   },
 
+  // NOTE: each new window gets a new mozt.Main, and hence listens to pref
+  // changes
   observe: function(subject, topic, data) {
     // Observer for pref changes
     if (topic != "nsPref:changed") return;
@@ -56,16 +68,18 @@ mozt.Main = {
 
     switch(data) {
     case 'close_hides':         // prevent window closing.
-      // TODO: apply to all windows !!
-      if (mozt.Utils.prefService.getBoolPref('close_hides'))
-        window.addEventListener(
-          'close', function(event){mozt.Main.onClose(event);}, true);
-      else
-        window.removeEventListener(
-          'close', function(event){mozt.Main.onClose(event);}, true);
+      let close_hides = mozt.Utils.prefService.getBoolPref('close_hides');
+      let that = this;
+      if (close_hides) {
+        mozt.Debug.debug('close_hides: '+close_hides);
+        window.addEventListener('close', that.onClose, true); // mozt.Main.onClose;
+      } else {
+        mozt.Debug.debug('close_hides: '+close_hides);
+        window.removeEventListener('close', that.onClose, true);
+      }
       break;
     }
-  },
+  }
 
 };
 
