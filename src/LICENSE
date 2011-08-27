@@ -12,3 +12,8 @@ FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should be able to obtain a copy of the GNU General Public License from 
 http://www.gnu.org/licenses/gpl.txt; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+***
+
+LibGdkWindow.jsm, LibGObject.jsm borrowed from Mike Conley
+<mconley@mozillamessaging.com> and lincensed under the MPL/LGPL/GPL tri-license

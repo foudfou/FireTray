@@ -6,7 +6,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *    Mike Conley <mconley@mozillamessaging.com>
+ *    Foudil Brétel <foudil.newbie+amo@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -33,7 +34,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 var EXPORTED_SYMBOLS = ["LibGdkWindow"];
@@ -158,12 +159,10 @@ XPCOMUtils.defineLazyGetter(this, "gdk_window_hide", function() {
   return gdk_window_hide;
 });
 
-
 XPCOMUtils.defineLazyGetter(this, "GdkScreen", function() {
   return ctypes.StructType("GdkScreen");
 });
 
-// GdkScreen *         gdk_screen_get_default              (void);
 XPCOMUtils.defineLazyGetter(this, "gdk_screen_get_default", function() {
   var gdk_screen_get_default =
     libgdkwindow.declare("gdk_screen_get_default", ctypes.default_abi, GdkScreen.ptr);
@@ -174,7 +173,6 @@ XPCOMUtils.defineLazyGetter(this, "gdk_screen_get_default", function() {
   return gdk_screen_get_default;
 });
 
-// GList *             gdk_screen_get_toplevel_windows     (GdkScreen *screen);
 XPCOMUtils.defineLazyGetter(this, "gdk_screen_get_toplevel_windows", function() {
   var gdk_screen_get_toplevel_windows = libgdkwindow.declare(
     "gdk_screen_get_toplevel_windows", ctypes.default_abi, LibGObject.GList.ptr,
@@ -190,12 +188,11 @@ XPCOMUtils.defineLazyGetter(this, "gdk_screen_get_toplevel_windows", function() 
 var LibGdkWindow = {
   GdkWindow: GdkWindow,
   GdkWindowAttributes: GdkWindowAttributes,
+  GdkScreen: GdkScreen,
   GdkX11WindowSetUserTime: gdk_x11_window_set_user_time,
   GdkWindowNew: gdk_window_new,
   GdkWindowDestroy: gdk_window_destroy,
   GdkWindowHide: gdk_window_hide,
-
-  GdkScreen: GdkScreen,
   GdkScreenGetDefault: gdk_screen_get_default,
-  GdkScreenGetToplevelWindows: gdk_screen_get_toplevel_windows,
+  GdkScreenGetToplevelWindows: gdk_screen_get_toplevel_windows
 }
