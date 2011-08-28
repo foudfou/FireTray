@@ -151,7 +151,7 @@ mozt.Handler = {
     mozt.Debug.debug("OS=" + runtimeOS + ", XULrunner=" + xulVer);
     if (runtimeOS != "Linux") {
       Components.utils.reportError("MOZTRAY: only Linux platform supported at this time. Moztray not loaded");
-      return;
+      return false;
       // Cu.import("resource://moztray/MoztHandler-Linux.jsm");
     }
 

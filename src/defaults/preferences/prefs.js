@@ -3,3 +3,6 @@ pref("extensions.moztray@foudil.fr.description", "chrome://moztray/locale/overla
 
 // Extension prefs
 pref("extensions.moztray.close_hides", true);
+
+// Global prefs
+pref("browser.tabs.warnOnClose", false);

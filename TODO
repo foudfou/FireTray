@@ -1,5 +1,3 @@
-* fix 'close_hides' option behavior
-
 * add 'quit' to icon menu + add option UI for close_all_tabs
 
 * make multi-platform. At least have js-ctypes library call dependant on OS detection. (best would be to have the OS-dependant modules loaded at startup) 

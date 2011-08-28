@@ -8,4 +8,10 @@
     <stringbundle id="moztray-strings" src="chrome://moztray/locale/overlay.properties"/>
   </stringbundleset>
 
+  <keyset>
+    <!-- otherwide window.addEventListener("keypress", mozt.Main.onKeyPress, true);
+         see https://addons.mozilla.org/en-US/firefox/addon/move-tabs/ -->
+    <key id="key_close" key="W" modifiers="shift meta" oncommand="mozt.Handler.showHideToTray();" /> <!-- mozt.Main.onKeyClose(); -->
+  </keyset>
+
 </overlay>

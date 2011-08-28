@@ -30,11 +30,10 @@ mozt.Main = {
     let init = mozt.Handler.initialized || mozt.Handler.init();
 
     // prevent window closing.
-    if (mozt.Utils.prefService.getBoolPref('close_hides')) {
-      mozt.Debug.debug('close_hides set');
-      let that = this;
-      window.addEventListener('close', that.onClose, true);
-    }
+    let that = this;
+    window.addEventListener('close', that.onClose, true);
+    // NOTE: each new window gets a new mozt.Main, and hence listens to pref
+    // changes
 
     mozt.Debug.debug('Moztray LOADED: ' + init);
     return true;
@@ -53,32 +52,22 @@ mozt.Main = {
   },
 
   // TODO: prevent preceding warning about closing multiple tabs
+  // (browser.tabs.warnOnClose)
   onClose: function(event) {
     mozt.Debug.debug('Moztray CLOSE');
-    mozt.Handler.showHideToTray();
-    event.preventDefault();
+    let close_hides = mozt.Utils.prefService.getBoolPref('close_hides');
+    mozt.Debug.debug('close_hides: '+close_hides);
+    if (close_hides) {
+      mozt.Handler.showHideToTray();
+      event && event.preventDefault(); // no event when called directly (xul)
+    }
   },
 
-  // NOTE: each new window gets a new mozt.Main, and hence listens to pref
-  // changes
   observe: function(subject, topic, data) {
     // Observer for pref changes
     if (topic != "nsPref:changed") return;
     mozt.Debug.debug('Pref changed: '+data);
-
-    switch(data) {
-    case 'close_hides':         // prevent window closing.
-      let close_hides = mozt.Utils.prefService.getBoolPref('close_hides');
-      let that = this;
-      if (close_hides) {
-        mozt.Debug.debug('close_hides: '+close_hides);
-        window.addEventListener('close', that.onClose, true); // mozt.Main.onClose;
-      } else {
-        mozt.Debug.debug('close_hides: '+close_hides);
-        window.removeEventListener('close', that.onClose, true);
-      }
-      break;
-    }
+    // switch(data) { ...
   }
 
 };
