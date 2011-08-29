@@ -239,35 +239,6 @@ mozt.Handler = {
       return false;
     }
 
-/*
-    try {
-      // Experimental stuff... needs
-      // Components.utils.import("resource://moztray/LibGdkWindow.js");
-
-      var gdkScreen = LibGdkWindow.GdkScreenGetDefault();
-      var tl = LibGdkWindow.GdkScreenGetToplevelWindows(gdkScreen);
-      mozt.Debug.debug(tl);
-
-      // gboolean            gdk_window_is_visible               (GdkWindow *window);
-      mozt_func = LibGObject.GFunc_t(mozt_funcGdkJS);
-      LibGObject.g_list_foreach(tl, mozt_func, null);
-      var gdkWinCount = LibGObject.g_list_length(tl);
-      mozt.Debug.debug('gdkWinCount: ' + gdkWinCount);
-
-      var pid = LibC.getpid();
-      mozt.Debug.debug(pid);
-
-      tl = LibGtkStatusIcon.gtk_window_list_toplevels();
-      mozt_func = LibGObject.GFunc_t(mozt_funcGtkJS);
-      LibGObject.g_list_foreach(tl, mozt_func, null);
-      var gtkWinCount = LibGObject.g_list_length(tl);
-      mozt.Debug.debug('gtkWinCount: ' + gtkWinCount);
-
-    } catch (x) {
-      mozt.Debug.debug(x);
-    }
-*/
-
     this.initialized = true;
     return true;
   },

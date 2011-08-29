@@ -51,8 +51,6 @@ var LibGtkStatusIcon = {
 
     this.GtkStatusIcon = ctypes.StructType("GtkStatusIcon");
 
-    // this.GtkWindow = ctypes.StructType("GtkWindow", []); // not implemented yet
-
     this.GtkStyle = ctypes.StructType("GtkStyle");
     this.GtkRequisition = ctypes.StructType(
       "GtkRequisition", [
@@ -78,35 +76,7 @@ var LibGtkStatusIcon = {
         { "parent": this.GtkWidget.ptr }
       ]);
 
-    this.GtkAccelGroup = ctypes.StructType(
-      "GtkAccelGroup", [
-        { "isLocked": LibGObject.gboolean },
-        { "modifierMask": ctypes.int } // GdkModifierType = enum
-      ]);
-    this.GtkArrowPlacement = ctypes.int; // enum
-
     this.GtkMenu = ctypes.StructType("GtkMenu");
-    this.GtkMenu.define(
-      [{ "accelGroup": this.GtkAccelGroup.ptr },
-       { "accelPath": LibGObject.gchar.ptr },
-       { "active": LibGObject.gint },
-       { "attachWidget": this.GtkWidget.ptr },
-       { "monitor": LibGObject.gint },
-       { "reserveToggleSize": LibGObject.gboolean },
-       { "tearoffState": LibGObject.gboolean },
-       { "tearoffTitle": LibGObject.gchar.ptr },
-       { "bottomAttach": LibGObject.gint },
-       { "leftAttach": LibGObject.gint },
-       { "rightAttach": LibGObject.gint },
-       { "topAttach": LibGObject.gint },
-       { "arrowPlacement": this.GtkArrowPlacement },
-       { "arrowScaling": ctypes.float }, // LibGObject.gfloat doesn't work ??
-       { "doubleArrows": LibGObject.gboolean },
-       { "horizontalOffset": LibGObject.gint },
-       { "horizontalPadding": LibGObject.gint },
-       { "verticalOffset": LibGObject.gint },
-       { "verticalPadding": LibGObject.gint }
-      ]);
 
     this.GtkMenuShell = ctypes.StructType("GtkMenuShell");
     // use ctypes.cast(menu, LibGtkStatusIcon.GtkMenuShell.ptr);
@@ -137,19 +107,6 @@ var LibGtkStatusIcon = {
       "gtk_status_icon_set_tooltip_text", ctypes.default_abi, ctypes.void_t,
       this.GtkStatusIcon.ptr, ctypes.char.ptr);
 
-/*
-    this.gtk_window_list_toplevels = this._lib.declare(
-      "gtk_window_list_toplevels", ctypes.default_abi, LibGObject.GList.ptr);
-
-    this.gtk_widget_show = this._lib.declare(
-      "gtk_widget_show", ctypes.default_abi, ctypes.void_t,
-      this.GtkWidget.ptr);
-
-    this.gtk_widget_hide = this._lib.declare(
-      "gtk_widget_hide", ctypes.default_abi, ctypes.void_t,
-      this.GtkWidget.ptr);
-*/
-
     this.gtk_menu_new = this._lib.declare(
       "gtk_menu_new", ctypes.default_abi, this.GtkMenu.ptr);
 
@@ -165,8 +122,6 @@ var LibGtkStatusIcon = {
       "gtk_widget_show_all", ctypes.default_abi, ctypes.void_t,
       this.GtkWidget.ptr);
 
-// static void trayIconPopup(GtkStatusIcon *status_icon, guint button, guint32 activate_time, gpointer popUpMenu)
-//     gtk_menu_popup(GTK_MENU(popUpMenu), NULL, NULL, gtk_status_icon_position_menu, status_icon, button, activate_time);
     this.gtk_menu_popup = this._lib.declare(
       "gtk_menu_popup", ctypes.default_abi, ctypes.void_t,
       this.GtkMenu.ptr, this.GtkWidget.ptr, this.GtkWidget.ptr,
