@@ -4,7 +4,7 @@ Moztray
 Overview
 --------
 
-Rewrite attempt of **Firetray** with js-ctypes, with focus on message count display.
+Rewrite attempt of **Firetray** with js-ctypes, with focus on unread message count display.
 
 Notes
 -----

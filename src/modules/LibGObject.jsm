@@ -87,6 +87,10 @@ XPCOMUtils.defineLazyGetter(this, "gboolean", function() {
   return gint;
 });
 
+XPCOMUtils.defineLazyGetter(this, "gfloat", function() {
+  return ctypes.float;
+});
+
 XPCOMUtils.defineLazyGetter(this, "GConnectFlags", function() {
   return guint;
 });

@@ -23,9 +23,11 @@ if ("undefined" == typeof(mozt)) {
   var mozt = {};
 };
 
-var mozt_activateCb;            // pointer to JS function. should not be eaten
-                                // by GC ("Running global cleanup code from
-                                // study base classes" ?)
+// pointer to JS functions. should not be eaten by GC ("Running global cleanup
+// code from study base classes" ?)
+var mozt_activateCb;
+var mozt_popupMenuCb;
+
 /**
  * Singleton object for tray icon management
  */
@@ -56,7 +58,7 @@ mozt.Handler = {
     if (winType == "BaseWindow")
       winOut = winInterface.getInterface(Ci.nsIBaseWindow);
     else if (winType == "XUL")
-      winOut = winInterface.getInterface(Ci.nsIXULWindow);
+    winOut = winInterface.getInterface(Ci.nsIXULWindow);
     else {
       Components.utils.reportError("MOZTRAY: unknown winType '" + winType + "'");
       return null;
@@ -141,13 +143,32 @@ mozt.Handler = {
       this._windowsHidden = true;
     }
 
+  }, // showHideToTray
+
+  popupMenu: function(icon, button, activateTime, menu) {
+    // GtkStatusIcon *status_icon, guint button, guint activate_time,  gpointer  user_data
+    mozt.Debug.debug("MENU POPUP");
+    mozt.Debug.debug("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
+
+    try {
+      LibGtkStatusIcon.init(); // before anything !!!
+      var gtkMenuPtr = ctypes.cast(menu, LibGtkStatusIcon.GtkMenu.ptr);
+      var iconGpointer = ctypes.cast(icon, LibGObject.gpointer);
+      LibGtkStatusIcon.gtk_menu_popup(
+        gtkMenuPtr, null, null, LibGtkStatusIcon.gtk_status_icon_position_menu,
+        iconGpointer, button, activateTime);
+      LibGtkStatusIcon.shutdown();
+    } catch (x) {
+      mozt.Debug.debug(x);
+    }
   },
 
   init: function() {            // creates icon
 
     // platform checks
     let runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
-    let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0 will be checked ing install, so we shouldn't need to care
+    // version checked during install, so we shouldn't need to care
+    let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
     mozt.Debug.debug("OS=" + runtimeOS + ", XULrunner=" + xulVer);
     if (runtimeOS != "Linux") {
       Components.utils.reportError("MOZTRAY: only Linux platform supported at this time. Moztray not loaded");
@@ -162,26 +183,55 @@ mozt.Handler = {
 
       // instanciate tray icon
       LibGtkStatusIcon.init();
-      this.tray_icon  = LibGtkStatusIcon.gtk_status_icon_new();
+      this.trayIcon  = LibGtkStatusIcon.gtk_status_icon_new();
       var mozApp = Services.appinfo.name.toLowerCase();
       var iconFilename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
-      LibGtkStatusIcon.gtk_status_icon_set_from_file(this.tray_icon,
+      LibGtkStatusIcon.gtk_status_icon_set_from_file(this.trayIcon,
                                                      iconFilename);
 
+      // build icon popup menu
+      this.menu = LibGtkStatusIcon.gtk_menu_new();
+      // TODO: intl labels,
+      // gtk_image_menu_item_new_with_label ?
+      var menuItemView = LibGtkStatusIcon.gtk_image_menu_item_new_with_label("View");
+/*
+      let image = gtk_image_new_from_file("");
+      LibGtkStatusIcon.gtk_image_set_pixel_size( GTK_IMAGE ( image ), GTK_ICON_SIZE_MENU );
+      LibGtkStatusIcon.gtk_image_menu_item_set_image ( GTK_IMAGE_MENU_ITEM ( menu_item ), image );
+*/
+      var menuItemExit = LibGtkStatusIcon.gtk_image_menu_item_new_with_label("Exit");
+      var menuShell = ctypes.cast(this.menu, LibGtkStatusIcon.GtkMenuShell.ptr);
+      LibGtkStatusIcon.gtk_menu_shell_append(menuShell, menuItemView);
+      LibGtkStatusIcon.gtk_menu_shell_append(menuShell, menuItemExit);
+      var menuWidget = ctypes.cast(this.menu, LibGtkStatusIcon.GtkWidget.ptr);
+      LibGtkStatusIcon.gtk_widget_show_all(menuWidget);
+
+      // here we do use a function handler because we need the args passed to
+      // it ! But we need to abandon 'this' in popupMenu()
+      mozt_popupMenuCb =
+        LibGtkStatusIcon.GCallbackMenuPopup_t(mozt.Handler.popupMenu);
+      LibGObject.g_signal_connect(this.trayIcon, "popup-menu",
+                                  mozt_popupMenuCb, this.menu);
+
+/*
+    g_signal_connect (G_OBJECT (menuItemView), "activate", G_CALLBACK (trayView), window);
+    g_signal_connect (G_OBJECT (menuItemExit), "activate", G_CALLBACK (trayExit), NULL);
+*/
       // set tooltip.
       // GTK bug:
       // (firefox-bin:5302): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
       // (thunderbird-bin:5380): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
-      LibGtkStatusIcon.gtk_status_icon_set_tooltip_text(this.tray_icon,
+      LibGtkStatusIcon.gtk_status_icon_set_tooltip_text(this.trayIcon,
                                                         mozApp);
 
       // close lib
       LibGtkStatusIcon.shutdown();
 
-      // watch out for binding problems !
+      // watch out for binding problems ! here we prefer to keep 'this' in
+      // showHideToTray() and abandon the args.
       mozt_activateCb = LibGObject.GCallback_t(
         function(){mozt.Handler.showHideToTray();});
-      LibGObject.g_signal_connect(this.tray_icon, "activate",
+      LibGObject.g_signal_connect(this.trayIcon, "activate",
                                   mozt_activateCb, null);
 
     } catch (x) {
