@@ -35,7 +35,7 @@ mozt.Main = {
     // NOTE: each new window gets a new mozt.Main, and hence listens to pref
     // changes
 
-    mozt.Debug.debug('Moztray LOADED: ' + init);
+    LOG('Moztray LOADED: ' + init);
     return true;
   },
 
@@ -43,7 +43,7 @@ mozt.Main = {
     // Remove observer
     let that = this;
     mozt.Utils.prefService.removeObserver("", that);
-    mozt.Debug.debug('Moztray UNLOADED !');
+    LOG('Moztray UNLOADED !');
     /*
      *  NOTE: don't mozt.Handler.initialized=false here, otherwise after a
      *  window close, a new window will create a new handler (and hence, a new
@@ -54,9 +54,9 @@ mozt.Main = {
   // TODO: prevent preceding warning about closing multiple tabs
   // (browser.tabs.warnOnClose)
   onClose: function(event) {
-    mozt.Debug.debug('Moztray CLOSE');
+    LOG('Moztray CLOSE');
     let close_hides = mozt.Utils.prefService.getBoolPref('close_hides');
-    mozt.Debug.debug('close_hides: '+close_hides);
+    LOG('close_hides: '+close_hides);
     if (close_hides) {
       mozt.Handler.showHideToTray();
       event && event.preventDefault(); // no event when called directly (xul)
@@ -66,7 +66,7 @@ mozt.Main = {
   observe: function(subject, topic, data) {
     // Observer for pref changes
     if (topic != "nsPref:changed") return;
-    mozt.Debug.debug('Pref changed: '+data);
+    LOG('Pref changed: '+data);
     // switch(data) { ...
   }
 

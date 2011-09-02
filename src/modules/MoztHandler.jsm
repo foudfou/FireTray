@@ -8,7 +8,6 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-/* Cu.import("resource://moztray/LibC.jsm"); */
 Cu.import("resource://moztray/LibGObject.jsm");
 Cu.import("resource://moztray/LibGtkStatusIcon.jsm");
 Cu.import("resource://moztray/commons.js");
@@ -50,7 +49,7 @@ mozt.Handler = {
         .QueryInterface(Ci.nsIInterfaceRequestor);
     } catch (ex) {
       // ignore no-interface exception
-      mozt.Debug.debug(ex);
+      LOG(ex);
       Components.utils.reportError(ex);
       return null;
     }
@@ -75,7 +74,7 @@ mozt.Handler = {
    * time...
    */
   _updateHandledDOMWindows: function() {
-    mozt.Debug.debug("_updateHandledDOMWindows");
+    LOG("_updateHandledDOMWindows");
     this._handledDOMWindows = [];
     var windowsEnumerator = Services.wm.getEnumerator(null); // returns a nsIDOMWindow
     while (windowsEnumerator.hasMoreElements()) {
@@ -84,8 +83,9 @@ mozt.Handler = {
     }
   },
 
+  // FIXME: parameters may not be needed !! see LibGObject.GCallback_t
   showHideToTray: function(a1, a2, a3) {
-    mozt.Debug.debug("showHideToTray");
+    LOG("showHideToTray");
 
     /*
      * we update _handledDOMWindows only when hiding, because remembered{X,Y}
@@ -97,21 +97,21 @@ mozt.Handler = {
      */
     if (!this._windowsHidden)   // hide
       this._updateHandledDOMWindows();
-    mozt.Debug.debug("nb Windows: " + this._handledDOMWindows.length);
+    LOG("nb Windows: " + this._handledDOMWindows.length);
 
     for(let i=0; i<this._handledDOMWindows.length; i++) {
       let bw = this._getBaseOrXULWindowFromDOMWindow(
         this._handledDOMWindows[i], "BaseWindow");
 
-      mozt.Debug.debug('isHidden: ' + this._windowsHidden);
-      mozt.Debug.debug("bw.visibility: " + bw.visibility);
+      LOG('isHidden: ' + this._windowsHidden);
+      LOG("bw.visibility: " + bw.visibility);
       try {
         if (this._windowsHidden) { // show
 
           // correct position
           let x = this._handledDOMWindows[i].rememberedX;
           let y = this._handledDOMWindows[i].rememberedY;
-          mozt.Debug.debug("set bw.position: " + x + ", " + y);
+          LOG("set bw.position: " + x + ", " + y);
           bw.setPosition(x, y);
 
           bw.visibility = true;
@@ -121,7 +121,7 @@ mozt.Handler = {
           // remember position
           let x = {}, y = {};
           bw.getPosition(x, y);
-          mozt.Debug.debug("remember bw.position: " + x.value + ", " + y.value);
+          LOG("remember bw.position: " + x.value + ", " + y.value);
           this._handledDOMWindows[i].rememberedX = x.value;
           this._handledDOMWindows[i].rememberedY = y.value;
           // var windowID = win.QueryInterface(Ci.nsIInterfaceRequestor)
@@ -131,10 +131,10 @@ mozt.Handler = {
         }
 
       } catch (x) {
-        mozt.Debug.debug(x);
+        LOG(x);
       }
-      mozt.Debug.debug("bw.visibility: " + bw.visibility);
-      mozt.Debug.debug("bw.title: " + bw.title);
+      LOG("bw.visibility: " + bw.visibility);
+      LOG("bw.title: " + bw.title);
     }
 
     if (this._windowsHidden) {
@@ -146,9 +146,8 @@ mozt.Handler = {
   }, // showHideToTray
 
   popupMenu: function(icon, button, activateTime, menu) {
-    // GtkStatusIcon *status_icon, guint button, guint activate_time,  gpointer  user_data
-    mozt.Debug.debug("MENU POPUP");
-    mozt.Debug.debug("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
+    LOG("MENU POPUP");
+    LOG("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
 
     try {
       LibGtkStatusIcon.init(); // before anything !!!
@@ -159,17 +158,24 @@ mozt.Handler = {
         iconGpointer, button, activateTime);
       LibGtkStatusIcon.shutdown();
     } catch (x) {
-      mozt.Debug.debug(x);
+      LOG(x);
     }
   },
 
+  /*
+   * @param strings l10n Strings passed from the XUL overlay
+   */
   init: function() {            // creates icon
+
+    // initialize l10n
+    this.strings = Services.strings
+      .createBundle("chrome://moztray/locale/overlay.properties");
 
     // platform checks
     let runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
     // version checked during install, so we shouldn't need to care
     let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
-    mozt.Debug.debug("OS=" + runtimeOS + ", XULrunner=" + xulVer);
+    LOG("OS=" + runtimeOS + ", XULrunner=" + xulVer);
     if (runtimeOS != "Linux") {
       Components.utils.reportError("MOZTRAY: only Linux platform supported at this time. Moztray not loaded");
       return false;
@@ -193,13 +199,17 @@ mozt.Handler = {
       this.menu = LibGtkStatusIcon.gtk_menu_new();
       // TODO: intl labels,
       // gtk_image_menu_item_new_with_label ?
-      var menuItemView = LibGtkStatusIcon.gtk_image_menu_item_new_with_label("View");
+		  var menuItemViewLabel = this.strings.GetStringFromName("popupMenu.itemLabel.View");
+      var menuItemView = LibGtkStatusIcon.gtk_image_menu_item_new_with_label(
+        menuItemViewLabel);
 /*
-      let image = gtk_image_new_from_file("");
+      let image = LibGtkStatusIcon.gtk_image_new_from_file("myfile.png");
       LibGtkStatusIcon.gtk_image_set_pixel_size( GTK_IMAGE ( image ), GTK_ICON_SIZE_MENU );
       LibGtkStatusIcon.gtk_image_menu_item_set_image ( GTK_IMAGE_MENU_ITEM ( menu_item ), image );
 */
-      var menuItemExit = LibGtkStatusIcon.gtk_image_menu_item_new_with_label("Exit");
+		  var menuItemViewExit = this.strings.GetStringFromName("popupMenu.itemLabel.Exit");
+      var menuItemExit = LibGtkStatusIcon.gtk_image_menu_item_new_with_label(
+        menuItemViewExit);
       var menuShell = ctypes.cast(this.menu, LibGtkStatusIcon.GtkMenuShell.ptr);
       LibGtkStatusIcon.gtk_menu_shell_append(menuShell, menuItemView);
       LibGtkStatusIcon.gtk_menu_shell_append(menuShell, menuItemExit);

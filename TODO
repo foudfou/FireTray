@@ -2,6 +2,9 @@
 
 * convert to a https://developer.mozilla.org/en/Extensions/Bootstrapped_extensions
 
+see ../restartless-restart-ffext/ and
+http://erikvold.com/blog/index.cfm/2010/10/28/restartless-firefox-addons-part-1-giving-your-addon-the-bootstrap
+
 WONTFIX:
 
 * ability to hide windows individually/globally
