@@ -34,29 +34,3 @@ if ("undefined" == typeof(mozt)) {
 mozt.Utils = {
   prefService: Services.prefs.getBranch("extensions.moztray.")
 };
-
-
-// var xpcomShutdownObserver = {
-// 	observe: function(subject, topic, data) {
-// 		if (topic == "xpcom-will-shutdown") {
-// 			mozt.Debug.debug('event: '
-//                        + 'subj: ' + subject
-//                        + 'topic ' + topic
-//                        + 'data ' + data);
-// 		}
-// 	},
-
-// 	get observerService() {
-// 		return Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-// 	},
-
-// 	register: function() {
-// 		this.observerService.addObserver(this, "xpcom-will-shutdown", false);
-// 	},
-
-// 	unregister: function() {
-// 		this.observerService.removeObserver(this, "xpcom-will-shutdown");
-// 	},
-// };
-
-// xpcomShutdownObserver.register();

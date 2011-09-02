@@ -22,10 +22,11 @@ if ("undefined" == typeof(mozt)) {
   var mozt = {};
 };
 
-// pointer to JS functions. should not be eaten by GC ("Running global cleanup
-// code from study base classes" ?)
-var mozt_activateCb;
+// pointers to JS functions. should *not* be eaten by GC ("Running global
+// cleanup code from study base classes" ?)
+var mozt_iconActivateCb;
 var mozt_popupMenuCb;
+var mozt_menuItemQuitActivateCb;
 
 /**
  * Singleton object for tray icon management
@@ -162,6 +163,17 @@ mozt.Handler = {
     }
   },
 
+  quitApplication: function() {
+    try {
+      let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']
+        .getService(Ci.nsIAppStartup);
+      appStartup.quit(Components.interfaces.nsIAppStartup.eAttemptQuit);
+    } catch (x) {
+      Components.utils.reportError(x);
+      return;
+    }
+  },
+
   /*
    * @param strings l10n Strings passed from the XUL overlay
    */
@@ -197,22 +209,21 @@ mozt.Handler = {
 
       // build icon popup menu
       this.menu = LibGtkStatusIcon.gtk_menu_new();
-      // TODO: intl labels,
-      // gtk_image_menu_item_new_with_label ?
-		  var menuItemViewLabel = this.strings.GetStringFromName("popupMenu.itemLabel.View");
-      var menuItemView = LibGtkStatusIcon.gtk_image_menu_item_new_with_label(
-        menuItemViewLabel);
-/*
-      let image = LibGtkStatusIcon.gtk_image_new_from_file("myfile.png");
-      LibGtkStatusIcon.gtk_image_set_pixel_size( GTK_IMAGE ( image ), GTK_ICON_SIZE_MENU );
-      LibGtkStatusIcon.gtk_image_menu_item_set_image ( GTK_IMAGE_MENU_ITEM ( menu_item ), image );
-*/
-		  var menuItemViewExit = this.strings.GetStringFromName("popupMenu.itemLabel.Exit");
-      var menuItemExit = LibGtkStatusIcon.gtk_image_menu_item_new_with_label(
-        menuItemViewExit);
+      // shouldn't need to g_utf16_to_utf8() thank to js-ctypes
+		  var menuItemQuitLabel = this.strings.GetStringFromName("popupMenu.itemLabel.Quit");
+      var menuItemQuit = LibGtkStatusIcon.gtk_image_menu_item_new_with_label(
+        menuItemQuitLabel);
+      var menuItemQuitIcon = LibGtkStatusIcon.gtk_image_new_from_stock(
+        "gtk-quit", LibGtkStatusIcon.GTK_ICON_SIZE_MENU);
+      LibGtkStatusIcon.gtk_image_menu_item_set_image(menuItemQuit, menuItemQuitIcon);
       var menuShell = ctypes.cast(this.menu, LibGtkStatusIcon.GtkMenuShell.ptr);
-      LibGtkStatusIcon.gtk_menu_shell_append(menuShell, menuItemView);
-      LibGtkStatusIcon.gtk_menu_shell_append(menuShell, menuItemExit);
+      LibGtkStatusIcon.gtk_menu_shell_append(menuShell, menuItemQuit);
+
+      mozt_menuItemQuitActivateCb = LibGObject.GCallback_t(
+        function(){mozt.Handler.quitApplication();});
+      LibGObject.g_signal_connect(menuItemQuit, "activate",
+                                  mozt_menuItemQuitActivateCb, null);
+
       var menuWidget = ctypes.cast(this.menu, LibGtkStatusIcon.GtkWidget.ptr);
       LibGtkStatusIcon.gtk_widget_show_all(menuWidget);
 
@@ -223,10 +234,6 @@ mozt.Handler = {
       LibGObject.g_signal_connect(this.trayIcon, "popup-menu",
                                   mozt_popupMenuCb, this.menu);
 
-/*
-    g_signal_connect (G_OBJECT (menuItemView), "activate", G_CALLBACK (trayView), window);
-    g_signal_connect (G_OBJECT (menuItemExit), "activate", G_CALLBACK (trayExit), NULL);
-*/
       // set tooltip.
       // GTK bug:
       // (firefox-bin:5302): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
@@ -239,10 +246,10 @@ mozt.Handler = {
 
       // watch out for binding problems ! here we prefer to keep 'this' in
       // showHideToTray() and abandon the args.
-      mozt_activateCb = LibGObject.GCallback_t(
+      mozt_iconActivateCb = LibGObject.GCallback_t(
         function(){mozt.Handler.showHideToTray();});
       LibGObject.g_signal_connect(this.trayIcon, "activate",
-                                  mozt_activateCb, null);
+                                  mozt_iconActivateCb, null);
 
     } catch (x) {
       Components.utils.reportError(x);

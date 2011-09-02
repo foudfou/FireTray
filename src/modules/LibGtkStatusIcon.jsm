@@ -77,9 +77,9 @@ var LibGtkStatusIcon = {
       ]);
 
     this.GtkMenu = ctypes.StructType("GtkMenu");
-
     this.GtkMenuShell = ctypes.StructType("GtkMenuShell");
     // use ctypes.cast(menu, LibGtkStatusIcon.GtkMenuShell.ptr);
+    this.GtkImageMenuItem = ctypes.StructType("GtkImageMenuItem");
 
     this.GtkMenuPositionFunc = ctypes.FunctionType(
       ctypes.default_abi, ctypes.void_t,
@@ -92,7 +92,7 @@ var LibGtkStatusIcon = {
        LibGObject.gpointer]).ptr;
 
     // Consts
-    // this.INDICATOR_MESSAGES_SERVER_TYPE = "message";
+    this.GTK_ICON_SIZE_MENU = 1;
 
     // Functions
 
@@ -111,12 +111,20 @@ var LibGtkStatusIcon = {
       "gtk_menu_new", ctypes.default_abi, this.GtkMenu.ptr);
 
     this.gtk_image_menu_item_new_with_label = this._lib.declare(
-      "gtk_image_menu_item_new_with_label", ctypes.default_abi, this.GtkWidget.ptr,
+      "gtk_image_menu_item_new_with_label", ctypes.default_abi, this.GtkImageMenuItem.ptr,
       LibGObject.gchar.ptr);
+
+    this.gtk_image_new_from_stock = this._lib.declare(
+      "gtk_image_new_from_stock", ctypes.default_abi, this.GtkWidget.ptr,
+      LibGObject.gchar.ptr, ctypes.int); // enum
+
+    this.gtk_image_menu_item_set_image = this._lib.declare(
+      "gtk_image_menu_item_set_image", ctypes.default_abi, ctypes.void_t,
+      this.GtkImageMenuItem.ptr, this.GtkWidget.ptr);
 
     this.gtk_menu_shell_append = this._lib.declare(
       "gtk_menu_shell_append", ctypes.default_abi, ctypes.void_t,
-      this.GtkMenuShell.ptr, this.GtkWidget.ptr);
+      this.GtkMenuShell.ptr, this.GtkImageMenuItem.ptr);
 
     this.gtk_widget_show_all = this._lib.declare(
       "gtk_widget_show_all", ctypes.default_abi, ctypes.void_t,

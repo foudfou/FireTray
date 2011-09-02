@@ -141,18 +141,17 @@ $(build_dir)/$(chrome_source_root)/%.js: $(chrome_source_root)/%.js
     cp -f $< $@; \
   else \
     echo "Stripping debug calls from JS file $<"; \
-    sed '/mozt\.Debug\.dump/d' $< > $@; \
-    sed '/mozt\.Debug\.debug/d' $< > $@; \
+    sed '/LOG(/d' $< > $@; \
   fi
 
-$(build_dir)/$(modules_dir)/commons.js: $(modules_dir)/commons.js
+$(build_dir)/$(modules_dir)/%: $(modules_dir)/%
 	@mkdir -p $(dir $@)
 	@if [[ "$(DEBUG)" =~ $(YES_RE) ]]; \
   then \
     cp -f $< $@; \
   else \
-    echo "Turning DEBUG_MODE off."; \
-    sed 's/DEBUG_MODE: true/DEBUG_MODE: false/' $< > $@; \
+    echo "Stripping debug calls from module $<"; \
+    sed '/LOG(/d' $< > $@; \
   fi
 
 $(build_dir):
