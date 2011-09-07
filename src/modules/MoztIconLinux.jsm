@@ -26,7 +26,6 @@ mozt.IconLinux = {
   menu: null,
   appName: null,
   ICON_FILENAME_DEFAULT: null,
-  ICON_DIR: "chrome/skin/", // FIXME: retrieve from chromeregistery
   ICON_SUFFIX: "32.png",
 
   init: function() {
@@ -36,7 +35,8 @@ mozt.IconLinux = {
       // init tray icon, some variables
       this.trayIcon  = LibGtkStatusIcon.gtk_status_icon_new();
       this.appName = Services.appinfo.name.toLowerCase();
-      this.ICON_FILENAME_DEFAULT = this.ICON_DIR + this.appName + this.ICON_SUFFIX;
+      this.ICON_FILENAME_DEFAULT = mozt.Utils.chromeToPath(
+        "chrome://moztray/skin/" +  this.appName + this.ICON_SUFFIX);
 
       this.setDefaultImage();
 
@@ -87,6 +87,7 @@ mozt.IconLinux = {
   setImage: function(filename) {
     if (!this.trayIcon)
       return false;
+    LOG(filename);
 
     try {
       LibGtkStatusIcon.gtk_status_icon_set_from_file(this.trayIcon,
@@ -101,7 +102,6 @@ mozt.IconLinux = {
   setDefaultImage: function() {
     if (!this.ICON_FILENAME_DEFAULT)
       throw "Default application icon filename not set";
-    LOG(this.ICON_FILENAME_DEFAULT);
     this.setImage(this.ICON_FILENAME_DEFAULT);
   },
 

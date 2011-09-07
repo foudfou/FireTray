@@ -100,16 +100,20 @@ mozt.Messaging = {
     LOG("TotalUnread="+this._unreadMsgCount);
 
     // update icon
-    if (this._unreadMsgCount > 0) {
-      mozt.IconLinux.setImage(mozt.IconLinux.ICON_DIR + "message-mail-new.png");
-      let localizedMessage = PluralForm.get(
-        this._unreadMsgCount, mozt.Utils.strings.GetStringFromName("icon.tooltip.unread_messages"))
-        .replace("#1", this._unreadMsgCount);;
-      mozt.IconLinux.setTooltip(localizedMessage);
-    }
-    else {
+    if (this._unreadMsgCount == 0) {
       mozt.IconLinux.setDefaultImage();
       mozt.IconLinux.setDefaultTooltip();
+    } else if (this._unreadMsgCount > 0) {
+      mozt.IconLinux.setImage(
+        mozt.Utils.chromeToPath("chrome://moztray/skin/message-mail-new.png"));
+      let localizedMessage = PluralForm.get(
+        this._unreadMsgCount,
+        mozt.Utils.strings.GetStringFromName("tooltip.unread_messages"))
+        .replace("#1", this._unreadMsgCount);;
+      mozt.IconLinux.setTooltip(localizedMessage);
+    } else {
+      ERROR("negative unread messages' count ?"); // should never happen
+      throw "negative message count"; // should never happen
     }
   }
 

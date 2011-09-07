@@ -36,5 +36,33 @@ if ("undefined" == typeof(mozt)) {
 
 mozt.Utils = {
   prefService: Services.prefs.getBranch("extensions.moztray."),
-  strings: Services.strings.createBundle("chrome://moztray/locale/overlay.properties")
+  strings: Services.strings.createBundle("chrome://moztray/locale/overlay.properties"),
+
+  // adapted from http://forums.mozillazine.org/viewtopic.php?p=921150#921150
+  chromeToPath: function(aPath) {
+    if (!aPath || !(/^chrome:/.test(aPath)))
+      return null;              // not a chrome url
+
+    let uri = Services.io.newURI(aPath, "UTF-8", null);
+    let registeryValue = Cc['@mozilla.org/chrome/chrome-registry;1']
+      .getService(Ci.nsIChromeRegistry)
+      .convertChromeURL(uri).spec;
+
+    if (/^file:/.test(registeryValue))
+      registeryValue = this._urlToPath(registeryValue);
+    else
+      registeryValue = this._urlToPath("file://"+registeryValue);
+
+    return registeryValue;
+  },
+
+  _urlToPath: function (aPath) {
+    if (!aPath || !/^file:/.test(aPath))
+      return null;
+
+    let protocolHandler = Cc["@mozilla.org/network/protocol;1?name=file"]
+      .createInstance(Ci.nsIFileProtocolHandler);
+    return protocolHandler.getFileFromURLSpec(aPath).path;
+  }
+
 };
