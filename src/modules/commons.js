@@ -33,6 +33,8 @@ if ("undefined" == typeof(mozt)) {
   });
 }, this);
 
+
 mozt.Utils = {
-  prefService: Services.prefs.getBranch("extensions.moztray.")
+  prefService: Services.prefs.getBranch("extensions.moztray."),
+  strings: Services.strings.createBundle("chrome://moztray/locale/overlay.properties")
 };

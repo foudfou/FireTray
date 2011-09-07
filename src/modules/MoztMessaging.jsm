@@ -7,6 +7,8 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource://gre/modules/PluralForm.jsm");
+Cu.import("resource://moztray/MoztIconLinux.jsm");
 Cu.import("resource://moztray/commons.js");
 
 const FLDR_UNINTERESTING =
@@ -61,8 +63,6 @@ mozt.Messaging = {
      */
     // TODO: check count correctly updated if folder/account creation/deletion
     OnItemIntPropertyChanged: function(folder, property, oldValue, newValue) {
-      LOG("OnItemIntPropertyChanged fired with property: "+property);
-
       if (property.toString() === "TotalUnreadMessages" &&
           !(folder.flags & FLDR_UNINTERESTING)) {
         LOG("Unread msgs for folder "+folder.prettyName+" was "+oldValue+" became "+newValue);
@@ -98,6 +98,19 @@ mozt.Messaging = {
       ERROR(x);
     }
     LOG("TotalUnread="+this._unreadMsgCount);
+
+    // update icon
+    if (this._unreadMsgCount > 0) {
+      mozt.IconLinux.setImage(mozt.IconLinux.ICON_DIR + "message-mail-new.png");
+      let localizedMessage = PluralForm.get(
+        this._unreadMsgCount, mozt.Utils.strings.GetStringFromName("icon.tooltip.unread_messages"))
+        .replace("#1", this._unreadMsgCount);;
+      mozt.IconLinux.setTooltip(localizedMessage);
+    }
+    else {
+      mozt.IconLinux.setDefaultImage();
+      mozt.IconLinux.setDefaultTooltip();
+    }
   }
 
 };
