@@ -39,9 +39,6 @@ mozt.Messaging = {
     let mailSessionNotificationFlags = Ci.nsIFolderListener.intPropertyChanged;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                mailSessionNotificationFlags);
-    // doesn't seem like we also needed a
-    // MailServices.mfn.addListener(that.notificationServiceListener,
-    // msgFolderNotificationFlags);
 
     this.enabled = true;
   },
@@ -66,14 +63,10 @@ mozt.Messaging = {
     OnItemIntPropertyChanged: function(folder, property, oldValue, newValue) {
       LOG("OnItemIntPropertyChanged fired with property: "+property);
 
-      switch (property.toString())  {
-      case "TotalUnreadMessages":
-        if (!(folder.flags & FLDR_UNINTERESTING)) {
-          LOG("Unread msgs for folder "+folder.prettyName+" was "+oldValue+" became "+newValue);
-          mozt.Messaging.updateUnreadMsgCount();
-        }
-        break;
-      default:
+      if (property.toString() === "TotalUnreadMessages" &&
+          !(folder.flags & FLDR_UNINTERESTING)) {
+        LOG("Unread msgs for folder "+folder.prettyName+" was "+oldValue+" became "+newValue);
+        mozt.Messaging.updateUnreadMsgCount();
       }
     }
   },
@@ -108,18 +101,3 @@ mozt.Messaging = {
   }
 
 };
-
-
-function hasMultipleAccounts() {
-  let count = 0;
-  // We don't want to just call Count() on the account nsISupportsArray, as we
-  // want to filter out accounts with "none" as the incoming server type
-  // (eg, for Local Folders)
-  for (let account in fixIterator(MailServices.accounts.accounts, Ci.nsIMsgAccount)) {
-    if (account.incomingServer.type != "none") {
-      count++
-    }
-  }
-
-  return count > 1;
-}

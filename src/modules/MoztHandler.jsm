@@ -37,6 +37,10 @@ var mozt_menuItemQuitActivateCb;
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 mozt.Handler = {
   initialized: false,
+  strings: null,
+  tryIcon: null,
+  menu: null,
+
   _windowsHidden: false,
   _handledDOMWindows: [],
   _inMailApp: false,
@@ -175,9 +179,6 @@ mozt.Handler = {
     }
   },
 
-  /**
-   * @param strings l10n Strings passed from the XUL overlay
-   */
   init: function() {            // creates icon
 
     // initialize l10n
@@ -235,10 +236,8 @@ mozt.Handler = {
       LibGObject.g_signal_connect(this.trayIcon, "popup-menu",
                                   mozt_popupMenuCb, this.menu);
 
-      // set tooltip.
-      // GTK bug:
-      // (firefox-bin:5302): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
-      // (thunderbird-bin:5380): Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
+      // set tooltip. bugs on hover:
+      // Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
       LibGtkStatusIcon.gtk_status_icon_set_tooltip_text(this.trayIcon,
                                                         mozApp);
 
