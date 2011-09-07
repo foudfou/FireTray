@@ -47,6 +47,7 @@ mozt.Utils = {
     let registeryValue = Cc['@mozilla.org/chrome/chrome-registry;1']
       .getService(Ci.nsIChromeRegistry)
       .convertChromeURL(uri).spec;
+    LOG(registeryValue);
 
     if (/^file:/.test(registeryValue))
       registeryValue = this._urlToPath(registeryValue);

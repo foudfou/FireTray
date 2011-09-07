@@ -2,10 +2,10 @@
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
     <em:id>moztray@foudil.fr</em:id>
-    <em:unpack>false</em:unpack>
+    <em:unpack>true</em:unpack> <!-- needed for embedded icons -->
     <em:type>2</em:type>
     <em:name>Mozilla Tray</em:name>
-    <em:version>0.0.1</em:version>
+    <em:version>0.1.0</em:version>
     <em:creator>Foudil BRÉTEL</em:creator>
     <em:contributor>Hua Luo, Francesco Solero (Firetray original authors)</em:contributor>
     <em:homepageURL>https://github.com/foudfou/moztray</em:homepageURL>
