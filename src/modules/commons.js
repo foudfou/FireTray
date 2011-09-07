@@ -1,6 +1,8 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "mozt", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR" ];
+var EXPORTED_SYMBOLS =
+  [ "mozt", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR",
+    "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

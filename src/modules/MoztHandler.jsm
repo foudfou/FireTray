@@ -39,6 +39,7 @@ mozt.Handler = {
   initialized: false,
   _windowsHidden: false,
   _handledDOMWindows: [],
+  _inMailApp: false,
 
   _getBaseOrXULWindowFromDOMWindow: function(win, winType) {
     let winInterface, winOut;
@@ -174,7 +175,7 @@ mozt.Handler = {
     }
   },
 
-  /*
+  /**
    * @param strings l10n Strings passed from the XUL overlay
    */
   init: function() {            // creates icon
@@ -202,14 +203,14 @@ mozt.Handler = {
       // instanciate tray icon
       LibGtkStatusIcon.init();
       this.trayIcon  = LibGtkStatusIcon.gtk_status_icon_new();
-      var mozApp = Services.appinfo.name.toLowerCase();
-      var iconFilename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
+      let mozApp = Services.appinfo.name.toLowerCase();
+      let iconFilename = MOZT_ICON_DIR + mozApp + MOZT_ICON_SUFFIX;
       LibGtkStatusIcon.gtk_status_icon_set_from_file(this.trayIcon,
                                                      iconFilename);
 
       // build icon popup menu
       this.menu = LibGtkStatusIcon.gtk_menu_new();
-      // shouldn't need to g_utf16_to_utf8() thank to js-ctypes
+      // shouldn't need to convert to utf8 thank to js-ctypes
 		  var menuItemQuitLabel = this.strings.GetStringFromName("popupMenu.itemLabel.Quit");
       var menuItemQuit = LibGtkStatusIcon.gtk_image_menu_item_new_with_label(
         menuItemQuitLabel);
@@ -256,8 +257,29 @@ mozt.Handler = {
       return false;
     }
 
+    // check if in mail app
+    var mozAppId = Services.appinfo.ID;
+    if (mozAppId === THUNDERBIRD_ID || mozAppId === SEAMONKEY_ID) {
+      this._inMailApp = true;
+      try {
+        Cu.import("resource://moztray/MoztMessaging.jsm");
+        mozt.Messaging.enable();
+      } catch (x) {
+        ERROR(x);
+        return false;
+      }
+
+      // init unread messages count
+      mozt.Messaging.updateUnreadMsgCount();
+    }
+
     this.initialized = true;
     return true;
   },
+
+  shutdown: function() {        // NOT USED YET
+      if (this._inMailApp)
+        mozt.Messaging.disable();
+  }
 
 }; // mozt.Handler

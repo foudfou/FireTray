@@ -1,3 +1,5 @@
+* change tray icon according to unreadMsgCount
+
 * make multi-platform. At least have js-ctypes library call dependant on OS detection. (best would be to have the OS-dependant modules loaded at startup) 
 
 * convert to a https://developer.mozilla.org/en/Extensions/Bootstrapped_extensions
