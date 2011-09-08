@@ -77,12 +77,18 @@ mozt.Messaging = {
    */
   updateUnreadMsgCount: function() {
     LOG("unreadMsgCount");
+
     this._unreadMsgCount = 0;   // reset
     try {
       let accounts = MailServices.accounts.accounts;
       for (let i = 0; i < accounts.Count(); i++) {
         let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
-        LOG("ACCOUNT: "+account.incomingServer.prettyName+" type: "+account.incomingServer.type);
+        let accountServerType = account.incomingServer.type;
+        LOG("ACCOUNT: "+account.incomingServer.prettyName+" type: "+accountServerType);
+        if (["pop3","imap","none"].indexOf(accountServerType) == -1)
+          continue; // skip "nntp" "rss" "movemail"
+        // TODO: turn into pref
+
         let rootFolder = account.incomingServer.rootFolder; // nsIMsgFolder
         if (rootFolder.hasSubFolders) {
           let subFolders = rootFolder.subFolders; // nsIMsgFolder
