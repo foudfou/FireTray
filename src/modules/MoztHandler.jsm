@@ -8,8 +8,8 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/LibGObject.jsm");
-Cu.import("resource://moztray/LibGtkStatusIcon.jsm");
+Cu.import("resource://moztray/gobject.jsm");
+Cu.import("resource://moztray/gtk.jsm");
 Cu.import("resource://moztray/commons.js");
 
 /**
@@ -77,7 +77,7 @@ mozt.Handler = {
     }
   },
 
-  // FIXME: parameters may not be needed !! see LibGObject.GCallback_t
+  // FIXME: parameters may not be needed !! see gobject.GCallback_t
   showHideToTray: function(a1, a2, a3) {
     LOG("showHideToTray");
 
@@ -144,10 +144,11 @@ mozt.Handler = {
     LOG("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
 
     try {
-      var gtkMenuPtr = ctypes.cast(menu, LibGtkStatusIcon.GtkMenu.ptr);
-      var iconGpointer = ctypes.cast(icon, LibGObject.gpointer);
-      LibGtkStatusIcon.gtk_menu_popup(
-        gtkMenuPtr, null, null, LibGtkStatusIcon.gtk_status_icon_position_menu,
+      // TODO: move to MoztIconLinux
+      var gtkMenuPtr = ctypes.cast(menu, gtk.GtkMenu.ptr);
+      var iconGpointer = ctypes.cast(icon, gobject.gpointer);
+      gtk.gtk_menu_popup(
+        gtkMenuPtr, null, null, gtk.gtk_status_icon_position_menu,
         iconGpointer, button, activateTime);
     } catch (x) {
       LOG(x);

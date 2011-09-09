@@ -8,9 +8,9 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/LibGObject.jsm");
-Cu.import("resource://moztray/LibGdkWindow.jsm");
-Cu.import("resource://moztray/LibGtkStatusIcon.jsm");
+Cu.import("resource://moztray/gobject.jsm");
+Cu.import("resource://moztray/gdk.jsm");
+Cu.import("resource://moztray/gtk.jsm");
 Cu.import("resource://moztray/commons.js");
 
 if ("undefined" == typeof(mozt.Handler))
@@ -34,7 +34,7 @@ mozt.IconLinux = {
     try {
 
       // init tray icon, some variables
-      this.trayIcon  = LibGtkStatusIcon.gtk_status_icon_new();
+      this.trayIcon  = gtk.gtk_status_icon_new();
       this.appName = Services.appinfo.name.toLowerCase();
       this.ICON_FILENAME_DEFAULT = mozt.Utils.chromeToPath(
         "chrome://moztray/skin/" +  this.appName + this.ICON_SUFFIX);
@@ -42,45 +42,45 @@ mozt.IconLinux = {
       this.setDefaultImage();
 
       // build icon popup menu
-      this.menu = LibGtkStatusIcon.gtk_menu_new();
+      this.menu = gtk.gtk_menu_new();
       // shouldn't need to convert to utf8 thank to js-ctypes
 		  var menuItemQuitLabel = mozt.Utils.strings.GetStringFromName("popupMenu.itemLabel.Quit");
-      var menuItemQuit = LibGtkStatusIcon.gtk_image_menu_item_new_with_label(
+      var menuItemQuit = gtk.gtk_image_menu_item_new_with_label(
         menuItemQuitLabel);
-      var menuItemQuitIcon = LibGtkStatusIcon.gtk_image_new_from_stock(
-        "gtk-quit", LibGtkStatusIcon.GTK_ICON_SIZE_MENU);
-      LibGtkStatusIcon.gtk_image_menu_item_set_image(menuItemQuit, menuItemQuitIcon);
-      var menuShell = ctypes.cast(this.menu, LibGtkStatusIcon.GtkMenuShell.ptr);
-      LibGtkStatusIcon.gtk_menu_shell_append(menuShell, menuItemQuit);
+      var menuItemQuitIcon = gtk.gtk_image_new_from_stock(
+        "gtk-quit", gtk.GTK_ICON_SIZE_MENU);
+      gtk.gtk_image_menu_item_set_image(menuItemQuit, menuItemQuitIcon);
+      var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
+      gtk.gtk_menu_shell_append(menuShell, menuItemQuit);
 
-      mozt_menuItemQuitActivateCb = LibGObject.GCallback_t(
+      mozt_menuItemQuitActivateCb = gobject.GCallback_t(
         function(){mozt.Handler.quitApplication();});
-      LibGObject.g_signal_connect(menuItemQuit, "activate",
+      gobject.g_signal_connect(menuItemQuit, "activate",
                                   mozt_menuItemQuitActivateCb, null);
 
-      var menuWidget = ctypes.cast(this.menu, LibGtkStatusIcon.GtkWidget.ptr);
-      LibGtkStatusIcon.gtk_widget_show_all(menuWidget);
+      var menuWidget = ctypes.cast(this.menu, gtk.GtkWidget.ptr);
+      gtk.gtk_widget_show_all(menuWidget);
 
       // here we do use a function handler because we need the args passed to
       // it ! But we need to abandon 'this' in popupMenu()
       mozt_popupMenuCb =
-        LibGtkStatusIcon.GCallbackMenuPopup_t(mozt.Handler.popupMenu);
-      LibGObject.g_signal_connect(this.trayIcon, "popup-menu",
+        gtk.GCallbackMenuPopup_t(mozt.Handler.popupMenu);
+      gobject.g_signal_connect(this.trayIcon, "popup-menu",
                                   mozt_popupMenuCb, this.menu);
 
       this.setDefaultTooltip();
 
       // watch out for binding problems ! here we prefer to keep 'this' in
       // showHideToTray() and abandon the args.
-      mozt_iconActivateCb = LibGObject.GCallback_t(
+      mozt_iconActivateCb = gobject.GCallback_t(
         function(){mozt.Handler.showHideToTray();});
-      LibGObject.g_signal_connect(this.trayIcon, "activate",
+      gobject.g_signal_connect(this.trayIcon, "activate",
                                   mozt_iconActivateCb, null);
 
 
       // TEST
       let special_icon =
-        LibGdkWindow.gdk_pixbuf_new_from_file("newmail.png" , null); // gerror ignored
+        gdk.gdk_pixbuf_new_from_file("newmail.png" , null); // gerror ignored
 
     } catch (x) {
       Components.utils.reportError(x);
@@ -96,8 +96,8 @@ mozt.IconLinux = {
     LOG(filename);
 
     try {
-      LibGtkStatusIcon.gtk_status_icon_set_from_file(this.trayIcon,
-                                                     filename);
+      gtk.gtk_status_icon_set_from_file(this.trayIcon,
+                                        filename);
     } catch (x) {
       ERROR(x);
       return false;
@@ -115,8 +115,8 @@ mozt.IconLinux = {
   setTooltip: function(toolTipStr) {
     if (!this.trayIcon)
       return false;
-    LibGtkStatusIcon.gtk_status_icon_set_tooltip_text(this.trayIcon,
-                                                      toolTipStr);
+    gtk.gtk_status_icon_set_tooltip_text(this.trayIcon,
+                                         toolTipStr);
     return true;
   },
 
