@@ -55,13 +55,31 @@ function gdk_defines(lib) {
   this.GDK_INTERP_NEAREST = 1, // GdkInterpType
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
-  this.GdkVisual = ctypes.StructType("GdkVisual");
-  this.GdkColor = ctypes.StructType("GdkColor"), [
+  this.GdkByteOrder = ctype.StructType("GdkByteOrder");
+  this.GdkVisualType = ctype.StructType("GdkVisualType");
+  this.GdkVisual = ctypes.StructType("GdkVisual", [
+    { "parent_instance": gobject.GObject },
+    { "type": this.GdkVisualType },
+    { "depth": gobject.gint },
+    { "byte": this.GdkByteOrder },
+    { "colormap": gobject.gint },
+    { "bits": gobject.gint },
+    { "red_mask": gobject.guint32 },
+    { "red_shift": gobject.gint },
+    { "red_prec": gobject.gint },
+    { "green_mask": gobject.guint32 },
+    { "green_shift": gobject.gint },
+    { "green_prec": gobject.gint },
+    { "blue_mask": gobject.guint32 },
+    { "blue_shift": gobject.gint },
+    { "blue_prec": gobject.gint }
+  ]);
+  this.GdkColor = ctypes.StructType("GdkColor", [
     { "pixel": gobject.guint32 },
     { "red": gobject.guint16 },
     { "green": gobject.guint16 },
     { "blue": gobject.guint16 }
-  ];
+  ]);
   this.GdkColormap = ctypes.StructType("GdkColormap", [
     { "size": gobject.gint },
     { "colors": this.GdkColor.ptr }
@@ -101,6 +119,12 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_pixbuf_get_height", ctypes.int, this.GdkPixbuf.ptr);
   lib.lazy_bind("gdk_pixbuf_composite", ctypes.void_t, this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.double, ctypes.double, ctypes.double, ctypes.double, ctypes.int, ctypes.int);
   lib.lazy_bind("gdk_screen_get_system_colormap", this.GdkColormap.ptr, this.GdkScreen.ptr);
+  lib.lazy_bind("gdk_colormap_get_visual", this.GdkVisual.ptr, this.GdkColormap.ptr);
+  lib.lazy_bind("gdk_color_parse", gobject.gboolean, gobject.gchar.ptr, this.GdkColor.ptr);
+
+  lib.lazy_bind("gdk_colormap_alloc_color", gobject.gboolean, this.GdkColormap.ptr, this.GdkColor.ptr, gobject.gboolean, gobject.gboolean);
+// gdk_pixmap_new
+// gdk_gc_new
 
 }
 

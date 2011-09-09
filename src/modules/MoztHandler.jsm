@@ -206,8 +206,10 @@ mozt.Handler = {
   },
 
   shutdown: function() {        // NOT USED YET
-      if (this._inMailApp)
-        mozt.Messaging.disable();
+    if (this._inMailApp)
+      mozt.Messaging.disable();
+
+    mozt.IconLinux.shutdown();
   }
 
 }; // mozt.Handler

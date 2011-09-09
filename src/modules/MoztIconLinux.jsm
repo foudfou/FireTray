@@ -90,6 +90,13 @@ mozt.IconLinux = {
     return true;
   },
 
+  shutdown: function() {
+    gobject.close();
+    gdk.close();
+    gtk.close();
+    // glib.close();
+  },
+
   setImage: function(filename) {
     if (!this.trayIcon)
       return false;
@@ -152,7 +159,9 @@ mozt.IconLinux = {
   // {
   //   GdkColormap* cmap=gdk_screen_get_system_colormap(gdk_screen_get_default())
   //   int screen_depth=24;
-  //   if(cmap) screen_depth=cmap->visual->depth;
+  //   if(cmap)
+  //     GdkVisual* visual = gdk_colormap_get_visual(cmap);
+  //   screen_depth=visual->depth;
   //   GdkColor fore = { 0, 0, 0, 0 };
   //   GdkColor alpha  = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
   //   if(  gdk_color_parse  (colorstr, &fore) ) DEBUGSTR("COLOR OK")
@@ -161,6 +170,7 @@ mozt.IconLinux = {
 	//     alpha.red=0; //make sure alpha is different from fore
   //   gdk_colormap_alloc_color (cmap, &fore,true,true);
   //   gdk_colormap_alloc_color (cmap, &alpha,true,true);
+
   //   GdkPixmap *pm = gdk_pixmap_new (NULL, w, h, screen_depth);
   //   GdkGC *gc = gdk_gc_new (pm);
   //   gdk_gc_set_foreground(gc,&alpha);

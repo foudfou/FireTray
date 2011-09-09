@@ -45,8 +45,7 @@ function gtk_defines(lib) {
   this.GtkMenuShell = ctypes.StructType("GtkMenuShell");
   this.GtkImageMenuItem = ctypes.StructType("GtkImageMenuItem");
 
-  // FIXME: rename to "_t"
-  this.GtkMenuPositionFunc = ctypes.FunctionType(
+  this.GtkMenuPositionFunc_t = ctypes.FunctionType(
     ctypes.default_abi, ctypes.void_t,
     [this.GtkMenu.ptr, gobject.gint.ptr, gobject.gint.ptr,
      gobject.gboolean.ptr, gobject.gpointer]).ptr;
@@ -72,7 +71,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_widget_show_all", ctypes.void_t, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_menu_popup", ctypes.void_t,
                 this.GtkMenu.ptr, this.GtkWidget.ptr, this.GtkWidget.ptr,
-                this.GtkMenuPositionFunc, gobject.gpointer, gobject.guint,
+                this.GtkMenuPositionFunc_t, gobject.gpointer, gobject.guint,
                 gobject.guint);
   lib.lazy_bind("gtk_status_icon_position_menu", ctypes.void_t,
                 this.GtkMenu.ptr, gobject.gint.ptr, gobject.gint.ptr,
