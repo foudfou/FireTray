@@ -20,7 +20,7 @@ References
   * Mike Conley's
     [Unity-Thunderbird integration](http://mozillalabs.com/messaging/messaging-menu/
     "Unity-Thunderbird integration")
-  * discontinued [Mozilla New Mail Icon (Biff)](http://moztraybiff.mozdev.org/)
+  * discontinued [Mozilla New Mail Icon (Biff)](https://addons.mozilla.org/fr/thunderbird/addon/new-mail-icon/)
 
 * [Alltray](http://alltray.trausch.us/ "alltray") launches any applications
   into tray

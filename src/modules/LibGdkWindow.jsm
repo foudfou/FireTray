@@ -47,6 +47,7 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://moztray/LibGLib.jsm");
 Cu.import("resource://moztray/LibGObject.jsm");
 
 XPCOMUtils.defineLazyGetter(this, "libgdkwindow", function() {
@@ -56,6 +57,9 @@ XPCOMUtils.defineLazyGetter(this, "libgdkwindow", function() {
 
   return libgdkwindow;
 });
+
+
+// Structures
 
 XPCOMUtils.defineLazyGetter(this, "GdkWindow", function() {
   return ctypes.StructType("GdkWindow");
@@ -104,6 +108,32 @@ XPCOMUtils.defineLazyGetter(this, "GdkWindowAttributes", function() {
                              { "type_hint": LibGObject.gint }]);
 });
 
+XPCOMUtils.defineLazyGetter(this, "GdkPixbuf", function() {
+  return ctypes.StructType("GdkPixbuf");
+});
+
+XPCOMUtils.defineLazyGetter(this, "GdkColor", function() {
+  return ctypes.StructType("GdkColor");
+  GdkColor.define([
+    { pixel: LibGObject.guint32 },
+    { red: LibGObject.guint16 },
+    { green: LibGObject.guint16 },
+    { blue: LibGObject.guint16 }
+  ]);
+});
+
+XPCOMUtils.defineLazyGetter(this, "GdkColormap", function() {
+  return ctypes.StructType("GdkColormap");
+  GdkColormap.define([
+    { size: ctypes.gint },
+    { colors: GdkColor.ptr }
+  ]);
+  return GdkColormap;
+});
+
+
+// Functions
+
 XPCOMUtils.defineLazyGetter(this, "gdk_window_new", function() {
   var gdk_window_new =
     libgdkwindow.declare("gdk_window_new",
@@ -112,10 +142,8 @@ XPCOMUtils.defineLazyGetter(this, "gdk_window_new", function() {
                          GdkWindow.ptr,
                          GdkWindowAttributes.ptr,
                          LibGObject.gint);
-
   if (!gdk_window_new)
     throw "gdk_window_new is unavailable";
-
   return gdk_window_new;
 });
 
@@ -125,10 +153,8 @@ XPCOMUtils.defineLazyGetter(this, "gdk_window_destroy", function() {
                          ctypes.default_abi,
                          ctypes.void_t,
                          GdkWindow.ptr);
-
   if (!gdk_window_destroy)
     throw "gdk_window_destroy is unavailable";
-
   return gdk_window_destroy;
 });
 
@@ -139,10 +165,8 @@ XPCOMUtils.defineLazyGetter(this, "gdk_x11_window_set_user_time", function() {
                          ctypes.void_t,
                          GdkWindow.ptr,
                          LibGObject.guint32);
-
   if (!gdk_x11_window_set_user_time)
     throw "gdk_x11_window_set_user_time is unavailable";
-
   return gdk_x11_window_set_user_time;
 });
 
@@ -152,10 +176,8 @@ XPCOMUtils.defineLazyGetter(this, "gdk_window_hide", function() {
                          ctypes.default_abi,
                          ctypes.void_t,
                          GdkWindow.ptr);
-
   if (!gdk_window_hide)
     throw "gdk_window_hide is unavailable";
-
   return gdk_window_hide;
 });
 
@@ -166,10 +188,8 @@ XPCOMUtils.defineLazyGetter(this, "GdkScreen", function() {
 XPCOMUtils.defineLazyGetter(this, "gdk_screen_get_default", function() {
   var gdk_screen_get_default =
     libgdkwindow.declare("gdk_screen_get_default", ctypes.default_abi, GdkScreen.ptr);
-
   if (!gdk_screen_get_default)
     throw "gdk_screen_get_default is unavailable";
-
   return gdk_screen_get_default;
 });
 
@@ -178,14 +198,75 @@ XPCOMUtils.defineLazyGetter(this, "gdk_screen_get_toplevel_windows", function() 
     "gdk_screen_get_toplevel_windows", ctypes.default_abi, LibGObject.GList.ptr,
     GdkScreen.ptr
   );
-
   if (!gdk_screen_get_toplevel_windows)
     throw "gdk_screen_get_toplevel_windows is unavailable";
-
   return gdk_screen_get_toplevel_windows;
 });
 
+XPCOMUtils.defineLazyGetter(this, "gdk_pixbuf_new_from_file", function() {
+  var gdk_pixbuf_new_from_file = libgdkwindow.declare(
+    "gdk_pixbuf_new_from_file", ctypes.default_abi, GdkPixbuf.ptr,
+    LibGObject.gchar.ptr, LibGLib.GError.ptr.ptr
+  );
+  if (!gdk_pixbuf_new_from_file)
+    throw "gdk_pixbuf_new_from_file is unavailable";
+  return gdk_pixbuf_new_from_file;
+});
+
+XPCOMUtils.defineLazyGetter(this, "gdk_pixbuf_copy", function() {
+  var gdk_pixbuf_copy = libgdkwindow.declare(
+    "gdk_pixbuf_copy", ctypes.default_abi, GdkPixbuf.ptr,
+    GdkPixbuf.ptr
+  );
+  if (!gdk_pixbuf_copy)
+    throw "gdk_pixbuf_copy is unavailable";
+  return gdk_pixbuf_copy;
+});
+
+XPCOMUtils.defineLazyGetter(this, "gdk_pixbuf_get_width", function() {
+  var gdk_pixbuf_get_width = libgdkwindow.declare(
+    "gdk_pixbuf_get_width", ctypes.default_abi, ctypes.int,
+    GdkPixbuf.ptr
+  );
+  if (!gdk_pixbuf_get_width)
+    throw "gdk_pixbuf_get_width is unavailable";
+  return gdk_pixbuf_get_width;
+});
+
+XPCOMUtils.defineLazyGetter(this, "gdk_pixbuf_get_height", function() {
+  var gdk_pixbuf_get_height = libgdkwindow.declare(
+    "gdk_pixbuf_get_height", ctypes.default_abi, ctypes.int,
+    GdkPixbuf.ptr
+  );
+  if (!gdk_pixbuf_get_height)
+    throw "gdk_pixbuf_get_height is unavailable";
+  return gdk_pixbuf_get_height;
+});
+
+XPCOMUtils.defineLazyGetter(this, "gdk_pixbuf_composite", function() {
+  var gdk_pixbuf_composite = libgdkwindow.declare(
+    "gdk_pixbuf_composite", ctypes.default_abi, ctypes.void_t,
+    GdkPixbuf.ptr, GdkPixbuf.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int,
+    ctypes.double, ctypes.double, ctypes.double, ctypes.double,
+    ctypes.int, ctypes.int
+  );
+  if (!gdk_pixbuf_composite)
+    throw "gdk_pixbuf_composite is unavailable";
+  return gdk_pixbuf_composite;
+});
+
+XPCOMUtils.defineLazyGetter(this, "gdk_screen_get_system_colormap", function() {
+  var gdk_screen_get_system_colormap = libgdkwindow.declare(
+    "gdk_screen_get_system_colormap", ctypes.default_abi, GdkColormap.ptr,
+    GdkScreen.ptr
+  );
+  if (!gdk_screen_get_system_colormap)
+    throw "gdk_screen_get_system_colormap is unavailable";
+  return gdk_screen_get_system_colormap;
+});
+
 var LibGdkWindow = {
+  GDK_INTERP_NEAREST: 1, // GdkInterpType
   GdkWindow: GdkWindow,
   GdkWindowAttributes: GdkWindowAttributes,
   GdkScreen: GdkScreen,
@@ -194,5 +275,11 @@ var LibGdkWindow = {
   GdkWindowDestroy: gdk_window_destroy,
   GdkWindowHide: gdk_window_hide,
   GdkScreenGetDefault: gdk_screen_get_default,
-  GdkScreenGetToplevelWindows: gdk_screen_get_toplevel_windows
+  GdkScreenGetToplevelWindows: gdk_screen_get_toplevel_windows,
+  gdk_pixbuf_new_from_file: gdk_pixbuf_new_from_file,
+  gdk_pixbuf_copy: gdk_pixbuf_copy,
+  gdk_pixbuf_get_width: gdk_pixbuf_get_width,
+  gdk_pixbuf_get_height: gdk_pixbuf_get_height,
+  gdk_pixbuf_composite: gdk_pixbuf_composite,
+  gdk_screen_get_system_colormap: gdk_screen_get_system_colormap,
 }

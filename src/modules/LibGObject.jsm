@@ -72,7 +72,11 @@ XPCOMUtils.defineLazyGetter(this, "guint", function() {
 });
 
 XPCOMUtils.defineLazyGetter(this, "guint32", function() {
-  return ctypes.unsigned_int;
+  return ctypes.uint32_t;
+});
+
+XPCOMUtils.defineLazyGetter(this, "guint16", function() {
+  return ctypes.uint16_t;
 });
 
 XPCOMUtils.defineLazyGetter(this, "gint", function() {

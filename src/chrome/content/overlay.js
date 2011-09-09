@@ -44,11 +44,9 @@ mozt.Main = {
     let that = this;
     mozt.Utils.prefService.removeObserver("", that);
     LOG('Moztray UNLOADED !');
-    /*
-     *  NOTE: don't mozt.Handler.initialized=false here, otherwise after a
-     *  window close, a new window will create a new handler (and hence, a new
-     *  tray icon)
-     */
+    /* NOTE: don't mozt.Handler.initialized=false here, otherwise after a
+     window close, a new window will create a new handler (and hence, a new
+     tray icon) */
   },
 
   // TODO: prevent preceding warning about closing multiple tabs
