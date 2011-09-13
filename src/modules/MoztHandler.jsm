@@ -43,8 +43,7 @@ mozt.Handler = {
         .QueryInterface(Ci.nsIInterfaceRequestor);
     } catch (ex) {
       // ignore no-interface exception
-      LOG(ex);
-      Components.utils.reportError(ex);
+      ERROR(ex);
       return null;
     }
 
@@ -53,7 +52,7 @@ mozt.Handler = {
     else if (winType == "XUL")
     winOut = winInterface.getInterface(Ci.nsIXULWindow);
     else {
-      Components.utils.reportError("MOZTRAY: unknown winType '" + winType + "'");
+      ERROR("MOZTRAY: unknown winType '" + winType + "'");
       return null;
     }
 
@@ -161,7 +160,7 @@ mozt.Handler = {
         .getService(Ci.nsIAppStartup);
       appStartup.quit(Components.interfaces.nsIAppStartup.eAttemptQuit);
     } catch (x) {
-      Components.utils.reportError(x);
+      ERROR(x);
       return;
     }
   },
@@ -174,16 +173,18 @@ mozt.Handler = {
     let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
     LOG("OS=" + runtimeOS + ", XULrunner=" + xulVer);
     if (runtimeOS != "Linux") {
-      Components.utils.reportError("MOZTRAY: only Linux platform supported at this time. Moztray not loaded");
+      ERROR("MOZTRAY: only Linux platform supported at this time. Moztray not loaded");
       return false;
     }
     Cu.import("resource://moztray/MoztIconLinux.jsm");
+    LOG('MoztIconLinux imported');
 
     // init all handled windows
     this._updateHandledDOMWindows();
 
     // instanciate tray icon
     mozt.IconLinux.init();
+    LOG('IconLinux initialized');
 
     // check if in mail app
     var mozAppId = Services.appinfo.ID;
@@ -200,6 +201,7 @@ mozt.Handler = {
       // init unread messages count
       mozt.Messaging.updateUnreadMsgCount();
     }
+    LOG('inMailApp: '+this._inMailApp);
 
     this.initialized = true;
     return true;

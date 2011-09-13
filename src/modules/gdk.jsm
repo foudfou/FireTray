@@ -55,10 +55,10 @@ function gdk_defines(lib) {
   this.GDK_INTERP_NEAREST = 1, // GdkInterpType
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
-  this.GdkByteOrder = ctype.StructType("GdkByteOrder");
-  this.GdkVisualType = ctype.StructType("GdkVisualType");
+  this.GdkByteOrder = ctypes.int; // enum
+  this.GdkVisualType = ctypes.int; // enum
   this.GdkVisual = ctypes.StructType("GdkVisual", [
-    { "parent_instance": gobject.GObject },
+    { "parent_instance": ctypes.void_t.ptr }, // gobject.GObject }, // FIXME !!
     { "type": this.GdkVisualType },
     { "depth": gobject.gint },
     { "byte": this.GdkByteOrder },
@@ -103,9 +103,13 @@ function gdk_defines(lib) {
     { "wmclass_name": gobject.gchar },
     { "wmclass_class": gobject.gchar },
     { "override_redirect": gobject.gboolean },
-    { "type_hint": gobject.gint }]);
+    { "type_hint": gobject.gint }
+  ]);
   this.GdkPixbuf = ctypes.StructType("GdkPixbuf");
   this.GdkScreen = ctypes.StructType("GdkScreen");
+  this.GdkPixmap = ctypes.StructType("GdkPixmap");
+  this.GdkDrawable = ctypes.StructType("GdkDrawable");
+  this.GdkGC = ctypes.StructType("GdkGC");
 
   lib.lazy_bind("gdk_window_new", this.GdkWindow.ptr, this.GdkWindow.ptr, this.GdkWindowAttributes.ptr, gobject.gint);
   lib.lazy_bind("gdk_window_destroy", ctypes.void_t, this.GdkWindow.ptr);
@@ -121,10 +125,11 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_screen_get_system_colormap", this.GdkColormap.ptr, this.GdkScreen.ptr);
   lib.lazy_bind("gdk_colormap_get_visual", this.GdkVisual.ptr, this.GdkColormap.ptr);
   lib.lazy_bind("gdk_color_parse", gobject.gboolean, gobject.gchar.ptr, this.GdkColor.ptr);
-
   lib.lazy_bind("gdk_colormap_alloc_color", gobject.gboolean, this.GdkColormap.ptr, this.GdkColor.ptr, gobject.gboolean, gobject.gboolean);
-// gdk_pixmap_new
-// gdk_gc_new
+  lib.lazy_bind("gdk_pixmap_new", this.GdkPixmap.ptr, this.GdkDrawable.ptr, gobject.gint, gobject.gint, gobject.gint);
+  lib.lazy_bind("gdk_gc_new", this.GdkGC.ptr, this.GdkDrawable.ptr);
+  lib.lazy_bind("gdk_gc_set_foreground", ctypes.void_t, this.GdkGC.ptr, this.GdkColor.ptr);
+  lib.lazy_bind("gdk_draw_rectangle", ctypes.void_t, this.GdkDrawable.ptr, this.GdkGC.ptr, gobject.gboolean, gobject.gint, gobject.gint, gobject.gint, gobject.gint);
 
 }
 

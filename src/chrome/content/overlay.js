@@ -23,11 +23,15 @@ mozt.Main = {
       mozt.Utils.prefService.addObserver("", that, false);
     }
     catch (ex) {
-      Components.utils.reportError(ex);
+      ERROR(ex);
       return false;
     }
 
     let init = mozt.Handler.initialized || mozt.Handler.init();
+
+    // update unread messages count
+    if (mozt.Handler._inMailApp)
+      mozt.Messaging.updateUnreadMsgCount();
 
     // prevent window closing.
     let that = this;
@@ -84,3 +88,12 @@ window.addEventListener(
     removeEventListener('unload', arguments.callee, true);
     mozt.Main.onQuit(); },
   false);
+
+// // TEST - can we catch minimize event ?
+// window.addEventListener(
+//   'DOMAttrModified', function (e) { // focus
+//     removeEventListener('deactivate', arguments.callee, true);
+//     WARN("Got deactivated: "+e.originalTarget.windowState); // Ci.nsIDOMChromeWindow.STATE_MINIMIZED|STATE_NORMAL
+//     WARN("attrName: "+e.attrName);
+//   },
+//   false);

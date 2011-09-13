@@ -78,12 +78,8 @@ mozt.IconLinux = {
                                   mozt_iconActivateCb, null);
 
 
-      // TEST
-      let special_icon =
-        gdk.gdk_pixbuf_new_from_file("newmail.png" , null); // gerror ignored
-
     } catch (x) {
-      Components.utils.reportError(x);
+      ERROR(x);
       return false;
     }
 
@@ -133,88 +129,98 @@ mozt.IconLinux = {
     this.setTooltip(this.appName);
   },
 
+  // SetIconText(GtkStatusIcon *tray_icon, const char *text, const char *color) {
   setText: function() {
-    // special_icon=gdk_pixbuf_new_from_file(gchar *filename , GError **error) newmail.xpm
-    // GdkPixbuf *edit=DrawText (special_icon, (gchar *)text, color);
-    // gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(this->systray_icon), GDK_PIXBUF(edit));
-  }
 
-  // GdkPixbuf *DrawText (GdkPixbuf *base, gchar *text, const gchar *colorstr)
-  // {
-  //   if(!base || !text) return NULL;
-  //   GdkPixbuf *dest=gdk_pixbuf_copy(base); //copy the icon content as background
-  //   int w=gdk_pixbuf_get_width(base);
-  //   int h=gdk_pixbuf_get_height(base);
-  //   if(hasPrintedChars(text)) {
-  //     //get the text rendered on a new pixbuf with alpha channel
-  //     GdkPixbuf *textbuf=renderTextWithAlpha(w, h, text, colorstr);
-  //     //merge the rendered text on top
-  //     gdk_pixbuf_composite (textbuf,dest,0,0,w,h,0,0,1,1,GDK_INTERP_NEAREST,255);
-  //     g_object_unref(textbuf);
-  //   }
-  //   return dest;
+  // // build background from image
+  // GdkPixbuf* special_icon = gdk_pixbuf_new_from_file("newmail.png", NULL); // GError **error);
+  // GdkPixbuf *dest = gdk_pixbuf_copy(special_icon);
+  // int w=gdk_pixbuf_get_width(special_icon);
+  // int h=gdk_pixbuf_get_height(special_icon);
+
+  // // prepare colors/alpha
+  // GdkColormap* cmap=gdk_screen_get_system_colormap(gdk_screen_get_default());
+  // int screen_depth=24;
+  // GdkVisual* visual = gdk_colormap_get_visual(cmap);
+  // screen_depth = visual->depth;
+  // GdkColor fore = { 0, 0, 0, 0 };
+  // GdkColor alpha  = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+  // gdk_color_parse  (color, &fore) )
+  // if(fore.red==alpha.red && fore.green==alpha.green && fore.blue==alpha.blue) {
+  //   alpha.red=0; //make sure alpha is different from fore
   // }
+  // gdk_colormap_alloc_color (cmap, &fore, TRUE, TRUE);
+  // gdk_colormap_alloc_color (cmap, &alpha, TRUE, TRUE);
 
-  // GdkPixbuf *renderTextWithAlpha(int w, int h, gchar *text, const gchar *colorstr)
+  // // build pixmap with rectangle
+  // GdkPixmap *pm = gdk_pixmap_new (NULL, w, h, screen_depth);
+  // GdkGC *gc = gdk_gc_new (pm); // graphic context. DEPRECATED ?
+  // gdk_gc_set_foreground(gc,&alpha);
+  // /* gdk_draw_rectangle(pm,gc,TRUE, 0, 0, w ,h ); */
+  // cairo_t *cr;
+  // cr = gdk_cairo_create(pm);
+  // cairo_rectangle(cr, 0, 0, w, h);
+  // /* void                cairo_rectangle                     (cairo_t *cr, */
+  // /*                                                          double x, */
+  // /*                                                          double y, */
+  // /*                                                          double width, */
+  // /*                                                          double height); */
+  // cairo_set_source_rgb(cr, 1, 1, 1); /* TODO: consider cairo_set_source_rgba (notice the ending "a" for alpha) */
+  // cairo_fill(cr);
+  // cairo_destroy(cr);
+
+  // // build text
+  // GtkWidget *scratch = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  // PangoLayout *layout = gtk_widget_create_pango_layout(scratch, NULL);
+  // gtk_widget_destroy(scratch);
+  // PangoFontDescription *fnt = pango_font_description_from_string("Sans 18");
+  // pango_font_description_set_weight (fnt,PANGO_WEIGHT_SEMIBOLD);
+  // pango_layout_set_spacing            (layout,0);
+  // pango_layout_set_font_description   (layout, fnt);
+  // pango_layout_set_text (layout, (gchar *)text,-1);
+  // int tw=0;
+  // int th=0;
+  // int sz;
+  // int border=4;
+  // pango_layout_get_pixel_size(layout, &tw, &th);
+  // while( (tw>w - border || th > h - border)) //fit text to the icon by decreasing font size
   // {
-  //   GdkColormap* cmap=gdk_screen_get_system_colormap(gdk_screen_get_default())
-  //   int screen_depth=24;
-  //   if(cmap)
-  //     GdkVisual* visual = gdk_colormap_get_visual(cmap);
-  //   screen_depth=visual->depth;
-  //   GdkColor fore = { 0, 0, 0, 0 };
-  //   GdkColor alpha  = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
-  //   if(  gdk_color_parse  (colorstr, &fore) ) DEBUGSTR("COLOR OK")
-  //   else DEBUGSTR("COLOR ERROR")
-  //   if(fore.red==alpha.red && fore.green==alpha.green && fore.blue==alpha.blue)
-	//     alpha.red=0; //make sure alpha is different from fore
-  //   gdk_colormap_alloc_color (cmap, &fore,true,true);
-  //   gdk_colormap_alloc_color (cmap, &alpha,true,true);
-
-  //   GdkPixmap *pm = gdk_pixmap_new (NULL, w, h, screen_depth);
-  //   GdkGC *gc = gdk_gc_new (pm);
-  //   gdk_gc_set_foreground(gc,&alpha);
-  //   gdk_draw_rectangle(pm,gc,true, 0, 0, w ,h );
-  //   GtkWidget *scratch = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  //   gtk_widget_realize (scratch);
-  //   PangoLayout *layout = gtk_widget_create_pango_layout (scratch, NULL);
-  //   gtk_widget_destroy (scratch);
-  //   PangoFontDescription *fnt = pango_font_description_from_string("Sans 18");
-  //   pango_font_description_set_weight (fnt,PANGO_WEIGHT_SEMIBOLD);
-  //   pango_layout_set_spacing            (layout,0);
+  //   sz=pango_font_description_get_size (fnt);
+  //   if(sz<MIN_FONT_SIZE) {
+  //     sz=MIN_FONT_SIZE;
+  //     break;
+  //   }
+  //   sz-=PANGO_SCALE;
+  //   pango_font_description_set_size (fnt,sz);
   //   pango_layout_set_font_description   (layout, fnt);
-  //   pango_layout_set_text (layout, text,-1);
-  //   int tw=0;
-  //   int th=0;
-  //   int sz;
-  //   int border=4;
   //   pango_layout_get_pixel_size(layout, &tw, &th);
-  //   while( (tw>w - border || th > h - border)) //fit text to the icon by decreasing font size
-  //   {
-  //     sz=pango_font_description_get_size (fnt);
-  //     if(sz<MIN_FONT_SIZE) {
-  //       sz=MIN_FONT_SIZE;
-  //       break;
-  //     }
-  //     sz-=PANGO_SCALE;
-  //     pango_font_description_set_size (fnt,sz);
-  //     pango_layout_set_font_description   (layout, fnt);
-  //     pango_layout_get_pixel_size(layout, &tw, &th);
-  //   }
-  //   //centers the text
-  //   int px, py;
-  //   px=(w-tw)/2;
-  //   py=(h-th)/2;
-  //   //paints the text
-  //   gdk_draw_layout_with_colors (pm, gc, px, py, layout, &fore,NULL);
-  //   GdkPixbuf *buf = gdk_pixbuf_get_from_drawable (NULL, pm, NULL, 0, 0, 0, 0, w, h);
-  //   g_object_unref (pm);
-  //   GdkPixbuf *alpha_buf = gdk_pixbuf_add_alpha  (buf, TRUE, (guchar)alpha.red, (guchar)alpha.green, (guchar)alpha.blue);
-  //   g_object_unref (buf);
-  //   g_object_unref (layout);
-  //   pango_font_description_free (fnt);
-  //   g_object_unref (gc);
-  //   return alpha_buf;
   // }
+  // // center text
+  // int px, py;
+  // px=(w-tw)/2;
+  // py=(h-th)/2;
+
+  // // draw text on pixmap
+  // gdk_draw_layout_with_colors (pm, gc, px, py, layout, &fore, NULL);
+
+  // GdkPixbuf *buf = gdk_pixbuf_get_from_drawable (NULL, pm, NULL, 0, 0, 0, 0, w, h);
+  // g_object_unref (pm);
+  // GdkPixbuf *alpha_buf = gdk_pixbuf_add_alpha  (buf, TRUE, (guchar)alpha.red, (guchar)alpha.green, (guchar)alpha.blue);
+
+  // // cleaning
+  // g_object_unref (buf);
+  // g_object_unref (layout);
+  // pango_font_description_free (fnt);
+  // g_object_unref (gc);
+
+
+  // //merge the rendered text on top
+  // gdk_pixbuf_composite (alpha_buf,dest,0,0,w,h,0,0,1,1,GDK_INTERP_NEAREST,255);
+  // g_object_unref(alpha_buf);
+
+
+  // gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(tray_icon), GDK_PIXBUF(dest));
+
+  }
 
 }; // mozt.IconLinux

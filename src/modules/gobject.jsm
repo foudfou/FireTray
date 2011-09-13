@@ -50,6 +50,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://moztray/ctypes-utils.jsm");
 
 function gobject_defines(lib) {
+  this.GObject = ctypes.StructType("GObject");
   this.gpointer = ctypes.voidptr_t;
   this.gulong = ctypes.unsigned_long;
   this.guint = ctypes.unsigned_int;

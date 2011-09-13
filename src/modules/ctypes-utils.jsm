@@ -41,7 +41,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-var EXPORTED_SYMBOLS  = [ "ctypes_library" ];
+var EXPORTED_SYMBOLS  = [ "ctypes_library", "ERROR" ];
 
 ["LOG", "WARN", "ERROR"].forEach(function(aName) {
   this.__defineGetter__(aName, function() {
