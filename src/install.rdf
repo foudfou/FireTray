@@ -5,7 +5,7 @@
     <em:unpack>true</em:unpack> <!-- needed for embedded icons -->
     <em:type>2</em:type>
     <em:name>MozTray</em:name>
-    <em:version>0.1.0</em:version>
+    <em:version>0.1.1</em:version>
     <em:creator>Foudil BRÉTEL</em:creator>
     <em:contributor>Hua Luo, Francesco Solero (Firetray original authors)</em:contributor>
     <em:homepageURL>https://github.com/foudfou/moztray</em:homepageURL>
@@ -30,7 +30,6 @@
         <em:maxVersion>8.*</em:maxVersion>
       </Description>
     </em:targetApplication>
-
 
     <em:targetApplication>      <!-- Songbird -->
       <Description>
