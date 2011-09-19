@@ -91,8 +91,8 @@ window.addEventListener(
 
 // // TEST - can we catch minimize event ?
 // window.addEventListener(
-//   'DOMAttrModified', function (e) { // focus
-//     removeEventListener('deactivate', arguments.callee, true);
+//   'command', function (e) {
+//     removeEventListener('command', arguments.callee, true);
 //     WARN("Got deactivated: "+e.originalTarget.windowState); // Ci.nsIDOMChromeWindow.STATE_MINIMIZED|STATE_NORMAL
 //     WARN("attrName: "+e.attrName);
 //   },

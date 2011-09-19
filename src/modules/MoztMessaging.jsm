@@ -19,6 +19,7 @@ const FLDR_UNINTERESTING =
   Ci.nsMsgFolderFlags.SentMail |
   Ci.nsMsgFolderFlags.Templates |
   Ci.nsMsgFolderFlags.Trash;
+const ICON_TEXT_COLOR = "#00000";
 
 /**
  * mozt namespace.
@@ -107,11 +108,10 @@ mozt.Messaging = {
 
     // update icon
     if (this._unreadMsgCount == 0) {
-      mozt.IconLinux.setDefaultImage();
-      mozt.IconLinux.setDefaultTooltip();
+      mozt.IconLinux.setImageDefault();
+      mozt.IconLinux.setTooltipDefault();
     } else if (this._unreadMsgCount > 0) {
-      mozt.IconLinux.setImage(
-        mozt.Utils.chromeToPath("chrome://moztray/skin/message-mail-new.png"));
+      mozt.IconLinux.setText(this._unreadMsgCount.toString(), ICON_TEXT_COLOR);
       let localizedMessage = PluralForm.get(
         this._unreadMsgCount,
         mozt.Utils.strings.GetStringFromName("tooltip.unread_messages"))

@@ -50,7 +50,7 @@ mozt.Handler = {
     if (winType == "BaseWindow")
       winOut = winInterface.getInterface(Ci.nsIBaseWindow);
     else if (winType == "XUL")
-    winOut = winInterface.getInterface(Ci.nsIXULWindow);
+      winOut = winInterface.getInterface(Ci.nsIXULWindow);
     else {
       ERROR("MOZTRAY: unknown winType '" + winType + "'");
       return null;

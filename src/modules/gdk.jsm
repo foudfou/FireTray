@@ -48,11 +48,12 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://moztray/ctypes-utils.jsm");
+Cu.import("resource://moztray/cairo.jsm");
 Cu.import("resource://moztray/glib.jsm");
 Cu.import("resource://moztray/gobject.jsm");
 
 function gdk_defines(lib) {
-  this.GDK_INTERP_NEAREST = 1, // GdkInterpType
+  this.GDK_INTERP_NEAREST = 1, // enum GdkInterpType
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -110,6 +111,7 @@ function gdk_defines(lib) {
   this.GdkPixmap = ctypes.StructType("GdkPixmap");
   this.GdkDrawable = ctypes.StructType("GdkDrawable");
   this.GdkGC = ctypes.StructType("GdkGC");
+  this.GdkInterpType = ctypes.int;
 
   lib.lazy_bind("gdk_window_new", this.GdkWindow.ptr, this.GdkWindow.ptr, this.GdkWindowAttributes.ptr, gobject.gint);
   lib.lazy_bind("gdk_window_destroy", ctypes.void_t, this.GdkWindow.ptr);
@@ -127,9 +129,17 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_color_parse", gobject.gboolean, gobject.gchar.ptr, this.GdkColor.ptr);
   lib.lazy_bind("gdk_colormap_alloc_color", gobject.gboolean, this.GdkColormap.ptr, this.GdkColor.ptr, gobject.gboolean, gobject.gboolean);
   lib.lazy_bind("gdk_pixmap_new", this.GdkPixmap.ptr, this.GdkDrawable.ptr, gobject.gint, gobject.gint, gobject.gint);
-  lib.lazy_bind("gdk_gc_new", this.GdkGC.ptr, this.GdkDrawable.ptr);
-  lib.lazy_bind("gdk_gc_set_foreground", ctypes.void_t, this.GdkGC.ptr, this.GdkColor.ptr);
-  lib.lazy_bind("gdk_draw_rectangle", ctypes.void_t, this.GdkDrawable.ptr, this.GdkGC.ptr, gobject.gboolean, gobject.gint, gobject.gint, gobject.gint, gobject.gint);
+
+  // DEPRECATED
+  // lib.lazy_bind("gdk_gc_new", this.GdkGC.ptr, this.GdkDrawable.ptr);
+  // lib.lazy_bind("gdk_gc_set_foreground", ctypes.void_t, this.GdkGC.ptr, this.GdkColor.ptr);
+  // lib.lazy_bind("gdk_draw_rectangle", ctypes.void_t, this.GdkDrawable.ptr, this.GdkGC.ptr, gobject.gboolean, gobject.gint, gobject.gint, gobject.gint, gobject.gint);
+
+  lib.lazy_bind("gdk_cairo_create", cairo.cairo_t.ptr, this.GdkDrawable.ptr);
+  lib.lazy_bind("gdk_cairo_set_source_color", ctypes.void_t, cairo.cairo_t.ptr, this.GdkColor.ptr);
+  lib.lazy_bind("gdk_pixbuf_get_from_drawable", this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, this.GdkDrawable.ptr, this.GdkColormap.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.int);
+  lib.lazy_bind("gdk_pixbuf_add_alpha", this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, gobject.gboolean, gobject.guchar, gobject.guchar, gobject.guchar);
+  lib.lazy_bind("gdk_pixbuf_composite", ctypes.void_t, this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.double, ctypes.double, ctypes.double, ctypes.double, this.GdkInterpType, ctypes.int);
 
 }
 

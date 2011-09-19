@@ -63,7 +63,9 @@ function ctypes_library(name, abis, defines) {
         this.ABI = abi;
         LOG("Successfully loaded " + soname);
         break;
-      } catch(e) {}
+      } catch(e) {
+          ERROR(soname+" unfound.");
+      }
     }
 
     this.close = function() {

@@ -13,9 +13,11 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://moztray/ctypes-utils.jsm");
 Cu.import("resource://moztray/gdk.jsm");
 Cu.import("resource://moztray/gobject.jsm");
+Cu.import("resource://moztray/pango.jsm");
 
 function gtk_defines(lib) {
   this.GTK_ICON_SIZE_MENU = 1;
+  this.GTK_WINDOW_TOPLEVEL = 1;
 
   this.GtkStatusIcon = ctypes.StructType("GtkStatusIcon");
   this.GtkStyle = ctypes.StructType("GtkStyle");
@@ -44,6 +46,8 @@ function gtk_defines(lib) {
   // use ctypes.cast(menu, LibGtkStatusIcon.GtkMenuShell.ptr);
   this.GtkMenuShell = ctypes.StructType("GtkMenuShell");
   this.GtkImageMenuItem = ctypes.StructType("GtkImageMenuItem");
+  this.GtkWindow = ctypes.StructType("GtkWindow");
+  this.GtkWindowType = ctypes.int; // enum
 
   this.GtkMenuPositionFunc_t = ctypes.FunctionType(
     ctypes.default_abi, ctypes.void_t,
@@ -76,6 +80,11 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_status_icon_position_menu", ctypes.void_t,
                 this.GtkMenu.ptr, gobject.gint.ptr, gobject.gint.ptr,
                 gobject.gboolean.ptr, gobject.gpointer);
+
+  lib.lazy_bind("gtk_window_new", this.GtkWidget.ptr, this.GtkWindowType);
+  lib.lazy_bind("gtk_widget_create_pango_layout", pango.PangoLayout.ptr, this.GtkWidget.ptr, gobject.gchar.ptr);
+  lib.lazy_bind("gtk_widget_destroy", ctypes.void_t, this.GtkWidget.ptr);
+  lib.lazy_bind("gtk_status_icon_set_from_pixbuf", ctypes.void_t, this.GtkStatusIcon.ptr, gdk.GdkPixbuf.ptr);
 
 }
 

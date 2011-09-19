@@ -38,6 +38,18 @@ mozt.Utils = {
   prefService: Services.prefs.getBranch("extensions.moztray."),
   strings: Services.strings.createBundle("chrome://moztray/locale/overlay.properties"),
 
+  dumpObj: function(obj) {
+    let str = "";
+    for(i in obj) {
+      try {
+        str += "obj["+i+"]: " + obj[i] + "\n";
+      } catch(e) {
+        str += "obj["+i+"]: Unavailable\n";
+      }
+    }
+    LOG(str);
+  },
+
   // adapted from http://forums.mozillazine.org/viewtopic.php?p=921150#921150
   chromeToPath: function(aPath) {
     if (!aPath || !(/^chrome:/.test(aPath)))
