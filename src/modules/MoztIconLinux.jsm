@@ -7,13 +7,23 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://moztray/cairo.jsm");
 Cu.import("resource://moztray/gobject.jsm");
 Cu.import("resource://moztray/gdk.jsm");
 Cu.import("resource://moztray/gtk.jsm");
+Cu.import("resource://moztray/libc.jsm");
 Cu.import("resource://moztray/pango.jsm");
 Cu.import("resource://moztray/commons.js");
+
+const Services2 = {};
+XPCOMUtils.defineLazyServiceGetter(
+  Services2,
+  "uuid",
+  "@mozilla.org/uuid-generator;1",
+  "nsIUUIDGenerator"
+);
 
 if ("undefined" == typeof(mozt.Handler))
   ERROR("MoztIcon*.jsm MUST be imported from/after MoztHandler !");
@@ -23,6 +33,16 @@ if ("undefined" == typeof(mozt.Handler))
 var mozt_iconActivateCb;
 var mozt_popupMenuCb;
 var mozt_menuItemQuitActivateCb;
+var mozt_findGtkWindowByTitleCb;
+
+/**
+ * custum type used to pass data in to and out of mozt_findGtkWindowByTitleCb
+ */
+var _find_data_t = ctypes.StructType("_find_data_t", [
+  { inTitle: ctypes.char.ptr },
+  { outWindow: ctypes.void_t.ptr }
+]);
+
 
 mozt.IconLinux = {
   tryIcon: null,
@@ -65,6 +85,11 @@ mozt.IconLinux = {
       ERROR(x);
       return false;
     }
+
+    // // TEST
+    // let win = Services.wm.getMostRecentWindow(null);
+    // let gtkWin = ctypes.cast(this._getGtkWindowHandle(win), gtk.GtkWindow.ptr);
+    // gtk.gtk_window_set_decorated(gtkWin, false);
 
     return true;
   },
@@ -271,6 +296,78 @@ mozt.IconLinux = {
       return false;
     }
 
+    return true;
+  },
+
+  /**
+   * Iterate over all Gtk toplevel windows to find a window. We rely on
+   * Service.wm to watch windows correctly: we should find only one window.
+   *
+   * @author Nils Maier (stolen from MiniTrayR)
+   * @param window nsIDOMWindow from Services.wm
+   * @return a ctypes.void_t.ptr to a GtkWindow
+   */
+  _getGtkWindowHandle: function(window) {
+    let baseWindow = window
+      .QueryInterface(Ci.nsIInterfaceRequestor)
+      .getInterface(Ci.nsIWebNavigation)
+      .QueryInterface(Ci.nsIBaseWindow);
+
+    // Tag the base window
+    let oldTitle = baseWindow.title;
+    baseWindow.title = Services2.uuid.generateUUID().toString();
+
+    try {
+      // Search the window by the *temporary* title
+      let tl = gtk.gtk_window_list_toplevels();
+      let that = this;
+      mozt_findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle);
+      var userData = new _find_data_t(
+        ctypes.char.array()(baseWindow.title),
+        null
+      ).address();
+      LOG("userData="+userData);
+      gobject.g_list_foreach(tl, mozt_findGtkWindowByTitleCb, userData);
+      gobject.g_list_free(tl);
+
+      if (userData.contents.outWindow.isNull()) {
+        throw new Error("Window not found!");
+      }
+      LOG("found window: "+userData.contents.outWindow);
+    } catch (x) {
+      ERROR(x);
+    } finally {
+      // Restore
+      baseWindow.title = oldTitle;
+    }
+
+    return userData.contents.outWindow;
+  },
+
+  /**
+   * compares a GtkWindow's title with a string passed in userData
+   * @param gtkWidget: GtkWidget from gtk_window_list_toplevels()
+   * @param userData: _find_data_t
+   */
+  _findGtkWindowByTitle: function(gtkWidget, userData) {
+    LOG("GTK Window: "+gtkWidget+", "+userData);
+
+    let data = ctypes.cast(userData, _find_data_t.ptr);
+    let inTitle = data.contents.inTitle;
+    LOG("inTitle="+inTitle.readString());
+
+    let gtkWin = ctypes.cast(gtkWidget, gtk.GtkWindow.ptr);
+    let winTitle = gtk.gtk_window_get_title(gtkWin);
+
+    try {
+      if (!winTitle.isNull()) {
+        LOG(inTitle+" = "+winTitle);
+        if (libc.strcmp(inTitle, winTitle) == 0)
+          data.contents.outWindow = gtkWin;
+      }
+    } catch (x) {
+      ERROR(x);
+    }
   }
 
 }; // mozt.IconLinux

@@ -85,7 +85,10 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_widget_create_pango_layout", pango.PangoLayout.ptr, this.GtkWidget.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gtk_widget_destroy", ctypes.void_t, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_status_icon_set_from_pixbuf", ctypes.void_t, this.GtkStatusIcon.ptr, gdk.GdkPixbuf.ptr);
+  lib.lazy_bind("gtk_window_list_toplevels", gobject.GList.ptr);
+  lib.lazy_bind("gtk_window_get_title", gobject.gchar.ptr, this.GtkWindow.ptr);
 
+  lib.lazy_bind("gtk_window_set_decorated", ctypes.void_t, this.GtkWindow.ptr, gobject.gboolean);
 }
 
 if (!gtk) {
