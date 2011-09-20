@@ -138,22 +138,6 @@ mozt.Handler = {
 
   }, // showHideToTray
 
-  popupMenu: function(icon, button, activateTime, menu) {
-    LOG("MENU POPUP");
-    LOG("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
-
-    try {
-      // TODO: move to MoztIconLinux
-      var gtkMenuPtr = ctypes.cast(menu, gtk.GtkMenu.ptr);
-      var iconGpointer = ctypes.cast(icon, gobject.gpointer);
-      gtk.gtk_menu_popup(
-        gtkMenuPtr, null, null, gtk.gtk_status_icon_position_menu,
-        iconGpointer, button, activateTime);
-    } catch (x) {
-      LOG(x);
-    }
-  },
-
   quitApplication: function() {
     try {
       let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']
