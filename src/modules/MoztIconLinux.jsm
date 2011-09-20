@@ -150,7 +150,8 @@ mozt.IconLinux = {
     // prepare colors/alpha
     let colorMap = gdk.gdk_screen_get_system_colormap(gdk.gdk_screen_get_default());
     let visual = gdk.gdk_colormap_get_visual(colorMap);
-    let screenDepth = 24; // = visual.depth; // FIXME: was visual->depth
+    let visualDepth = gdk.gdk_visual_get_depth(visual);
+    LOG("colorMap="+colorMap+" visual="+visual+" visualDepth="+visualDepth);
     let fore = new gdk.GdkColor;
     fore.pixel = fore.red = fore.green = fore.blue = 0;
     let alpha  = new gdk.GdkColor;
@@ -165,7 +166,7 @@ mozt.IconLinux = {
     gdk.gdk_colormap_alloc_color(colorMap, alpha.address(), true, true);
 
     // build pixmap with rectangle
-    let pm = gdk.gdk_pixmap_new(null, w, h, screenDepth);
+    let pm = gdk.gdk_pixmap_new(null, w, h, visualDepth);
     let pmDrawable = ctypes.cast(pm, gdk.GdkDrawable.ptr);
     let cr = gdk.gdk_cairo_create(pmDrawable);
     gdk.gdk_cairo_set_source_color(cr, alpha.address());
