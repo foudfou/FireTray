@@ -142,6 +142,12 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_pixbuf_add_alpha", this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, gobject.gboolean, gobject.guchar, gobject.guchar, gobject.guchar);
   lib.lazy_bind("gdk_pixbuf_composite", ctypes.void_t, this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.double, ctypes.double, ctypes.double, ctypes.double, this.GdkInterpType, ctypes.int);
 
+  lib.lazy_bind("gdk_window_stick", ctypes.void_t, this.GdkWindow.ptr);
+  lib.lazy_bind("gdk_window_iconify", ctypes.void_t, this.GdkWindow.ptr);
+  lib.lazy_bind("gdk_window_set_title", ctypes.void_t, this.GdkWindow.ptr, gobject.gchar.ptr);
+  lib.lazy_bind("gdk_window_beep", ctypes.void_t, this.GdkWindow.ptr);
+  lib.lazy_bind("gdk_window_get_width", ctypes.int, this.GdkWindow.ptr);
+
 }
 
 if (!gdk) {

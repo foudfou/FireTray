@@ -40,7 +40,7 @@ var mozt_findGtkWindowByTitleCb;
  */
 var _find_data_t = ctypes.StructType("_find_data_t", [
   { inTitle: ctypes.char.ptr },
-  { outWindow: ctypes.void_t.ptr }
+  { outWindow: gtk.GtkWindow.ptr }
 ]);
 
 
@@ -85,11 +85,6 @@ mozt.IconLinux = {
       ERROR(x);
       return false;
     }
-
-    // // TEST
-    // let win = Services.wm.getMostRecentWindow(null);
-    // let gtkWin = ctypes.cast(this._getGtkWindowHandle(win), gtk.GtkWindow.ptr);
-    // gtk.gtk_window_set_decorated(gtkWin, false);
 
     return true;
   },
@@ -138,7 +133,6 @@ mozt.IconLinux = {
     LOG("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
 
     try {
-      // TODO: move to MoztIconLinux
       var gtkMenuPtr = ctypes.cast(menu, gtk.GtkMenu.ptr);
       var iconGpointer = ctypes.cast(icon, gobject.gpointer);
       gtk.gtk_menu_popup(
@@ -147,6 +141,7 @@ mozt.IconLinux = {
     } catch (x) {
       LOG(x);
     }
+
   },
 
   setImage: function(filename) {
@@ -305,7 +300,7 @@ mozt.IconLinux = {
    *
    * @author Nils Maier (stolen from MiniTrayR)
    * @param window nsIDOMWindow from Services.wm
-   * @return a ctypes.void_t.ptr to a GtkWindow
+   * @return a gtk.GtkWindow.ptr
    */
   _getGtkWindowHandle: function(window) {
     let baseWindow = window
@@ -319,7 +314,7 @@ mozt.IconLinux = {
 
     try {
       // Search the window by the *temporary* title
-      let tl = gtk.gtk_window_list_toplevels();
+      let widgets = gtk.gtk_window_list_toplevels();
       let that = this;
       mozt_findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle);
       var userData = new _find_data_t(
@@ -327,8 +322,8 @@ mozt.IconLinux = {
         null
       ).address();
       LOG("userData="+userData);
-      gobject.g_list_foreach(tl, mozt_findGtkWindowByTitleCb, userData);
-      gobject.g_list_free(tl);
+      gobject.g_list_foreach(widgets, mozt_findGtkWindowByTitleCb, userData);
+      gobject.g_list_free(widgets);
 
       if (userData.contents.outWindow.isNull()) {
         throw new Error("Window not found!");
@@ -364,6 +359,36 @@ mozt.IconLinux = {
         LOG(inTitle+" = "+winTitle);
         if (libc.strcmp(inTitle, winTitle) == 0)
           data.contents.outWindow = gtkWin;
+      }
+    } catch (x) {
+      ERROR(x);
+    }
+  },
+
+  _getGdkWindowFromGtkWindow: function(gtkWin) {
+    try {
+      let gtkWid = ctypes.cast(gtkWin, gtk.GtkWidget.ptr);
+      var gdkWin = gtk.gtk_widget_get_window(gtkWid);
+    } catch (x) {
+      ERROR(x);
+    }
+    return gdkWin;
+  },
+
+  // NOTE: doesn't work during initialization probably since windows aren't
+  // fully realized (?)
+  testWindowHandle: function() {
+    try {
+      let win = Services.wm.getMostRecentWindow(null);
+      let gtkWin = mozt.IconLinux._getGtkWindowHandle(win);
+      LOG("FOUND: "+gtk.gtk_window_get_title(gtkWin).readString());
+      gtk.gtk_window_set_decorated(gtkWin, false);
+
+      let gdkWin = this._getGdkWindowFromGtkWindow(gtkWin);
+      if (!gdkWin.isNull()) {
+        LOG("has window");
+        LOG(gdk.gdk_window_get_width(gdkWin));
+        gdk.gdk_window_iconify(gdkWin);
       }
     } catch (x) {
       ERROR(x);
