@@ -28,6 +28,7 @@ if ("undefined" == typeof(mozt)) {
   var mozt = {};
 };
 
+
 mozt.Messaging = {
   // TODO: turn into pref
   SERVER_TYPES_EXCLUDED: ["nntp","rss","movemail"], // keep "pop3","imap","none"
@@ -65,7 +66,7 @@ mozt.Messaging = {
      * @param oldFlag: Old header flag (long).
      * @param newFlag: New header flag (long).
      */
-    // TODO: check count correctly updated if folder/account creation/deletion
+    // TODO: check if count correctly updated if folder/account creation/deletion
     OnItemIntPropertyChanged: function(folder, property, oldValue, newValue) {
       if (property.toString() === "TotalUnreadMessages" &&
           !(folder.flags & FLDR_UNINTERESTING)) {
@@ -73,6 +74,14 @@ mozt.Messaging = {
         mozt.Messaging.updateUnreadMsgCount();
       }
     }
+  },
+
+  /**
+   * gets the accounts_to_exclude preference which is a stringified Array
+   * containing the keys of the accounts to exclude
+   */
+  getPrefAccountsExcluded: function() {
+    return mozt.Utils.prefService.getCharPref('accounts_to_exclude').split(',') || [];
   },
 
   /**
@@ -84,19 +93,14 @@ mozt.Messaging = {
 
     this._unreadMsgCount = 0;   // reset
     try {
-      let accountsExcluded = mozt.Utils.prefService
-        .getCharPref('accounts_to_exclude').split(',');
+      let exclCond = function(account) {
+        return ( (mozt.Messaging.SERVER_TYPES_EXCLUDED.indexOf(account.type) >= 0)
+          || (mozt.Messaging.getPrefAccountsExcluded().indexOf(account.key) >= 0) );
+      };
 
-      let accounts = MailServices.accounts.accounts;
-      for (let i = 0; i < accounts.Count(); i++) {
-        let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
-        let accountServer = account.incomingServer;
-        LOG("ACCOUNT: "+account.incomingServer.prettyName+" type: "+accountServer.type);
-        if ( (this.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
-           || (accountsExcluded.indexOf(accountServer.key) >= 0) )
-          continue;
-
-        let rootFolder = account.incomingServer.rootFolder; // nsIMsgFolder
+      let accounts = new this.Accounts(exclCond);
+      for (let accountServer in accounts) {
+        let rootFolder = accountServer.rootFolder; // nsIMsgFolder
         if (rootFolder.hasSubFolders) {
           let subFolders = rootFolder.subFolders; // nsIMsgFolder
           while(subFolders.hasMoreElements()) {
@@ -127,6 +131,38 @@ mozt.Messaging = {
       ERROR("negative unread messages' count ?"); // should never happen
       throw "negative message count"; // should never happen
     }
+
+  },
+
+  /**
+   * Accounts constructor for iterating over account servers
+   * @param exclusionCondition: a function which expresses a condition for excluding accounts
+   */
+  Accounts: function(exclusionCondition) {
+    if (typeof(exclusionCondition) == "undefined") {
+      this.exclusionCondition = function(){return false;};
+      return;
+    } else if (typeof(exclusionCondition) != "function") {
+      throw "arg must be a function";
+      return;
+    } else
+      this.exclusionCondition = exclusionCondition;
   }
 
 };
+
+/**
+ * make Accounts a Iterator/Generator
+ */
+mozt.Messaging.Accounts.prototype.__iterator__ = function() {
+  let accounts = MailServices.accounts.accounts;
+  for (let i = 0; i < accounts.Count(); i++) {
+    let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
+    let accountServer = account.incomingServer;
+    LOG("ACCOUNT: "+accountServer.prettyName+" type: "+accountServer.type);
+    if ( this.exclusionCondition.call(this, accountServer) )
+      continue;
+
+     yield accountServer;
+  }
+}

@@ -29,27 +29,20 @@ mozt.UIOptions = {
     // the DOM parent where we do appendChild
     let targetNode = document.getElementById(parentId);
 
-    // accounts_to_exclude preference is a stringified Array containing the
-    // keys of the accounts to exclude
-    let accountsExcluded = mozt.Utils.prefService
-      .getCharPref('accounts_to_exclude').split(',');
-
     // TODO: sort servers by type, name
-    let accounts = MailServices.accounts.accounts;
-    for (let i = 0; i < accounts.Count(); i++) {
-      let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
-      let accountServer = account.incomingServer;
-      if (mozt.Messaging.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
-        continue;
+    let exclCond = function(account) {
+      return (mozt.Messaging.SERVER_TYPES_EXCLUDED.indexOf(account.type) >= 0);
+    };
 
+    let accounts = new mozt.Messaging.Accounts(exclCond);
+    for (let accountServer in accounts) {
       let nodeAccount = document.createElement("checkbox");
       let accountServerKey = accountServer.key.toString();
       nodeAccount.setAttribute('id', accountServerKey);
       nodeAccount.setAttribute('label', accountServer.rootFolder.name);
       nodeAccount.setAttribute('checked',
-                               (accountsExcluded.indexOf(accountServerKey) >= 0));
-      nodeAccount.setAttribute(
-        'oncommand',
+        (mozt.Messaging.getPrefAccountsExcluded().indexOf(accountServerKey) >= 0));
+      nodeAccount.setAttribute('oncommand',
         'mozt.UIOptions.updateMailAccountsExcluded(mozt.UIOptions.accountBoxId)');
       targetNode.appendChild(nodeAccount);
     }
@@ -67,6 +60,7 @@ mozt.UIOptions = {
         prefValue.push(targetNode.childNodes[i].getAttribute('id'));
     }
 
+    LOG("accounts_to_exclude:"+prefValue);
     mozt.Utils.prefService.setCharPref('accounts_to_exclude', prefValue.toString());
 
     mozt.Messaging.updateUnreadMsgCount();
