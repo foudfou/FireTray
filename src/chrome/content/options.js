@@ -30,12 +30,11 @@ mozt.UIOptions = {
     let targetNode = document.getElementById(parentId);
 
     // TODO: sort servers by type, name
-    let exclCond = function(account) {
-      return (mozt.Messaging.SERVER_TYPES_EXCLUDED.indexOf(account.type) >= 0);
-    };
-
-    let accounts = new mozt.Messaging.Accounts(exclCond);
+    let accounts = new mozt.Messaging.Accounts();
     for (let accountServer in accounts) {
+      if (mozt.Messaging.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
+        continue;
+
       let nodeAccount = document.createElement("checkbox");
       let accountServerKey = accountServer.key.toString();
       nodeAccount.setAttribute('id', accountServerKey);

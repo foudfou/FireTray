@@ -93,13 +93,12 @@ mozt.Messaging = {
 
     this._unreadMsgCount = 0;   // reset
     try {
-      let exclCond = function(account) {
-        return ( (mozt.Messaging.SERVER_TYPES_EXCLUDED.indexOf(account.type) >= 0)
-          || (mozt.Messaging.getPrefAccountsExcluded().indexOf(account.key) >= 0) );
-      };
-
-      let accounts = new this.Accounts(exclCond);
+      let accounts = new this.Accounts();
       for (let accountServer in accounts) {
+        if ( (this.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
+          || (this.getPrefAccountsExcluded().indexOf(accountServer.key) >= 0) )
+          continue;
+
         let rootFolder = accountServer.rootFolder; // nsIMsgFolder
         if (rootFolder.hasSubFolders) {
           let subFolders = rootFolder.subFolders; // nsIMsgFolder
@@ -136,17 +135,8 @@ mozt.Messaging = {
 
   /**
    * Accounts constructor for iterating over account servers
-   * @param exclusionCondition: a function which expresses a condition for excluding accounts
    */
-  Accounts: function(exclusionCondition) {
-    if (typeof(exclusionCondition) == "undefined") {
-      this.exclusionCondition = function(){return false;};
-      return;
-    } else if (typeof(exclusionCondition) != "function") {
-      throw "arg must be a function";
-      return;
-    } else
-      this.exclusionCondition = exclusionCondition;
+  Accounts: function() {
   }
 
 };
@@ -160,9 +150,6 @@ mozt.Messaging.Accounts.prototype.__iterator__ = function() {
     let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
     let accountServer = account.incomingServer;
     LOG("ACCOUNT: "+accountServer.prettyName+" type: "+accountServer.type);
-    if ( this.exclusionCondition.call(this, accountServer) )
-      continue;
-
-     yield accountServer;
+    yield accountServer;
   }
 }
