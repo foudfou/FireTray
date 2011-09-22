@@ -28,10 +28,10 @@ if ("undefined" == typeof(mozt)) {
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 mozt.Handler = {
   initialized: false,
+  inMailApp: false,
 
   _windowsHidden: false,
   _handledDOMWindows: [],
-  _inMailApp: false,
 
   _getBaseOrXULWindowFromDOMWindow: function(win, winType) {
     let winInterface, winOut;
@@ -173,7 +173,7 @@ mozt.Handler = {
     // check if in mail app
     var mozAppId = Services.appinfo.ID;
     if (mozAppId === THUNDERBIRD_ID || mozAppId === SEAMONKEY_ID) {
-      this._inMailApp = true;
+      this.inMailApp = true;
       try {
         Cu.import("resource://moztray/MoztMessaging.jsm");
         mozt.Messaging.enable();
@@ -185,14 +185,14 @@ mozt.Handler = {
       // init unread messages count
       mozt.Messaging.updateUnreadMsgCount();
     }
-    LOG('inMailApp: '+this._inMailApp);
+    LOG('inMailApp: '+this.inMailApp);
 
     this.initialized = true;
     return true;
   },
 
   shutdown: function() {        // NOT USED YET
-    if (this._inMailApp)
+    if (this.inMailApp)
       mozt.Messaging.disable();
 
     mozt.IconLinux.shutdown();

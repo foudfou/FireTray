@@ -30,7 +30,7 @@ mozt.Main = {
     let init = mozt.Handler.initialized || mozt.Handler.init();
 
     // update unread messages count
-    if (mozt.Handler._inMailApp)
+    if (mozt.Handler.inMailApp)
       mozt.Messaging.updateUnreadMsgCount();
 
     // prevent window closing.

@@ -2,3 +2,4 @@
 <!ENTITY pane1.title "MozTray preferences">
 <!ENTITY bool_close_hides.label "Closing windows hides to tray">
 <!ENTITY bool_close_hides.accesskey "C">
+<!ENTITY mail_accounts_exclude "Mail accounts to exclude" >

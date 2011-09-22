@@ -4,7 +4,7 @@
 <prefwindow id="moztray-preferences"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
             title="&prefwindow.title;"
-            onload= "mozt.UIOptions.onLoad()">
+            onload="mozt.UIOptions.onLoad()">
 
   <script type="application/x-javascript" src="options.js" />
 
@@ -19,6 +19,11 @@
       <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
                 label="&bool_close_hides.label;"
                 accesskey="&bool_close_hides.accesskey;"/>
+    </groupbox>
+
+    <groupbox id="accounts_box"> <!-- mozt.UIOptions.accountBoxId -->
+      <caption label="&mail_accounts_exclude;"/>
+      <!-- accounts  are dynamically added here with insert_accounts_name() functions, called at the bottom of this file -->
     </groupbox>
 
   </prefpane>

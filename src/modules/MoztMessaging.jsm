@@ -29,6 +29,9 @@ if ("undefined" == typeof(mozt)) {
 };
 
 mozt.Messaging = {
+  // TODO: turn into pref
+  SERVER_TYPES_EXCLUDED: ["nntp","rss","movemail"], // keep "pop3","imap","none"
+
   _unreadMsgCount: 0,
 
   enable: function() {
@@ -81,14 +84,17 @@ mozt.Messaging = {
 
     this._unreadMsgCount = 0;   // reset
     try {
+      let accountsExcluded = mozt.Utils.prefService
+        .getCharPref('accounts_to_exclude').split(',');
+
       let accounts = MailServices.accounts.accounts;
       for (let i = 0; i < accounts.Count(); i++) {
         let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
-        let accountServerType = account.incomingServer.type;
-        LOG("ACCOUNT: "+account.incomingServer.prettyName+" type: "+accountServerType);
-        if (["pop3","imap","none"].indexOf(accountServerType) == -1)
-          continue; // skip "nntp" "rss" "movemail"
-        // TODO: turn into pref
+        let accountServer = account.incomingServer;
+        LOG("ACCOUNT: "+account.incomingServer.prettyName+" type: "+accountServer.type);
+        if ( (this.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
+           || (accountsExcluded.indexOf(accountServer.key) >= 0) )
+          continue;
 
         let rootFolder = account.incomingServer.rootFolder; // nsIMsgFolder
         if (rootFolder.hasSubFolders) {
