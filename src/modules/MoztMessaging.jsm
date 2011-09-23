@@ -66,7 +66,6 @@ mozt.Messaging = {
      * @param oldFlag: Old header flag (long).
      * @param newFlag: New header flag (long).
      */
-    // TODO: check if count correctly updated if folder/account creation/deletion
     OnItemIntPropertyChanged: function(folder, property, oldValue, newValue) {
       if (property.toString() === "TotalUnreadMessages" &&
           !(folder.flags & FLDR_UNINTERESTING)) {
@@ -131,25 +130,54 @@ mozt.Messaging = {
       throw "negative message count"; // should never happen
     }
 
-  },
-
-  /**
-   * Accounts constructor for iterating over account servers
-   */
-  Accounts: function() {
   }
 
 };
 
+
 /**
- * make Accounts a Iterator/Generator
+ * Accounts Iterator/Generator for iterating over account servers
+ * @param sortByTypeAndName: boolean
  */
+mozt.Messaging.Accounts = function(sortByTypeAndName) {
+  if (typeof(sortByTypeAndName) == "undefined") {
+    this.sortByTypeAndName = false;
+    return;
+  }
+  if (typeof(sortByTypeAndName) !== "boolean")
+    throw "sort arg must be a boolean";
+
+  this.sortByTypeAndName = sortByTypeAndName;
+};
 mozt.Messaging.Accounts.prototype.__iterator__ = function() {
   let accounts = MailServices.accounts.accounts;
+  LOG("sortByTypeAndName="+this.sortByTypeAndName);
+
+  // NOTE: sort() not provided by nsIMsgAccountManager.accounts
+  // (nsISupportsArray?). Should be OK to re-build a JS-Array for few accounts
+  let accountServers = [];
   for (let i = 0; i < accounts.Count(); i++) {
     let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
     let accountServer = account.incomingServer;
-    LOG("ACCOUNT: "+accountServer.prettyName+" type: "+accountServer.type);
-    yield accountServer;
+    accountServers[i] = accountServer;
   }
-}
+
+  if (this.sortByTypeAndName) {
+    accountServers.sort(function(a,b) {
+      if (a.type < b.type)
+        return -1;
+      if (a.type > b.type)
+        return 1;
+      if (a.name < b.name)
+        return -1;
+      if (a.name > b.name)
+        return 1;
+      return 0; // no sorting
+    });
+  }
+
+  for (i = 0; i < accountServers.length; i++) {
+    LOG("ACCOUNT: "+accountServers[i].prettyName+" type: "+accountServers[i].type);
+    yield accountServers[i];
+  }
+};

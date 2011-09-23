@@ -29,8 +29,7 @@ mozt.UIOptions = {
     // the DOM parent where we do appendChild
     let targetNode = document.getElementById(parentId);
 
-    // TODO: sort servers by type, name
-    let accounts = new mozt.Messaging.Accounts();
+    let accounts = new mozt.Messaging.Accounts(true);
     for (let accountServer in accounts) {
       if (mozt.Messaging.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
         continue;
