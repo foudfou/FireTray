@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
-    <em:id>moztray@foudil.fr</em:id>
+    <em:id>{9533f794-00b4-4354-aa15-c2bbda6989f8}</em:id>
     <em:unpack>true</em:unpack> <!-- needed for embedded icons -->
     <em:type>2</em:type>
-    <em:name>MozTray</em:name>
-    <em:version>0.1.2</em:version>
-    <em:creator>Foudil BRÉTEL</em:creator>
+    <em:name>FireTray</em:name>
+    <em:version>0.4.0a2</em:version>
+    <em:creator>Hua Luo, Francesco Solero, Foudil BRÉTEL</em:creator>
     <em:contributor>Hua Luo, Francesco Solero (Firetray original authors)</em:contributor>
-    <em:homepageURL>https://github.com/foudfou/moztray</em:homepageURL>
+    <em:homepageURL>https://github.com/foudfou/firetray</em:homepageURL>
     <em:description>A system tray extension for linux.</em:description>
-    <em:optionsURL>chrome://moztray/content/options.xul</em:optionsURL>
-    <em:iconURL>chrome://moztray/skin/moztray48.png</em:iconURL>
-    <em:icon64URL>chrome://moztray/skin/moztray64.png</em:icon64URL>
+    <em:optionsURL>chrome://firetray/content/options.xul</em:optionsURL>
+    <em:iconURL>chrome://firetray/skin/firetray48.png</em:iconURL>
+    <em:icon64URL>chrome://firetray/skin/firetray64.png</em:icon64URL>
     <em:targetPlatform>Linux</em:targetPlatform> <!-- only Linux supported for now -->
 
     <em:targetApplication>
@@ -62,6 +62,44 @@
         <em:maxVersion>0.9.*</em:maxVersion>
       </Description>
     </em:targetApplication>
+
+
+    <em:developer>Jared Forsyth</em:developer>
+    <em:developer>Glen Winters</em:developer>
+
+    <em:contributor>Simone 'Underpass'</em:contributor>
+    <em:contributor>Diego Rodriguez</em:contributor>
+    <em:contributor>Dave Bartlett</em:contributor>
+    <em:contributor>Bertolotti Pierre</em:contributor>
+    <em:contributor>Ziyuan Yao</em:contributor>
+    <em:contributor>+Hard -Soft</em:contributor>
+    <em:contributor>SparkyBluefang</em:contributor>
+    <em:contributor>Corossig</em:contributor>
+    <em:contributor>Hicham.Haouari</em:contributor>
+    <em:contributor>Jreybert</em:contributor>
+    <em:contributor>aedrin</em:contributor>
+
+    <em:translator>Lachezar [bg-BG]</em:translator>
+    <em:translator>SoftcatalàAljullu,ellibre [ca-AD]</em:translator>
+    <em:translator>Sam [cz-CZ]</em:translator>
+    <em:translator>bricks [de-DE]</em:translator>
+    <em:translator>profediego [es-AR]</em:translator>
+    <em:translator>chuzo [es-ES]</em:translator>
+    <em:translator>GµårÐïåñ [fa-IR]</em:translator>
+    <em:translator>BatBat,Jojaba,nico@nc [fr-FR]</em:translator>
+    <em:translator>Simone 'Underpass' [it-IT]</em:translator>
+    <em:translator>drry [ja-JP]</em:translator>
+    <em:translator>renegade06 [mk-MK]</em:translator>
+    <em:translator>markh [nl-NL]</em:translator>
+    <em:translator>Wacław Jacek [pl-PL]</em:translator>
+    <em:translator>Alberto Eidh [pt-BR]</em:translator>
+    <em:translator>Quicksilver tears [ru-RU]</em:translator>
+    <em:translator>lukas_sk [sk-SK]</em:translator>
+    <em:translator>miles [sl-SL]</em:translator>
+    <em:translator>Lakrits [sv-SE]</em:translator>
+    <em:translator>efecan [tr-TR]</em:translator>
+    <em:translator>Sappa [uk-UA]</em:translator>
+    <em:translator>xmoke [zh-CN]</em:translator>
 
   </Description>
 </RDF>

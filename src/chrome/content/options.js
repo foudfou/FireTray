@@ -5,22 +5,22 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/mailServices.js");
-Cu.import("resource://moztray/MoztHandler.jsm");
-Cu.import("resource://moztray/commons.js");
+Cu.import("resource://firetray/FiretrayHandler.jsm");
+Cu.import("resource://firetray/commons.js");
 
 /**
- * mozt namespace.
+ * firetray namespace.
  */
-if ("undefined" == typeof(mozt)) {
-  var mozt = {};
+if ("undefined" == typeof(firetray)) {
+  var firetray = {};
 };
 
-mozt.UIOptions = {
+firetray.UIOptions = {
   accountBoxId: "accounts_box",
 
   onLoad: function() {
-    if(mozt.Handler.inMailApp) {
-      Cu.import("resource://moztray/MoztMessaging.jsm");
+    if(firetray.Handler.inMailApp) {
+      Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.insertMailAccountsExcluded(this.accountBoxId);
     }
   },
@@ -29,9 +29,9 @@ mozt.UIOptions = {
     // the DOM parent where we do appendChild
     let targetNode = document.getElementById(parentId);
 
-    let accounts = new mozt.Messaging.Accounts(true);
+    let accounts = new firetray.Messaging.Accounts(true);
     for (let accountServer in accounts) {
-      if (mozt.Messaging.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
+      if (firetray.Messaging.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
         continue;
 
       let nodeAccount = document.createElement("checkbox");
@@ -39,9 +39,9 @@ mozt.UIOptions = {
       nodeAccount.setAttribute('id', accountServerKey);
       nodeAccount.setAttribute('label', accountServer.rootFolder.name);
       nodeAccount.setAttribute('checked',
-        (mozt.Messaging.getPrefAccountsExcluded().indexOf(accountServerKey) >= 0));
+        (firetray.Messaging.getPrefAccountsExcluded().indexOf(accountServerKey) >= 0));
       nodeAccount.setAttribute('oncommand',
-        'mozt.UIOptions.updateMailAccountsExcluded(mozt.UIOptions.accountBoxId)');
+        'firetray.UIOptions.updateMailAccountsExcluded(firetray.UIOptions.accountBoxId)');
       targetNode.appendChild(nodeAccount);
     }
 
@@ -59,9 +59,9 @@ mozt.UIOptions = {
     }
 
     LOG("accounts_to_exclude:"+prefValue);
-    mozt.Utils.prefService.setCharPref('accounts_to_exclude', prefValue.toString());
+    firetray.Utils.prefService.setCharPref('accounts_to_exclude', prefValue.toString());
 
-    mozt.Messaging.updateUnreadMsgCount();
+    firetray.Messaging.updateUnreadMsgCount();
   },
 
   _disableGroup: function(group, disableval) {

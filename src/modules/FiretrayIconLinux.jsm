@@ -1,6 +1,6 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "mozt" ];
+var EXPORTED_SYMBOLS = [ "firetray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -9,13 +9,13 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/cairo.jsm");
-Cu.import("resource://moztray/gobject.jsm");
-Cu.import("resource://moztray/gdk.jsm");
-Cu.import("resource://moztray/gtk.jsm");
-Cu.import("resource://moztray/libc.jsm");
-Cu.import("resource://moztray/pango.jsm");
-Cu.import("resource://moztray/commons.js");
+Cu.import("resource://firetray/cairo.jsm");
+Cu.import("resource://firetray/gobject.jsm");
+Cu.import("resource://firetray/gdk.jsm");
+Cu.import("resource://firetray/gtk.jsm");
+Cu.import("resource://firetray/libc.jsm");
+Cu.import("resource://firetray/pango.jsm");
+Cu.import("resource://firetray/commons.js");
 
 const Services2 = {};
 XPCOMUtils.defineLazyServiceGetter(
@@ -25,18 +25,18 @@ XPCOMUtils.defineLazyServiceGetter(
   "nsIUUIDGenerator"
 );
 
-if ("undefined" == typeof(mozt.Handler))
-  ERROR("MoztIcon*.jsm MUST be imported from/after MoztHandler !");
+if ("undefined" == typeof(firetray.Handler))
+  ERROR("FiretrayIcon*.jsm MUST be imported from/after FiretrayHandler !");
 
 // pointers to JS functions. should *not* be eaten by GC ("Running global
 // cleanup code from study base classes" ?)
-var mozt_iconActivateCb;
-var mozt_popupMenuCb;
-var mozt_menuItemQuitActivateCb;
-var mozt_findGtkWindowByTitleCb;
+var firetray_iconActivateCb;
+var firetray_popupMenuCb;
+var firetray_menuItemQuitActivateCb;
+var firetray_findGtkWindowByTitleCb;
 
 /**
- * custum type used to pass data in to and out of mozt_findGtkWindowByTitleCb
+ * custum type used to pass data in to and out of firetray_findGtkWindowByTitleCb
  */
 var _find_data_t = ctypes.StructType("_find_data_t", [
   { inTitle: ctypes.char.ptr },
@@ -44,7 +44,7 @@ var _find_data_t = ctypes.StructType("_find_data_t", [
 ]);
 
 
-mozt.IconLinux = {
+firetray.IconLinux = {
   tryIcon: null,
   menu: null,
   appName: null,
@@ -58,10 +58,10 @@ mozt.IconLinux = {
       // init tray icon, some variables
       this.trayIcon  = gtk.gtk_status_icon_new();
       this.appName = Services.appinfo.name.toLowerCase();
-      this.FILENAME_DEFAULT = mozt.Utils.chromeToPath(
-        "chrome://moztray/skin/" +  this.appName + this.FILENAME_SUFFIX);
-      this.FILENAME_NEWMAIL = mozt.Utils.chromeToPath(
-        "chrome://moztray/skin/newmail.png");
+      this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
+        "chrome://firetray/skin/" +  this.appName + this.FILENAME_SUFFIX);
+      this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
+        "chrome://firetray/skin/newmail.png");
     } catch (x) {
       ERROR(x);
       return false;
@@ -77,10 +77,10 @@ mozt.IconLinux = {
     try {
       // watch out for binding problems ! here we prefer to keep 'this' in
       // showHideToTray() and abandon the args.
-      mozt_iconActivateCb = gobject.GCallback_t(
-        function(){mozt.Handler.showHideToTray();});
+      firetray_iconActivateCb = gobject.GCallback_t(
+        function(){firetray.Handler.showHideToTray();});
       gobject.g_signal_connect(this.trayIcon, "activate",
-                               mozt_iconActivateCb, null);
+                               firetray_iconActivateCb, null);
     } catch (x) {
       ERROR(x);
       return false;
@@ -101,7 +101,7 @@ mozt.IconLinux = {
   _buildPopupMenu: function() {
     this.menu = gtk.gtk_menu_new();
     // shouldn't need to convert to utf8 thank to js-ctypes
-		var menuItemQuitLabel = mozt.Utils.strings.GetStringFromName("popupMenu.itemLabel.Quit");
+		var menuItemQuitLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.Quit");
     var menuItemQuit = gtk.gtk_image_menu_item_new_with_label(
       menuItemQuitLabel);
     var menuItemQuitIcon = gtk.gtk_image_new_from_stock(
@@ -110,10 +110,10 @@ mozt.IconLinux = {
     var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
     gtk.gtk_menu_shell_append(menuShell, menuItemQuit);
 
-    mozt_menuItemQuitActivateCb = gobject.GCallback_t(
-      function(){mozt.Handler.quitApplication();});
+    firetray_menuItemQuitActivateCb = gobject.GCallback_t(
+      function(){firetray.Handler.quitApplication();});
     gobject.g_signal_connect(menuItemQuit, "activate",
-                             mozt_menuItemQuitActivateCb, null);
+                             firetray_menuItemQuitActivateCb, null);
 
     var menuWidget = ctypes.cast(this.menu, gtk.GtkWidget.ptr);
     gtk.gtk_widget_show_all(menuWidget);
@@ -122,10 +122,10 @@ mozt.IconLinux = {
      * definition) because we need the args passed to it ! On the other hand
      * we need to abandon 'this' in popupMenu() */
     let that = this;
-    mozt_popupMenuCb =
+    firetray_popupMenuCb =
       gtk.GCallbackMenuPopup_t(that.popupMenu);
     gobject.g_signal_connect(this.trayIcon, "popup-menu",
-                             mozt_popupMenuCb, this.menu);
+                             firetray_popupMenuCb, this.menu);
   },
 
   popupMenu: function(icon, button, activateTime, menu) {
@@ -316,13 +316,13 @@ mozt.IconLinux = {
       // Search the window by the *temporary* title
       let widgets = gtk.gtk_window_list_toplevels();
       let that = this;
-      mozt_findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle);
+      firetray_findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle);
       var userData = new _find_data_t(
         ctypes.char.array()(baseWindow.title),
         null
       ).address();
       LOG("userData="+userData);
-      gobject.g_list_foreach(widgets, mozt_findGtkWindowByTitleCb, userData);
+      gobject.g_list_foreach(widgets, firetray_findGtkWindowByTitleCb, userData);
       gobject.g_list_free(widgets);
 
       if (userData.contents.outWindow.isNull()) {
@@ -380,7 +380,7 @@ mozt.IconLinux = {
   testWindowHandle: function() {
     try {
       let win = Services.wm.getMostRecentWindow(null);
-      let gtkWin = mozt.IconLinux._getGtkWindowHandle(win);
+      let gtkWin = firetray.IconLinux._getGtkWindowHandle(win);
       LOG("FOUND: "+gtk.gtk_window_get_title(gtkWin).readString());
       gtk.gtk_window_set_decorated(gtkWin, false);
 
@@ -395,4 +395,4 @@ mozt.IconLinux = {
     }
   }
 
-}; // mozt.IconLinux
+}; // firetray.IconLinux

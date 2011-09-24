@@ -1,9 +1,9 @@
 // https://developer.mozilla.org/en/Localizing_extension_descriptions
-pref("extensions.moztray@foudil.fr.description", "chrome://moztray/locale/overlay.properties");
+pref("extensions.{9533f794-00b4-4354-aa15-c2bbda6989f8}.description", "chrome://firetray/locale/overlay.properties");
 
 // Global prefs
 pref("browser.tabs.warnOnClose", false);
 
 // Extension prefs
-pref("extensions.moztray.close_hides", true);
-pref("extensions.moztray.accounts_to_exclude", "");
+pref("extensions.firetray.close_hides", true);
+pref("extensions.firetray.accounts_to_exclude", "");

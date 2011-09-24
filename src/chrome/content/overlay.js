@@ -1,54 +1,54 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-Components.utils.import("resource://moztray/commons.js");
-Components.utils.import("resource://moztray/MoztHandler.jsm");
+Components.utils.import("resource://firetray/commons.js");
+Components.utils.import("resource://firetray/FiretrayHandler.jsm");
 
 /**
- * mozt namespace.
+ * firetray namespace.
  */
-if ("undefined" == typeof(mozt)) {
-  var mozt = {};
+if ("undefined" == typeof(firetray)) {
+  var firetray = {};
 };
 
-mozt.Main = {
+firetray.Main = {
 
   onLoad: function(e) {
     // initialization code
-    this.strings = document.getElementById("moztray-strings");
+    this.strings = document.getElementById("firetray-strings");
 
     try {
       // Set up preference change observer
-      mozt.Utils.prefService.QueryInterface(Ci.nsIPrefBranch2);
+      firetray.Utils.prefService.QueryInterface(Ci.nsIPrefBranch2);
       let that = this;
-      mozt.Utils.prefService.addObserver("", that, false);
+      firetray.Utils.prefService.addObserver("", that, false);
     }
     catch (ex) {
       ERROR(ex);
       return false;
     }
 
-    let init = mozt.Handler.initialized || mozt.Handler.init();
+    let init = firetray.Handler.initialized || firetray.Handler.init();
 
     // update unread messages count
-    if (mozt.Handler.inMailApp)
-      mozt.Messaging.updateUnreadMsgCount();
+    if (firetray.Handler.inMailApp)
+      firetray.Messaging.updateUnreadMsgCount();
 
     // prevent window closing.
     let that = this;
     window.addEventListener('close', that.onClose, true);
-    // NOTE: each new window gets a new mozt.Main, and hence listens to pref
+    // NOTE: each new window gets a new firetray.Main, and hence listens to pref
     // changes
 
-    LOG('Moztray LOADED: ' + init);
+    LOG('Firetray LOADED: ' + init);
     return true;
   },
 
   onQuit: function(e) {
     // Remove observer
     let that = this;
-    mozt.Utils.prefService.removeObserver("", that);
-    LOG('Moztray UNLOADED !');
-    /* NOTE: don't mozt.Handler.initialized=false here, otherwise after a
+    firetray.Utils.prefService.removeObserver("", that);
+    LOG('Firetray UNLOADED !');
+    /* NOTE: don't firetray.Handler.initialized=false here, otherwise after a
      window close, a new window will create a new handler (and hence, a new
      tray icon) */
   },
@@ -56,11 +56,11 @@ mozt.Main = {
   // TODO: prevent preceding warning about closing multiple tabs
   // (browser.tabs.warnOnClose)
   onClose: function(event) {
-    LOG('Moztray CLOSE');
-    let close_hides = mozt.Utils.prefService.getBoolPref('close_hides');
+    LOG('Firetray CLOSE');
+    let close_hides = firetray.Utils.prefService.getBoolPref('close_hides');
     LOG('close_hides: '+close_hides);
     if (close_hides) {
-      mozt.Handler.showHideToTray();
+      firetray.Handler.showHideToTray();
       event && event.preventDefault(); // no event when called directly (xul)
     }
   },
@@ -81,12 +81,12 @@ mozt.Main = {
 window.addEventListener(
   'load', function (e) {
     removeEventListener('load', arguments.callee, true);
-    mozt.Main.onLoad(); },
+    firetray.Main.onLoad(); },
   false);
 window.addEventListener(
   'unload', function (e) {
     removeEventListener('unload', arguments.callee, true);
-    mozt.Main.onQuit(); },
+    firetray.Main.onQuit(); },
   false);
 
 // // TEST - can we catch minimize event ?

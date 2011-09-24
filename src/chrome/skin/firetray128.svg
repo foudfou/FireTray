@@ -13,8 +13,8 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    inkscape:export-ydpi="90"
    inkscape:export-xdpi="90"
-   inkscape:export-filename="/home/foudil/src/xul/moztray/src/chrome/skin/moztray128.png"
-   sodipodi:docname="moztray128.svg"
+   inkscape:export-filename="/home/foudil/src/xul/firetray/src/chrome/skin/firetray128.png"
+   sodipodi:docname="firetray128.svg"
    inkscape:version="0.48.1 r9760"
    id="svg3082"
    height="128"
@@ -42,7 +42,7 @@
      inkscape:current-layer="svg3082"
      width="64px" />
   <title
-     id="title5320">Moztray icon</title>
+     id="title5320">FireTray icon</title>
   <metadata
      id="metadata58">
     <rdf:RDF>
@@ -51,7 +51,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title>Moztray icon</dc:title>
+        <dc:title>FireTray icon</dc:title>
         <cc:license
            rdf:resource="http://creativecommons.org/licenses/by/3.0/" />
         <dc:date>2011-08-27</dc:date>

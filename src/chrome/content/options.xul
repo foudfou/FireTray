@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<!DOCTYPE prefwindow SYSTEM "chrome://moztray/locale/options.dtd">
-<prefwindow id="moztray-preferences"
+<!DOCTYPE prefwindow SYSTEM "chrome://firetray/locale/options.dtd">
+<prefwindow id="firetray-preferences"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
             title="&prefwindow.title;"
-            onload="mozt.UIOptions.onLoad()">
+            onload="firetray.UIOptions.onLoad()">
 
   <script type="application/x-javascript" src="options.js" />
 
@@ -12,7 +12,7 @@
 
     <preferences>
       <preference id="pref_bool_close_hides"
-                  name="extensions.moztray.close_hides" type="bool"/>
+                  name="extensions.firetray.close_hides" type="bool"/>
     </preferences>
 
     <groupbox>
@@ -21,7 +21,7 @@
                 accesskey="&bool_close_hides.accesskey;"/>
     </groupbox>
 
-    <groupbox id="accounts_box"> <!-- mozt.UIOptions.accountBoxId -->
+    <groupbox id="accounts_box"> <!-- firetray.UIOptions.accountBoxId -->
       <caption label="&mail_accounts_exclude;"/>
       <!-- accounts  are dynamically added here with insert_accounts_name() functions, called at the bottom of this file -->
     </groupbox>

@@ -12,7 +12,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Moztray
+ * The Original Code is Firetray
  *
  * The Initial Developer of the Original Code is
  * Mozilla Messaging, Ltd.
@@ -47,10 +47,10 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/ctypes-utils.jsm");
-Cu.import("resource://moztray/cairo.jsm");
-Cu.import("resource://moztray/glib.jsm");
-Cu.import("resource://moztray/gobject.jsm");
+Cu.import("resource://firetray/ctypes-utils.jsm");
+Cu.import("resource://firetray/cairo.jsm");
+Cu.import("resource://firetray/glib.jsm");
+Cu.import("resource://firetray/gobject.jsm");
 
 function gdk_defines(lib) {
   this.GDK_INTERP_NEAREST = 1, // enum GdkInterpType

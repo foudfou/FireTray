@@ -1,6 +1,6 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "mozt" ];
+var EXPORTED_SYMBOLS = [ "firetray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -8,15 +8,15 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/gobject.jsm");
-Cu.import("resource://moztray/gtk.jsm");
-Cu.import("resource://moztray/commons.js");
+Cu.import("resource://firetray/gobject.jsm");
+Cu.import("resource://firetray/gtk.jsm");
+Cu.import("resource://firetray/commons.js");
 
 /**
- * mozt namespace.
+ * firetray namespace.
  */
-if ("undefined" == typeof(mozt)) {
-  var mozt = {};
+if ("undefined" == typeof(firetray)) {
+  var firetray = {};
 };
 
 /**
@@ -26,7 +26,7 @@ if ("undefined" == typeof(mozt)) {
 // chrome, modules don't have access to objects such as window, document, or
 // other global functions
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
-mozt.Handler = {
+firetray.Handler = {
   initialized: false,
   inMailApp: false,
 
@@ -52,7 +52,7 @@ mozt.Handler = {
     else if (winType == "XUL")
       winOut = winInterface.getInterface(Ci.nsIXULWindow);
     else {
-      ERROR("MOZTRAY: unknown winType '" + winType + "'");
+      ERROR("FIRETRAY: unknown winType '" + winType + "'");
       return null;
     }
 
@@ -157,17 +157,17 @@ mozt.Handler = {
     let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
     LOG("OS=" + runtimeOS + ", XULrunner=" + xulVer);
     if (runtimeOS != "Linux") {
-      ERROR("MOZTRAY: only Linux platform supported at this time. Moztray not loaded");
+      ERROR("FIRETRAY: only Linux platform supported at this time. Firetray not loaded");
       return false;
     }
-    Cu.import("resource://moztray/MoztIconLinux.jsm");
-    LOG('MoztIconLinux imported');
+    Cu.import("resource://firetray/FiretrayIconLinux.jsm");
+    LOG('FiretrayIconLinux imported');
 
     // init all handled windows
     this._updateHandledDOMWindows();
 
     // instanciate tray icon
-    mozt.IconLinux.init();
+    firetray.IconLinux.init();
     LOG('IconLinux initialized');
 
     // check if in mail app
@@ -175,15 +175,15 @@ mozt.Handler = {
     if (mozAppId === THUNDERBIRD_ID || mozAppId === SEAMONKEY_ID) {
       this.inMailApp = true;
       try {
-        Cu.import("resource://moztray/MoztMessaging.jsm");
-        mozt.Messaging.enable();
+        Cu.import("resource://firetray/FiretrayMessaging.jsm");
+        firetray.Messaging.enable();
       } catch (x) {
         ERROR(x);
         return false;
       }
 
       // init unread messages count
-      mozt.Messaging.updateUnreadMsgCount();
+      firetray.Messaging.updateUnreadMsgCount();
     }
     LOG('inMailApp: '+this.inMailApp);
 
@@ -193,9 +193,9 @@ mozt.Handler = {
 
   shutdown: function() {        // NOT USED YET
     if (this.inMailApp)
-      mozt.Messaging.disable();
+      firetray.Messaging.disable();
 
-    mozt.IconLinux.shutdown();
+    firetray.IconLinux.shutdown();
   }
 
-}; // mozt.Handler
+}; // firetray.Handler

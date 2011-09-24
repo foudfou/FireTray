@@ -12,9 +12,9 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/ctypes-utils.jsm");
-Cu.import("resource://moztray/cairo.jsm");
-Cu.import("resource://moztray/gobject.jsm");
+Cu.import("resource://firetray/ctypes-utils.jsm");
+Cu.import("resource://firetray/cairo.jsm");
+Cu.import("resource://firetray/gobject.jsm");
 
 function pango_defines(lib) {
   this.PANGO_WEIGHT_THIN = 100,

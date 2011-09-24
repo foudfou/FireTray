@@ -10,7 +10,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/ctypes-utils.jsm");
+Cu.import("resource://firetray/ctypes-utils.jsm");
 
 function glib_defines(lib) {
   this.GError = ctypes.StructType("GError");

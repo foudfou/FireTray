@@ -1,22 +1,22 @@
 /* This is just an example.  You shouldn't do this. */
-#moztray-hello
+#firetray-hello
 {
   color: red ! important;
 }
-#moztray-toolbar-button
+#firetray-toolbar-button
 {
-  list-style-image: url("chrome://moztray/skin/toolbar-button.png");
+  list-style-image: url("chrome://firetray/skin/toolbar-button.png");
   -moz-image-region: rect(0px 24px 24px 0px);
 }
-#moztray-toolbar-button:hover
+#firetray-toolbar-button:hover
 {
   -moz-image-region: rect(24px 24px 48px  0px);
 }
-[iconsize="small"] #moztray-toolbar-button
+[iconsize="small"] #firetray-toolbar-button
 {
   -moz-image-region: rect( 0px 40px 16px 24px);
 }
-[iconsize="small"] #moztray-toolbar-button:hover
+[iconsize="small"] #firetray-toolbar-button:hover
 {
   -moz-image-region: rect(24px 40px 40px 24px);
 }

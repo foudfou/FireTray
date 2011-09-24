@@ -1,15 +1,15 @@
-Moztray
+Firetray
 =======
 
 Overview
 --------
 
-Rewrite attempt of **Firetray** with js-ctypes, with focus on unread message count display.
+Js-ctypes rewrite of the binary XPCOM version of **Firetray**.
 
 Notes
 -----
 
-* Moztray unsets the `tabs.warnOnClose` built-in preference, which otherwise disrupts the handeling of the close event.
+* Firetray unsets the `tabs.warnOnClose` built-in preference, which otherwise disrupts the handeling of the close event.
 * Experimental non-customizable keyboard shortcut for hiding all windows set to: `accel-shift-w`
 
 References
@@ -34,4 +34,8 @@ Acknowledgment
 --------------
 
 * Some code borrowed from [Mike Conley](http://mzl.la/messagingmenu "Thanks Mike").
+* Some code borrowed from
+  [Nils Mayer](https://addons.mozilla.org/fr/firefox/addon/minimizetotray-revived/
+  "MinToTrayR addon page").
 * kind support from Neil Deaking
+

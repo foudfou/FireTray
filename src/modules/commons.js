@@ -1,7 +1,7 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
 var EXPORTED_SYMBOLS =
-  [ "mozt", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR",
+  [ "firetray", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR",
     "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID" ];
 
 const Cc = Components.classes;
@@ -18,25 +18,25 @@ const SEAMONKEY_ID = "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}";
 const CHATZILLA_ID = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
 
 /**
- * mozt namespace.
+ * firetray namespace.
  */
-if ("undefined" == typeof(mozt)) {
-  var mozt = {};
+if ("undefined" == typeof(firetray)) {
+  var firetray = {};
 };
 
 // about:config extensions.logging.enabled
 ["LOG", "WARN", "ERROR"].forEach(function(aName) {
   this.__defineGetter__(aName, function() {
     Components.utils.import("resource://gre/modules/AddonLogging.jsm");
-    LogManager.getLogger("moztray", this);
+    LogManager.getLogger("firetray", this);
     return this[aName];
   });
 }, this);
 
 
-mozt.Utils = {
-  prefService: Services.prefs.getBranch("extensions.moztray."),
-  strings: Services.strings.createBundle("chrome://moztray/locale/overlay.properties"),
+firetray.Utils = {
+  prefService: Services.prefs.getBranch("extensions.firetray."),
+  strings: Services.strings.createBundle("chrome://firetray/locale/overlay.properties"),
 
   dumpObj: function(obj) {
     let str = "";

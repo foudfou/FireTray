@@ -2,7 +2,7 @@
 help:
 	@echo "BUILD/INSTALL INSTRUCTIONS"
 	@echo
-	@echo "to build Moztray, just:"
+	@echo "to build Firetray, just:"
 	@echo "  make all"
 	@echo
 	@echo "by default, debug calls are stripped from js files and DEBUG_MODE"
@@ -13,9 +13,11 @@ help:
 	@echo "  firefox -no-remote -P	# then create '$(profile_id)'"
 	@echo "  thunderbird -no-remote -P	# then create '$(profile_id)'"
 	@echo
-	@echo "to deploy to dev profile:"
-	@echo "  make clean"
-	@echo "  make install"
+	@echo "to test the extension with the dev profile:"
+	@echo "  cd ~/.mozilla/firefox/mozilla-dev/extensions"
+	@echo "  ln -s ../../path/to/firetray/src '{9533f794-00b4-4354-aa15-c2bbda6989f8}'"
+	@echo "  cd ~/.thunderbird/mozilla-dev/extensions"
+	@echo "  ln -s ../path/to/firetray/src '{9533f794-00b4-4354-aa15-c2bbda6989f8}'"
 	@echo
 	@echo "to test with dev profile:"
 	@echo "  firefox -no-remote -P mozilla-dev"
@@ -24,7 +26,7 @@ help:
 	@echo "Have fun !"
 
 # The UUID of the extension.
-extension_uuid := moztray@foudil.fr
+extension_name := firetray
 
 # The name of the profile dir where the extension can be installed.
 profile_id := mozilla-dev
@@ -52,10 +54,10 @@ VERSION := $(shell awk '/<em:version>/ {  version=$$1; \
   print version }' $(install_rdf))
 
 # The target XPI files.
-xpi_file := $(extension_uuid)-$(VERSION).xpi
+xpi_file := $(extension_name)-$(VERSION).xpi
 xpi_built := $(build_dir)/$(xpi_file)
 # Since we use <em:unpack>false, we need the same name across versions
-xpi_deployed := $(extension_uuid).xpi
+xpi_deployed := $(extension_name).xpi
 
 # The chrome.manifest file.
 chrome_manifest := chrome.manifest
@@ -110,19 +112,8 @@ all: $(xpi_built)
 
 # This cleans all temporary files and directories created by 'make'.
 .PHONY: clean
-clean: clean_build clean_profile
+clean: clean_build
 	@echo "Cleanup is done."
-
-# This builds everything except for the actual XPI, and then it copies it to the
-# specified profile directory, allowing a quick update that requires no install.
-.PHONY: install
-install: $(xpi_built) $(profile_locations)
-	@echo "Installing in profile folder: $(profile_locations)"
-	@for p in $(profile_locations) ; do \
-  cp -f $(xpi_built) $$p/$(xpi_deployed); \
-  done
-	@echo "Installing in profile folder. Done!"
-	@echo
 
 # Regex for 'no'
 YES_RE := yes|y|Y|true|on
@@ -172,9 +163,3 @@ $(profile_locations):
 clean_build:
 	@echo "Removing build dir: $(build_dir)"
 	@rm -rf $(build_dir)
-
-clean_profile:
-	@echo "Removing extension from extension folders: $(profile_locations)"
-	@for p in $(profile_locations) ; do \
-  rm -f $$p/$(xpi_deployed); \
-  done

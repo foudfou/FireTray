@@ -10,10 +10,10 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/ctypes-utils.jsm");
-Cu.import("resource://moztray/gdk.jsm");
-Cu.import("resource://moztray/gobject.jsm");
-Cu.import("resource://moztray/pango.jsm");
+Cu.import("resource://firetray/ctypes-utils.jsm");
+Cu.import("resource://firetray/gdk.jsm");
+Cu.import("resource://firetray/gobject.jsm");
+Cu.import("resource://firetray/pango.jsm");
 
 function gtk_defines(lib) {
   this.GTK_ICON_SIZE_MENU = 1;

@@ -12,7 +12,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  * 
- * The Original Code is Moztray
+ * The Original Code is Firetray
  *
  * The Initial Developer of the Original Code is
  * Mozilla Messaging, Ltd.
@@ -46,7 +46,7 @@ var EXPORTED_SYMBOLS  = [ "ctypes_library", "ERROR" ];
 ["LOG", "WARN", "ERROR"].forEach(function(aName) {
   this.__defineGetter__(aName, function() {
     Components.utils.import("resource://gre/modules/AddonLogging.jsm");
-    LogManager.getLogger("moztray", this);
+    LogManager.getLogger("firetray", this);
     return this[aName];
   });
 }, this);

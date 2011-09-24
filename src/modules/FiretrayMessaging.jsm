@@ -1,6 +1,6 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "mozt" ];
+var EXPORTED_SYMBOLS = [ "firetray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -8,8 +8,8 @@ const Cu = Components.utils;
 
 Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/PluralForm.jsm");
-Cu.import("resource://moztray/MoztIconLinux.jsm");
-Cu.import("resource://moztray/commons.js");
+Cu.import("resource://firetray/FiretrayIconLinux.jsm");
+Cu.import("resource://firetray/commons.js");
 
 const FLDR_UNINTERESTING =
   Ci.nsMsgFolderFlags.Archive |
@@ -22,14 +22,14 @@ const FLDR_UNINTERESTING =
 const ICON_TEXT_COLOR = "#00000";
 
 /**
- * mozt namespace.
+ * firetray namespace.
  */
-if ("undefined" == typeof(mozt)) {
-  var mozt = {};
+if ("undefined" == typeof(firetray)) {
+  var firetray = {};
 };
 
 
-mozt.Messaging = {
+firetray.Messaging = {
   // TODO: turn into pref
   SERVER_TYPES_EXCLUDED: ["nntp","rss","movemail"], // keep "pop3","imap","none"
 
@@ -70,7 +70,7 @@ mozt.Messaging = {
       if (property.toString() === "TotalUnreadMessages" &&
           !(folder.flags & FLDR_UNINTERESTING)) {
         LOG("Unread msgs for folder "+folder.prettyName+" was "+oldValue+" became "+newValue);
-        mozt.Messaging.updateUnreadMsgCount();
+        firetray.Messaging.updateUnreadMsgCount();
       }
     }
   },
@@ -80,7 +80,7 @@ mozt.Messaging = {
    * containing the keys of the accounts to exclude
    */
   getPrefAccountsExcluded: function() {
-    return mozt.Utils.prefService.getCharPref('accounts_to_exclude').split(',') || [];
+    return firetray.Utils.prefService.getCharPref('accounts_to_exclude').split(',') || [];
   },
 
   /**
@@ -116,15 +116,15 @@ mozt.Messaging = {
 
     // update icon
     if (this._unreadMsgCount == 0) {
-      mozt.IconLinux.setImageDefault();
-      mozt.IconLinux.setTooltipDefault();
+      firetray.IconLinux.setImageDefault();
+      firetray.IconLinux.setTooltipDefault();
     } else if (this._unreadMsgCount > 0) {
-      mozt.IconLinux.setText(this._unreadMsgCount.toString(), ICON_TEXT_COLOR);
+      firetray.IconLinux.setText(this._unreadMsgCount.toString(), ICON_TEXT_COLOR);
       let localizedMessage = PluralForm.get(
         this._unreadMsgCount,
-        mozt.Utils.strings.GetStringFromName("tooltip.unread_messages"))
+        firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
         .replace("#1", this._unreadMsgCount);;
-      mozt.IconLinux.setTooltip(localizedMessage);
+      firetray.IconLinux.setTooltip(localizedMessage);
     } else {
       ERROR("negative unread messages' count ?"); // should never happen
       throw "negative message count"; // should never happen
@@ -139,7 +139,7 @@ mozt.Messaging = {
  * Accounts Iterator/Generator for iterating over account servers
  * @param sortByTypeAndName: boolean
  */
-mozt.Messaging.Accounts = function(sortByTypeAndName) {
+firetray.Messaging.Accounts = function(sortByTypeAndName) {
   if (typeof(sortByTypeAndName) == "undefined") {
     this.sortByTypeAndName = false;
     return;
@@ -149,7 +149,7 @@ mozt.Messaging.Accounts = function(sortByTypeAndName) {
 
   this.sortByTypeAndName = sortByTypeAndName;
 };
-mozt.Messaging.Accounts.prototype.__iterator__ = function() {
+firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   let accounts = MailServices.accounts.accounts;
   LOG("sortByTypeAndName="+this.sortByTypeAndName);
 

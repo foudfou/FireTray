@@ -1,11 +1,11 @@
-content		moztray			chrome/content/
-skin		moztray	classic/1.0	chrome/skin/
-locale		moztray	en-US		chrome/locale/en-US/
-resource	moztray			modules/
+content		firetray			chrome/content/
+skin		firetray	classic/1.0	chrome/skin/
+locale		firetray	en-US		chrome/locale/en-US/
+resource	firetray			modules/
 
-overlay	chrome://browser/content/browser.xul	chrome://moztray/content/overlay.xul
-overlay	chrome://messenger/content/messenger.xul	chrome://moztray/content/overlay.xul
-overlay	chrome://songbird/content/xul/mainScriptsOverlay.xul	chrome://moztray/content/overlay.xul
-overlay	chrome://sunbird/content/calendar.xul	chrome://moztray/content/overlay.xul
-overlay	chrome://navigator/content/navigator.xul	chrome://moztray/content/overlay.xul
-overlay	chrome://chatzilla/content/chatzilla.xul	chrome://moztray/content/overlay.xul
+overlay	chrome://browser/content/browser.xul	chrome://firetray/content/overlay.xul
+overlay	chrome://messenger/content/messenger.xul	chrome://firetray/content/overlay.xul
+overlay	chrome://songbird/content/xul/mainScriptsOverlay.xul	chrome://firetray/content/overlay.xul
+overlay	chrome://sunbird/content/calendar.xul	chrome://firetray/content/overlay.xul
+overlay	chrome://navigator/content/navigator.xul	chrome://firetray/content/overlay.xul
+overlay	chrome://chatzilla/content/chatzilla.xul	chrome://firetray/content/overlay.xul

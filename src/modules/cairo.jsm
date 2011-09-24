@@ -10,7 +10,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/ctypes-utils.jsm");
+Cu.import("resource://firetray/ctypes-utils.jsm");
 
 function cairo_defines(lib) {
   this.cairo_t = ctypes.StructType("cairo_t");

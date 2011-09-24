@@ -12,7 +12,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Moztray
+ * The Original Code is Firetray
  *
  * The Initial Developer of the Original Code is
  * Mozilla Messaging, Ltd.
@@ -47,7 +47,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://moztray/ctypes-utils.jsm");
+Cu.import("resource://firetray/ctypes-utils.jsm");
 
 function gobject_defines(lib) {
   this.GObject = ctypes.StructType("GObject");

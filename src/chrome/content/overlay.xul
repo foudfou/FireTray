@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet href="chrome://moztray/skin/overlay.css" type="text/css"?>
-<!DOCTYPE overlay SYSTEM "chrome://moztray/locale/overlay.dtd">
-<overlay id="moztray-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<?xml-stylesheet href="chrome://firetray/skin/overlay.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://firetray/locale/overlay.dtd">
+<overlay id="firetray-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/javascript;version=1.7" src="overlay.js"/>
 
   <stringbundleset id="stringbundleset">
-    <stringbundle id="moztray-strings" src="chrome://moztray/locale/overlay.properties"/>
+    <stringbundle id="firetray-strings" src="chrome://firetray/locale/overlay.properties"/>
   </stringbundleset>
 
   <keyset>
-    <!-- otherwide window.addEventListener("keypress", mozt.Main.onKeyPress, true);
+    <!-- otherwide window.addEventListener("keypress", firetray.Main.onKeyPress, true);
          see https://addons.mozilla.org/en-US/firefox/addon/move-tabs/ -->
-    <key id="key_close" key="W" modifiers="shift meta" oncommand="mozt.Handler.showHideToTray();" /> <!-- mozt.Main.onKeyClose(); -->
+    <key id="key_close" key="W" modifiers="shift meta" oncommand="firetray.Handler.showHideToTray();" /> <!-- firetray.Main.onKeyClose(); -->
   </keyset>
 
 </overlay>
