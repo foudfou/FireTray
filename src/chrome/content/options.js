@@ -4,7 +4,6 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://firetray/FiretrayHandler.jsm");
 Cu.import("resource://firetray/commons.js");
 
@@ -22,7 +21,14 @@ firetray.UIOptions = {
     if(firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.insertMailAccountsExcluded(this.accountBoxId);
+    } else {
+      this.hideMailAccountsExcluded(this.accountBoxId);
     }
+  },
+
+  hideMailAccountsExcluded: function(parentId) {
+    let targetNode = document.getElementById(parentId);
+    targetNode.hidden = true; //!(appType & Firetray_MAIL);
   },
 
   insertMailAccountsExcluded: function(parentId) {
@@ -40,8 +46,9 @@ firetray.UIOptions = {
       nodeAccount.setAttribute('label', accountServer.rootFolder.name);
       nodeAccount.setAttribute('checked',
         (firetray.Messaging.getPrefAccountsExcluded().indexOf(accountServerKey) >= 0));
-      nodeAccount.setAttribute('oncommand',
-        'firetray.UIOptions.updateMailAccountsExcluded(firetray.UIOptions.accountBoxId)');
+      let that = this;
+      nodeAccount.addEventListener('command', function(e){
+        that.updateMailAccountsExcluded(that.accountBoxId);});
       targetNode.appendChild(nodeAccount);
     }
 

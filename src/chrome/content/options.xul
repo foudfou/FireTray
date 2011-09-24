@@ -23,7 +23,7 @@
 
     <groupbox id="accounts_box"> <!-- firetray.UIOptions.accountBoxId -->
       <caption label="&mail_accounts_exclude;"/>
-      <!-- accounts  are dynamically added here with insert_accounts_name() functions, called at the bottom of this file -->
+      <!-- accounts are dynamically added here with insert_accounts_name() functions, called at the bottom of this file -->
     </groupbox>
 
   </prefpane>
