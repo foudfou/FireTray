@@ -30,7 +30,7 @@ if ("undefined" == typeof(firetray)) {
 
 
 firetray.Messaging = {
-  // TODO: turn into pref
+  // TODO: turn into pref.
   SERVER_TYPES: {
     "pop3": { order: 1, excluded: false },
     "imap": { order: 1, excluded: false },
@@ -133,7 +133,6 @@ firetray.Messaging = {
         .replace("#1", this._unreadMsgCount);;
       firetray.IconLinux.setTooltip(localizedMessage);
     } else {
-      ERROR("negative unread messages' count ?"); // should never happen
       throw "negative message count"; // should never happen
     }
 
@@ -160,33 +159,36 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   let accounts = MailServices.accounts.accounts;
   LOG("sortByTypeAndName="+this.sortByTypeAndName);
 
-  // NOTE: sort() not provided by nsIMsgAccountManager.accounts
-  // (nsISupportsArray, nsICollection). Should be OK to re-build a JS-Array for
-  // few accounts
+  /* NOTE: sort() not provided by nsIMsgAccountManager.accounts
+   (nsISupportsArray, nsICollection). Should be OK to re-build a JS-Array for
+   few accounts */
   let accountServers = [];
   for (let i = 0; i < accounts.Count(); i++) {
     let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
     let accountServer = account.incomingServer;
+
+    // checks
+    if (typeof(firetray.Messaging.SERVER_TYPES[accountServer.type]) === "undefined")
+      throw "mail server type for '"+accountServer.prettyName+"' not defined";
+    if (typeof(firetray.Messaging.SERVER_TYPES[accountServer.type].order) === "undefined")
+      throw "mail server type for '"+accountServer.prettyName+"' missing 'order' definition";
+    if (typeof(firetray.Messaging.SERVER_TYPES[accountServer.type].excluded) === "undefined")
+      throw "mail server type for '"+accountServer.prettyName+"' missing 'excluded' definition";
+
     accountServers[i] = accountServer;
   }
 
   if (this.sortByTypeAndName) {
     accountServers.sort(function(a,b) {
-      if (!firetray.Messaging.SERVER_TYPES[a.type]
-          || !firetray.Messaging.SERVER_TYPES[b.type]) {
-        ERROR("type '"+a.type+"' not defined in type order");
-        return 0;
-      }
-
       if (firetray.Messaging.SERVER_TYPES[a.type].order
           < firetray.Messaging.SERVER_TYPES[b.type].order)
         return -1;
       if (firetray.Messaging.SERVER_TYPES[a.type].order
           > firetray.Messaging.SERVER_TYPES[b.type].order)
         return 1;
-      if (a.name < b.name)
+      if (a.prettyName < b.prettyName)
         return -1;
-      if (a.name > b.name)
+      if (a.prettyName > b.prettyName)
         return 1;
       return 0; // no sorting
     });
