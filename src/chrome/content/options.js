@@ -37,7 +37,7 @@ firetray.UIOptions = {
 
     let accounts = new firetray.Messaging.Accounts(true);
     for (let accountServer in accounts) {
-      if (firetray.Messaging.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
+      if (firetray.Messaging.SERVER_TYPES[accountServer.type].excluded)
         continue;
 
       let nodeAccount = document.createElement("checkbox");

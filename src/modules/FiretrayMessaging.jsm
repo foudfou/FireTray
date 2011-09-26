@@ -31,14 +31,13 @@ if ("undefined" == typeof(firetray)) {
 
 firetray.Messaging = {
   // TODO: turn into pref
-  SERVER_TYPES_EXCLUDED: ["nntp","rss","movemail"], // keep "pop3","imap","none"
-  SERVER_TYPES_ORDER: {
-    "pop3":1,
-    "imap":1,
-    "movemail":2,
-    "none":3,
-    "rss":4,
-    "nntp":5
+  SERVER_TYPES: {
+    "pop3": { order: 1, excluded: false },
+    "imap": { order: 1, excluded: false },
+    "movemail": { order: 2, excluded: true },
+    "none": { order: 3, excluded: false },
+    "rss": { order: 4, excluded: true },
+    "nntp": { order: 5, excluded: true }
   },
 
   _unreadMsgCount: 0,
@@ -102,7 +101,7 @@ firetray.Messaging = {
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
-        if ( (this.SERVER_TYPES_EXCLUDED.indexOf(accountServer.type) >= 0)
+        if ( (this.SERVER_TYPES[accountServer.type].excluded)
           || (this.getPrefAccountsExcluded().indexOf(accountServer.key) >= 0) )
           continue;
 
@@ -173,16 +172,17 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
 
   if (this.sortByTypeAndName) {
     accountServers.sort(function(a,b) {
-      if (!firetray.Messaging.SERVER_TYPES_ORDER[a.type] || !firetray.Messaging.SERVER_TYPES_ORDER[b.type]) {
+      if (!firetray.Messaging.SERVER_TYPES[a.type]
+          || !firetray.Messaging.SERVER_TYPES[b.type]) {
         ERROR("type '"+a.type+"' not defined in type order");
         return 0;
       }
 
-      if (firetray.Messaging.SERVER_TYPES_ORDER[a.type]
-          < firetray.Messaging.SERVER_TYPES_ORDER[b.type])
+      if (firetray.Messaging.SERVER_TYPES[a.type].order
+          < firetray.Messaging.SERVER_TYPES[b.type].order)
         return -1;
-      if (firetray.Messaging.SERVER_TYPES_ORDER[a.type]
-          > firetray.Messaging.SERVER_TYPES_ORDER[b.type])
+      if (firetray.Messaging.SERVER_TYPES[a.type].order
+          > firetray.Messaging.SERVER_TYPES[b.type].order)
         return 1;
       if (a.name < b.name)
         return -1;
