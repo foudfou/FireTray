@@ -31,6 +31,9 @@ if ("undefined" == typeof(firetray)) {
 
 firetray.Messaging = {
   // TODO: turn into pref.
+  /* NOTE: definition checks not implemented on purpose (performance mainly)
+   should be well defined in default prefs, and new types are unlikely to
+   appear soon. */
   SERVER_TYPES: {
     "pop3": { order: 1, excluded: false },
     "imap": { order: 1, excluded: false },
@@ -166,15 +169,6 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   for (let i = 0; i < accounts.Count(); i++) {
     let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
     let accountServer = account.incomingServer;
-
-    // checks
-    if (typeof(firetray.Messaging.SERVER_TYPES[accountServer.type]) === "undefined")
-      throw "mail server type for '"+accountServer.prettyName+"' not defined";
-    if (typeof(firetray.Messaging.SERVER_TYPES[accountServer.type].order) === "undefined")
-      throw "mail server type for '"+accountServer.prettyName+"' missing 'order' definition";
-    if (typeof(firetray.Messaging.SERVER_TYPES[accountServer.type].excluded) === "undefined")
-      throw "mail server type for '"+accountServer.prettyName+"' missing 'excluded' definition";
-
     accountServers[i] = accountServer;
   }
 
