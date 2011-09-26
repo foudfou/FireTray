@@ -154,7 +154,8 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   LOG("sortByTypeAndName="+this.sortByTypeAndName);
 
   // NOTE: sort() not provided by nsIMsgAccountManager.accounts
-  // (nsISupportsArray?). Should be OK to re-build a JS-Array for few accounts
+  // (nsISupportsArray, nsICollection). Should be OK to re-build a JS-Array for
+  // few accounts
   let accountServers = [];
   for (let i = 0; i < accounts.Count(); i++) {
     let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
