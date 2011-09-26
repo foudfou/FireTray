@@ -32,6 +32,14 @@ if ("undefined" == typeof(firetray)) {
 firetray.Messaging = {
   // TODO: turn into pref
   SERVER_TYPES_EXCLUDED: ["nntp","rss","movemail"], // keep "pop3","imap","none"
+  SERVER_TYPES_ORDER: {
+    "pop3":1,
+    "imap":1,
+    "movemail":2,
+    "none":3,
+    "rss":4,
+    "nntp":5
+  },
 
   _unreadMsgCount: 0,
 
@@ -165,9 +173,16 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
 
   if (this.sortByTypeAndName) {
     accountServers.sort(function(a,b) {
-      if (a.type < b.type)
+      if (!firetray.Messaging.SERVER_TYPES_ORDER[a.type] || !firetray.Messaging.SERVER_TYPES_ORDER[b.type]) {
+        ERROR("type '"+a.type+"' not defined in type order");
+        return 0;
+      }
+
+      if (firetray.Messaging.SERVER_TYPES_ORDER[a.type]
+          < firetray.Messaging.SERVER_TYPES_ORDER[b.type])
         return -1;
-      if (a.type > b.type)
+      if (firetray.Messaging.SERVER_TYPES_ORDER[a.type]
+          > firetray.Messaging.SERVER_TYPES_ORDER[b.type])
         return 1;
       if (a.name < b.name)
         return -1;
