@@ -27,7 +27,8 @@ firetray.UIOptions = {
     }
 
     // setView();
-    populateTree();
+    // initView();
+    populateTreeServerTypes();
   },
 
   hideElement: function(parentId) {
@@ -173,21 +174,46 @@ function saveList(){
 */
 
 /*
+function initView() {
+  let tree = document.getElementById("optTree");
+
+  var oldView = tree.view;
+  var newView = {
+    __proto__: oldView,
+    setCellText: function(row, col, value) {
+      oldView.setCellText(row, col, value);
+      LOG("Text changed for a tree cell!");
+      document.getElementById("pane1").userChangedValue(tree);
+    }
+  };
+  tree.view = newView;
+  LOG("initView");
+}
+*/
+
+/*
  * Save the Schedules List to the "extensions.hpsched.schedules" preference.
  * This is called by the pref's system when the GUI element is altered.
  */
-function saveTree() {
-  let tree = document.getElementById("optTree");
-  let items = document.getElementById("rows").childNodes;
+function saveTreeServerTypes() {
+  let tree = document.getElementById("ui_tree_server_types");
+  let items = document.getElementById("ui_server_types").childNodes;
 
+  LOG("VIEW="+ tree.view);
   let prefObj = {};
-  for (let i=0; i < items.length; i++) {
+  for (let i=0; i < tree.view.rowCount; i++) {
     let cells = items[i].getElementsByTagName("treecell");
-    LOG("CELLS:"+ tree.view.getCellText(i,
-                                        tree.columns["name"]));
-                                        // tree.columns.getColumnAt(0)));
-                                        // tree.columns.getNamedColumn("name")));
-    prefObj[cells[0].label] = {regex: cells[1].label, subs: cells[2].label};
+    let serverTypeExcluded = (
+      tree.view.getCellValue(
+        i, tree.columns.getNamedColumn("server_type_excluded"))
+        === 'true');
+    let serverTypeName = tree.view.getCellText(
+      i, tree.columns.getNamedColumn("server_type_name"));
+    let serverTypeOrder = parseInt(tree.view.getCellText(
+      i, tree.columns.getNamedColumn("server_type_order")));
+    LOG("SUPER: "+serverTypeName+", "+serverTypeExcluded);
+    prefObj[serverTypeName] =
+      { order: serverTypeOrder, excluded: serverTypeExcluded };
   }
 
   let prefStr = JSON.stringify(prefObj);
@@ -199,7 +225,7 @@ function saveTree() {
 }
 
 function addItem() {
-  let targetTree = document.getElementById("rows");
+  let targetTree = document.getElementById("ui_server_types");
 
   let item = document.createElement('treeitem');
   let row = document.createElement('treerow');
@@ -215,38 +241,49 @@ function addItem() {
   targetTree.appendChild(item);
 }
 
-function populateTree() {
+function populateTreeServerTypes() {
   let prefPane = document.getElementById("pane1");
 
-  let prefStr = firetray.Utils.prefService.getCharPref("jsondata");
+  let prefStr = firetray.Utils.prefService.getCharPref("server_types");
   let prefObj = JSON.parse(prefStr);
 
-  let targetTree = document.getElementById("rows");
-  for (r in prefObj) {
-    let name = prefObj[r];
+  let targetTree = document.getElementById("ui_server_types");
+  for (serverTypeName in prefObj) {
+    let name = prefObj[serverTypeName];
 
     let item = document.createElement('treeitem');
     let row = document.createElement('treerow');
     item.appendChild(row);
 
+    // server_type_excluded => checkbox
     let cell = document.createElement('treecell');
-    cell.setAttribute('label',r);
-    cell.addEventListener
-    ('change', function() {
-       LOG("CHANGE: "+ firetray.Utils.prefService.getCharPref("jsondata"));
-       document.getElementById("pane1")
-         .userChangedValue(document.getElementById("optTree"));
+    cell.setAttribute('value',prefObj[serverTypeName].excluded);
+    // FIXME: we need to removeEventListener() !!! onunload ?
+    cell.addEventListener(
+      'DOMAttrModified', function(event) {
+        if (event.attrName == "label") LOG("label changed!");
+        if (event.attrName == "value") LOG("value changed!");
+        document.getElementById("pane1")
+          .userChangedValue(document.getElementById("ui_tree_server_types"));
      });
-    cell.addEventListener('input', LOG("INPUT"));
-    // cell.oninput = 'document.getElementById("pane1").userChangedValue(document.getElementById("optTree"));';
     row.appendChild(cell);
 
+    // server_type_name
     cell = document.createElement('treecell');
-    cell.setAttribute('label',name.regex);
+    cell.setAttribute('label',serverTypeName);
+    // FIXME: refactor !!
+    cell.addEventListener(
+      'DOMAttrModified', function(event) {
+        if (event.attrName == "label") LOG("label changed!");
+        if (event.attrName == "value") LOG("value changed!");
+        document.getElementById("pane1")
+          .userChangedValue(document.getElementById("ui_tree_server_types"));
+     });
     row.appendChild(cell);
 
+    // server_type_order
     cell = document.createElement('treecell');
-    cell.setAttribute('label',name.subs);
+    cell.setAttribute('label',prefObj[serverTypeName].order);
     row.appendChild(cell);
 
     targetTree.appendChild(item);

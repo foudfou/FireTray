@@ -14,8 +14,8 @@
     <preferences>
       <preference id="pref_bool_close_hides"
                   name="extensions.firetray.close_hides" type="bool"/>
-      <preference id="pref_string_jsondata"
-                  name="extensions.firetray.jsondata" type="string"/>
+      <preference id="pref_string_server_types"
+                  name="extensions.firetray.server_types" type="string"/>
     </preferences>
 
 
@@ -33,18 +33,24 @@
         <button label="Add" oncommand="addItem();"/>
         <button label="Delete" oncommand="deleteSelection();"/>
       <separator class="thin"  />
-      <tree id="optTree" height="200" width="500" flex="1"
+      <tree id="ui_tree_server_types" height="200" width="500" flex="1"
             seltype="single" editable="true"
             preference-editable="true"
-            preference="pref_string_jsondata"
-            onsynctopreference="return saveTree();">
+            preference="pref_string_server_types"
+            onsynctopreference="return saveTreeServerTypes();">
         <treecols>
-          <treecol id="name" label="Name" primary="true" flex="1"
-                   persist="width ordinal hidden" width="50"/>
-          <treecol id="regex" label="Regex" width="100" flex="1"/>
-          <treecol id="subs" label="Subs" width="300" flex="1"/>
+          <treecol id="server_type_excluded" type="checkbox" editable="true"
+                   label="Excluded" primary="true" flex="1" />
+          <treecol id="server_type_name" label="Type" flex="1"
+                   primary="true" tooltiptext="HI"/>
+          <treecol id="server_type_order" label="Order" editable="true"
+                   flex="1" hidden= "true" />
+          <!-- <treecol id="name" label="Name" primary="true" flex="1" -->
+          <!--          persist="width ordinal hidden" width="50"/> -->
+          <!-- <treecol id="regex" label="Regex" width="100" flex="1"/> -->
+          <!-- <treecol id="subs" label="Subs" width="300" flex="1"/> -->
         </treecols>
-        <treechildren id="rows" />
+        <treechildren id="ui_server_types" />
       </tree>
       <separator class="thin" />
       <label value="To edit a item doubleclick on it" />
