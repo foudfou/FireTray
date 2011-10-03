@@ -59,7 +59,7 @@ function gdk_defines(lib) {
   this.GdkByteOrder = ctypes.int; // enum
   this.GdkVisualType = ctypes.int; // enum
   this.GdkVisual = ctypes.StructType("GdkVisual", [
-    { "parent_instance": ctypes.void_t.ptr }, // gobject.GObject }, // FIXME !!
+    { "parent_instance": gobject.GObject },
     { "type": this.GdkVisualType },
     { "depth": gobject.gint },
     { "byte": this.GdkByteOrder },
@@ -126,7 +126,6 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_pixbuf_composite", ctypes.void_t, this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.double, ctypes.double, ctypes.double, ctypes.double, ctypes.int, ctypes.int);
   lib.lazy_bind("gdk_screen_get_system_colormap", this.GdkColormap.ptr, this.GdkScreen.ptr);
   lib.lazy_bind("gdk_colormap_get_visual", this.GdkVisual.ptr, this.GdkColormap.ptr);
-  lib.lazy_bind("gdk_visual_get_depth", gobject.gint, this.GdkVisual.ptr);
   lib.lazy_bind("gdk_color_parse", gobject.gboolean, gobject.gchar.ptr, this.GdkColor.ptr);
   lib.lazy_bind("gdk_colormap_alloc_color", gobject.gboolean, this.GdkColormap.ptr, this.GdkColor.ptr, gobject.gboolean, gobject.gboolean);
   lib.lazy_bind("gdk_pixmap_new", this.GdkPixmap.ptr, this.GdkDrawable.ptr, gobject.gint, gobject.gint, gobject.gint);
