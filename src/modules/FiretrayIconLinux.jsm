@@ -188,10 +188,8 @@ firetray.IconLinux = {
 
   setText: function(text, color) { // TODO: split into smaller functions;
     LOG("setText");
-    if (typeof(text) != "string" ) {
-      ERROR("'text' arguement must be toString()'d: ");
-      return false;
-    }
+    if (typeof(text) != "string" )
+      throw new TypeError();
 
     try {
       // build background from image

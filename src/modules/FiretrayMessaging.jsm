@@ -154,7 +154,7 @@ firetray.Messaging.Accounts = function(sortByTypeAndName) {
     return;
   }
   if (typeof(sortByTypeAndName) !== "boolean")
-    throw "sort arg must be a boolean";
+    throw new TypeError();
 
   this.sortByTypeAndName = sortByTypeAndName;
 };
