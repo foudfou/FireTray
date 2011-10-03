@@ -2,7 +2,7 @@
 
 var EXPORTED_SYMBOLS =
   [ "firetray", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR",
-    "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID" ];
+    "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID", "isArray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -87,3 +87,8 @@ firetray.Utils = {
   }
 
 };
+
+// http://stackoverflow.com/questions/767486/how-do-you-check-if-a-variable-is-an-array-in-javascript
+function isArray(o) {
+  return Object.prototype.toString.call(o) === '[object Array]';
+}

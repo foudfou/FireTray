@@ -1,5 +1,18 @@
 =TODO=
 
+* gdk_visual_get_depth not provided before Gtk 2.22
+
+* add "enable biff notification" option. And if true:
+
+  radio choice option with:
+    "display message count"
+    "display new-mail image"
+    "display custom image"
+
+* also disable notification for excluded mail account servers
+Not easily feasible since newmailalerts are hard-coded
+http://mxr.mozilla.org/comm-central/find?string=content/newmailalert
+
 * make multi-platform. At least have js-ctypes library call dependant on OS detection. (best would be to have the OS-dependant modules loaded at startup) 
 
 * convert to a https://developer.mozilla.org/en/Extensions/Bootstrapped_extensions
@@ -7,7 +20,7 @@
 see ../restartless-restart-ffext/ and
 http://erikvold.com/blog/index.cfm/2010/10/28/restartless-firefox-addons-part-1-giving-your-addon-the-bootstrap
 
-WONTFIX:
+=WONTFIX=
 
 * ability to hide windows individually/globally
 

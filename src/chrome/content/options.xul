@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://firetray/skin/overlay.css" type="text/css"?>
 <!DOCTYPE prefwindow SYSTEM "chrome://firetray/locale/options.dtd">
 <prefwindow id="firetray-preferences"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -13,18 +14,90 @@
     <preferences>
       <preference id="pref_bool_close_hides"
                   name="extensions.firetray.close_hides" type="bool"/>
+      <preference id="pref_string_jsondata"
+                  name="extensions.firetray.jsondata" type="string"/>
     </preferences>
 
-    <groupbox>
-      <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
-                label="&bool_close_hides.label;"
-                accesskey="&bool_close_hides.accesskey;"/>
-    </groupbox>
 
-    <groupbox id="accounts_box"> <!-- firetray.UIOptions.accountBoxId -->
-      <caption label="&mail_accounts_exclude;"/>
-      <!-- accounts are dynamically added here with insert_accounts_name() functions, called at the bottom of this file -->
-    </groupbox>
+    <tabbox>
+      <tabs>
+        <tab label="&general_options;"/>
+        <tab label="&input_options;"/>
+        <tab label="&mail_options;" id="mail_tab" />
+      </tabs>
+      <tabpanels>
+
+        <tabpanel id="general_tabpanel">          
+
+      <vbox align="center" >
+        <button label="Add" oncommand="addItem();"/>
+        <button label="Delete" oncommand="deleteSelection();"/>
+      <separator class="thin"  />
+      <tree id="optTree" height="200" width="500" flex="1"
+            seltype="single" editable="true"
+            preference-editable="true"
+            preference="pref_string_jsondata"
+            onsynctopreference="return saveTree();">
+        <treecols>
+          <treecol id="name" label="Name" primary="true" flex="1"
+                   persist="width ordinal hidden" width="50"/>
+          <treecol id="regex" label="Regex" width="100" flex="1"/>
+          <treecol id="subs" label="Subs" width="300" flex="1"/>
+        </treecols>
+        <treechildren id="rows" />
+      </tree>
+      <separator class="thin" />
+      <label value="To edit a item doubleclick on it" />
+      </vbox>
+
+          <groupbox>
+            <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
+                      label="&bool_close_hides.label;"
+                      accesskey="&bool_close_hides.accesskey;"/>
+          </groupbox>
+
+        </tabpanel>
+        
+        <tabpanel id="input_tabpanel">
+        </tabpanel>
+        
+        <tabpanel id="mail_tabpanel">
+
+          <groupbox id="ui_mail_account_types_exclude">
+            <caption label="&mail_account_types_exclude;" tooltiptext="HI" />
+
+            <tree rows="6" flex="1" editable="true" hidecolumnpicker="false">
+              <treecols>
+                <treecol id="col_active" label="Account" flex="1" tooltiptext="HI"/>
+                <treecol id="col_active" label="Excluded" type="checkbox" flex="1"
+                         editable="true" />
+                <treecol id="col_name" label="Order" editable="true" flex="1"
+                         hidden= "true" />
+              </treecols>
+
+              <treechildren id="ui_mail_account_types">
+                <!-- <treeitem> -->
+                <!--   <treerow> -->
+                <!--     <treecell label="Alice"/> -->
+                <!--     <treecell value="true"/> -->
+                <!--     <treecell label="1"/> -->
+                <!--   </treerow> -->
+                <!-- </treeitem> -->
+              </treechildren>
+            </tree>
+          </groupbox>
+
+          <groupbox id="ui_accounts_box"> <!-- firetray.UIOptions.accountBoxId -->
+            <caption label="&mail_accounts_exclude;"/>
+            <!-- accounts are dynamically added here with insert_accounts_name()
+                 functions, called at the bottom of this file -->
+          </groupbox>
+          
+        </tabpanel>
+        
+        
+      </tabpanels>
+    </tabbox>
 
   </prefpane>
 

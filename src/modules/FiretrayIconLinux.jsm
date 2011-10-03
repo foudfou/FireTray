@@ -188,10 +188,8 @@ firetray.IconLinux = {
 
   setText: function(text, color) { // TODO: split into smaller functions;
     LOG("setText");
-    if (typeof(text) != "string" ) {
-      ERROR("'text' arguement must be toString()'d: ");
-      return false;
-    }
+    if (typeof(text) != "string")
+      throw new TypeError();
 
     try {
       // build background from image
@@ -203,7 +201,7 @@ firetray.IconLinux = {
       // prepare colors/alpha
       let colorMap = gdk.gdk_screen_get_system_colormap(gdk.gdk_screen_get_default());
       let visual = gdk.gdk_colormap_get_visual(colorMap);
-      let visualDepth = gdk.gdk_visual_get_depth(visual);
+      let visualDepth = visual.contents.depth;
       LOG("colorMap="+colorMap+" visual="+visual+" visualDepth="+visualDepth);
       let fore = new gdk.GdkColor;
       fore.pixel = fore.red = fore.green = fore.blue = 0;

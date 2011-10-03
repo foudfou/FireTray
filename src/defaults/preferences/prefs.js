@@ -6,4 +6,5 @@ pref("browser.tabs.warnOnClose", false);
 
 // Extension prefs
 pref("extensions.firetray.close_hides", true);
-pref("extensions.firetray.accounts_to_exclude", "");
+pref("extensions.firetray.accounts_to_exclude", "[]"); // JSON
+pref("extensions.firetray.jsondata", "{}"); // JSON

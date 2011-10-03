@@ -86,12 +86,31 @@ firetray.Messaging = {
   },
 
   /**
-   * gets the accounts_to_exclude preference which is a stringified Array
+   * get/set accounts_to_exclude preference which is a stringified Array
    * containing the keys of the accounts to exclude
    */
   getPrefAccountsExcluded: function() {
-    return firetray.Utils.prefService.getCharPref('accounts_to_exclude').split(',') || [];
+    return JSON.parse(
+      firetray.Utils.prefService.getCharPref('accounts_to_exclude'));
   },
+
+  setPrefAccountsExcluded: function(aArray) {
+    if (!isArray(aArray)) throw new TypeError();
+    LOG(aArray);
+    firetray.Utils.prefService.setCharPref('accounts_to_exclude',
+                                           JSON.stringify(aArray));
+  },
+
+
+// window.addEventListener('unload', function(e){filteredClipboard.saveList();}, false); // TRY DIFFERENT EVENTS
+// var filteredClipboard = {
+// prefix:"extensions.filteredclipboard.",
+// saveList: function (){
+//    var str = JSON.stringify(treeView.model);
+//    var prefManager = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
+//    prefManager.setCharPref(this.prefix + "jsondata", str);
+// },
+
 
   /**
    * computes total unread message count
@@ -154,7 +173,7 @@ firetray.Messaging.Accounts = function(sortByTypeAndName) {
     return;
   }
   if (typeof(sortByTypeAndName) !== "boolean")
-    throw "sort arg must be a boolean";
+    throw new TypeError();
 
   this.sortByTypeAndName = sortByTypeAndName;
 };

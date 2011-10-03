@@ -50,7 +50,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes-utils.jsm");
 
 function gobject_defines(lib) {
-  this.GObject = ctypes.StructType("GObject");
+
   this.gpointer = ctypes.voidptr_t;
   this.gulong = ctypes.unsigned_long;
   this.guint = ctypes.unsigned_int;
@@ -61,11 +61,27 @@ function gobject_defines(lib) {
   this.guchar = ctypes.unsigned_char;
   this.gboolean = this.gint;
   this.gfloat = ctypes.float;
+  this.gsize = ctypes.unsigned_long;
   this.GCallback = ctypes.voidptr_t;
   this.GClosureNotify = this.gpointer;
   this.GConnectFlags = this.guint;
   this.GFunc = ctypes.void_t.ptr;
   this.GList = ctypes.StructType("GList");
+
+  this.GType = this.gsize;
+  this.GData = ctypes.StructType("GData");
+  this._GTypeClass = ctypes.StructType("_GTypeClass", [
+    {g_type: this.GType}]);
+  this._GTypeInstance = ctypes.StructType("_GTypeInstance", [
+    {g_class: this._GTypeClass.ptr}]);
+  /* "All the fields in the GObject structure are private to the GObject
+   * implementation and should never be accessed directly." but we need to tell
+   * something about it to access GdkVisual fields */
+  this.GObject = ctypes.StructType("GObject", [
+    { g_type_instance: this._GTypeInstance },
+    { ref_count: this.guint },
+    { qdata: this.GData.ptr },
+  ]);
 
   /* NOTE: if we needed more/different args, we'd need to implement another
      FunctionType */
