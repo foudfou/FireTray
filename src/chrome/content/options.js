@@ -26,8 +26,6 @@ firetray.UIOptions = {
       this.hideElement("mail_tab");
     }
 
-    // setView();
-    // initView();
     populateTreeServerTypes();
   },
 
@@ -79,7 +77,7 @@ firetray.UIOptions = {
         (firetray.Messaging.getPrefAccountsExcluded().indexOf(accountServerKey) >= 0));
       let that = this;
       nodeAccount.addEventListener('command', function(e){
-        that.updateMailAccountsExcluded(that.accountBoxId);});
+        that.updateMailAccountsExcluded(that.accountBoxId);}, true);
       targetNode.appendChild(nodeAccount);
     }
 
@@ -113,86 +111,8 @@ firetray.UIOptions = {
 
 };
 
-// input.onkeypress = function(evt) {
-//     evt = evt || window.event;
-//     var charCode = evt.which || evt.keyCode;
-//     var charStr = String.fromCharCode(charCode);
-//     if (/\d/.test(charStr)) {
-//         return false;
-//     }
-// };
-
 /*
-var treeView = {
-  model : {},
-  treeBox: null,
-  get rowCount(){return this.model.length;},
-  getCellText : function(row,column) { return this.model[row][column.id]; },
-  setTree: function(treeBox){ this.treeBox = treeBox; },
-  isContainer: function(row){ return false; },
-  isEditable: function(idx, column)  { return true; },
-  isSeparator: function(row){ return false; },
-  isSorted: function(){ return false; },
-  getLevel: function(row){ return 0; },
-  getImageSrc: function(row,col){ return null; },
-  getRowProperties: function(row,props){},
-  getCellProperties: function(row,col,props){},
-  getColumnProperties: function(colid,col,props){},
-  setCellText: function (row, col, val){this.model[row][col.id] = val;}
-};
-
-function setView(){
-  try {
-    var str = firetray.Utils.prefService.getCharPref("jsondata");
-    treeView.model = JSON.parse(str);
-  } catch (err) {
-    treeView.model = [];
-  }
-  LOG("setView " + treeView.model.length);
-  document.getElementById('optTree').view = treeView;
-}
-
-function deleteSelection(){
-  var t = document.getElementById('optTree');
-  treeView.model.splice(t.currentIndex, 1);
-  treeView.treeBox.rowCountChanged(t.currentIndex, -1);
-}
-
-function addItem(){
-  treeView.model[treeView.model.length] =  {name:"new label", regex:"new regex", subs:"new subs"};
-  treeView.treeBox.rowCountChanged(treeView.model.length-1, 1);
-}
-
-function saveList(){
-  let str = JSON.stringify(treeView.model);
-  LOG(str);
-  // firetray.Utils.prefService.setCharPref("jsondata", str);
-  return str;
-}
-
-// window.addEventListener('unload', saveList, false);
-*/
-
-/*
-function initView() {
-  let tree = document.getElementById("optTree");
-
-  var oldView = tree.view;
-  var newView = {
-    __proto__: oldView,
-    setCellText: function(row, col, value) {
-      oldView.setCellText(row, col, value);
-      LOG("Text changed for a tree cell!");
-      document.getElementById("pane1").userChangedValue(tree);
-    }
-  };
-  tree.view = newView;
-  LOG("initView");
-}
-*/
-
-/*
- * Save the Schedules List to the "extensions.hpsched.schedules" preference.
+ * Save SERVER_TYPES to the "server_types" preference.
  * This is called by the pref's system when the GUI element is altered.
  */
 function saveTreeServerTypes() {
@@ -224,30 +144,14 @@ function saveTreeServerTypes() {
   return prefStr;
 }
 
-function addItem() {
-  let targetTree = document.getElementById("ui_server_types");
-
-  let item = document.createElement('treeitem');
-  let row = document.createElement('treerow');
-  item.appendChild(row);
-
-  let cell = document.createElement('treecell');
-  row.appendChild(cell);
-  cell = document.createElement('treecell');
-  row.appendChild(cell);
-  cell = document.createElement('treecell');
-  row.appendChild(cell);
-
-  targetTree.appendChild(item);
-}
-
 function populateTreeServerTypes() {
   let prefPane = document.getElementById("pane1");
 
   let prefStr = firetray.Utils.prefService.getCharPref("server_types");
+  LOG("PREF="+prefStr);
   let prefObj = JSON.parse(prefStr);
 
-  let targetTree = document.getElementById("ui_server_types");
+  let target = document.getElementById("ui_server_types");
   for (serverTypeName in prefObj) {
     let name = prefObj[serverTypeName];
 
@@ -265,12 +169,18 @@ function populateTreeServerTypes() {
         if (event.attrName == "value") LOG("value changed!");
         document.getElementById("pane1")
           .userChangedValue(document.getElementById("ui_tree_server_types"));
-     });
+     }, true);
     row.appendChild(cell);
 
     // server_type_name
     cell = document.createElement('treecell');
     cell.setAttribute('label',serverTypeName);
+    cell.setAttribute('editable',false);
+    row.appendChild(cell);
+
+    // server_type_order
+    cell = document.createElement('treecell');
+    cell.setAttribute('label',prefObj[serverTypeName].order);
     // FIXME: refactor !!
     cell.addEventListener(
       'DOMAttrModified', function(event) {
@@ -278,14 +188,27 @@ function populateTreeServerTypes() {
         if (event.attrName == "value") LOG("value changed!");
         document.getElementById("pane1")
           .userChangedValue(document.getElementById("ui_tree_server_types"));
-     });
+      }, true);
     row.appendChild(cell);
 
-    // server_type_order
-    cell = document.createElement('treecell');
-    cell.setAttribute('label',prefObj[serverTypeName].order);
-    row.appendChild(cell);
+    target.appendChild(item);
+  }
 
-    targetTree.appendChild(item);
+  let tree = document.getElementById("ui_tree_server_types");
+  tree.addEventListener("keypress", onKeyPressTreeServerTypes, true);
+}
+
+function onKeyPressTreeServerTypes(event) {
+  LOG("TREE KEYPRESS: "+event.originalTarget);
+  let tree = document.getElementById("ui_tree_server_types");
+  let col = tree.editingColumn; // col.index
+
+  // only int allowed
+  if (col == tree.columns.getNamedColumn("server_type_order")) {
+    let charCode = event.which || event.keyCode;
+    let charStr = String.fromCharCode(charCode);
+    if (!/\d/.test(charStr))
+      event.preventDefault();
   }
 }
+

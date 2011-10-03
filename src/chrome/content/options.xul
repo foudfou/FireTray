@@ -29,9 +29,20 @@
 
         <tabpanel id="general_tabpanel">          
 
+          <groupbox>
+            <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
+                      label="&bool_close_hides.label;"
+                      accesskey="&bool_close_hides.accesskey;"/>
+          </groupbox>
+
+        </tabpanel>
+
+        <tabpanel id="input_tabpanel">
+        </tabpanel>
+
+        <tabpanel id="mail_tabpanel">
+
       <vbox align="center" >
-        <button label="Add" oncommand="addItem();"/>
-        <button label="Delete" oncommand="deleteSelection();"/>
       <separator class="thin"  />
       <tree id="ui_tree_server_types" height="200" width="500" flex="1"
             seltype="single" editable="true"
@@ -40,34 +51,17 @@
             onsynctopreference="return saveTreeServerTypes();">
         <treecols>
           <treecol id="server_type_excluded" type="checkbox" editable="true"
-                   label="Excluded" primary="true" flex="1" />
-          <treecol id="server_type_name" label="Type" flex="1"
-                   primary="true" tooltiptext="HI"/>
+                   label="Excluded" primary="true" width="40" flex="1" />
+          <treecol id="server_type_name" label="Type" editable="false" flex="1"
+                   primary="true" tooltiptext="FIXME"/>
           <treecol id="server_type_order" label="Order" editable="true"
                    flex="1" hidden= "true" />
-          <!-- <treecol id="name" label="Name" primary="true" flex="1" -->
-          <!--          persist="width ordinal hidden" width="50"/> -->
-          <!-- <treecol id="regex" label="Regex" width="100" flex="1"/> -->
-          <!-- <treecol id="subs" label="Subs" width="300" flex="1"/> -->
         </treecols>
         <treechildren id="ui_server_types" />
       </tree>
       <separator class="thin" />
       <label value="To edit a item doubleclick on it" />
       </vbox>
-
-          <groupbox>
-            <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
-                      label="&bool_close_hides.label;"
-                      accesskey="&bool_close_hides.accesskey;"/>
-          </groupbox>
-
-        </tabpanel>
-        
-        <tabpanel id="input_tabpanel">
-        </tabpanel>
-        
-        <tabpanel id="mail_tabpanel">
 
           <groupbox id="ui_mail_account_types_exclude">
             <caption label="&mail_account_types_exclude;" tooltiptext="HI" />
@@ -81,15 +75,7 @@
                          hidden= "true" />
               </treecols>
 
-              <treechildren id="ui_mail_account_types">
-                <!-- <treeitem> -->
-                <!--   <treerow> -->
-                <!--     <treecell label="Alice"/> -->
-                <!--     <treecell value="true"/> -->
-                <!--     <treecell label="1"/> -->
-                <!--   </treerow> -->
-                <!-- </treeitem> -->
-              </treechildren>
+              <treechildren id="ui_mail_account_types" />
             </tree>
           </groupbox>
 
