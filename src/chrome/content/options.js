@@ -22,20 +22,36 @@ firetray.UIOptions = {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.insertMailAccountsExcluded(this.accountBoxId);
       this.populateMailAccountTypes();
+
+      this.populateTreeServerTypes();
+
     } else {
       this.hideElement("mail_tab");
     }
 
-    this.populateTreeServerTypes();
   },
 
   onQuit: function() {
-    // FIXME: removeEventListener on cells !
+    let that = this;
+
+    // cleaning: removeEventListener on cells
+    // NOTE: not sure this is necessary on window close
+    let items = document.getElementById("ui_server_types").childNodes;
+    for (let i=0; i < items.length; i++) {
+      let cells = items[i].getElementsByTagName("treecell");
+      // col 1 and 3: server_type_excluded, server_type_order
+      [cells[0], cells[2]].map(
+        function(c) {
+          LOG("i: "+i+", cell:"+c);
+          c.removeEventListener(
+            'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+        });
+    }
   },
 
   hideElement: function(parentId) {
     let targetNode = document.getElementById(parentId);
-    targetNode.hidden = true; //!(appType & Firetray_MAIL);
+    targetNode.hidden = true;
   },
 
   populateMailAccountTypes: function() {
@@ -137,14 +153,24 @@ firetray.UIOptions = {
     }
 
     let prefStr = JSON.stringify(prefObj);
-    // let prefStr = JSON.stringify(treeView.model);
     LOG("prefStr"+prefStr);
 
     /* return the new prefString to be stored by pref system */
     return prefStr;
   },
 
+  /**
+   * needed for triggering actual preference change and saving
+   */
+  _userChangeValueTreeServerTypes: function(event) {
+    if (event.attrName == "label") LOG("label changed!");
+    if (event.attrName == "value") LOG("value changed!");
+    document.getElementById("pane1")
+      .userChangedValue(document.getElementById("ui_tree_server_types"));
+  },
+
   populateTreeServerTypes: function() {
+    let that = this;
     let prefPane = document.getElementById("pane1");
 
     let prefStr = firetray.Utils.prefService.getCharPref("server_types");
@@ -162,14 +188,9 @@ firetray.UIOptions = {
       // server_type_excluded => checkbox
       let cell = document.createElement('treecell');
       cell.setAttribute('value',prefObj[serverTypeName].excluded);
-      // FIXME: we need to removeEventListener() !!! (onQuit)
+      // CAUTION: removeEventListener in onQuit()
       cell.addEventListener(
-        'DOMAttrModified', function(event) {
-          if (event.attrName == "label") LOG("label changed!");
-          if (event.attrName == "value") LOG("value changed!");
-          document.getElementById("pane1")
-            .userChangedValue(document.getElementById("ui_tree_server_types"));
-        }, true);
+        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
       row.appendChild(cell);
 
       // server_type_name
@@ -181,21 +202,14 @@ firetray.UIOptions = {
       // server_type_order
       cell = document.createElement('treecell');
       cell.setAttribute('label',prefObj[serverTypeName].order);
-      // FIXME: refactor !!
       cell.addEventListener(
-        'DOMAttrModified', function(event) {
-          if (event.attrName == "label") LOG("label changed!");
-          if (event.attrName == "value") LOG("value changed!");
-          document.getElementById("pane1")
-            .userChangedValue(document.getElementById("ui_tree_server_types"));
-        }, true);
+        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
       row.appendChild(cell);
 
       target.appendChild(item);
     }
 
     let tree = document.getElementById("ui_tree_server_types");
-    let that = this;
     tree.addEventListener("keypress", that.onKeyPressTreeServerTypes, true);
   },
 
@@ -211,7 +225,18 @@ firetray.UIOptions = {
       if (!/\d/.test(charStr))
         event.preventDefault();
     }
-  },
+  }
 
 };
 
+
+window.addEventListener(
+  'load', function (e) {
+    removeEventListener('load', arguments.callee, true);
+    firetray.UIOptions.onLoad(); },
+  false);
+window.addEventListener(
+  'unload', function (e) {
+    removeEventListener('unload', arguments.callee, true);
+    firetray.UIOptions.onQuit(); },
+  false);

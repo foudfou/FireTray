@@ -4,8 +4,7 @@
 <!DOCTYPE prefwindow SYSTEM "chrome://firetray/locale/options.dtd">
 <prefwindow id="firetray-preferences"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-            title="&prefwindow.title;"
-            onload="firetray.UIOptions.onLoad()">
+            title="&prefwindow.title;">
 
   <script type="application/x-javascript" src="options.js" />
 
