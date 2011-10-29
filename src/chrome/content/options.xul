@@ -21,7 +21,7 @@
     <tabbox>
       <tabs>
         <tab label="&general_options;"/>
-        <tab label="&input_options;"/>
+        <!-- <tab label="&input_options;"/> -->
         <tab label="&mail_options;" id="mail_tab" />
       </tabs>
       <tabpanels>
@@ -36,12 +36,14 @@
 
         </tabpanel>
 
-        <tabpanel id="input_tabpanel">
-        </tabpanel>
+        <!-- <tabpanel id="input_tabpanel"> -->
+        <!-- </tabpanel> -->
 
         <tabpanel id="mail_tabpanel">
 
-          <vbox align="center" >
+          <vbox>
+
+            <!-- <label value="To edit a item doubleclick on it" /> -->
             <tree id="ui_tree_server_types" height="200" width="500" flex="1"
                   seltype="single" editable="true"
                   preference-editable="true"
@@ -57,36 +59,18 @@
               </treecols>
               <treechildren id="ui_server_types" />
             </tree>
+
             <separator class="thin" />
-            <label value="To edit a item doubleclick on it" />
+
+            <groupbox id="ui_accounts_box"> <!-- firetray.UIOptions.accountBoxId -->
+              <caption label="&mail_accounts_exclude;"/>
+              <!-- accounts are dynamically added here with insert_accounts_name()
+                   functions, called at the bottom of this file -->
+            </groupbox>
+
           </vbox>
-
-          <separator class="thin" />
-
-          <groupbox id="ui_mail_account_types_exclude">
-            <caption label="&mail_account_types_exclude;" tooltiptext="HI" />
-
-            <tree rows="6" flex="1" editable="true" hidecolumnpicker="false">
-              <treecols>
-                <treecol id="col_active" label="Account" flex="1" tooltiptext="HI"/>
-                <treecol id="col_active" label="Excluded" type="checkbox" flex="1"
-                         editable="true" />
-                <treecol id="col_name" label="Order" editable="true" flex="1"
-                         hidden= "true" />
-              </treecols>
-
-              <treechildren id="ui_mail_account_types" />
-            </tree>
-          </groupbox>
-
-          <groupbox id="ui_accounts_box"> <!-- firetray.UIOptions.accountBoxId -->
-            <caption label="&mail_accounts_exclude;"/>
-            <!-- accounts are dynamically added here with insert_accounts_name()
-                 functions, called at the bottom of this file -->
-          </groupbox>
           
         </tabpanel>
-        
         
       </tabpanels>
     </tabbox>

@@ -20,11 +20,8 @@ firetray.UIOptions = {
   onLoad: function() {
     if(firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
-      this.insertMailAccountsExcluded(this.accountBoxId);
-      this.populateMailAccountTypes();
-
       this.populateTreeServerTypes();
-
+      this.insertMailAccountsExcluded(this.accountBoxId);
     } else {
       this.hideElement("mail_tab");
     }
@@ -52,33 +49,6 @@ firetray.UIOptions = {
   hideElement: function(parentId) {
     let targetNode = document.getElementById(parentId);
     targetNode.hidden = true;
-  },
-
-  populateMailAccountTypes: function() {
-    let targetTree = document.getElementById("ui_mail_account_types");
-    let serverTypes = firetray.Utils.getObjPref('server_types');
-
-    for (t in serverTypes) {
-      let accType = serverTypes[t];
-
-      let item = document.createElement('treeitem');
-      let row = document.createElement('treerow');
-      item.appendChild(row);
-
-      let cell = document.createElement('treecell');
-      cell.setAttribute('label',t);
-      row.appendChild(cell);
-
-      cell = document.createElement('treecell');
-      cell.setAttribute('value',accType.excluded);
-      row.appendChild(cell);
-
-      cell = document.createElement('treecell');
-      cell.setAttribute('label',accType.order);
-      row.appendChild(cell);
-
-      targetTree.appendChild(item);
-    }
   },
 
   insertMailAccountsExcluded: function(parentId) {
