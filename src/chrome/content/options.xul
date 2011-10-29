@@ -42,26 +42,27 @@
 
         <tabpanel id="mail_tabpanel">
 
-      <vbox align="center" >
-      <separator class="thin"  />
-      <tree id="ui_tree_server_types" height="200" width="500" flex="1"
-            seltype="single" editable="true"
-            preference-editable="true"
-            preference="pref_string_server_types"
-            onsynctopreference="return saveTreeServerTypes();">
-        <treecols>
-          <treecol id="server_type_excluded" type="checkbox" editable="true"
-                   label="Excluded" primary="true" width="40" flex="1" />
-          <treecol id="server_type_name" label="Type" editable="false" flex="1"
-                   primary="true" tooltiptext="FIXME"/>
-          <treecol id="server_type_order" label="Order" editable="true"
-                   flex="1" hidden= "true" />
-        </treecols>
-        <treechildren id="ui_server_types" />
-      </tree>
-      <separator class="thin" />
-      <label value="To edit a item doubleclick on it" />
-      </vbox>
+          <vbox align="center" >
+            <tree id="ui_tree_server_types" height="200" width="500" flex="1"
+                  seltype="single" editable="true"
+                  preference-editable="true"
+                  preference="pref_string_server_types"
+                  onsynctopreference="return firetray.UIOptions.saveTreeServerTypes();">
+              <treecols>
+                <treecol id="server_type_excluded" type="checkbox" editable="true"
+                         label="Excluded" primary="true" width="40" flex="1" />
+                <treecol id="server_type_name" label="Type" editable="false" flex="1"
+                         primary="true" tooltiptext="FIXME"/>
+                <treecol id="server_type_order" label="Order" editable="true"
+                         flex="1" hidden= "true" />
+              </treecols>
+              <treechildren id="ui_server_types" />
+            </tree>
+            <separator class="thin" />
+            <label value="To edit a item doubleclick on it" />
+          </vbox>
+
+          <separator class="thin" />
 
           <groupbox id="ui_mail_account_types_exclude">
             <caption label="&mail_account_types_exclude;" tooltiptext="HI" />
