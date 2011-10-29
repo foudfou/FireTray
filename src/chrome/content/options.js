@@ -56,9 +56,10 @@ firetray.UIOptions = {
 
   populateMailAccountTypes: function() {
     let targetTree = document.getElementById("ui_mail_account_types");
+    let serverTypes = firetray.Utils.getObjPref('server_types');
 
-    for (t in firetray.Messaging.SERVER_TYPES) {
-      let accType = firetray.Messaging.SERVER_TYPES[t];
+    for (t in serverTypes) {
+      let accType = serverTypes[t];
 
       let item = document.createElement('treeitem');
       let row = document.createElement('treerow');
@@ -84,9 +85,10 @@ firetray.UIOptions = {
     // the DOM parent where we do appendChild
     let targetNode = document.getElementById(parentId);
 
+    let serverTypes = firetray.Utils.getObjPref('server_types');
     let accounts = new firetray.Messaging.Accounts(true);
     for (let accountServer in accounts) {
-      if (firetray.Messaging.SERVER_TYPES[accountServer.type].excluded)
+      if (serverTypes[accountServer.type].excluded)
         continue;
 
       let nodeAccount = document.createElement("checkbox");
@@ -94,7 +96,7 @@ firetray.UIOptions = {
       nodeAccount.setAttribute('id', accountServerKey);
       nodeAccount.setAttribute('label', accountServer.rootFolder.name);
       nodeAccount.setAttribute('checked',
-        (firetray.Messaging.getPrefAccountsExcluded().indexOf(accountServerKey) >= 0));
+        (firetray.Utils.getArrayPref('accounts_to_exclude').indexOf(accountServerKey) >= 0));
       let that = this;
       nodeAccount.addEventListener('command', function(e){
         that.updateMailAccountsExcluded(that.accountBoxId);}, true);
@@ -115,7 +117,7 @@ firetray.UIOptions = {
     }
 
     LOG("accounts_to_exclude:"+prefValue);
-    firetray.Messaging.setPrefAccountsExcluded(prefValue);
+    firetray.Utils.setArrayPref('accounts_to_exclude', prefValue);
 
     firetray.Messaging.updateUnreadMsgCount();
   },
@@ -130,8 +132,8 @@ firetray.UIOptions = {
   },
 
   /*
-   * Save SERVER_TYPES to the "server_types" preference.
-   * This is called by the pref's system when the GUI element is altered.
+   * Save the "server_types" preference. This is called by the pref's system
+   * when the GUI element is altered.
    */
   saveTreeServerTypes: function() {
     let tree = document.getElementById("ui_tree_server_types");
@@ -190,7 +192,10 @@ firetray.UIOptions = {
       cell.setAttribute('value',prefObj[serverTypeName].excluded);
       // CAUTION: removeEventListener in onQuit()
       cell.addEventListener(
-        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+        'DOMAttrModified', function(e) {
+          that._userChangeValueTreeServerTypes(e);
+          firetray.Messaging.updateUnreadMsgCount();
+        }, true);
       row.appendChild(cell);
 
       // server_type_name

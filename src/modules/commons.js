@@ -38,6 +38,34 @@ firetray.Utils = {
   prefService: Services.prefs.getBranch("extensions.firetray."),
   strings: Services.strings.createBundle("chrome://firetray/locale/overlay.properties"),
 
+  getObjPref: function(prefStr) {
+    try {
+      var objPref = JSON.parse(
+        firetray.Utils.prefService.getCharPref(prefStr));
+    } catch (x) {
+      ERROR(x);
+    }
+    return objPref;
+  },
+  setObjPref: function(prefStr, obj) {
+    LOG(obj);
+    try {
+      firetray.Utils.prefService.setCharPref(prefStr, JSON.stringify(obj));
+    } catch (x) {
+      ERROR(x);
+    }
+  },
+
+  getArrayPref: function(prefStr) {
+    let arrayPref = this.getObjPref(prefStr);
+    if (!isArray(arrayPref)) throw new TypeError();
+    return arrayPref;
+  },
+  setArrayPref: function(prefStr, aArray) {
+    if (!isArray(aArray)) throw new TypeError();
+    this.setObjPref(prefStr, aArray);
+  },
+
   dumpObj: function(obj) {
     let str = "";
     for(i in obj) {

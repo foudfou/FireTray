@@ -30,19 +30,6 @@ if ("undefined" == typeof(firetray)) {
 
 
 firetray.Messaging = {
-  // TODO: turn into pref.
-  /* NOTE: definition checks not implemented on purpose (performance mainly)
-   should be well defined in default prefs, and new types are unlikely to
-   appear soon. */
-  SERVER_TYPES: {
-    "pop3": { order: 1, excluded: false },
-    "imap": { order: 1, excluded: false },
-    "movemail": { order: 2, excluded: true },
-    "none": { order: 3, excluded: false },
-    "rss": { order: 4, excluded: true },
-    "nntp": { order: 5, excluded: true }
-  },
-
   _unreadMsgCount: 0,
 
   enable: function() {
@@ -86,45 +73,19 @@ firetray.Messaging = {
   },
 
   /**
-   * get/set accounts_to_exclude preference which is a stringified Array
-   * containing the keys of the accounts to exclude
-   */
-  getPrefAccountsExcluded: function() {
-    return JSON.parse(
-      firetray.Utils.prefService.getCharPref('accounts_to_exclude'));
-  },
-
-  setPrefAccountsExcluded: function(aArray) {
-    if (!isArray(aArray)) throw new TypeError();
-    LOG(aArray);
-    firetray.Utils.prefService.setCharPref('accounts_to_exclude',
-                                           JSON.stringify(aArray));
-  },
-
-
-// window.addEventListener('unload', function(e){filteredClipboard.saveList();}, false); // TRY DIFFERENT EVENTS
-// var filteredClipboard = {
-// prefix:"extensions.filteredclipboard.",
-// saveList: function (){
-//    var str = JSON.stringify(treeView.model);
-//    var prefManager = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-//    prefManager.setCharPref(this.prefix + "jsondata", str);
-// },
-
-
-  /**
    * computes total unread message count
    * TODO: check news accounts shouldn't be considered
    */
   updateUnreadMsgCount: function() {
     LOG("unreadMsgCount");
+    let serverTypes = firetray.Utils.getObjPref('server_types');
 
     this._unreadMsgCount = 0;   // reset
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
-        if ( (this.SERVER_TYPES[accountServer.type].excluded)
-          || (this.getPrefAccountsExcluded().indexOf(accountServer.key) >= 0) )
+        if ( (serverTypes[accountServer.type].excluded)
+          || (firetray.Utils.getArrayPref('accounts_to_exclude').indexOf(accountServer.key) >= 0) )
           continue;
 
         let rootFolder = accountServer.rootFolder; // nsIMsgFolder
@@ -191,13 +152,14 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
     accountServers[i] = accountServer;
   }
 
+  let serverTypes = firetray.Utils.getObjPref('server_types');
   if (this.sortByTypeAndName) {
     accountServers.sort(function(a,b) {
-      if (firetray.Messaging.SERVER_TYPES[a.type].order
-          < firetray.Messaging.SERVER_TYPES[b.type].order)
+      if (serverTypes[a.type].order
+          < serverTypes[b.type].order)
         return -1;
-      if (firetray.Messaging.SERVER_TYPES[a.type].order
-          > firetray.Messaging.SERVER_TYPES[b.type].order)
+      if (serverTypes[a.type].order
+          > serverTypes[b.type].order)
         return 1;
       if (a.prettyName < b.prettyName)
         return -1;
