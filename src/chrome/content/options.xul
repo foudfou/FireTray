@@ -41,7 +41,7 @@
 
         <tabpanel id="mail_tabpanel">
 
-          <groupbox>
+          <groupbox flex="1">
             <caption label="&unread_count_account_exceptions;" />
 
             <label value="&mail_account_types_exclude;" />
@@ -51,13 +51,13 @@
                   preference="pref_string_server_types"
                   onsynctopreference="return firetray.UIOptions.saveTreeServerTypes();">
               <treecols>
-                <treecol id="server_type_excluded" type="checkbox" editable="true"
-                         label="&server_type_excluded;" primary="true" flex="1" persist="width"
-                         tooltiptext="&server_type_excluded_tooltip;"/>
-                <splitter class="tree-splitter" resizeafter="grow"/>
-                <treecol id="server_type_name" editable="false" flex="1"
+                <treecol id="server_type_name" editable="false" flex="2"
                          persist="width" primary="true" label="&server_type_name;"
                          tooltiptext="&server_type_name_tooltip;"/>
+                <splitter class="tree-splitter" resizeafter="grow"/>
+                <treecol id="server_type_excluded" type="checkbox" editable="true"
+                         label="&server_type_excluded;" flex="1" persist="width"
+                         tooltiptext="&server_type_excluded_tooltip;"/>
                 <splitter class="tree-splitter" resizeafter="grow"/>
                 <treecol id="server_type_order" editable="true"
                          persist="width"
@@ -75,7 +75,7 @@
                  functions, called at the bottom of this file -->
 
           </groupbox>
-          
+
         </tabpanel>
         
       </tabpanels>

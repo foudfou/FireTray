@@ -174,3 +174,23 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
     yield accountServers[i];
   }
 };
+
+/**
+ * return accounts grouped by server_types.
+ *
+ * ex: { movemail: {"server1", "server2"}, imap: {"server3"} }
+ */
+firetray.Messaging.accountsByServerType = function() {
+  let accountsByServerType = {};
+  let accounts = new firetray.Messaging.Accounts(false);
+  for (let accountServer in accounts) {
+    let accountServerKey = accountServer.key.toString();
+    let accountServerName = accountServer.prettyName;
+    let accountServerType = accountServer.type;
+    if (typeof(accountsByServerType[accountServerType]) == "undefined")
+      accountsByServerType[accountServerType] = [];
+    accountsByServerType[accountServerType].push(
+      { key: accountServerKey, name: accountServerName });
+  }
+  return accountsByServerType;
+};

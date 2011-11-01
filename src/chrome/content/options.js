@@ -36,8 +36,8 @@ firetray.UIOptions = {
     let items = document.getElementById("ui_server_types").childNodes;
     for (let i=0; i < items.length; i++) {
       let cells = items[i].getElementsByTagName("treecell");
-      // col 1 and 3: server_type_excluded, server_type_order
-      [cells[0], cells[2]].map(
+      // col 2 and 3: server_type_excluded, server_type_order
+      [cells[1], cells[2]].map(
         function(c) {
           LOG("i: "+i+", cell:"+c);
           c.removeEventListener(
@@ -101,6 +101,99 @@ firetray.UIOptions = {
     }
   },
 
+  /**
+   * needed for triggering actual preference change and saving
+   */
+  _userChangeValueTreeServerTypes: function(event) {
+    if (event.attrName == "label") LOG("label changed!");
+    if (event.attrName == "value") LOG("value changed!");
+    document.getElementById("pane1")
+      .userChangedValue(document.getElementById("ui_tree_server_types"));
+  },
+
+  populateTreeServerTypes: function() {
+    let that = this;
+    let prefPane = document.getElementById("pane1");
+
+    let prefStr = firetray.Utils.prefService.getCharPref("server_types");
+    LOG("PREF="+prefStr);
+    let serverTypes = JSON.parse(prefStr);
+    let accountsByServerType = firetray.Messaging.accountsByServerType();
+    LOG(JSON.stringify(accountsByServerType));
+
+    let target = document.getElementById("ui_server_types");
+    for (let serverTypeName in serverTypes) {
+      let name = serverTypes[serverTypeName];
+
+      let item = document.createElement('treeitem');
+      item.setAttribute("container",true);
+      item.setAttribute("open",true);
+
+      let row = document.createElement('treerow');
+      item.appendChild(row);
+
+      // server_type_name
+      let cell = document.createElement('treecell');
+      cell.setAttribute('label',serverTypeName);
+      cell.setAttribute('editable',false);
+      row.appendChild(cell);
+
+      // server_type_excluded => checkbox
+      cell = document.createElement('treecell');
+      cell.setAttribute('value',serverTypes[serverTypeName].excluded);
+      // CAUTION: removeEventListener in onQuit()
+      cell.addEventListener(
+        'DOMAttrModified', function(e) {
+          that._userChangeValueTreeServerTypes(e);
+          firetray.Messaging.updateUnreadMsgCount();
+        }, true);
+      row.appendChild(cell);
+
+      // server_type_order
+      cell = document.createElement('treecell');
+      cell.setAttribute('label',serverTypes[serverTypeName].order);
+      cell.addEventListener(
+        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+      row.appendChild(cell);
+
+      target.appendChild(item);
+
+      // add actual accounts as children
+      let subChildren = document.createElement('treechildren');
+      let typeAccounts = accountsByServerType[serverTypeName];
+      LOG("type: "+serverTypeName+", Accounts: "+JSON.stringify(typeAccounts));
+      if (typeof(typeAccounts) == "undefined")
+        continue;
+      for (let i=0; i<typeAccounts.length; i++) {
+        let subItem = document.createElement('treeitem');
+        let subRow = document.createElement('treerow');
+
+        // server_type_name
+        cell = document.createElement('treecell');
+        cell.setAttribute('label',typeAccounts[i].name);
+        cell.setAttribute('editable',false);
+        subRow.appendChild(cell);
+
+        // server_type_excluded => checkbox
+        let cell = document.createElement('treecell');
+        subRow.appendChild(cell);
+
+        // server_type_order - UNUSED (added for consistency)
+        cell = document.createElement('treecell');
+        cell.setAttribute('editable',false);
+        subRow.appendChild(cell);
+
+        subItem.appendChild(subRow);
+        subChildren.appendChild(subItem);
+      }
+      item.appendChild(subChildren);
+
+    }
+
+    let tree = document.getElementById("ui_tree_server_types");
+    tree.addEventListener("keypress", that.onKeyPressTreeServerTypes, true);
+  },
+
   /*
    * Save the "server_types" preference. This is called by the pref's system
    * when the GUI element is altered.
@@ -111,6 +204,9 @@ firetray.UIOptions = {
     LOG("VIEW="+ tree.view + ", rowCount="+tree.view.rowCount);
     let prefObj = {};
     for (let i=0; i < tree.view.rowCount; i++) {
+      if (tree.view.getLevel(i)>0)
+        continue;
+
       let serverTypeExcluded = (
         tree.view.getCellValue(
           i, tree.columns.getNamedColumn("server_type_excluded"))
@@ -129,63 +225,6 @@ firetray.UIOptions = {
 
     /* return the new prefString to be stored by pref system */
     return prefStr;
-  },
-
-  /**
-   * needed for triggering actual preference change and saving
-   */
-  _userChangeValueTreeServerTypes: function(event) {
-    if (event.attrName == "label") LOG("label changed!");
-    if (event.attrName == "value") LOG("value changed!");
-    document.getElementById("pane1")
-      .userChangedValue(document.getElementById("ui_tree_server_types"));
-  },
-
-  populateTreeServerTypes: function() {
-    let that = this;
-    let prefPane = document.getElementById("pane1");
-
-    let prefStr = firetray.Utils.prefService.getCharPref("server_types");
-    LOG("PREF="+prefStr);
-    let prefObj = JSON.parse(prefStr);
-
-    let target = document.getElementById("ui_server_types");
-    for (serverTypeName in prefObj) {
-      let name = prefObj[serverTypeName];
-
-      let item = document.createElement('treeitem');
-      let row = document.createElement('treerow');
-      item.appendChild(row);
-
-      // server_type_excluded => checkbox
-      let cell = document.createElement('treecell');
-      cell.setAttribute('value',prefObj[serverTypeName].excluded);
-      // CAUTION: removeEventListener in onQuit()
-      cell.addEventListener(
-        'DOMAttrModified', function(e) {
-          that._userChangeValueTreeServerTypes(e);
-          firetray.Messaging.updateUnreadMsgCount();
-        }, true);
-      row.appendChild(cell);
-
-      // server_type_name
-      cell = document.createElement('treecell');
-      cell.setAttribute('label',serverTypeName);
-      cell.setAttribute('editable',false);
-      row.appendChild(cell);
-
-      // server_type_order
-      cell = document.createElement('treecell');
-      cell.setAttribute('label',prefObj[serverTypeName].order);
-      cell.addEventListener(
-        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
-      row.appendChild(cell);
-
-      target.appendChild(item);
-    }
-
-    let tree = document.getElementById("ui_tree_server_types");
-    tree.addEventListener("keypress", that.onKeyPressTreeServerTypes, true);
   },
 
   onKeyPressTreeServerTypes: function(event) {

@@ -66,18 +66,6 @@ firetray.Utils = {
     this.setObjPref(prefStr, aArray);
   },
 
-  dumpObj: function(obj) {
-    let str = "";
-    for(i in obj) {
-      try {
-        str += "obj["+i+"]: " + obj[i] + "\n";
-      } catch(e) {
-        str += "obj["+i+"]: Unavailable\n";
-      }
-    }
-    LOG(str);
-  },
-
   QueryInterfaces: function(obj) {
     for each (i in Components.interfaces) {
       try {

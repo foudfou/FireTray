@@ -1,6 +1,7 @@
 =TODO=
 
-* gdk_visual_get_depth not provided before Gtk 2.22
+* make accounts_to_exclude a tree that is modified by server_types_to_exclude,
+  or include accounts into server_types' tree ?
 
 * add "enable biff notification" option. And if true:
 
