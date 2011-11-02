@@ -1,7 +1,6 @@
 =TODO=
 
-* make accounts_to_exclude a tree that is modified by server_types_to_exclude,
-  or include accounts into server_types' tree ?
+* options: in mail_accounts, have serverTypes interact with excludedAccounts
 
 * add "enable biff notification" option. And if true:
 

@@ -8,14 +8,12 @@
 <!ENTITY bool_close_hides.label "Closing windows hides to tray">
 <!ENTITY bool_close_hides.accesskey "C">
 
-<!ENTITY unread_count_account_exceptions "Exclude accounts from unread count">
+<!ENTITY unread_count_account_exceptions "Included accounts">
+<!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">
 
-<!ENTITY mail_account_types_exclude "Account types to exclude:">
+<!ENTITY server_type_name "Account">
+<!ENTITY server_type_name.tooltip "FIXME">
 <!ENTITY server_type_excluded "Excluded">
-<!ENTITY server_type_excluded_tooltip "FIXME">
-<!ENTITY server_type_name "Type">
-<!ENTITY server_type_name_tooltip "FIXME">
+<!ENTITY server_type_excluded.tooltip "FIXME">
 <!ENTITY server_type_order "Order">
-<!ENTITY server_type_order_tooltip "FIXME">
-
-<!ENTITY mail_accounts_exclude "Mail accounts to exclude:">
+<!ENTITY server_type_order.tooltip "FIXME">

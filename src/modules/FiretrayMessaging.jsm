@@ -78,14 +78,16 @@ firetray.Messaging = {
    */
   updateUnreadMsgCount: function() {
     LOG("unreadMsgCount");
-    let serverTypes = firetray.Utils.getObjPref('server_types');
+    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+    let serverTypes = mailAccounts["serverTypes"];
+    let excludedAccounts = mailAccounts["excludedAccounts"];
 
     this._unreadMsgCount = 0;   // reset
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
         if ( (serverTypes[accountServer.type].excluded)
-          || (firetray.Utils.getArrayPref('accounts_to_exclude').indexOf(accountServer.key) >= 0) )
+          || (excludedAccounts.indexOf(accountServer.key) >= 0) )
           continue;
 
         let rootFolder = accountServer.rootFolder; // nsIMsgFolder
@@ -152,7 +154,8 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
     accountServers[i] = accountServer;
   }
 
-  let serverTypes = firetray.Utils.getObjPref('server_types');
+  let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+  let serverTypes = mailAccounts["serverTypes"];
   if (this.sortByTypeAndName) {
     accountServers.sort(function(a,b) {
       if (serverTypes[a.type].order
@@ -176,7 +179,7 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
 };
 
 /**
- * return accounts grouped by server_types.
+ * return accounts grouped by mail_accounts.
  *
  * ex: { movemail: {"server1", "server2"}, imap: {"server3"} }
  */

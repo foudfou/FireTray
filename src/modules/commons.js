@@ -100,6 +100,18 @@ firetray.Utils = {
     let protocolHandler = Cc["@mozilla.org/network/protocol;1?name=file"]
       .createInstance(Ci.nsIFileProtocolHandler);
     return protocolHandler.getFileFromURLSpec(aPath).path;
+  },
+
+  dumpObj: function(obj) {
+    let str = "";
+    for(i in obj) {
+      try {
+        str += "obj["+i+"]: " + obj[i] + "\n";
+      } catch(e) {
+        str += "obj["+i+"]: Unavailable\n";
+      }
+    }
+    LOG(str);
   }
 
 };

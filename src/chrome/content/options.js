@@ -15,7 +15,6 @@ if ("undefined" == typeof(firetray)) {
 };
 
 firetray.UIOptions = {
-  accountBoxId: "ui_accounts_box",
 
   onLoad: function() {
     if(firetray.Handler.inMailApp) {
@@ -33,7 +32,7 @@ firetray.UIOptions = {
 
     // cleaning: removeEventListener on cells
     // NOTE: not sure this is necessary on window close
-    let items = document.getElementById("ui_server_types").childNodes;
+    let items = document.getElementById("ui_mail_accounts").childNodes;
     for (let i=0; i < items.length; i++) {
       let cells = items[i].getElementsByTagName("treecell");
       // col 2 and 3: server_type_excluded, server_type_order
@@ -49,47 +48,6 @@ firetray.UIOptions = {
   hideElement: function(parentId) {
     let targetNode = document.getElementById(parentId);
     targetNode.hidden = true;
-  },
-
-  insertMailAccountsExcluded: function(parentId) {
-    // the DOM parent where we do appendChild
-    let targetNode = document.getElementById(parentId);
-
-    let serverTypes = firetray.Utils.getObjPref('server_types');
-    let accounts = new firetray.Messaging.Accounts(true);
-    for (let accountServer in accounts) {
-      if (serverTypes[accountServer.type].excluded)
-        continue;
-
-      let nodeAccount = document.createElement("checkbox");
-      let accountServerKey = accountServer.key.toString();
-      nodeAccount.setAttribute('id', accountServerKey);
-      nodeAccount.setAttribute('label', accountServer.rootFolder.name);
-      nodeAccount.setAttribute('checked',
-        (firetray.Utils.getArrayPref('accounts_to_exclude').indexOf(accountServerKey) >= 0));
-      let that = this;
-      nodeAccount.addEventListener('command', function(e){
-        that.updateMailAccountsExcluded(that.accountBoxId);}, true);
-      targetNode.appendChild(nodeAccount);
-    }
-
-    // let disable_notify=prefManager.getIntPref("extensions.firetray.show_mail_notification")==0;
-    // this._disableGroup(targetNode,disable_notify);
-  },
-
-  updateMailAccountsExcluded: function(parentId) {
-    let targetNode = document.getElementById(parentId);
-
-    let prefValue = [];
-    for (let i=1; i < targetNode.childNodes.length; i++) {
-      if (targetNode.childNodes[i].checked)
-        prefValue.push(targetNode.childNodes[i].getAttribute('id'));
-    }
-
-    LOG("accounts_to_exclude:"+prefValue);
-    firetray.Utils.setArrayPref('accounts_to_exclude', prefValue);
-
-    firetray.Messaging.updateUnreadMsgCount();
   },
 
   _disableGroup: function(group, disableval) {
@@ -108,20 +66,26 @@ firetray.UIOptions = {
     if (event.attrName == "label") LOG("label changed!");
     if (event.attrName == "value") LOG("value changed!");
     document.getElementById("pane1")
-      .userChangedValue(document.getElementById("ui_tree_server_types"));
+      .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
   },
 
+  /**
+   * NOTE: account exceptions for unread messages count are *stored* in
+   * preferences as excluded, but *shown* as "not included"
+   */
   populateTreeServerTypes: function() {
     let that = this;
     let prefPane = document.getElementById("pane1");
 
-    let prefStr = firetray.Utils.prefService.getCharPref("server_types");
+    let prefStr = firetray.Utils.prefService.getCharPref("mail_accounts");
     LOG("PREF="+prefStr);
-    let serverTypes = JSON.parse(prefStr);
+    let mailAccounts = JSON.parse(prefStr);
+    let serverTypes = mailAccounts["serverTypes"];
+    let accountsExcluded = mailAccounts["excludedAccounts"];
     let accountsByServerType = firetray.Messaging.accountsByServerType();
     LOG(JSON.stringify(accountsByServerType));
 
-    let target = document.getElementById("ui_server_types");
+    let target = document.getElementById("ui_mail_accounts");
     for (let serverTypeName in serverTypes) {
       let name = serverTypes[serverTypeName];
 
@@ -140,9 +104,8 @@ firetray.UIOptions = {
 
       // server_type_excluded => checkbox
       cell = document.createElement('treecell');
-      cell.setAttribute('value',serverTypes[serverTypeName].excluded);
-      // CAUTION: removeEventListener in onQuit()
-      cell.addEventListener(
+      cell.setAttribute('value',!serverTypes[serverTypeName].excluded);
+      cell.addEventListener(    // CAUTION: removeEventListener in onQuit()
         'DOMAttrModified', function(e) {
           that._userChangeValueTreeServerTypes(e);
           firetray.Messaging.updateUnreadMsgCount();
@@ -152,7 +115,7 @@ firetray.UIOptions = {
       // server_type_order
       cell = document.createElement('treecell');
       cell.setAttribute('label',serverTypes[serverTypeName].order);
-      cell.addEventListener(
+      cell.addEventListener(    // CAUTION: removeEventListener in onQuit()
         'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
       row.appendChild(cell);
 
@@ -164,18 +127,26 @@ firetray.UIOptions = {
       LOG("type: "+serverTypeName+", Accounts: "+JSON.stringify(typeAccounts));
       if (typeof(typeAccounts) == "undefined")
         continue;
+
       for (let i=0; i<typeAccounts.length; i++) {
         let subItem = document.createElement('treeitem');
         let subRow = document.createElement('treerow');
 
         // server_type_name
         cell = document.createElement('treecell');
+        cell.setAttribute('id', typeAccounts[i].key);
         cell.setAttribute('label',typeAccounts[i].name);
         cell.setAttribute('editable',false);
         subRow.appendChild(cell);
 
         // server_type_excluded => checkbox
         let cell = document.createElement('treecell');
+        cell.setAttribute('value',(accountsExcluded.indexOf(typeAccounts[i].key) < 0));
+        cell.addEventListener(    // CAUTION: removeEventListener in onQuit()
+          'DOMAttrModified', function(e) {
+            that._userChangeValueTreeServerTypes(e);
+            firetray.Messaging.updateUnreadMsgCount();
+          }, true);
         subRow.appendChild(cell);
 
         // server_type_order - UNUSED (added for consistency)
@@ -190,34 +161,47 @@ firetray.UIOptions = {
 
     }
 
-    let tree = document.getElementById("ui_tree_server_types");
+    let tree = document.getElementById("ui_tree_mail_accounts");
     tree.addEventListener("keypress", that.onKeyPressTreeServerTypes, true);
   },
 
   /*
-   * Save the "server_types" preference. This is called by the pref's system
+   * Save the "mail_accounts" preference. This is called by the pref's system
    * when the GUI element is altered.
    */
   saveTreeServerTypes: function() {
-    let tree = document.getElementById("ui_tree_server_types");
+    let tree = document.getElementById("ui_tree_mail_accounts");
 
     LOG("VIEW="+ tree.view + ", rowCount="+tree.view.rowCount);
-    let prefObj = {};
+    let prefObj = {"serverTypes":{}, "excludedAccounts":[]};
     for (let i=0; i < tree.view.rowCount; i++) {
-      if (tree.view.getLevel(i)>0)
-        continue;
-
+      // TODO: rename server_type_* to account_or_server_type
+      let serverTypeName = tree.view.getCellText(
+        i, tree.columns.getNamedColumn("server_type_name"));
       let serverTypeExcluded = (
         tree.view.getCellValue(
           i, tree.columns.getNamedColumn("server_type_excluded"))
-          === 'true');
-      let serverTypeName = tree.view.getCellText(
-        i, tree.columns.getNamedColumn("server_type_name"));
+        !== 'true');
       let serverTypeOrder = parseInt(tree.view.getCellText(
                                        i, tree.columns.getNamedColumn("server_type_order")));
+
       LOG("SUPER: "+serverTypeName+", "+serverTypeExcluded);
-      prefObj[serverTypeName] =
-        { order: serverTypeOrder, excluded: serverTypeExcluded };
+
+      if (tree.view.getLevel(i) === 0) { // serverTypes
+        prefObj["serverTypes"][serverTypeName] =
+          { order: serverTypeOrder, excluded: serverTypeExcluded };
+
+      } else if (tree.view.getLevel(i) === 1) { // excludedAccounts
+        if (!serverTypeExcluded)
+          continue;
+        let rowNode = tree.view.getItemAtIndex(i).firstChild; // treerow
+        let rowCells = rowNode.getElementsByTagName('treecell');
+        let serverKey = rowCells[0].id;
+        prefObj["excludedAccounts"].push(serverKey);
+
+      } else
+        continue;
+
     }
 
     let prefStr = JSON.stringify(prefObj);
@@ -229,7 +213,7 @@ firetray.UIOptions = {
 
   onKeyPressTreeServerTypes: function(event) {
     LOG("TREE KEYPRESS: "+event.originalTarget);
-    let tree = document.getElementById("ui_tree_server_types");
+    let tree = document.getElementById("ui_tree_mail_accounts");
     let col = tree.editingColumn; // col.index
 
     // only int allowed
