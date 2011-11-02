@@ -11,9 +11,9 @@
 <!ENTITY unread_count_account_exceptions "Included accounts">
 <!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">
 
-<!ENTITY server_type_name "Account">
-<!ENTITY server_type_name.tooltip "FIXME">
-<!ENTITY server_type_excluded "Excluded">
-<!ENTITY server_type_excluded.tooltip "FIXME">
-<!ENTITY server_type_order "Order">
-<!ENTITY server_type_order.tooltip "FIXME">
+<!ENTITY account_or_server_type_name "Account">
+<!ENTITY account_or_server_type_name.tooltip "FIXME">
+<!ENTITY account_or_server_type_excluded "Excluded">
+<!ENTITY account_or_server_type_excluded.tooltip "FIXME">
+<!ENTITY account_or_server_type_order "Order">
+<!ENTITY account_or_server_type_order.tooltip "FIXME">

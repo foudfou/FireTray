@@ -49,20 +49,20 @@
                   seltype="single" editable="true"
                   preference-editable="true"
                   preference="pref_string_mail_accounts"
-                  onsynctopreference="return firetray.UIOptions.saveTreeServerTypes();">
+                  onsynctopreference="return firetray.UIOptions.saveTreeAccountsOrServerTypes();">
               <treecols>
-                <treecol id="server_type_name" editable="false" flex="2"
-                         persist="width" primary="true" label="&server_type_name;"
-                         tooltiptext="&server_type_name.tooltip;"/>
+                <treecol id="account_or_server_type_name" editable="false" flex="2"
+                         persist="width" primary="true" label="&account_or_server_type_name;"
+                         tooltiptext="&account_or_server_type_name.tooltip;"/>
                 <splitter class="tree-splitter" resizeafter="grow"/>
-                <treecol id="server_type_excluded" type="checkbox" editable="true"
-                         label="&server_type_excluded;" flex="1" persist="width"
-                         tooltiptext="&server_type_excluded.tooltip;"/>
+                <treecol id="account_or_server_type_excluded" type="checkbox" editable="true"
+                         label="&account_or_server_type_excluded;" flex="1" persist="width"
+                         tooltiptext="&account_or_server_type_excluded.tooltip;"/>
                 <splitter class="tree-splitter" resizeafter="grow"/>
-                <treecol id="server_type_order" editable="true"
+                <treecol id="account_or_server_type_order" editable="true"
                          persist="width"
-                         flex="1" hidden= "true" label="&server_type_order;"
-                         tooltiptext="&server_type_name.tooltip;"/>
+                         flex="1" hidden= "true" label="&account_or_server_type_order;"
+                         tooltiptext="&account_or_server_type_name.tooltip;"/>
               </treecols>
               <treechildren id="ui_mail_accounts" flex="1" />
             </tree>
