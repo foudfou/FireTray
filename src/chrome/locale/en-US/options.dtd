@@ -1,5 +1,19 @@
 <!ENTITY prefwindow.title "FireTray preferences">
 <!ENTITY pane1.title "FireTray preferences">
+
+<!ENTITY general_options "General">
+<!ENTITY input_options "Input">
+<!ENTITY mail_options "Mail">
+
 <!ENTITY bool_close_hides.label "Closing windows hides to tray">
 <!ENTITY bool_close_hides.accesskey "C">
-<!ENTITY mail_accounts_exclude "Mail accounts to exclude" >
+
+<!ENTITY unread_count_account_exceptions "Included accounts">
+<!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">
+
+<!ENTITY account_or_server_type_name "Account">
+<!ENTITY account_or_server_type_name.tooltip "Account name or type">
+<!ENTITY account_or_server_type_excluded "Included">
+<!ENTITY account_or_server_type_excluded.tooltip "Includes accounts or types into unread messages count">
+<!ENTITY account_or_server_type_order "Order">
+<!ENTITY account_or_server_type_order.tooltip "Order in which mail server types are displayed. Double-clic to edit.">

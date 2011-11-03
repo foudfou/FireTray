@@ -188,7 +188,7 @@ firetray.IconLinux = {
 
   setText: function(text, color) { // TODO: split into smaller functions;
     LOG("setText");
-    if (typeof(text) != "string" )
+    if (typeof(text) != "string")
       throw new TypeError();
 
     try {

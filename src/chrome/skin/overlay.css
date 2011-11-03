@@ -1,22 +1,25 @@
-/* This is just an example.  You shouldn't do this. */
-#firetray-hello
-{
-  color: red ! important;
+treechildren::-moz-tree-checkbox {
+  list-style-image: none;
+  -moz-box-align: center;
 }
-#firetray-toolbar-button
-{
-  list-style-image: url("chrome://firetray/skin/toolbar-button.png");
-  -moz-image-region: rect(0px 24px 24px 0px);
+
+treechildren::-moz-tree-checkbox(checked) {
+  /* css for checked cells */
+  list-style-image: url("chrome://firetray/skin/cbox-check.gif");
 }
-#firetray-toolbar-button:hover
-{
-  -moz-image-region: rect(24px 24px 48px  0px);
+
+treechildren::-moz-tree-checkbox(checked, disabled) {
+  /* css for disabled checkboxes */
+  list-style-image: url("chrome://firetray/skin/cbox-disabled.gif");
 }
-[iconsize="small"] #firetray-toolbar-button
-{
-  -moz-image-region: rect( 0px 40px 16px 24px);
+
+/* properties="disabled" */
+treechildren::-moz-tree-cell-text(disabled) {
+        color: GrayText;
 }
-[iconsize="small"] #firetray-toolbar-button:hover
-{
-  -moz-image-region: rect(24px 40px 40px 24px);
+
+/*
+treechildren::-moz-tree-cell(disabled) {
+    background-color: #eeeeee;
 }
+*/

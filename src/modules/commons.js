@@ -2,7 +2,8 @@
 
 var EXPORTED_SYMBOLS =
   [ "firetray", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR",
-    "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID" ];
+    "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID",
+    "XPath", "isArray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -38,16 +39,32 @@ firetray.Utils = {
   prefService: Services.prefs.getBranch("extensions.firetray."),
   strings: Services.strings.createBundle("chrome://firetray/locale/overlay.properties"),
 
-  dumpObj: function(obj) {
-    let str = "";
-    for(i in obj) {
-      try {
-        str += "obj["+i+"]: " + obj[i] + "\n";
-      } catch(e) {
-        str += "obj["+i+"]: Unavailable\n";
-      }
+  getObjPref: function(prefStr) {
+    try {
+      var objPref = JSON.parse(
+        firetray.Utils.prefService.getCharPref(prefStr));
+    } catch (x) {
+      ERROR(x);
     }
-    LOG(str);
+    return objPref;
+  },
+  setObjPref: function(prefStr, obj) {
+    LOG(obj);
+    try {
+      firetray.Utils.prefService.setCharPref(prefStr, JSON.stringify(obj));
+    } catch (x) {
+      ERROR(x);
+    }
+  },
+
+  getArrayPref: function(prefStr) {
+    let arrayPref = this.getObjPref(prefStr);
+    if (!isArray(arrayPref)) throw new TypeError();
+    return arrayPref;
+  },
+  setArrayPref: function(prefStr, aArray) {
+    if (!isArray(aArray)) throw new TypeError();
+    this.setObjPref(prefStr, aArray);
   },
 
   QueryInterfaces: function(obj) {
@@ -84,6 +101,85 @@ firetray.Utils = {
     let protocolHandler = Cc["@mozilla.org/network/protocol;1?name=file"]
       .createInstance(Ci.nsIFileProtocolHandler);
     return protocolHandler.getFileFromURLSpec(aPath).path;
+  },
+
+  dumpObj: function(obj) {
+    let str = "";
+    for(i in obj) {
+      try {
+        str += "obj["+i+"]: " + obj[i] + "\n";
+      } catch(e) {
+        str += "obj["+i+"]: Unavailable\n";
+      }
+    }
+    LOG(str);
+  },
+
+  _nsResolver: function(prefix) {
+    var ns = {
+      xul: "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    };
+    return ns[prefix] || null;
+  },
+
+  // adapted from http://code.google.com/p/jslibs/wiki/InternalTipsAndTricks
+  XPath: function(ref, xpath) {
+    var doc = ref.ownerDocument || ref;
+
+    const XPathResult = Ci.nsIDOMXPathResult;
+    try {
+      let that = this;
+      var result = doc.evaluate(xpath, ref, that._nsResolver,
+                                XPathResult.ANY_TYPE, null);
+    } catch (x) {
+      ERROR(x);
+    }
+    LOG("XPathResult="+result.resultType);
+
+    switch (result.resultType) {
+    case XPathResult.NUMBER_TYPE:
+      return result.numberValue;
+    case XPathResult.BOOLEAN_TYPE:
+      return result.booleanValue;
+    case XPathResult.STRING_TYPE:
+      return result.stringValue;
+    } // else XPathResult.UNORDERED_NODE_ITERATOR_TYPE
+
+    var list = [];
+    try {
+      for (let node = result.iterateNext(); node; node = result.iterateNext()) {
+        LOG("node="+node.nodeName);
+        switch (node.nodeType) {
+        case node.ATTRIBUTE_NODE:
+          list.push(node.value);
+          break;
+        case node.TEXT_NODE:
+          list.push(node.data);
+          break;
+        default:
+          list.push(node);
+        }
+      }
+    } catch (x) {
+      ERROR(x);
+    }
+
+    return list;
   }
 
+};
+
+// http://stackoverflow.com/questions/767486/how-do-you-check-if-a-variable-is-an-array-in-javascript
+function isArray(o) {
+  return Object.prototype.toString.call(o) === '[object Array]';
+}
+
+// http://stackoverflow.com/questions/18912/how-to-find-keys-of-a-hash
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
+if(!Object.keys) Object.keys = function(o){
+  if (o !== Object(o))
+    throw new TypeError('Object.keys called on non-object');
+  var ret=[],p;
+  for(p in o) if(Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
+  return ret;
 };

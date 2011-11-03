@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://firetray/skin/overlay.css" type="text/css"?>
 <!DOCTYPE prefwindow SYSTEM "chrome://firetray/locale/options.dtd">
 <prefwindow id="firetray-preferences"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-            title="&prefwindow.title;"
-            onload="firetray.UIOptions.onLoad()">
+            title="&prefwindow.title;" minwidth="360px">
 
   <script type="application/x-javascript" src="options.js" />
 
@@ -13,18 +13,66 @@
     <preferences>
       <preference id="pref_bool_close_hides"
                   name="extensions.firetray.close_hides" type="bool"/>
+      <preference id="pref_string_mail_accounts"
+                  name="extensions.firetray.mail_accounts" type="string"/>
     </preferences>
 
-    <groupbox>
-      <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
-                label="&bool_close_hides.label;"
-                accesskey="&bool_close_hides.accesskey;"/>
-    </groupbox>
 
-    <groupbox id="accounts_box"> <!-- firetray.UIOptions.accountBoxId -->
-      <caption label="&mail_accounts_exclude;"/>
-      <!-- accounts are dynamically added here with insert_accounts_name() functions, called at the bottom of this file -->
-    </groupbox>
+    <tabbox>
+      <tabs>
+        <tab label="&general_options;"/>
+        <tab label="&input_options;"/>
+        <tab label="&mail_options;" id="mail_tab" />
+      </tabs>
+      <tabpanels>
+
+        <tabpanel id="general_tabpanel">
+
+          <groupbox>
+            <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
+                      label="&bool_close_hides.label;"
+                      accesskey="&bool_close_hides.accesskey;"/>
+          </groupbox>
+
+        </tabpanel>
+
+        <tabpanel id="input_tabpanel">
+        </tabpanel>
+
+        <tabpanel id="mail_tabpanel">
+
+          <groupbox flex="1">
+            <caption label="&unread_count_account_exceptions;"
+                     tooltiptext="&unread_count_account_exceptions.tooltip;" />
+
+            <tree id="ui_tree_mail_accounts" flex="1" rows="10"
+                  seltype="single" editable="true"
+                  preference-editable="true"
+                  preference="pref_string_mail_accounts"
+                  onsynctopreference="return firetray.UIOptions.saveTreeAccountsOrServerTypes();">
+              <treecols>
+                <treecol id="account_or_server_type_name" editable="false" flex="2"
+                         persist="width" primary="true" label="&account_or_server_type_name;"
+                         tooltiptext="&account_or_server_type_name.tooltip;"/>
+                <splitter class="tree-splitter" resizeafter="grow"/>
+                <treecol id="account_or_server_type_excluded" type="checkbox" editable="true"
+                         label="&account_or_server_type_excluded;" flex="1" persist="width"
+                         tooltiptext="&account_or_server_type_excluded.tooltip;"/>
+                <splitter class="tree-splitter" resizeafter="grow"/>
+                <treecol id="account_or_server_type_order" editable="true"
+                         persist="width"
+                         flex="1" hidden= "true" label="&account_or_server_type_order;"
+                         tooltiptext="&account_or_server_type_order.tooltip;"/>
+              </treecols>
+              <treechildren id="ui_mail_accounts" flex="1" />
+            </tree>
+
+          </groupbox>
+
+        </tabpanel>
+        
+      </tabpanels>
+    </tabbox>
 
   </prefpane>
 

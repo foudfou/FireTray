@@ -30,19 +30,6 @@ if ("undefined" == typeof(firetray)) {
 
 
 firetray.Messaging = {
-  // TODO: turn into pref.
-  /* NOTE: definition checks not implemented on purpose (performance mainly)
-   should be well defined in default prefs, and new types are unlikely to
-   appear soon. */
-  SERVER_TYPES: {
-    "pop3": { order: 1, excluded: false },
-    "imap": { order: 1, excluded: false },
-    "movemail": { order: 2, excluded: true },
-    "none": { order: 3, excluded: false },
-    "rss": { order: 4, excluded: true },
-    "nntp": { order: 5, excluded: true }
-  },
-
   _unreadMsgCount: 0,
 
   enable: function() {
@@ -86,26 +73,21 @@ firetray.Messaging = {
   },
 
   /**
-   * gets the accounts_to_exclude preference which is a stringified Array
-   * containing the keys of the accounts to exclude
-   */
-  getPrefAccountsExcluded: function() {
-    return firetray.Utils.prefService.getCharPref('accounts_to_exclude').split(',') || [];
-  },
-
-  /**
    * computes total unread message count
    * TODO: check news accounts shouldn't be considered
    */
   updateUnreadMsgCount: function() {
     LOG("unreadMsgCount");
+    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+    let serverTypes = mailAccounts["serverTypes"];
+    let excludedAccounts = mailAccounts["excludedAccounts"];
 
     this._unreadMsgCount = 0;   // reset
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
-        if ( (this.SERVER_TYPES[accountServer.type].excluded)
-          || (this.getPrefAccountsExcluded().indexOf(accountServer.key) >= 0) )
+        if ( (serverTypes[accountServer.type].excluded)
+          || (excludedAccounts.indexOf(accountServer.key) >= 0) )
           continue;
 
         let rootFolder = accountServer.rootFolder; // nsIMsgFolder
@@ -172,13 +154,15 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
     accountServers[i] = accountServer;
   }
 
+  let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+  let serverTypes = mailAccounts["serverTypes"];
   if (this.sortByTypeAndName) {
     accountServers.sort(function(a,b) {
-      if (firetray.Messaging.SERVER_TYPES[a.type].order
-          < firetray.Messaging.SERVER_TYPES[b.type].order)
+      if (serverTypes[a.type].order
+          < serverTypes[b.type].order)
         return -1;
-      if (firetray.Messaging.SERVER_TYPES[a.type].order
-          > firetray.Messaging.SERVER_TYPES[b.type].order)
+      if (serverTypes[a.type].order
+          > serverTypes[b.type].order)
         return 1;
       if (a.prettyName < b.prettyName)
         return -1;
@@ -192,4 +176,24 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
     LOG("ACCOUNT: "+accountServers[i].prettyName+" type: "+accountServers[i].type);
     yield accountServers[i];
   }
+};
+
+/**
+ * return accounts grouped by mail_accounts.
+ *
+ * ex: { movemail: {"server1", "server2"}, imap: {"server3"} }
+ */
+firetray.Messaging.accountsByServerType = function() {
+  let accountsByServerType = {};
+  let accounts = new firetray.Messaging.Accounts(false);
+  for (let accountServer in accounts) {
+    let accountServerKey = accountServer.key.toString();
+    let accountServerName = accountServer.prettyName;
+    let accountServerType = accountServer.type;
+    if (typeof(accountsByServerType[accountServerType]) == "undefined")
+      accountsByServerType[accountServerType] = [];
+    accountsByServerType[accountServerType].push(
+      { key: accountServerKey, name: accountServerName });
+  }
+  return accountsByServerType;
 };
