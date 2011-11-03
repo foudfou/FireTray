@@ -27,22 +27,22 @@ firetray.UIOptions = {
   },
 
   onQuit: function() {
-    let that = this;
-
     // cleaning: removeEventListener on cells
     // NOTE: not sure this is necessary on window close
-    let items = document.getElementById("ui_mail_accounts").childNodes;
-    for (let i=0; i < items.length; i++) {
-      let cells = items[i].getElementsByTagName("treecell");
-      // col 2 and 3: account_or_server_type_excluded, account_or_server_type_order
-      [cells[1], cells[2]].map(
-        function(c) {
-          LOG("i: "+i+", cell:"+c);
-          c.removeEventListener(
-            'DOMAttrModified', that._userChangeValueTreeServerTypes, true); // FIXME
-          c.removeEventListener(
-            'DOMAttrModified', that._userChangeValueTreeAccounts, true); // FIXME
-        });
+    let tree = document.getElementById("ui_mail_accounts");
+    for (let i=0; i < tree.view.rowCount; i++) {
+      let cells = tree.view.getItemAtIndex(i).getElementsByTagName("treecell");
+      if (tree.view.getLevel(i) === 0) { // serverTypes
+        // account_or_server_type_excluded, account_or_server_type_order
+        [cells[1], cells[2]].map(
+          function(c) {
+            c.removeEventListener(
+              'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+          });
+      } else if (tree.view.getLevel(i) === 1) { // excludedAccounts
+        cells[1].removeEventListener(
+          'DOMAttrModified', that._userChangeValueTreeAccounts, true);
+      }
     }
   },
 

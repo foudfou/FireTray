@@ -13,7 +13,7 @@
 
 <!ENTITY account_or_server_type_name "Account">
 <!ENTITY account_or_server_type_name.tooltip "Account name or type">
-<!ENTITY account_or_server_type_excluded "Excluded">
+<!ENTITY account_or_server_type_excluded "Included">
 <!ENTITY account_or_server_type_excluded.tooltip "Includes accounts or types into unread messages count">
 <!ENTITY account_or_server_type_order "Order">
 <!ENTITY account_or_server_type_order.tooltip "Order in which mail server types are displayed. Double-clic to edit.">
