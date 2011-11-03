@@ -2,7 +2,8 @@
 
 var EXPORTED_SYMBOLS =
   [ "firetray", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR",
-    "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID", "isArray" ];
+    "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID",
+    "isArray", "XPath" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -112,6 +113,58 @@ firetray.Utils = {
       }
     }
     LOG(str);
+  },
+
+  _nsResolver: function(prefix) {
+    var ns = {
+      xul: "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    };
+    return ns[prefix] || null;
+  },
+
+  // adapted from http://code.google.com/p/jslibs/wiki/InternalTipsAndTricks
+  XPath: function(ref, xpath) {
+    var doc = ref.ownerDocument || ref;
+
+    const XPathResult = Ci.nsIDOMXPathResult;
+    try {
+      let that = this;
+      var result = doc.evaluate(xpath, ref, that._nsResolver,
+                                XPathResult.ANY_TYPE, null);
+    } catch (x) {
+      ERROR(x);
+    }
+    LOG("XPathResult="+result.resultType);
+
+    switch (result.resultType) {
+    case XPathResult.NUMBER_TYPE:
+      return result.numberValue;
+    case XPathResult.BOOLEAN_TYPE:
+      return result.booleanValue;
+    case XPathResult.STRING_TYPE:
+      return result.stringValue;
+    } // else XPathResult.UNORDERED_NODE_ITERATOR_TYPE
+
+    var list = [];
+    try {
+      for (let node = result.iterateNext(); node; node = result.iterateNext()) {
+        LOG("node="+node.nodeName);
+        switch (node.nodeType) {
+        case node.ATTRIBUTE_NODE:
+          list.push(node.value);
+          break;
+        case node.TEXT_NODE:
+          list.push(node.data);
+          break;
+        default:
+          list.push(node);
+        }
+      }
+    } catch (x) {
+      ERROR(x);
+    }
+
+    return list;
   }
 
 };

@@ -39,7 +39,9 @@ firetray.UIOptions = {
         function(c) {
           LOG("i: "+i+", cell:"+c);
           c.removeEventListener(
-            'DOMAttrModified', that._userChangeValueTreeAccountsOrServerTypes, true);
+            'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+          c.removeEventListener(
+            'DOMAttrModified', that._userChangeValueTreeAccounts, true);
         });
     }
   },
@@ -49,20 +51,16 @@ firetray.UIOptions = {
     targetNode.hidden = true;
   },
 
-  _disableGroup: function(group, disableval) {
+  _disableTreeRow: function(row, disable) {
     try {
-      for (let i=0; i< group.childNodes.length; i++)
-        group.childNodes[i].disabled = disableval;
-    } catch(e) {
-      ERROR(e);
-    }
-  },
-
-  _disableRow: function(row) {
-    try {
-      let cells = row.childNodes; //.getElementsByTagName('treecell');
-      for (let i=0; i< cells.length; i++)
-        cells[i].setAttribute('properties', "disabled");
+      let cells = row.childNodes; // .getElementsByTagName('treecell');
+      LOG("CELLS: "+cells);
+      for (let i=0; i< cells.length; i++) {
+        if (disable === true)
+          cells[i].setAttribute('properties', "disabled");
+        else
+          cells[i].removeAttribute('properties');
+      }
     } catch(e) {
       ERROR(e);
     }
@@ -71,11 +69,26 @@ firetray.UIOptions = {
   /**
    * needed for triggering actual preference change and saving
    */
-  _userChangeValueTreeAccountsOrServerTypes: function(event) {
+  _userChangeValueTreeAccounts: function(event) {
     if (event.attrName == "label") LOG("label changed!");
     if (event.attrName == "value") LOG("value changed!");
     document.getElementById("pane1")
       .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
+  },
+
+  _userChangeValueTreeServerTypes: function(event) {
+    let checkboxCell = event.originalTarget;
+    let tree = document.getElementById("ui_tree_mail_accounts");
+
+    let rows = firetray.Utils.XPath(
+      checkboxCell,
+      'ancestor::xul:treeitem[1]/descendant::xul:treechildren//xul:treerow');
+    LOG("rows="+rows);
+    for (let i=0; i<rows.length; i++)
+      this._disableTreeRow(rows[i],
+                       (checkboxCell.getAttribute("value") === "false"));
+
+    this._userChangeValueTreeAccounts(event);
   },
 
   /**
@@ -106,27 +119,27 @@ firetray.UIOptions = {
       item.appendChild(row);
 
       // account_or_server_type_name
-      let cell = document.createElement('treecell');
-      cell.setAttribute('label',serverTypeName);
-      cell.setAttribute('editable',false);
-      row.appendChild(cell);
+      let cellName = document.createElement('treecell');
+      cellName.setAttribute('label',serverTypeName);
+      cellName.setAttribute('editable',false);
+      row.appendChild(cellName);
 
       // account_or_server_type_excluded => checkbox
-      cell = document.createElement('treecell');
-      cell.setAttribute('value',!serverTypes[serverTypeName].excluded);
-      cell.addEventListener(    // CAUTION: removeEventListener in onQuit()
+      let cellExcluded = document.createElement('treecell');
+      cellExcluded.setAttribute('value',!serverTypes[serverTypeName].excluded);
+      cellExcluded.addEventListener( // CAUTION: removeEventListener in onQuit()
         'DOMAttrModified', function(e) {
-          that._userChangeValueTreeAccountsOrServerTypes(e);
+          that._userChangeValueTreeServerTypes(e);
           firetray.Messaging.updateUnreadMsgCount();
         }, true);
-      row.appendChild(cell);
+      row.appendChild(cellExcluded);
 
       // account_or_server_type_order
-      cell = document.createElement('treecell');
-      cell.setAttribute('label',serverTypes[serverTypeName].order);
-      cell.addEventListener(    // CAUTION: removeEventListener in onQuit()
-        'DOMAttrModified', that._userChangeValueTreeAccountsOrServerTypes, true);
-      row.appendChild(cell);
+      let cellOrder = document.createElement('treecell');
+      cellOrder.setAttribute('label',serverTypes[serverTypeName].order);
+      cellOrder.addEventListener( // CAUTION: removeEventListener in onQuit()
+        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+      row.appendChild(cellOrder);
 
       target.appendChild(item);
 
@@ -153,7 +166,7 @@ firetray.UIOptions = {
         cell.setAttribute('value',(accountsExcluded.indexOf(typeAccounts[i].key) < 0));
         cell.addEventListener(    // CAUTION: removeEventListener in onQuit()
           'DOMAttrModified', function(e) {
-            that._userChangeValueTreeAccountsOrServerTypes(e);
+            that._userChangeValueTreeAccounts(e);
             firetray.Messaging.updateUnreadMsgCount();
           }, true);
         subRow.appendChild(cell);
@@ -163,7 +176,8 @@ firetray.UIOptions = {
         cell.setAttribute('editable',false);
         subRow.appendChild(cell);
 
-        // this._disableRow(subRow);
+        this._disableTreeRow(subRow,
+                         (cellExcluded.getAttribute("value") === "false"));
         subItem.appendChild(subRow);
         subChildren.appendChild(subItem);
       }

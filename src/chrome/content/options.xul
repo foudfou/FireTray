@@ -20,24 +20,24 @@
 
     <tabbox>
       <tabs>
-        <!-- <tab label="&general_options;"/> -->
-        <!-- <tab label="&input_options;"/> -->
+        <tab label="&general_options;"/>
+        <tab label="&input_options;"/>
         <tab label="&mail_options;" id="mail_tab" />
       </tabs>
       <tabpanels>
 
-        <!-- <tabpanel id="general_tabpanel">           -->
+        <tabpanel id="general_tabpanel">
 
-        <!--   <groupbox> -->
-        <!--     <checkbox id="ui_close_hides" preference="pref_bool_close_hides" -->
-        <!--               label="&bool_close_hides.label;" -->
-        <!--               accesskey="&bool_close_hides.accesskey;"/> -->
-        <!--   </groupbox> -->
+          <groupbox>
+            <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
+                      label="&bool_close_hides.label;"
+                      accesskey="&bool_close_hides.accesskey;"/>
+          </groupbox>
 
-        <!-- </tabpanel> -->
+        </tabpanel>
 
-        <!-- <tabpanel id="input_tabpanel"> -->
-        <!-- </tabpanel> -->
+        <tabpanel id="input_tabpanel">
+        </tabpanel>
 
         <tabpanel id="mail_tabpanel">
 
