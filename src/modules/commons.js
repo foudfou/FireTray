@@ -3,7 +3,7 @@
 var EXPORTED_SYMBOLS =
   [ "firetray", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR",
     "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID",
-    "isArray", "XPath" ];
+    "XPath", "isArray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -173,3 +173,13 @@ firetray.Utils = {
 function isArray(o) {
   return Object.prototype.toString.call(o) === '[object Array]';
 }
+
+// http://stackoverflow.com/questions/18912/how-to-find-keys-of-a-hash
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
+if(!Object.keys) Object.keys = function(o){
+  if (o !== Object(o))
+    throw new TypeError('Object.keys called on non-object');
+  var ret=[],p;
+  for(p in o) if(Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
+  return ret;
+};

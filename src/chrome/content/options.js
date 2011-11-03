@@ -39,9 +39,9 @@ firetray.UIOptions = {
         function(c) {
           LOG("i: "+i+", cell:"+c);
           c.removeEventListener(
-            'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+            'DOMAttrModified', that._userChangeValueTreeServerTypes, true); // FIXME
           c.removeEventListener(
-            'DOMAttrModified', that._userChangeValueTreeAccounts, true);
+            'DOMAttrModified', that._userChangeValueTreeAccounts, true); // FIXME
         });
     }
   },
@@ -77,16 +77,22 @@ firetray.UIOptions = {
   },
 
   _userChangeValueTreeServerTypes: function(event) {
-    let checkboxCell = event.originalTarget;
-    let tree = document.getElementById("ui_tree_mail_accounts");
+    if (event.attrName === "value") { // checkbox
+      let checkboxCell = event.originalTarget;
+      let tree = document.getElementById("ui_tree_mail_accounts");
 
-    let rows = firetray.Utils.XPath(
-      checkboxCell,
-      'ancestor::xul:treeitem[1]/descendant::xul:treechildren//xul:treerow');
-    LOG("rows="+rows);
-    for (let i=0; i<rows.length; i++)
-      this._disableTreeRow(rows[i],
-                       (checkboxCell.getAttribute("value") === "false"));
+      let rows = firetray.Utils.XPath(
+        checkboxCell,
+        'ancestor::xul:treeitem[1]/descendant::xul:treechildren//xul:treerow');
+      LOG("rows="+rows);
+      for (let i=0; i<rows.length; i++)
+        this._disableTreeRow(rows[i],
+                             (checkboxCell.getAttribute("value") === "false"));
+
+    } else if (event.attrName == "label") { // text
+      // TODO: move row to new rank
+    }
+
 
     this._userChangeValueTreeAccounts(event);
   },
@@ -107,9 +113,22 @@ firetray.UIOptions = {
     let accountsByServerType = firetray.Messaging.accountsByServerType();
     LOG(JSON.stringify(accountsByServerType));
 
+    // sort serverTypes according to order
+    let serverTypesSorted = Object.keys(serverTypes);
+    serverTypesSorted.sort(function(a,b) {
+      if (serverTypes[a].order
+          < serverTypes[b].order)
+        return -1;
+      if (serverTypes[a].order
+          > serverTypes[b].order)
+        return 1;
+      return 0; // no sorting
+    });
+    LOG("serverTypesSorted: "+serverTypesSorted);
+
     let target = document.getElementById("ui_mail_accounts");
-    for (let serverTypeName in serverTypes) {
-      let name = serverTypes[serverTypeName];
+    for (let i=0; i<serverTypesSorted.length; i++) {
+      let serverTypeName = serverTypesSorted[i];
 
       let item = document.createElement('treeitem');
       item.setAttribute("container",true);
@@ -138,7 +157,9 @@ firetray.UIOptions = {
       let cellOrder = document.createElement('treecell');
       cellOrder.setAttribute('label',serverTypes[serverTypeName].order);
       cellOrder.addEventListener( // CAUTION: removeEventListener in onQuit()
-        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+        'DOMAttrModified', function(e) {
+          that._userChangeValueTreeServerTypes(e);
+        }, true);
       row.appendChild(cellOrder);
 
       target.appendChild(item);
@@ -209,7 +230,7 @@ firetray.UIOptions = {
         tree.view.getCellText(
           i, tree.columns.getNamedColumn("account_or_server_type_order")));
 
-      LOG("SUPER: "+accountOrServerTypeName+", "+accountOrServerTypeExcluded);
+      LOG("account: "+accountOrServerTypeName+", "+accountOrServerTypeExcluded);
 
       if (tree.view.getLevel(i) === 0) { // serverTypes
         prefObj["serverTypes"][accountOrServerTypeName] =
