@@ -83,6 +83,8 @@ firetray.UIOptions = {
     if (event.attrName == "value") LOG("value changed!");
     document.getElementById("pane1")
       .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
+
+    firetray.Messaging.updateUnreadMsgCount();
   },
 
   _userChangeValueTreeServerTypes: function(event) {
@@ -98,8 +100,6 @@ firetray.UIOptions = {
         firetray.UIOptions._disableTreeRow(
           subRows[i], (checkboxCell.getAttribute("value") === "false"));
       }
-
-      firetray.Messaging.updateUnreadMsgCount();
 
     } else if (event.attrName == "label") { // text
       // TODO: move row to new rank
