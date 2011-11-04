@@ -1,12 +1,19 @@
 <!ENTITY prefwindow.title "FireTray preferences">
 <!ENTITY pane1.title "FireTray preferences">
 
+<!ENTITY NOT_IMPLEMENTED_YET "NOT IMPLEMENTED YET">
+
 <!ENTITY general_options "General">
 <!ENTITY input_options "Input">
 <!ENTITY mail_options "Mail">
 
-<!ENTITY bool_close_hides.label "Closing windows hides to tray">
-<!ENTITY bool_close_hides.accesskey "C">
+<!ENTITY windows_behaviour "Windows behaviour">
+<!ENTITY windows_behaviour.tooltip "">
+
+<!ENTITY bool_hides_on_close.label "Closing window hides to tray">
+<!ENTITY bool_hides_on_close.accesskey "C">
+<!ENTITY bool_hides_on_minimize.label "Minimize window hides to tray">
+<!ENTITY bool_hides_on_minimize.accesskey "M">
 
 <!ENTITY unread_count_account_exceptions "Included accounts">
 <!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">

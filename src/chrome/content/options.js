@@ -14,6 +14,12 @@ if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
 
+const TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
+const TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED = 1;
+const TREEROW_ACCOUNT_OR_SERVER_TYPE_ORDER    = 2;
+const TREELEVEL_SERVER_TYPES      = 0;
+const TREELEVEL_EXCLUDED_ACCOUNTS = 1;
+
 firetray.UIOptions = {
 
   onLoad: function() {
@@ -29,19 +35,20 @@ firetray.UIOptions = {
   onQuit: function() {
     // cleaning: removeEventListener on cells
     // NOTE: not sure this is necessary on window close
-    let tree = document.getElementById("ui_mail_accounts");
+    let tree = document.getElementById("ui_tree_mail_accounts");
+    let that = this;
     for (let i=0; i < tree.view.rowCount; i++) {
       let cells = tree.view.getItemAtIndex(i).getElementsByTagName("treecell");
-      if (tree.view.getLevel(i) === 0) { // serverTypes
+      if (tree.view.getLevel(i) === TREELEVEL_SERVER_TYPES) {
         // account_or_server_type_excluded, account_or_server_type_order
         [cells[1], cells[2]].map(
           function(c) {
             c.removeEventListener(
               'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
           });
-      } else if (tree.view.getLevel(i) === 1) { // excludedAccounts
+      } else if (tree.view.getLevel(i) === TREELEVEL_EXCLUDED_ACCOUNTS) {
         cells[1].removeEventListener(
-          'DOMAttrModified', that._userChangeValueTreeAccounts, true);
+          'DOMAttrModified', that._userChangeValueTree, true);
       }
     }
   },
@@ -51,6 +58,9 @@ firetray.UIOptions = {
     targetNode.hidden = true;
   },
 
+  /**
+   * should be called only for excludedAccounts
+   */
   _disableTreeRow: function(row, disable) {
     let that = this;
     try {
@@ -60,14 +70,18 @@ firetray.UIOptions = {
         LOG("i: "+i+", cell:"+cells[i]);
         if (disable === true) {
           cells[i].setAttribute('properties', "disabled");
-          cells[i].removeEventListener(
-            'DOMAttrModified', that._userChangeValueTreeAccounts, true);
-          cells[i].setAttribute('editable', "false");
+          if (i === TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED) {
+            cells[i].removeEventListener(
+              'DOMAttrModified', that._userChangeValueTree, true);
+            cells[i].setAttribute('editable', "false");
+          }
         } else {
           cells[i].removeAttribute('properties');
-          cells[i].addEventListener(
-            'DOMAttrModified', that._userChangeValueTreeAccounts, true);
-          cells[i].setAttribute('editable', "true");
+          if (i === TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED) {
+            cells[i].addEventListener(
+              'DOMAttrModified', that._userChangeValueTree, true);
+            cells[i].setAttribute('editable', "true");
+          }
         }
       }
     } catch(e) {
@@ -78,7 +92,7 @@ firetray.UIOptions = {
   /**
    * needed for triggering actual preference change and saving
    */
-  _userChangeValueTreeAccounts: function(event) {
+  _userChangeValueTree: function(event) {
     if (event.attrName == "label") LOG("label changed!");
     if (event.attrName == "value") LOG("value changed!");
     document.getElementById("pane1")
@@ -105,8 +119,7 @@ firetray.UIOptions = {
       // TODO: move row to new rank
     }
 
-
-    this._userChangeValueTreeAccounts(event);
+    this._userChangeValueTree(event);
   },
 
   /**
@@ -178,6 +191,7 @@ firetray.UIOptions = {
       if (typeof(typeAccounts) == "undefined")
         continue;
 
+      let rowDisabled = (cellExcluded.getAttribute("value") === "false");
       for (let i=0; i<typeAccounts.length; i++) {
         let subItem = document.createElement('treeitem');
         let subRow = document.createElement('treerow');
@@ -187,22 +201,33 @@ firetray.UIOptions = {
         cell.setAttribute('id', typeAccounts[i].key);
         cell.setAttribute('label',typeAccounts[i].name);
         cell.setAttribute('editable',false);
+        if (rowDisabled === true)
+          cell.setAttribute('properties', "disabled");
         subRow.appendChild(cell);
 
         // account_or_server_type_excluded => checkbox
         let cell = document.createElement('treecell');
         cell.setAttribute('value',(accountsExcluded.indexOf(typeAccounts[i].key) < 0));
-        cell.addEventListener(  // CAUTION: removeEventListener in onQuit()
-          'DOMAttrModified', that._userChangeValueTreeAccounts, true);
+        if (rowDisabled === true) {
+          cell.setAttribute('properties', "disabled");
+          cell.setAttribute('editable', "false");
+        } else {
+          cell.addEventListener(  // CAUTION: removeEventListener in onQuit()
+            'DOMAttrModified', that._userChangeValueTree, true);
+        }
         subRow.appendChild(cell);
 
         // account_or_server_type_order - UNUSED (added for consistency)
         cell = document.createElement('treecell');
         cell.setAttribute('editable',false);
+        if (rowDisabled === true)
+          cell.setAttribute('properties', "disabled");
         subRow.appendChild(cell);
 
-        this._disableTreeRow(
-          subRow, (cellExcluded.getAttribute("value") === "false"));
+        // we must initialize sub-cells correctly to prevent prefsync at a
+        // stage where the pref will be incomplete
+        /* this._disableTreeRow(
+           subRow, (cellExcluded.getAttribute("value") === "false")); */
         subItem.appendChild(subRow);
         subChildren.appendChild(subItem);
       }
@@ -236,11 +261,11 @@ firetray.UIOptions = {
 
       LOG("account: "+accountOrServerTypeName+", "+accountOrServerTypeExcluded);
 
-      if (tree.view.getLevel(i) === 0) { // serverTypes
+      if (tree.view.getLevel(i) === TREELEVEL_SERVER_TYPES) {
         prefObj["serverTypes"][accountOrServerTypeName] =
           { order: accountOrServerTypeOrder, excluded: accountOrServerTypeExcluded };
 
-      } else if (tree.view.getLevel(i) === 1) { // excludedAccounts
+      } else if (tree.view.getLevel(i) === TREELEVEL_EXCLUDED_ACCOUNTS) {
         if (!accountOrServerTypeExcluded)
           continue;
         let rowNode = tree.view.getItemAtIndex(i).firstChild; // treerow

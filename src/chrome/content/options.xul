@@ -11,8 +11,10 @@
   <prefpane id="pane1" label="&pane1.title;">
 
     <preferences>
-      <preference id="pref_bool_close_hides"
-                  name="extensions.firetray.close_hides" type="bool"/>
+      <preference id="pref_bool_hides_on_close"
+                  name="extensions.firetray.hides_on_close" type="bool"/>
+      <preference id="pref_bool_hides_on_minimize"
+                  name="extensions.firetray.hides_on_minimize" type="bool"/>
       <preference id="pref_string_mail_accounts"
                   name="extensions.firetray.mail_accounts" type="string"/>
     </preferences>
@@ -21,23 +23,29 @@
     <tabbox>
       <tabs>
         <tab label="&general_options;"/>
-        <tab label="&input_options;"/>
+        <tab label="&input_options;" disabled="true" tooltiptext="&NOT_IMPLEMENTED_YET;"/>
         <tab label="&mail_options;" id="mail_tab" />
       </tabs>
       <tabpanels>
 
         <tabpanel id="general_tabpanel">
 
-          <groupbox>
-            <checkbox id="ui_close_hides" preference="pref_bool_close_hides"
-                      label="&bool_close_hides.label;"
-                      accesskey="&bool_close_hides.accesskey;"/>
+          <groupbox flex="1">
+            <caption label="&windows_behaviour;"
+                     tooltiptext="&windows_behaviour.tooltip;" />
+
+            <checkbox id="ui_hides_on_close" preference="pref_bool_hides_on_close"
+                      label="&bool_hides_on_close.label;"
+                      accesskey="&bool_hides_on_close.accesskey;"/>
+            <checkbox id="ui_hides_on_minimize" preference="pref_bool_hides_on_minimize"
+                      label="&bool_hides_on_minimize.label;"
+                      accesskey="&bool_hides_on_minimize.accesskey;"
+                      disabled="true" tooltiptext="&NOT_IMPLEMENTED_YET;"/>
           </groupbox>
 
         </tabpanel>
 
-        <tabpanel id="input_tabpanel">
-        </tabpanel>
+        <tabpanel id="input_tabpanel" />
 
         <tabpanel id="mail_tabpanel">
 

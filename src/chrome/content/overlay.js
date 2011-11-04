@@ -57,9 +57,9 @@ firetray.Main = {
   // (browser.tabs.warnOnClose)
   onClose: function(event) {
     LOG('Firetray CLOSE');
-    let close_hides = firetray.Utils.prefService.getBoolPref('close_hides');
-    LOG('close_hides: '+close_hides);
-    if (close_hides) {
+    let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
+    LOG('hides_on_close: '+hides_on_close);
+    if (hides_on_close) {
       firetray.Handler.showHideToTray();
       event && event.preventDefault(); // no event when called directly (xul)
     }
