@@ -46,7 +46,7 @@ firetray.Handler = {
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/blank-icon.png");
     this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
-      "chrome/skin/message-mail-new.png");
+      "chrome://firetray/skin/message-mail-new.png");
 
     // init all handled windows
     this._updateHandledDOMWindows();
@@ -78,8 +78,10 @@ firetray.Handler = {
       try {
         Cu.import("resource://firetray/FiretrayMessaging.jsm");
         let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
-        if (prefMailNotification !== NOTIFICATION_DISABLED)
+        if (prefMailNotification !== NOTIFICATION_DISABLED) {
           firetray.Messaging.enable();
+          firetray.Messaging.updateUnreadMsgCount();
+        }
       } catch (x) {
         ERROR(x);
         return false;

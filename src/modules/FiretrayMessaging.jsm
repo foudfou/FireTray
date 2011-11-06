@@ -45,7 +45,6 @@ firetray.Messaging = {
                                                mailSessionNotificationFlags);
 
     this.enabled = true;
-    this.updateUnreadMsgCount();
   },
 
   disable: function() {
@@ -112,14 +111,28 @@ firetray.Messaging = {
     if (this._unreadMsgCount == 0) {
       firetray.Handler.setImageDefault();
       firetray.Handler.setTooltipDefault();
+
     } else if (this._unreadMsgCount > 0) {
-      let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
-      firetray.Handler.setText(this._unreadMsgCount.toString(), prefIconTextColor);
+      let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
+      switch (prefMailNotification) {
+
+      case NOTIFICATION_NEWMAIL_ICON:
+        firetray.Handler.setImage(firetray.Handler.FILENAME_NEWMAIL);
+        break;
+      case NOTIFICATION_UNREAD_MESSAGE_COUNT:
+        let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
+        firetray.Handler.setText(this._unreadMsgCount.toString(), prefIconTextColor);
+        break;
+      default:
+        ERROR("Unknown notification mode");
+      }
+
       let localizedMessage = PluralForm.get(
         this._unreadMsgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
         .replace("#1", this._unreadMsgCount);;
       firetray.Handler.setTooltip(localizedMessage);
+
     } else {
       throw "negative message count"; // should never happen
     }

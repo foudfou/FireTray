@@ -86,8 +86,10 @@ firetray.UIOptions = {
 
     if (notificationSetting === NOTIFICATION_DISABLED)
       firetray.Messaging.disable();
-    else
+    else {
       firetray.Messaging.enable();
+      firetray.Messaging.updateUnreadMsgCount();
+    }
 
   },
 
