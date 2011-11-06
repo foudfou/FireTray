@@ -20,7 +20,7 @@ if ("undefined" == typeof(firetray)) {
 };
 
 /**
- * Singleton object for tray icon management
+ * Singleton object and abstraction for tray icon management.
  */
 // NOTE: modules work outside of the window scope. Unlike scripts in the
 // chrome, modules don't have access to objects such as window, document, or
@@ -28,10 +28,91 @@ if ("undefined" == typeof(firetray)) {
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 firetray.Handler = {
   initialized: false,
+  appName: null,
+  FILENAME_DEFAULT: null,
+  FILENAME_SUFFIX: "32.png",
+  FILENAME_BLANK: null,
+  FILENAME_NEWMAIL: null,
+  runtimeOS: null,
   inMailApp: false,
 
   _windowsHidden: false,
   _handledDOMWindows: [],
+
+  init: function() {            // creates icon
+    this.appName = Services.appinfo.name.toLowerCase();
+    this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
+      "chrome://firetray/skin/" +  this.appName + this.FILENAME_SUFFIX);
+    this.FILENAME_BLANK = firetray.Utils.chromeToPath(
+      "chrome://firetray/skin/blank-icon.png");
+    this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
+      "chrome/skin/message-mail-new.png");
+
+    // init all handled windows
+    this._updateHandledDOMWindows();
+
+    // OS/platform checks
+    this.runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
+    // version checked during install, so we shouldn't need to care
+    let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
+    LOG("OS=" + this.runtimeOS + ", XULrunner=" + xulVer);
+    switch (this.runtimeOS) {
+    case "Linux":
+      Cu.import("resource://firetray/FiretrayIconLinux.jsm");
+      LOG('FiretrayIconLinux imported');
+
+      // instanciate tray icon
+      firetray.IconLinux.init();
+      LOG('IconLinux initialized');
+
+      break;
+    default:
+      ERROR("FIRETRAY: only Linux platform supported at this time. Firetray not loaded");
+      return false;
+    }
+
+    // check if in mail app
+    var mozAppId = Services.appinfo.ID;
+    if (mozAppId === THUNDERBIRD_ID || mozAppId === SEAMONKEY_ID) {
+      this.inMailApp = true;
+      try {
+        Cu.import("resource://firetray/FiretrayMessaging.jsm");
+        let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
+        if (prefMailNotification !== NOTIFICATION_DISABLED)
+          firetray.Messaging.enable();
+      } catch (x) {
+        ERROR(x);
+        return false;
+      }
+    }
+    LOG('inMailApp: '+this.inMailApp);
+
+    this.initialized = true;
+    return true;
+  },
+
+  shutdown: function() {
+    if (this.inMailApp)
+      firetray.Messaging.disable();
+
+    switch (this.runtimeOS) {
+    case "Linux":
+      firetray.IconLinux.shutdown();
+      break;
+    default:
+      ERROR("runtimeOS unknown or undefined.");
+      return false;
+    }
+
+    return true;
+  },
+
+  // these get overridden in OS-specific Icon handlers
+  setImage: function(filename) {},
+  setImageDefault: function() {},
+  setText: function(text, color) {},
+  setTooltip: function(localizedMessage) {},
+  setTooltipDefault: function() {},
 
   _getBaseOrXULWindowFromDOMWindow: function(win, winType) {
     let winInterface, winOut;
@@ -147,54 +228,6 @@ firetray.Handler = {
       ERROR(x);
       return;
     }
-  },
-
-  init: function() {            // creates icon
-
-    // platform checks
-    let runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
-    // version checked during install, so we shouldn't need to care
-    let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
-    LOG("OS=" + runtimeOS + ", XULrunner=" + xulVer);
-    if (runtimeOS != "Linux") {
-      ERROR("FIRETRAY: only Linux platform supported at this time. Firetray not loaded");
-      return false;
-    }
-    Cu.import("resource://firetray/FiretrayIconLinux.jsm");
-    LOG('FiretrayIconLinux imported');
-
-    // init all handled windows
-    this._updateHandledDOMWindows();
-
-    // instanciate tray icon
-    firetray.IconLinux.init();
-    LOG('IconLinux initialized');
-
-    // check if in mail app
-    var mozAppId = Services.appinfo.ID;
-    if (mozAppId === THUNDERBIRD_ID || mozAppId === SEAMONKEY_ID) {
-      this.inMailApp = true;
-      try {
-        Cu.import("resource://firetray/FiretrayMessaging.jsm");
-        let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
-        if (prefMailNotification !== NOTIFICATION_DISABLED)
-          firetray.Messaging.enable();
-      } catch (x) {
-        ERROR(x);
-        return false;
-      }
-    }
-    LOG('inMailApp: '+this.inMailApp);
-
-    this.initialized = true;
-    return true;
-  },
-
-  shutdown: function() {        // NOT USED YET
-    if (this.inMailApp)
-      firetray.Messaging.disable();
-
-    firetray.IconLinux.shutdown();
   }
 
 }; // firetray.Handler

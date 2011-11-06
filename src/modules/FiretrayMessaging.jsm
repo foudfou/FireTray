@@ -8,7 +8,7 @@ const Cu = Components.utils;
 
 Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/PluralForm.jsm");
-Cu.import("resource://firetray/FiretrayIconLinux.jsm");
+// Cu.import("resource://firetray/FiretrayHandler.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const FLDR_UNINTERESTING =
@@ -52,8 +52,8 @@ firetray.Messaging = {
     if (!this.enabled)
       return;
 
-    MailServices.mailSession.RemoveFolderListener(this);
-    firetray.IconLinux.setImageDefault();
+    MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
+    firetray.Handler.setImageDefault();
 
     this.enabled = false;
   },
@@ -110,16 +110,16 @@ firetray.Messaging = {
 
     // update icon
     if (this._unreadMsgCount == 0) {
-      firetray.IconLinux.setImageDefault();
-      firetray.IconLinux.setTooltipDefault();
+      firetray.Handler.setImageDefault();
+      firetray.Handler.setTooltipDefault();
     } else if (this._unreadMsgCount > 0) {
       let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
-      firetray.IconLinux.setText(this._unreadMsgCount.toString(), prefIconTextColor);
+      firetray.Handler.setText(this._unreadMsgCount.toString(), prefIconTextColor);
       let localizedMessage = PluralForm.get(
         this._unreadMsgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
         .replace("#1", this._unreadMsgCount);;
-      firetray.IconLinux.setTooltip(localizedMessage);
+      firetray.Handler.setTooltip(localizedMessage);
     } else {
       throw "negative message count"; // should never happen
     }

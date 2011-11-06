@@ -11,8 +11,6 @@
 Not easily feasible since newmailalerts are hard-coded
 http://mxr.mozilla.org/comm-central/find?string=content/newmailalert
 
-* make multi-platform. At least have js-ctypes library call dependant on OS detection. (best would be to have the OS-dependant modules loaded at startup) 
-
 * convert to a https://developer.mozilla.org/en/Extensions/Bootstrapped_extensions
 
 see ../restartless-restart-ffext/ and
