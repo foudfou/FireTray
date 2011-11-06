@@ -106,6 +106,7 @@ firetray.UIOptions = {
   chooseMailIconFile: function() {
     var filepath = document.getElementById("custom_mail_icon_filename");
     this._chooseIconFile(filepath);
+    firetray.Messaging.updateUnreadMsgCount();
   },
 
   _chooseIconFile: function(iconFilename) {

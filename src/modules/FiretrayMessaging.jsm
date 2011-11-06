@@ -116,12 +116,16 @@ firetray.Messaging = {
       let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
       switch (prefMailNotification) {
 
-      case NOTIFICATION_NEWMAIL_ICON:
-        firetray.Handler.setImage(firetray.Handler.FILENAME_NEWMAIL);
-        break;
       case NOTIFICATION_UNREAD_MESSAGE_COUNT:
         let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
         firetray.Handler.setText(this._unreadMsgCount.toString(), prefIconTextColor);
+        break;
+      case NOTIFICATION_NEWMAIL_ICON:
+        firetray.Handler.setImage(firetray.Handler.FILENAME_NEWMAIL);
+        break;
+      case NOTIFICATION_CUSTOM_ICON:
+        let prefCustomIconPath = firetray.Utils.prefService.getCharPref("custom_mail_icon");
+        firetray.Handler.setImage(prefCustomIconPath);
         break;
       default:
         ERROR("Unknown notification mode");
