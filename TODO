@@ -1,7 +1,5 @@
 =TODO=
 
-* options: in mail_accounts, have serverTypes interact with excludedAccounts
-
 * add "enable biff notification" option. And if true:
 
   radio choice option with:

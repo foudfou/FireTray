@@ -14,6 +14,7 @@ if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
 
+const NOTIFICATION_CUSTOM_ICON = 3;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED = 1;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_ORDER    = 2;
@@ -25,7 +26,7 @@ firetray.UIOptions = {
   onLoad: function() {
     if(firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
-      this.populateTreeAccountsOrServerTypes();
+      this.initMailControls();
     } else {
       this.hideElement("mail_tab");
     }
@@ -56,6 +57,55 @@ firetray.UIOptions = {
   hideElement: function(parentId) {
     let targetNode = document.getElementById(parentId);
     targetNode.hidden = true;
+  },
+
+  disableGroup: function(group,disableval) {
+    try {
+      for(var i=0; i< group.childNodes.length; i++)
+        group.childNodes[i].disabled = disableval;
+    } catch(e) {}
+  },
+
+  initMailControls: function() {
+    this.initNotificationSettings();
+    this.populateTreeAccountsOrServerTypes();
+  },
+
+  initNotificationSettings: function() {
+    let radioMailNotify = document.getElementById("radiogroup_mail_notification");
+    let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
+    radioMailNotify.selectedIndex = prefMailNotification;
+    let customIconGroup = document.getElementById("custom_mail_icon");
+    this.disableGroup(customIconGroup,
+                      (prefMailNotification !== NOTIFICATION_CUSTOM_ICON));
+  },
+
+  updateNotificationSettings: function() {
+    let radioMailNotify = document.getElementById("radiogroup_mail_notification");
+    let prefMailNotification =
+      firetray.Utils.prefService.setIntPref("mail_notification", radioMailNotify.selectedIndex);
+    let customIconGroup = document.getElementById("custom_mail_icon");
+    this.disableGroup(customIconGroup,
+                      (radioMailNotify.selectedIndex !== NOTIFICATION_CUSTOM_ICON));
+  },
+
+  chooseMailIconFile: function() {
+    var filepath = document.getElementById("custom_mail_icon_filename");
+    this._chooseIconFile(filepath);
+  },
+
+  _chooseIconFile: function(iconFilename) {
+	  const nsIFilePicker = Ci.nsIFilePicker;
+	  var filePicker = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+	  filePicker.init(window, "Select Icon", nsIFilePicker.modeOpen); // FIXME: i18n
+	  filePicker.appendFilters(nsIFilePicker.filterImages);
+
+	  var rv = filePicker.show();
+	  if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
+		  iconFilename.value = filePicker.file.path;
+		  var prefpane = document.getElementById("pane1");
+		  prefpane.userChangedValue(iconFilename);
+	  }
   },
 
   /**

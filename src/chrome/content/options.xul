@@ -11,12 +11,10 @@
   <prefpane id="pane1" label="&pane1.title;">
 
     <preferences>
-      <preference id="pref_bool_hides_on_close"
-                  name="extensions.firetray.hides_on_close" type="bool"/>
-      <preference id="pref_bool_hides_on_minimize"
-                  name="extensions.firetray.hides_on_minimize" type="bool"/>
-      <preference id="pref_string_mail_accounts"
-                  name="extensions.firetray.mail_accounts" type="string"/>
+      <preference id="pref_bool_hides_on_close" name="extensions.firetray.hides_on_close" type="bool"/>
+      <preference id="pref_bool_hides_on_minimize" name="extensions.firetray.hides_on_minimize" type="bool"/>
+      <preference id="pref_string_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
+      <preference id="pref_string_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
     </preferences>
 
 
@@ -31,8 +29,7 @@
         <tabpanel id="general_tabpanel">
 
           <groupbox flex="1">
-            <caption label="&windows_behaviour;"
-                     tooltiptext="&windows_behaviour.tooltip;" />
+            <caption label="&windows_behaviour;" tooltiptext="&windows_behaviour.tooltip;" />
 
             <checkbox id="ui_hides_on_close" preference="pref_bool_hides_on_close"
                       label="&bool_hides_on_close.label;"
@@ -48,12 +45,40 @@
         <tabpanel id="input_tabpanel" />
 
         <tabpanel id="mail_tabpanel">
+          <vbox align="left" flex="1" >
+
+          <!-- <label value="&mail_notification;" class="header" /> -->
+          <groupbox flex="1">
+            <caption label="&mail_notification;" />
+            <radiogroup id="radiogroup_mail_notification">
+              <radio id="radio_mail_icon1" label="&mail_notification_disabled;"
+                     accesskey="&mail_notification_disabled.accesskey;"
+                     oncommand="firetray.UIOptions.updateNotificationSettings()" />
+              <radio id="radio_mail_icon2" label="&mail_notification_unread_count;"
+                     accesskey="&mail_notification_unread_count.accesskey;"
+                     oncommand="firetray.UIOptions.updateNotificationSettings()" />
+              <radio id="radio_mail_icon3" label="&mail_notification_newmail_icon;"
+                     accesskey="&mail_notification_newmail_icon.accesskey;"
+                     oncommand="firetray.UIOptions.updateNotificationSettings()" />
+              <radio id="radio_mail_icon4" label="&mail_notification_custom_mail_icon;"
+                     accesskey="&mail_notification_custom_mail_icon.accesskey;"
+                     oncommand="firetray.UIOptions.updateNotificationSettings()" />
+            </radiogroup>
+          </groupbox>
+
+          <hbox id="custom_mail_icon" align="center" flex="1" >
+            <textbox id="custom_mail_icon_filename" preference="pref_string_custom_mail_icon"
+                     hidden="FALSE" flex="1" />
+            <button id="custom_mail_icon_select" label="&choose;"
+                    accesskey="&choose.accesskey;"
+                    oncommand="firetray.UIOptions.chooseMailIconFile()" />
+          </hbox>
 
           <groupbox flex="1">
             <caption label="&unread_count_account_exceptions;"
                      tooltiptext="&unread_count_account_exceptions.tooltip;" />
 
-            <tree id="ui_tree_mail_accounts" flex="1" rows="10"
+            <tree id="ui_tree_mail_accounts" flex="1" rows="10" minwidth="300"
                   seltype="single" editable="true"
                   preference-editable="true"
                   preference="pref_string_mail_accounts"
@@ -68,8 +93,8 @@
                          tooltiptext="&account_or_server_type_excluded.tooltip;"/>
                 <splitter class="tree-splitter" resizeafter="grow"/>
                 <treecol id="account_or_server_type_order" editable="true"
-                         persist="width"
-                         flex="1" hidden= "true" label="&account_or_server_type_order;"
+                         persist="width" flex="1" hidden= "true"
+                         label="&account_or_server_type_order;"
                          tooltiptext="&account_or_server_type_order.tooltip;"/>
               </treecols>
               <treechildren id="ui_mail_accounts" flex="1" />
@@ -77,6 +102,7 @@
 
           </groupbox>
 
+          </vbox>
         </tabpanel>
         
       </tabpanels>

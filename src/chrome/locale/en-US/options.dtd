@@ -15,6 +15,18 @@
 <!ENTITY bool_hides_on_minimize.label "Minimize window hides to tray">
 <!ENTITY bool_hides_on_minimize.accesskey "M">
 
+<!ENTITY mail_notification "Mail notification">
+<!ENTITY mail_notification_disabled "disabled">
+<!ENTITY mail_notification_disabled.accesskey "D">
+<!ENTITY mail_notification_unread_count "display unread messages count">
+<!ENTITY mail_notification_unread_count.accesskey "U">
+<!ENTITY mail_notification_newmail_icon "display newmail icon">
+<!ENTITY mail_notification_newmail_icon.accesskey "N">
+<!ENTITY mail_notification_custom_mail_icon "display custom icon">
+<!ENTITY mail_notification_custom_mail_icon.accesskey "I">
+<!ENTITY choose "Choose">
+<!ENTITY choose.accesskey "O">
+
 <!ENTITY unread_count_account_exceptions "Included accounts">
 <!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">
 
