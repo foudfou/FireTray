@@ -24,6 +24,8 @@
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
 <!ENTITY mail_notification_custom_mail_icon "display custom icon">
 <!ENTITY mail_notification_custom_mail_icon.accesskey "I">
+<!ENTITY icon_text_color "Icon text color">
+<!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Choose">
 <!ENTITY choose.accesskey "O">
 

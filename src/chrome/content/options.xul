@@ -13,6 +13,7 @@
     <preferences>
       <preference id="pref_bool_hides_on_close" name="extensions.firetray.hides_on_close" type="bool"/>
       <preference id="pref_bool_hides_on_minimize" name="extensions.firetray.hides_on_minimize" type="bool"/>
+      <preference id="pref_string_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_string_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
       <preference id="pref_string_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
     </preferences>
@@ -65,6 +66,12 @@
                      oncommand="firetray.UIOptions.updateNotificationSettings()" />
             </radiogroup>
           </groupbox>
+
+          <hbox id="icon_text_color" align="center">
+            <label value="&icon_text_color;" accesskey="&icon_text_color.accesskey;"/>
+            <colorpicker id="btn_icon_text_color" type="button"
+                         preference="pref_string_icon_text_color" />
+          </hbox>
 
           <hbox id="custom_mail_icon" align="center" flex="1" >
             <textbox id="custom_mail_icon_filename" preference="pref_string_custom_mail_icon"

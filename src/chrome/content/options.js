@@ -14,7 +14,6 @@ if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
 
-const NOTIFICATION_CUSTOM_ICON = 3;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED = 1;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_ORDER    = 2;
@@ -75,18 +74,31 @@ firetray.UIOptions = {
     let radioMailNotify = document.getElementById("radiogroup_mail_notification");
     let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
     radioMailNotify.selectedIndex = prefMailNotification;
-    let customIconGroup = document.getElementById("custom_mail_icon");
-    this.disableGroup(customIconGroup,
-                      (prefMailNotification !== NOTIFICATION_CUSTOM_ICON));
+    this._disableNotificationMaybe(radioMailNotify.selectedIndex);
   },
 
   updateNotificationSettings: function() {
     let radioMailNotify = document.getElementById("radiogroup_mail_notification");
+    let notificationSetting = radioMailNotify.selectedIndex;
     let prefMailNotification =
-      firetray.Utils.prefService.setIntPref("mail_notification", radioMailNotify.selectedIndex);
+      firetray.Utils.prefService.setIntPref("mail_notification", notificationSetting);
+    this._disableNotificationMaybe(notificationSetting);
+
+    if (notificationSetting === NOTIFICATION_DISABLED)
+      firetray.Messaging.disable();
+    else
+      firetray.Messaging.enable();
+
+  },
+
+  _disableNotificationMaybe: function(notificationSetting) {
+    let iconTextColor = document.getElementById("icon_text_color");
+    this.disableGroup(iconTextColor,
+                      (notificationSetting !== NOTIFICATION_UNREAD_MESSAGE_COUNT));
+
     let customIconGroup = document.getElementById("custom_mail_icon");
     this.disableGroup(customIconGroup,
-                      (radioMailNotify.selectedIndex !== NOTIFICATION_CUSTOM_ICON));
+                      (notificationSetting !== NOTIFICATION_CUSTOM_ICON));
   },
 
   chooseMailIconFile: function() {

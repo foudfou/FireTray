@@ -19,7 +19,6 @@ const FLDR_UNINTERESTING =
   Ci.nsMsgFolderFlags.SentMail |
   Ci.nsMsgFolderFlags.Templates |
   Ci.nsMsgFolderFlags.Trash;
-const ICON_TEXT_COLOR = "#00000";
 
 /**
  * firetray namespace.
@@ -31,10 +30,11 @@ if ("undefined" == typeof(firetray)) {
 
 firetray.Messaging = {
   _unreadMsgCount: 0,
+  enabled: false,
 
   enable: function() {
     if (this.enabled) {
-      WARN("Trying to enable more than once");
+      LOG("Messaging already enabled");
       return;
     }
 
@@ -45,6 +45,7 @@ firetray.Messaging = {
                                                mailSessionNotificationFlags);
 
     this.enabled = true;
+    this.updateUnreadMsgCount();
   },
 
   disable: function() {
@@ -52,6 +53,7 @@ firetray.Messaging = {
       return;
 
     MailServices.mailSession.RemoveFolderListener(this);
+    firetray.IconLinux.setImageDefault();
 
     this.enabled = false;
   },
@@ -111,7 +113,8 @@ firetray.Messaging = {
       firetray.IconLinux.setImageDefault();
       firetray.IconLinux.setTooltipDefault();
     } else if (this._unreadMsgCount > 0) {
-      firetray.IconLinux.setText(this._unreadMsgCount.toString(), ICON_TEXT_COLOR);
+      let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
+      firetray.IconLinux.setText(this._unreadMsgCount.toString(), prefIconTextColor);
       let localizedMessage = PluralForm.get(
         this._unreadMsgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))

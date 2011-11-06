@@ -176,14 +176,13 @@ firetray.Handler = {
       this.inMailApp = true;
       try {
         Cu.import("resource://firetray/FiretrayMessaging.jsm");
-        firetray.Messaging.enable();
+        let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
+        if (prefMailNotification !== NOTIFICATION_DISABLED)
+          firetray.Messaging.enable();
       } catch (x) {
         ERROR(x);
         return false;
       }
-
-      // init unread messages count
-      firetray.Messaging.updateUnreadMsgCount();
     }
     LOG('inMailApp: '+this.inMailApp);
 

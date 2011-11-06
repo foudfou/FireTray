@@ -1,9 +1,10 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
 var EXPORTED_SYMBOLS =
-  [ "firetray", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR",
-    "FIREFOX_ID", "THUNDERBIRD_ID", "SEAMONKEY_ID",
-    "XPath", "isArray" ];
+  [ "firetray", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR", "FIREFOX_ID",
+    "THUNDERBIRD_ID", "SEAMONKEY_ID", "XPath", "isArray",
+    "NOTIFICATION_DISABLED", "NOTIFICATION_UNREAD_MESSAGE_COUNT",
+    "NOTIFICATION_NEWMAIL_ICON", "NOTIFICATION_CUSTOM_ICON" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -17,6 +18,11 @@ const SONGBIRD_ID = "songbird@songbirdnest.com";
 const SUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
 const SEAMONKEY_ID = "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}";
 const CHATZILLA_ID = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
+
+const NOTIFICATION_DISABLED = 0;
+const NOTIFICATION_UNREAD_MESSAGE_COUNT = 1;
+const NOTIFICATION_NEWMAIL_ICON = 2;
+const NOTIFICATION_CUSTOM_ICON = 3;
 
 /**
  * firetray namespace.
