@@ -16,8 +16,8 @@ Cu.import("resource://firetray/gobject.jsm");
 Cu.import("resource://firetray/pango.jsm");
 
 function gtk_defines(lib) {
-  this.GTK_ICON_SIZE_MENU = 1;
-  this.GTK_WINDOW_TOPLEVEL = 1;
+  this.GTK_ICON_SIZE_MENU = 1; // enum GtkIconSize
+  this.GTK_WINDOW_TOPLEVEL = 0; // enum GtkWindowType
 
   this.GtkStatusIcon = ctypes.StructType("GtkStatusIcon");
   this.GtkStyle = ctypes.StructType("GtkStyle");

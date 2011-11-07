@@ -53,7 +53,11 @@ Cu.import("resource://firetray/glib.jsm");
 Cu.import("resource://firetray/gobject.jsm");
 
 function gdk_defines(lib) {
-  this.GDK_INTERP_NEAREST = 1, // enum GdkInterpType
+  this.GDK_INTERP_NEAREST = 0, // enum GdkInterpType
+  // enum GdkFilterReturn
+  this.GDK_FILTER_CONTINUE  = 0,
+  this.GDK_FILTER_TRANSLATE = 1,
+  this.GDK_FILTER_REMOVE    = 2,
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -112,6 +116,14 @@ function gdk_defines(lib) {
   this.GdkDrawable = ctypes.StructType("GdkDrawable");
   this.GdkGC = ctypes.StructType("GdkGC");
   this.GdkInterpType = ctypes.int;
+  this.GdkFilterReturn = ctypes.int;
+  this.GdkXEvent = ctypes.void_t;
+  this.GdkEvent = ctypes.void_t;
+
+  // GdkFilterReturn (*GdkFilterFunc) (GdkXEvent *xevent, GdkEvent *event, gpointer  data);
+  this.GdkFilterFunc_t = ctypes.FunctionType(
+    ctypes.default_abi, this.GdkFilterReturn,
+    [this.GdkXEvent.ptr, this.GdkEvent.ptr, gobject.gpointer]).ptr;
 
   lib.lazy_bind("gdk_window_new", this.GdkWindow.ptr, this.GdkWindow.ptr, this.GdkWindowAttributes.ptr, gobject.gint);
   lib.lazy_bind("gdk_window_destroy", ctypes.void_t, this.GdkWindow.ptr);
@@ -146,6 +158,8 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_set_title", ctypes.void_t, this.GdkWindow.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gdk_window_beep", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_window_get_width", ctypes.int, this.GdkWindow.ptr);
+
+  lib.lazy_bind("gdk_window_add_filter", ctypes.void_t, this.GdkWindow.ptr, this.GdkFilterFunc, gobject.gpointer);
 
 }
 
