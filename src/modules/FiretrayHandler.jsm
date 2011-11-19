@@ -184,24 +184,26 @@ firetray.Handler = {
       try {
         if (this._windowsHidden) { // show
 
-          // correct position
+          // correct position and size
           let x = this._handledDOMWindows[i].rememberedX;
           let y = this._handledDOMWindows[i].rememberedY;
-          LOG("set bw.position: " + x + ", " + y);
-          bw.setPosition(x, y);
+          let cx = this._handledDOMWindows[i].rememberedWidth;
+          let cy = this._handledDOMWindows[i].rememberedHeight;
+          LOG("set bw.position: " + x + ", " + y + ", " + cx + ", " + cy);
+          bw.setPositionAndSize(x, y, cx, cy, false);
 
           bw.visibility = true;
 
         } else {                // hide
 
-          // remember position
-          let x = {}, y = {};
-          bw.getPosition(x, y);
-          LOG("remember bw.position: " + x.value + ", " + y.value);
+          // remember position and size
+          let x = {}, y = {}, cx = {}, cy = {};
+          bw.getPositionAndSize(x, y, cx, cy);
+          LOG("remember bw.position: " + x.value + ", " + y.value + ", " + cx.value + ", " + cy.value);
           this._handledDOMWindows[i].rememberedX = x.value;
           this._handledDOMWindows[i].rememberedY = y.value;
-          // var windowID = win.QueryInterface(Ci.nsIInterfaceRequestor)
-          //   .getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
+          this._handledDOMWindows[i].rememberedWidth = cx.value;
+          this._handledDOMWindows[i].rememberedHeight = cy.value;
 
           bw.visibility = false;
         }
