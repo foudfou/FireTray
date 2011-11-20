@@ -134,8 +134,6 @@ firetray.Handler = {
       winOut = winInterface.getInterface(Ci.nsIBaseWindow);
     else if (winType == "XUL")
       winOut = winInterface.getInterface(Ci.nsIXULWindow);
-    else if (winType == "DOMChrome")
-      winOut = winInterface.getInterface(Ci.nsIDOMChromeWindow);
     else {
       ERROR("FIRETRAY: unknown winType '" + winType + "'");
       return null;
@@ -171,7 +169,8 @@ firetray.Handler = {
      * created/delete windows when all are hidden.
      *
      * NOTE: this may not be a good design if we want to show/hide one window
-     * at a time...
+     * at a time... might need win.QueryInterface(Ci.nsIInterfaceRequestor)
+     * .getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
      */
     if (!this._windowsHidden)   // hide
       this._updateHandledDOMWindows();
@@ -186,27 +185,34 @@ firetray.Handler = {
       try {
         if (this._windowsHidden) { // show
 
-          // correct position and size
+          // correct position, size and state
           let x = this._handledDOMWindows[i].rememberedX;
           let y = this._handledDOMWindows[i].rememberedY;
           let cx = this._handledDOMWindows[i].rememberedWidth;
           let cy = this._handledDOMWindows[i].rememberedHeight;
           LOG("set bw.position: " + x + ", " + y + ", " + cx + ", " + cy);
-          // TODO: clean: use 'switch'
-// STATE_MAXIMIZED 	1
-// STATE_MINIMIZED 	2
-// STATE_NORMAL 	3
-// STATE_FULLSCREEN 	4
-          LOG("set maximize: " + this._handledDOMWindows[i].rememberedState);
-          if (this._handledDOMWindows[i].rememberedState === Ci.nsIDOMChromeWindow.STATE_MAXIMIZED)
+          let windowState = this._handledDOMWindows[i].rememberedState;
+          LOG("set windowState: " + windowState);
+
+          switch (windowState) {
+          case Ci.nsIDOMChromeWindow.STATE_MAXIMIZED: // 1
             this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).maximize();
-          else
+            break;
+          case Ci.nsIDOMChromeWindow.STATE_MINIMIZED: // 2
+            let prefHidesOnMinimize = firetray.Utils.prefService.getBoolPref("hides_on_minimize");
+            if (!prefHidesOnMinimize)
+              this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).minimize();
+            break;
+          case Ci.nsIDOMChromeWindow.STATE_NORMAL: // 3
             bw.setPositionAndSize(x, y, cx, cy, false); // repaint
-          LOG("TEST maximize: " + this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).windowState);
+            break;
+          case Ci.nsIDOMChromeWindow.STATE_FULLSCREEN: // 4
+            // FIXME: NOT IMPLEMENTED YET
+          default:
+          }
+          LOG("maximize after: " + this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).windowState);
 
           bw.visibility = true;
-
-
 
         } else {                // hide
 
