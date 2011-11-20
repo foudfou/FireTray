@@ -134,6 +134,8 @@ firetray.Handler = {
       winOut = winInterface.getInterface(Ci.nsIBaseWindow);
     else if (winType == "XUL")
       winOut = winInterface.getInterface(Ci.nsIXULWindow);
+    else if (winType == "DOMChrome")
+      winOut = winInterface.getInterface(Ci.nsIDOMChromeWindow);
     else {
       ERROR("FIRETRAY: unknown winType '" + winType + "'");
       return null;
@@ -190,9 +192,21 @@ firetray.Handler = {
           let cx = this._handledDOMWindows[i].rememberedWidth;
           let cy = this._handledDOMWindows[i].rememberedHeight;
           LOG("set bw.position: " + x + ", " + y + ", " + cx + ", " + cy);
-          bw.setPositionAndSize(x, y, cx, cy, false);
+          // TODO: clean: use 'switch'
+// STATE_MAXIMIZED 	1
+// STATE_MINIMIZED 	2
+// STATE_NORMAL 	3
+// STATE_FULLSCREEN 	4
+          LOG("set maximize: " + this._handledDOMWindows[i].rememberedState);
+          if (this._handledDOMWindows[i].rememberedState === Ci.nsIDOMChromeWindow.STATE_MAXIMIZED)
+            this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).maximize();
+          else
+            bw.setPositionAndSize(x, y, cx, cy, false); // repaint
+          LOG("TEST maximize: " + this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).windowState);
 
           bw.visibility = true;
+
+
 
         } else {                // hide
 
@@ -204,6 +218,9 @@ firetray.Handler = {
           this._handledDOMWindows[i].rememberedY = y.value;
           this._handledDOMWindows[i].rememberedWidth = cx.value;
           this._handledDOMWindows[i].rememberedHeight = cy.value;
+          this._handledDOMWindows[i].rememberedState = this._handledDOMWindows[i]
+            .QueryInterface(Ci.nsIDOMChromeWindow).windowState;
+          LOG("maximized: " + this._handledDOMWindows[i].rememberedState);
 
           bw.visibility = false;
         }
