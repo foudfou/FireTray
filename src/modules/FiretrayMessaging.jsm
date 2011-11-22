@@ -1,6 +1,6 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "firetray" ];
+var EXPORTED_SYMBOLS = [ "firetray", "FLDRS_UNINTERESTING" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -11,14 +11,15 @@ Cu.import("resource://gre/modules/PluralForm.jsm");
 // Cu.import("resource://firetray/FiretrayHandler.jsm");
 Cu.import("resource://firetray/commons.js");
 
-const FLDR_UNINTERESTING =
-  Ci.nsMsgFolderFlags.Archive |
-  Ci.nsMsgFolderFlags.Drafts |
-  Ci.nsMsgFolderFlags.Junk |
-  Ci.nsMsgFolderFlags.Queue |
-  Ci.nsMsgFolderFlags.SentMail |
-  Ci.nsMsgFolderFlags.Templates |
-  Ci.nsMsgFolderFlags.Trash;
+const FLDRS_UNINTERESTING = {
+  Archive:   Ci.nsMsgFolderFlags.Archive,
+  Drafts:    Ci.nsMsgFolderFlags.Drafts,
+  Junk:      Ci.nsMsgFolderFlags.Junk,
+  Queue:     Ci.nsMsgFolderFlags.Queue,
+  SentMail:  Ci.nsMsgFolderFlags.SentMail,
+  Templates: Ci.nsMsgFolderFlags.Templates,
+  Trash:     Ci.nsMsgFolderFlags.Trash
+};
 
 /**
  * firetray namespace.
@@ -65,8 +66,10 @@ firetray.Messaging = {
      * @param newFlag: New header flag (long).
      */
     OnItemIntPropertyChanged: function(folder, property, oldValue, newValue) {
+      let excludedFoldersFlags = firetray.Utils.prefService
+        .getIntPref("excluded_folders_flags");
       if (property.toString() === "TotalUnreadMessages" &&
-          !(folder.flags & FLDR_UNINTERESTING)) {
+          !(folder.flags & excludedFoldersFlags)) {
         LOG("Unread msgs for folder "+folder.prettyName+" was "+oldValue+" became "+newValue);
         firetray.Messaging.updateUnreadMsgCount();
       }
@@ -82,6 +85,8 @@ firetray.Messaging = {
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
     let serverTypes = mailAccounts["serverTypes"];
     let excludedAccounts = mailAccounts["excludedAccounts"];
+    let excludedFoldersFlags = firetray.Utils.prefService
+      .getIntPref("excluded_folders_flags");
 
     this._unreadMsgCount = 0;   // reset
     try {
@@ -96,9 +101,10 @@ firetray.Messaging = {
           let subFolders = rootFolder.subFolders; // nsIMsgFolder
           while(subFolders.hasMoreElements()) {
             let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-            if (!(folder.flags & FLDR_UNINTERESTING))
-              LOG(folder.prettyName+" unread="+folder.getNumUnread(true)); // include subfolders
-            this._unreadMsgCount += folder.getNumUnread(true);   // reset
+            if (!(folder.flags & excludedFoldersFlags)) {
+              LOG(folder.prettyName+" unread="+folder.getNumUnread(true));
+              this._unreadMsgCount += folder.getNumUnread(true); // includes subfolders
+            }
           }
         }
       }

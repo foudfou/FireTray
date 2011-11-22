@@ -15,21 +15,24 @@
 <!ENTITY bool_hides_on_minimize.label "Minimize window hides to tray">
 <!ENTITY bool_hides_on_minimize.accesskey "M">
 
-<!ENTITY mail_notification "Mail notification">
-<!ENTITY mail_notification_disabled "disabled">
+<!ENTITY mail_notification.label "Mail notification">
+<!ENTITY mail_notification_disabled.label "disabled">
 <!ENTITY mail_notification_disabled.accesskey "D">
-<!ENTITY mail_notification_unread_count "display unread messages count">
+<!ENTITY mail_notification_unread_count.label "display unread messages count">
 <!ENTITY mail_notification_unread_count.accesskey "U">
-<!ENTITY mail_notification_newmail_icon "display newmail icon">
+<!ENTITY mail_notification_newmail_icon.label "display newmail icon">
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
-<!ENTITY mail_notification_custom_mail_icon "display custom icon">
+<!ENTITY mail_notification_custom_mail_icon.label "display custom icon">
 <!ENTITY mail_notification_custom_mail_icon.accesskey "I">
 <!ENTITY icon_text_color "Text color">
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Choose">
 <!ENTITY choose.accesskey "O">
 
-<!ENTITY unread_count_account_exceptions "Included accounts">
+<!ENTITY unread_count_folder_exceptions.label "Excluded special folders">
+<!ENTITY unread_count_folder_exceptions.tooltip "Excluded special folders for unread message count">
+<!ENTITY excluded_folders.tooltip "Use CTRL + left click to select/deslect folders for unread message count">
+<!ENTITY unread_count_account_exceptions.label "Included accounts">
 <!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">
 
 <!ENTITY account_or_server_type_name "Account">

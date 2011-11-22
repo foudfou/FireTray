@@ -8,6 +8,10 @@
 
   <script type="application/x-javascript" src="options.js" />
 
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="firetray-options-strings" src="chrome://firetray/locale/options.properties"/>
+  </stringbundleset>
+
   <prefpane id="pane1" label="&pane1.title;">
 
     <preferences>
@@ -50,13 +54,13 @@
 
           <!-- <label value="&mail_notification;" class="header" /> -->
           <groupbox flex="1">
-            <caption label="&mail_notification;" />
+            <caption label="&mail_notification.label;" />
             <radiogroup id="radiogroup_mail_notification">
-              <radio id="radio_mail_icon1" label="&mail_notification_disabled;"
+              <radio id="radio_mail_icon1" label="&mail_notification_disabled.label;"
                      accesskey="&mail_notification_disabled.accesskey;"
                      oncommand="firetray.UIOptions.updateNotificationSettings()" />
               <hbox>
-                <radio id="radio_mail_icon2" label="&mail_notification_unread_count;"
+                <radio id="radio_mail_icon2" label="&mail_notification_unread_count.label;"
                        accesskey="&mail_notification_unread_count.accesskey;"
                        oncommand="firetray.UIOptions.updateNotificationSettings()" />
                 <hbox id="icon_text_color" align="center">
@@ -66,11 +70,11 @@
                                onchange="firetray.Messaging.updateUnreadMsgCount();"/>
                 </hbox>
               </hbox>
-              <radio id="radio_mail_icon3" label="&mail_notification_newmail_icon;"
+              <radio id="radio_mail_icon3" label="&mail_notification_newmail_icon.label;"
                      accesskey="&mail_notification_newmail_icon.accesskey;"
                      oncommand="firetray.UIOptions.updateNotificationSettings()" />
               <hbox>
-                <radio id="radio_mail_icon4" label="&mail_notification_custom_mail_icon;"
+                <radio id="radio_mail_icon4" label="&mail_notification_custom_mail_icon.label;"
                        accesskey="&mail_notification_custom_mail_icon.accesskey;"
                        oncommand="firetray.UIOptions.updateNotificationSettings()" />
                 <hbox id="custom_mail_icon" align="center" flex="1" >
@@ -85,7 +89,16 @@
           </groupbox>
 
           <groupbox flex="1">
-            <caption label="&unread_count_account_exceptions;"
+            <caption label="&unread_count_folder_exceptions.label;"
+                     tooltiptext="&unread_count_folder_exceptions.tooltip;" />
+
+            <listbox id="excluded_folders" rows="7" flex="1" seltype="multiple"
+                     tooltiptext="&excluded_folders.tooltip;"
+                     onselect="firetray.UIOptions.updateExcludedFoldersPref()"/>
+          </groupbox>
+
+          <groupbox flex="1">
+            <caption label="&unread_count_account_exceptions.label;"
                      tooltiptext="&unread_count_account_exceptions.tooltip;" />
 
             <tree id="ui_tree_mail_accounts" flex="1" rows="10" minwidth="400"

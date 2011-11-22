@@ -21,8 +21,11 @@ const TREELEVEL_SERVER_TYPES      = 0;
 const TREELEVEL_EXCLUDED_ACCOUNTS = 1;
 
 firetray.UIOptions = {
+  strings: null,
 
   onLoad: function() {
+    this.strings = document.getElementById("firetray-options-strings");
+
     if(firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.initMailControls();
@@ -67,6 +70,7 @@ firetray.UIOptions = {
 
   initMailControls: function() {
     this.initNotificationSettings();
+    this.populateExcludedFoldersList();
     this.populateTreeAccountsOrServerTypes();
   },
 
@@ -121,6 +125,46 @@ firetray.UIOptions = {
 		  var prefpane = document.getElementById("pane1");
 		  prefpane.userChangedValue(iconFilename);
 	  }
+  },
+
+  populateExcludedFoldersList: function() {
+    let excludedFoldersList = document.getElementById('excluded_folders');
+
+    let prefExcludedFolders = firetray.Utils.getArrayPref("excluded_folders");
+    LOG("pref excluded folder: "+prefExcludedFolders);
+    for(let folderType in FLDRS_UNINTERESTING) {
+      let localizedFolderType = this.strings.getString(folderType);
+
+      let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
+      LOG("folder: "+folderType+", "+prefExcludedFolders.indexOf(folderType));
+      if (prefExcludedFolders.indexOf(folderType) > -1)
+        excludedFoldersList.addItemToSelection(item);
+    }
+  },
+
+  /**
+   * store to prefs excluded folder type names, and the computed flags (as soon as the
+   * change is applied)
+   */
+  updateExcludedFoldersPref: function() {
+    let excludedFoldersList = document.getElementById('excluded_folders');
+
+    LOG("LAST SELECTED: "+excludedFoldersList.currentItem.label);
+    let excludedFolders = [];
+    let excludedFoldersFlags = null;
+    for(let i = 0; i < excludedFoldersList.selectedCount; i++) {
+      let folderType = excludedFoldersList.getSelectedItem(i).value;
+      excludedFolders.push(folderType);
+      excludedFoldersFlags |= FLDRS_UNINTERESTING[folderType];
+    }
+    LOG("excluded folders: "+excludedFolders);
+    LOG("excluded folders flags: "+excludedFoldersFlags);
+
+    firetray.Utils.setArrayPref("excluded_folders", excludedFolders);
+    firetray.Utils.prefService.setIntPref("excluded_folders_flags",
+                                          excludedFoldersFlags);
+
+    firetray.Messaging.updateUnreadMsgCount();
   },
 
   /**
@@ -191,13 +235,12 @@ firetray.UIOptions = {
    * NOTE: account exceptions for unread messages count are *stored* in
    * preferences as excluded, but *shown* as "not included"
    */
+  // FIXME: this function is too long !
   populateTreeAccountsOrServerTypes: function() {
     let that = this;
     let prefPane = document.getElementById("pane1");
 
-    let prefStr = firetray.Utils.prefService.getCharPref("mail_accounts");
-    LOG("PREF="+prefStr);
-    let mailAccounts = JSON.parse(prefStr);
+    let mailAccounts = firetray.Utils.getObjPref("mail_accounts");
     let serverTypes = mailAccounts["serverTypes"];
     let accountsExcluded = mailAccounts["excludedAccounts"];
     let accountsByServerType = firetray.Messaging.accountsByServerType();
