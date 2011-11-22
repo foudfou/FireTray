@@ -76,6 +76,7 @@ chrome_sources := $(chrome_sources_js) \
                $(wildcard $(chrome_source_root)/content/*.css) \
                $(wildcard $(chrome_source_root)/skin/*.css) \
                $(wildcard $(chrome_source_root)/skin/*.png) \
+               $(wildcard $(chrome_source_root)/skin/*.gif) \
                $(wildcard $(chrome_source_root)/locale/*/*.dtd) \
                $(wildcard $(chrome_source_root)/locale/*/*.properties)
 

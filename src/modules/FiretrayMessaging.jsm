@@ -78,10 +78,13 @@ firetray.Messaging = {
 
   /**
    * computes total unread message count
-   * TODO: check news accounts shouldn't be considered
    */
   updateUnreadMsgCount: function() {
     LOG("unreadMsgCount");
+    let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
+    if (prefMailNotification === NOTIFICATION_DISABLED)
+      return;
+
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
     let serverTypes = mailAccounts["serverTypes"];
     let excludedAccounts = mailAccounts["excludedAccounts"];
@@ -119,7 +122,6 @@ firetray.Messaging = {
       firetray.Handler.setTooltipDefault();
 
     } else if (this._unreadMsgCount > 0) {
-      let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
       switch (prefMailNotification) {
 
       case NOTIFICATION_UNREAD_MESSAGE_COUNT:
