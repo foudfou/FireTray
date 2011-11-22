@@ -92,8 +92,8 @@
             <caption label="&unread_count_folder_exceptions.label;"
                      tooltiptext="&unread_count_folder_exceptions.tooltip;" />
 
-            <listbox id="excluded_folders" rows="7" flex="1" seltype="multiple"
-                     tooltiptext="&excluded_folders.tooltip;"
+            <listbox id="excluded_folders_list" rows="7" flex="1" seltype="multiple"
+                     tooltiptext="&excluded_folders_list.tooltip;"
                      onselect="firetray.UIOptions.updateExcludedFoldersPref()"/>
           </groupbox>
 

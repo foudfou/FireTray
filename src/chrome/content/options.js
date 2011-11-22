@@ -128,39 +128,31 @@ firetray.UIOptions = {
   },
 
   populateExcludedFoldersList: function() {
-    let excludedFoldersList = document.getElementById('excluded_folders');
+    let excludedFoldersList = document.getElementById('excluded_folders_list');
 
-    let prefExcludedFolders = firetray.Utils.getArrayPref("excluded_folders");
-    LOG("pref excluded folder: "+prefExcludedFolders);
+    let prefExcludedFoldersFlags = firetray.Utils.prefService
+      .getIntPref("excluded_folders_flags");
     for(let folderType in FLDRS_UNINTERESTING) {
       let localizedFolderType = this.strings.getString(folderType);
 
       let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
-      LOG("folder: "+folderType+", "+prefExcludedFolders.indexOf(folderType));
-      if (prefExcludedFolders.indexOf(folderType) > -1)
+      LOG("folder: "+folderType);
+      if (FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags)
         excludedFoldersList.addItemToSelection(item);
     }
   },
 
-  /**
-   * store to prefs excluded folder type names, and the computed flags (as soon as the
-   * change is applied)
-   */
   updateExcludedFoldersPref: function() {
-    let excludedFoldersList = document.getElementById('excluded_folders');
+    let excludedFoldersList = document.getElementById('excluded_folders_list');
 
     LOG("LAST SELECTED: "+excludedFoldersList.currentItem.label);
-    let excludedFolders = [];
     let excludedFoldersFlags = null;
     for(let i = 0; i < excludedFoldersList.selectedCount; i++) {
       let folderType = excludedFoldersList.getSelectedItem(i).value;
-      excludedFolders.push(folderType);
       excludedFoldersFlags |= FLDRS_UNINTERESTING[folderType];
     }
-    LOG("excluded folders: "+excludedFolders);
     LOG("excluded folders flags: "+excludedFoldersFlags);
 
-    firetray.Utils.setArrayPref("excluded_folders", excludedFolders);
     firetray.Utils.prefService.setIntPref("excluded_folders_flags",
                                           excludedFoldersFlags);
 
