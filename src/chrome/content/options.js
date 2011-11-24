@@ -69,9 +69,9 @@ firetray.UIOptions = {
   },
 
   initMailControls: function() {
-    this.initNotificationSettings();
     this.populateExcludedFoldersList();
     this.populateTreeAccountsOrServerTypes();
+    this.initNotificationSettings();
   },
 
   initNotificationSettings: function() {
@@ -100,21 +100,13 @@ firetray.UIOptions = {
 
     let isNotificationDisabled = (notificationSetting === NOTIFICATION_DISABLED);
 
-    // update UI
-    // NOTE: groupbox and caption don't have a 'disabled' attribute !!
-    let excludedFoldersList = document.getElementById('excluded_folders_list');
-    excludedFoldersList.disabled = isNotificationDisabled;
-    let folderGroupboxCaption = document.getElementById('unread_count_folder_exceptions_caption_label');
-    folderGroupboxCaption.disabled = isNotificationDisabled;
-    this.disableGroup(excludedFoldersList, isNotificationDisabled); // disable listitems also
-    let mailAccountsTree = document.getElementById('ui_tree_mail_accounts');
-    mailAccountsTree.disabled = isNotificationDisabled;
-    let accountsGroupboxCaption = document.getElementById('unread_count_account_exceptions_caption_label');
-    accountsGroupboxCaption.disabled = isNotificationDisabled;
-
-    if (isNotificationDisabled)
+    if (isNotificationDisabled) {
+      document.getElementById("broadcaster-notification-disabled")
+        .setAttribute("disabled", "true"); // UI update
       firetray.Messaging.disable();
-    else {
+    } else {
+      document.getElementById("broadcaster-notification-disabled")
+        .removeAttribute("disabled"); // UI update (enables!)
       firetray.Messaging.enable();
       firetray.Messaging.updateUnreadMsgCount();
     }
@@ -148,8 +140,8 @@ firetray.UIOptions = {
       .getIntPref("excluded_folders_flags");
     for(let folderType in FLDRS_UNINTERESTING) {
       let localizedFolderType = this.strings.getString(folderType);
-
       let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
+      item.setAttribute("observes", "broadcaster-notification-disabled");
       LOG("folder: "+folderType);
       if (FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags)
         excludedFoldersList.addItemToSelection(item); // doesn't trigger onselect
