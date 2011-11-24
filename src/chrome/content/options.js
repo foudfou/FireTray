@@ -30,7 +30,8 @@ firetray.UIOptions = {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.initMailControls();
     } else {
-      this.hideElement("mail_tab");
+      let mailTab = document.getElementById("mail_tab");
+      this.hideElement(mailTab, true);
     }
 
   },
@@ -56,12 +57,11 @@ firetray.UIOptions = {
     }
   },
 
-  hideElement: function(parentId) {
-    let targetNode = document.getElementById(parentId);
-    targetNode.hidden = true;
+  hideElement: function(targetNode, hiddenval) {
+    targetNode.hidden = hiddenval;
   },
 
-  disableGroup: function(group,disableval) {
+  disableGroup: function(group, disableval) {
     try {
       for(var i=0; i< group.childNodes.length; i++)
         group.childNodes[i].disabled = disableval;
@@ -87,14 +87,6 @@ firetray.UIOptions = {
     let prefMailNotification =
       firetray.Utils.prefService.setIntPref("mail_notification", notificationSetting);
     this._disableNotificationMaybe(notificationSetting);
-
-    if (notificationSetting === NOTIFICATION_DISABLED)
-      firetray.Messaging.disable();
-    else {
-      firetray.Messaging.enable();
-      firetray.Messaging.updateUnreadMsgCount();
-    }
-
   },
 
   _disableNotificationMaybe: function(notificationSetting) {
@@ -105,6 +97,28 @@ firetray.UIOptions = {
     let customIconGroup = document.getElementById("custom_mail_icon");
     this.disableGroup(customIconGroup,
                       (notificationSetting !== NOTIFICATION_CUSTOM_ICON));
+
+    let isNotificationDisabled = (notificationSetting === NOTIFICATION_DISABLED);
+
+    // update UI
+    // NOTE: groupbox and caption don't have a 'disabled' attribute !!
+    let excludedFoldersList = document.getElementById('excluded_folders_list');
+    excludedFoldersList.disabled = isNotificationDisabled;
+    let folderGroupboxCaption = document.getElementById('unread_count_folder_exceptions_caption_label');
+    folderGroupboxCaption.disabled = isNotificationDisabled;
+    this.disableGroup(excludedFoldersList, isNotificationDisabled); // disable listitems also
+    let mailAccountsTree = document.getElementById('ui_tree_mail_accounts');
+    mailAccountsTree.disabled = isNotificationDisabled;
+    let accountsGroupboxCaption = document.getElementById('unread_count_account_exceptions_caption_label');
+    accountsGroupboxCaption.disabled = isNotificationDisabled;
+
+    if (isNotificationDisabled)
+      firetray.Messaging.disable();
+    else {
+      firetray.Messaging.enable();
+      firetray.Messaging.updateUnreadMsgCount();
+    }
+
   },
 
   chooseMailIconFile: function() {
@@ -138,7 +152,7 @@ firetray.UIOptions = {
       let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
       LOG("folder: "+folderType);
       if (FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags)
-        excludedFoldersList.addItemToSelection(item);
+        excludedFoldersList.addItemToSelection(item); // doesn't trigger onselect
     }
   },
 

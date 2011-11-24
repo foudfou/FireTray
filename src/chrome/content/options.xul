@@ -88,18 +88,25 @@
             </radiogroup>
           </groupbox>
 
-          <groupbox flex="1">
-            <caption label="&unread_count_folder_exceptions.label;"
-                     tooltiptext="&unread_count_folder_exceptions.tooltip;" />
+          <groupbox id="unread_count_folder_exceptions" flex="1">
+            <!-- label extracted from caption so we can disable it -->
+            <caption tooltiptext="&unread_count_folder_exceptions.tooltip;">
+              <label id="unread_count_folder_exceptions_caption_label"
+                     value="&unread_count_folder_exceptions.label;" />
+            </caption>
+
 
             <listbox id="excluded_folders_list" rows="7" flex="1" seltype="multiple"
                      tooltiptext="&excluded_folders_list.tooltip;"
                      onselect="firetray.UIOptions.updateExcludedFoldersPref()"/>
           </groupbox>
 
-          <groupbox flex="1">
-            <caption label="&unread_count_account_exceptions.label;"
-                     tooltiptext="&unread_count_account_exceptions.tooltip;" />
+          <groupbox id="unread_count_account_exceptions" flex="1">
+            <!-- label extracted from caption so we can disable it -->
+            <caption tooltiptext="&unread_count_account_exceptions.tooltip;">
+              <label id="unread_count_account_exceptions_caption_label"
+                     value="&unread_count_account_exceptions.label;" />
+            </caption>
 
             <tree id="ui_tree_mail_accounts" flex="1" rows="10" minwidth="400"
                   seltype="single" editable="true" hidecolumnpicker="false"
