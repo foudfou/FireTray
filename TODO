@@ -1,16 +1,5 @@
 =TODO=
 
-* add "enable biff notification" option. And if true:
-
-  radio choice option with:
-    "display message count"
-    "display new-mail image"
-    "display custom image"
-
-* also disable notification for excluded mail account servers
-Not easily feasible since newmailalerts are hard-coded
-http://mxr.mozilla.org/comm-central/find?string=content/newmailalert
-
 * convert to a https://developer.mozilla.org/en/Extensions/Bootstrapped_extensions
 
 see ../restartless-restart-ffext/ and
