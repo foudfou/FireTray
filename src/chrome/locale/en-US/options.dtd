@@ -29,8 +29,8 @@
 <!ENTITY choose "Choose">
 <!ENTITY choose.accesskey "O">
 
-<!ENTITY unread_count_folder_exceptions.label "Excluded special folders">
-<!ENTITY unread_count_folder_exceptions.tooltip "Excluded special folders for unread message count">
+<!ENTITY unread_count_folder_exceptions.label "Included special folders">
+<!ENTITY unread_count_folder_exceptions.tooltip "Included special folders for unread message count">
 <!ENTITY excluded_folders_list.tooltip "Use CTRL + left click to select/deselect folders for unread message count">
 <!ENTITY unread_count_account_exceptions.label "Included accounts">
 <!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">

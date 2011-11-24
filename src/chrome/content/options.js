@@ -133,6 +133,10 @@ firetray.UIOptions = {
 	  }
   },
 
+  /**
+   * NOTE: folder exceptions for unread messages count are *stored* in
+   * preferences as excluded, but *shown* as "not included"
+   */
   populateExcludedFoldersList: function() {
     let excludedFoldersList = document.getElementById('excluded_folders_list');
 
@@ -143,7 +147,7 @@ firetray.UIOptions = {
       let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
       item.setAttribute("observes", "broadcaster-notification-disabled");
       LOG("folder: "+folderType);
-      if (FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags)
+      if (!(FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags))
         excludedFoldersList.addItemToSelection(item); // doesn't trigger onselect
     }
   },
@@ -153,9 +157,12 @@ firetray.UIOptions = {
 
     LOG("LAST SELECTED: "+excludedFoldersList.currentItem.label);
     let excludedFoldersFlags = null;
-    for(let i = 0; i < excludedFoldersList.selectedCount; i++) {
-      let folderType = excludedFoldersList.getSelectedItem(i).value;
-      excludedFoldersFlags |= FLDRS_UNINTERESTING[folderType];
+    for(let i = 0; i < excludedFoldersList.itemCount; i++) {
+      let folder = excludedFoldersList.getItemAtIndex(i);
+      if (folder.selected)
+        excludedFoldersFlags &= ~FLDRS_UNINTERESTING[folder.value];
+      else
+        excludedFoldersFlags |= FLDRS_UNINTERESTING[folder.value];
     }
     LOG("excluded folders flags: "+excludedFoldersFlags);
 
