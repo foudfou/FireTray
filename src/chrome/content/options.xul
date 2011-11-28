@@ -116,11 +116,10 @@
 
             <tree id="ui_tree_mail_accounts" flex="1" rows="10" minwidth="400"
                   seltype="single" editable="true" hidecolumnpicker="false"
+                  observes="broadcaster-notification-disabled"
                   preference-editable="true"
                   preference="pref_string_mail_accounts"
-                  onsynctopreference="return
-                                      firetray.UIOptions.saveTreeAccountsOrServerTypes();"
-                  observes="broadcaster-notification-disabled">
+                  onsynctopreference="return firetray.UIOptions.saveTreeAccountsOrServerTypes();">
               <treecols>
                 <treecol id="account_or_server_type_name" editable="false" flex="2"
                          persist="width" primary="true" label="&account_or_server_type_name;"

@@ -30,8 +30,14 @@ KNOWN BUGS
 
 * windows aren't restored with the same z-order, but there is [no means to correct that under Linux](https://bugzilla.mozilla.org/show_bug.cgi?id=156333 "GetZOrderDOMWindowEnumerator is broken on Linux")
 
-* popup notifications can't be easily disabled along with excluded mail
-accounts, since newmailalerts are [hard-coded](http://mxr.mozilla.org/comm-central/find?string=content/newmailalert)
+* notifications for excluded mail account servers are not
+  disabled. Newmailalerts are
+  [hard-coded](http://mxr.mozilla.org/comm-central/find?string=content/newmailalert)
+  and we can't easily disable thme on a per-server basis (only globally, see
+  `mail.biff.show_alert`). The proper way would probably be to disable default
+  notifications globally, and handle notifications ourselves. This is out of
+  the scope of this addon, but you may want to give a try to the
+  [MailAlert extension](https://addons.mozilla.org/en-US/thunderbird/addon/mailbox-alert/)
 
 Acknowledgment
 --------------

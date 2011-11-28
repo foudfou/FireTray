@@ -282,7 +282,7 @@ firetray.Handler.setTooltipDefault = function() {
 };
 
 firetray.Handler.setText = function(text, color) { // TODO: split into smaller functions;
-  LOG("setText");
+  LOG("setText, color="+color);
   if (typeof(text) != "string")
     throw new TypeError();
 

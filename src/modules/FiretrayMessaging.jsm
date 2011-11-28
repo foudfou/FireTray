@@ -86,6 +86,7 @@ firetray.Messaging = {
       return;
 
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+    LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
     let serverTypes = mailAccounts["serverTypes"];
     let excludedAccounts = mailAccounts["excludedAccounts"];
     let excludedFoldersFlags = firetray.Utils.prefService
@@ -95,6 +96,7 @@ firetray.Messaging = {
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
+        LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
         if ( (serverTypes[accountServer.type].excluded)
           || (excludedAccounts.indexOf(accountServer.key) >= 0) )
           continue;
