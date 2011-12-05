@@ -103,11 +103,11 @@ firetray.UIOptions = {
     if (isNotificationDisabled) {
       document.getElementById("broadcaster-notification-disabled")
         .setAttribute("disabled", "true"); // UI update
-      firetray.Messaging.disable();
+      firetray.Messaging.shutdown();
     } else {
       document.getElementById("broadcaster-notification-disabled")
         .removeAttribute("disabled"); // UI update (enables!)
-      firetray.Messaging.enable();
+      firetray.Messaging.init();
       firetray.Messaging.updateUnreadMsgCount();
     }
 

@@ -52,10 +52,11 @@ firetray.Handler = {
     this._updateHandledDOMWindows();
 
     // OS/platform checks
+    this.runtimeABI = Services.appinfo.XPCOMABI;
     this.runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
     // version checked during install, so we shouldn't need to care
     let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
-    LOG("OS=" + this.runtimeOS + ", XULrunner=" + xulVer);
+    LOG("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
     switch (this.runtimeOS) {
     case "Linux":
       Cu.import("resource://firetray/FiretrayIconLinux.jsm");
@@ -79,7 +80,7 @@ firetray.Handler = {
         Cu.import("resource://firetray/FiretrayMessaging.jsm");
         let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
         if (prefMailNotification !== NOTIFICATION_DISABLED) {
-          firetray.Messaging.enable();
+          firetray.Messaging.init();
           firetray.Messaging.updateUnreadMsgCount();
         }
       } catch (x) {
@@ -95,7 +96,7 @@ firetray.Handler = {
 
   shutdown: function() {
     if (this.inMailApp)
-      firetray.Messaging.disable();
+      firetray.Messaging.shutdown();
 
     switch (this.runtimeOS) {
     case "Linux":

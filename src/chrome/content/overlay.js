@@ -30,7 +30,7 @@ firetray.Main = {
     let init = firetray.Handler.initialized || firetray.Handler.init();
 
     // update unread messages count
-    if (firetray.Handler.inMailApp && firetray.Messaging.enabled)
+    if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
       firetray.Messaging.updateUnreadMsgCount();
 
     // prevent window closing.

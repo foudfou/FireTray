@@ -31,31 +31,32 @@ if ("undefined" == typeof(firetray)) {
 
 firetray.Messaging = {
   _unreadMsgCount: 0,
-  enabled: false,
+  initialized: false,
 
-  enable: function() {
-    if (this.enabled) {
-      LOG("Messaging already enabled");
+  init: function() {
+    if (this.initialized) {
+      LOG("Messaging already initialized");
       return;
     }
-
     LOG("Enabling Messaging");
+
     let that = this;
     let mailSessionNotificationFlags = Ci.nsIFolderListener.intPropertyChanged;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                mailSessionNotificationFlags);
 
-    this.enabled = true;
+    this.initialized = true;
   },
 
-  disable: function() {
-    if (!this.enabled)
+  shutdown: function() {
+    if (!this.initialized)
       return;
+    LOG("Disabling Messaging");
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
     firetray.Handler.setImageDefault();
 
-    this.enabled = false;
+    this.initialized = false;
   },
 
   mailSessionListener: {

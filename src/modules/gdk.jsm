@@ -51,13 +51,15 @@ Cu.import("resource://firetray/ctypes-utils.jsm");
 Cu.import("resource://firetray/cairo.jsm");
 Cu.import("resource://firetray/glib.jsm");
 Cu.import("resource://firetray/gobject.jsm");
+Cu.import("resource://firetray/x11.jsm");
 
 function gdk_defines(lib) {
-  this.GDK_INTERP_NEAREST = 0, // enum GdkInterpType
-  // enum GdkFilterReturn
-  this.GDK_FILTER_CONTINUE  = 0,
-  this.GDK_FILTER_TRANSLATE = 1,
-  this.GDK_FILTER_REMOVE    = 2,
+  this.GdkInterpType = ctypes.int; // enum
+  this.GDK_INTERP_NEAREST = 0;
+  this.GdkFilterReturn = ctypes.int; // enum
+  this.GDK_FILTER_CONTINUE  = 0;
+  this.GDK_FILTER_TRANSLATE = 1;
+  this.GDK_FILTER_REMOVE    = 2;
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -115,12 +117,11 @@ function gdk_defines(lib) {
   this.GdkPixmap = ctypes.StructType("GdkPixmap");
   this.GdkDrawable = ctypes.StructType("GdkDrawable");
   this.GdkGC = ctypes.StructType("GdkGC");
-  this.GdkInterpType = ctypes.int;
-  this.GdkFilterReturn = ctypes.int;
-  this.GdkXEvent = ctypes.void_t;
+  this.GdkXEvent = ctypes.void_t; // will probably be cast to XEvent
   this.GdkEvent = ctypes.void_t;
+  this.GdkDisplay = ctypes.StructType("GdkDisplay");
+  this.GdkFilterFunc = ctypes.voidptr_t;
 
-  // GdkFilterReturn (*GdkFilterFunc) (GdkXEvent *xevent, GdkEvent *event, gpointer  data);
   this.GdkFilterFunc_t = ctypes.FunctionType(
     ctypes.default_abi, this.GdkFilterReturn,
     [this.GdkXEvent.ptr, this.GdkEvent.ptr, gobject.gpointer]).ptr;
@@ -160,7 +161,8 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_get_width", ctypes.int, this.GdkWindow.ptr);
 
   lib.lazy_bind("gdk_window_add_filter", ctypes.void_t, this.GdkWindow.ptr, this.GdkFilterFunc, gobject.gpointer);
-
+  lib.lazy_bind("gdk_display_get_default", this.GdkDisplay.ptr);
+  lib.lazy_bind("gdk_x11_display_get_xdisplay", x11.Display.ptr, this.GdkDisplay.ptr);
 }
 
 if (!gdk) {

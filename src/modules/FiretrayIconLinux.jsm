@@ -15,6 +15,7 @@ Cu.import("resource://firetray/gdk.jsm");
 Cu.import("resource://firetray/gtk.jsm");
 Cu.import("resource://firetray/libc.jsm");
 Cu.import("resource://firetray/pango.jsm");
+Cu.import("resource://firetray/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const Services2 = {};
@@ -34,6 +35,7 @@ var firetray_iconActivateCb;
 var firetray_popupMenuCb;
 var firetray_menuItemQuitActivateCb;
 var firetray_findGtkWindowByTitleCb;
+var firetray_filterWindowCb;
 
 /**
  * custum type used to pass data in to and out of firetray_findGtkWindowByTitleCb
@@ -48,6 +50,7 @@ firetray.IconLinux = {
   tryIcon: null,
   menu: null,
   MIN_FONT_SIZE: 4,
+  X11Atoms: {},
 
   init: function() {
     try {
@@ -75,6 +78,20 @@ firetray.IconLinux = {
     } catch (x) {
       ERROR(x);
       return false;
+    }
+
+    // TEST - should probably be done in Main.onLoad()
+    this._initX11Atoms();
+    let win = Services.wm.getMostRecentWindow(null);
+    let gdkWin = this.getGdkWindowHandle(win);
+    // TODO: register window here ? (and unregister in shutdown)
+    try {
+      let that = this;
+      let filterData = null;    // FIXME
+      firetray_filterWindowCb = gdk.GdkFilterFunc_t(that.filterWindow);
+      gdk.gdk_window_add_filter(gdkWin, firetray_filterWindowCb, filterData);
+    } catch(x) {
+      ERROR(x);
     }
 
     return true;
@@ -110,8 +127,8 @@ firetray.IconLinux = {
     gtk.gtk_widget_show_all(menuWidget);
 
     /* NOTE: here we do use a function handler (instead of a function
-     * definition) because we need the args passed to it ! On the other hand
-     * we need to abandon 'this' in popupMenu() */
+       definition) because we need the args passed to it ! On the other hand we
+       need to abandon 'this' in popupMenu() */
     let that = this;
     firetray_popupMenuCb =
       gtk.GCallbackMenuPopup_t(that.popupMenu);
@@ -216,24 +233,67 @@ firetray.IconLinux = {
     return gdkWin;
   },
 
-  // NOTE: doesn't work during initialization probably since windows aren't
-  // fully realized (?)
-  testWindowHandle: function() {
+  getGdkWindowHandle: function(win) {
     try {
-      let win = Services.wm.getMostRecentWindow(null);
       let gtkWin = firetray.IconLinux._getGtkWindowHandle(win);
       LOG("FOUND: "+gtk.gtk_window_get_title(gtkWin).readString());
-      gtk.gtk_window_set_decorated(gtkWin, false);
-
       let gdkWin = this._getGdkWindowFromGtkWindow(gtkWin);
       if (!gdkWin.isNull()) {
         LOG("has window");
-        LOG(gdk.gdk_window_get_width(gdkWin));
-        gdk.gdk_window_iconify(gdkWin);
+        return gdkWin;
       }
     } catch (x) {
       ERROR(x);
     }
+    return null;
+  },
+
+  _initX11Atoms: function() {
+    try {
+      let gdkDisplay = gdk.gdk_display_get_default();
+      let x11Display = gdk.gdk_x11_display_get_xdisplay(gdkDisplay);
+      this.X11Atoms.DeleteWindow = x11.XInternAtom(x11Display, "WM_DELETE_WINDOW", 0); // only_if_exsits=false
+      LOG("X11Atoms.DeleteWindow="+this.X11Atoms.DeleteWindow);
+      return true;
+    } catch (x) {
+      ERROR(x);
+      return false;
+    }
+  },
+
+  filterWindow: function(xev, gdkEv, data) {
+    if (!xev)
+      return gdk.GDK_FILTER_CONTINUE;
+
+    try {
+      let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
+      switch (xany.contents.type) {
+      case x11.MapNotify:
+        LOG("MapNotify");
+        break;
+      case x11.UnmapNotify:
+        LOG("UnmapNotify");
+        break;
+      case x11.ClientMessage:
+        LOG("ClientMessage");
+        let xclient = ctypes.cast(xev, x11.XClientMessageEvent.ptr);
+        LOG("xclient.contents.data="+xclient.contents.data);
+        // NOTE: need toString() for comparison !
+        if (xclient.contents.data[0].toString() ===
+            firetray.IconLinux.X11Atoms.DeleteWindow.toString()) {
+          LOG("Delete Window prevented");
+          return gdk.GDK_FILTER_REMOVE;
+        }
+        break;
+      default:
+        // LOG("xany.type="+xany.contents.type);
+        break;
+      }
+    } catch(x) {
+      ERROR(x);
+    }
+
+    return gdk.GDK_FILTER_CONTINUE;
   }
 
 }; // firetray.IconLinux

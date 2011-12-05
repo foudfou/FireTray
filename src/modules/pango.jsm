@@ -17,18 +17,18 @@ Cu.import("resource://firetray/cairo.jsm");
 Cu.import("resource://firetray/gobject.jsm");
 
 function pango_defines(lib) {
-  this.PANGO_WEIGHT_THIN = 100,
-  this.PANGO_WEIGHT_ULTRALIGHT = 200,
-  this.PANGO_WEIGHT_LIGHT = 300,
-  this.PANGO_WEIGHT_BOOK = 380,
-  this.PANGO_WEIGHT_NORMAL = 400,
-  this.PANGO_WEIGHT_MEDIUM = 500,
-  this.PANGO_WEIGHT_SEMIBOLD = 600,
-  this.PANGO_WEIGHT_BOLD = 700,
-  this.PANGO_WEIGHT_ULTRABOLD = 800,
-  this.PANGO_WEIGHT_HEAVY = 900,
-  this.PANGO_WEIGHT_ULTRAHEAVY = 1000,
-  this.PANGO_SCALE = 1024,
+  this.PANGO_WEIGHT_THIN = 100;
+  this.PANGO_WEIGHT_ULTRALIGHT = 200;
+  this.PANGO_WEIGHT_LIGHT = 300;
+  this.PANGO_WEIGHT_BOOK = 380;
+  this.PANGO_WEIGHT_NORMAL = 400;
+  this.PANGO_WEIGHT_MEDIUM = 500;
+  this.PANGO_WEIGHT_SEMIBOLD = 600;
+  this.PANGO_WEIGHT_BOLD = 700;
+  this.PANGO_WEIGHT_ULTRABOLD = 800;
+  this.PANGO_WEIGHT_HEAVY = 900;
+  this.PANGO_WEIGHT_ULTRAHEAVY = 1000;
+  this.PANGO_SCALE = 1024;
 
   this.PangoFontDescription = ctypes.StructType("PangoFontDescription");
   this.PangoLayout = ctypes.StructType("PangoLayout");
