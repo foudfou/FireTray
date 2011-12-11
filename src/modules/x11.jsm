@@ -14,7 +14,6 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes-utils.jsm");
 
-
 const XATOMS_ICCCM = [ "WM_DELETE_WINDOW", "WM_STATE", "WM_CHANGE_STATE" ];
 const XATOMS_EWMH_GENERAL = [ "_NET_CLOSE_WINDOW", "_NET_WM_STATE",
   "_NET_WM_NAME", "_NET_WM_VISIBLE_NAME", "_NET_WM_ICON_NAME",

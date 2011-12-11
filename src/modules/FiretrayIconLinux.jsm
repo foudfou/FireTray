@@ -50,7 +50,6 @@ firetray.IconLinux = {
   tryIcon: null,
   menu: null,
   MIN_FONT_SIZE: 4,
-  X11: {},
 
   init: function() {
     try {
@@ -81,7 +80,6 @@ firetray.IconLinux = {
     }
 
     // TEST - should probably be done in Main.onLoad()
-    this._initX11();
     let win = Services.wm.getMostRecentWindow(null);
     let gdkWin = this.getGdkWindowHandle(win);
     // TODO: register window here ? (and unregister in shutdown)
@@ -250,46 +248,15 @@ firetray.IconLinux = {
     return null;
   },
 
-  /**
-   * init X11 Display and handled XATOMS
-   */
-  _initX11: function() {
-    if (!isEmpty(this.X11))
-      return true; // init only once
-
-    try {
-      let gdkDisplay = gdk.gdk_display_get_default();
-      this.X11.Display = gdk.gdk_x11_display_get_xdisplay(gdkDisplay);
-      this.X11.Atoms = {};
-      XATOMS.forEach(function(atomName, index, array) {
-        this.X11.Atoms[atomName] = x11.XInternAtom(this.X11.Display, atomName, 0);
-        LOG("X11.Atoms."+atomName+"="+this.X11.Atoms[atomName]);
-      }, this);
-      return true;
-    } catch (x) {
-      ERROR(x);
-      return false;
-    }
-  },
-
   filterWindow: function(xev, gdkEv, data) {
     if (!xev)
       return gdk.GDK_FILTER_CONTINUE;
-
-    // let gdkWin = ctypes.cast(data, gdk.GdkWindow.ptr);
 
     try {
       let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
       let xwin = xany.contents.window;
 
       switch (xany.contents.type) {
-
-      // case x11.PropertyNotify:
-      //   let xproperty = ctypes.cast(xev, x11.XPropertyEvent.ptr);
-      //   let atom = xproperty.contents.atom;
-      //   if (strEquals(atom, firetray.IconLinux.X11.Atoms._NET_WM_STATE))
-      //     LOG("PropertyNotify atom="+atom);
-      //   break;
 
       case x11.MapNotify:
         LOG("MapNotify");
@@ -298,7 +265,7 @@ firetray.IconLinux = {
       case x11.UnmapNotify:
         LOG("UnmapNotify");
 
-        let prop = firetray.IconLinux.X11.Atoms._NET_WM_STATE;
+        let prop = x11.current.Atoms._NET_WM_STATE;
         LOG("prop="+prop);
 
         /* we may need to provide a fixed array size for csting later with ctypes */
@@ -315,7 +282,7 @@ firetray.IconLinux = {
 
         // look for _NET_WM_STATE_HIDDEN (408)
         let res = x11.XGetWindowProperty( // FIXME: needs to be XFree'd
-          firetray.IconLinux.X11.Display, xwin, prop, 0, MAX_SIZE*ctypes.unsigned_long.size, 0, x11.AnyPropertyType,
+          x11.current.Display, xwin, prop, 0, MAX_SIZE*ctypes.unsigned_long.size, 0, x11.AnyPropertyType,
           actual_type.address(), actual_format.address(), nitems.address(), bytes_after.address(), prop_value.address());
         LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
 
@@ -354,12 +321,12 @@ firetray.IconLinux = {
         LOG("ClientMessage");
         let xclient = ctypes.cast(xev, x11.XClientMessageEvent.ptr);
         LOG("xclient.contents.data="+xclient.contents.data);
-        if (strEquals(xclient.contents.data[0], firetray.IconLinux.X11.Atoms.WM_DELETE_WINDOW)) {
+        if (strEquals(xclient.contents.data[0], x11.current.Atoms.WM_DELETE_WINDOW)) {
           LOG("Delete Window prevented");
           return gdk.GDK_FILTER_REMOVE;
         }
         LOG("xclient.contents.send_event="+xclient.contents.send_event);
-        if (strEquals(xclient.contents.send_event, firetray.IconLinux.X11.Atoms.WM_CHANGE_STATE))
+        if (strEquals(xclient.contents.send_event, x11.current.Atoms.WM_CHANGE_STATE))
           LOG("FOUDIL");
         break;
 
@@ -524,3 +491,29 @@ firetray.Handler.setText = function(text, color) { // TODO: split into smaller f
 
   return true;
 };
+
+
+/**
+ * init X11 Display and handled XATOMS. needs to be defined and called outside
+ * x11.jsm because gdk already import x11.
+ */
+x11.init = function() {
+  if (!isEmpty(this.current))
+    return true; // init only once
+
+  this.current = {};
+  try {
+    let gdkDisplay = gdk.gdk_display_get_default();
+    this.current.Display = gdk.gdk_x11_display_get_xdisplay(gdkDisplay);
+    this.current.Atoms = {};
+    XATOMS.forEach(function(atomName, index, array) {
+      this.current.Atoms[atomName] = x11.XInternAtom(this.current.Display, atomName, 0);
+      LOG("x11.current.Atoms."+atomName+"="+this.current.Atoms[atomName]);
+    }, this);
+    return true;
+  } catch (x) {
+    ERROR(x);
+    return false;
+  }
+};
+x11.init();
