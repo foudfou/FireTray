@@ -1,8 +1,8 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
 var EXPORTED_SYMBOLS =
-  [ "firetray", "LOG", "WARN", "ERROR", "FIREFOX_ID",
-    "THUNDERBIRD_ID", "SEAMONKEY_ID", "isArray", "isEmpty",
+  [ "firetray", "LOG", "WARN", "ERROR", "FIREFOX_ID", "THUNDERBIRD_ID",
+    "SEAMONKEY_ID", "isArray", "isEmpty", "strEquals",
     "FT_NOTIFICATION_DISABLED", "FT_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FT_NOTIFICATION_NEWMAIL_ICON", "FT_NOTIFICATION_CUSTOM_ICON" ];
 
@@ -197,4 +197,10 @@ function isEmpty(obj) {
       return false;
   }
   return true;
+}
+
+// values of different ctypes objects can never be compared. See:
+// https://developer.mozilla.org/en/js-ctypes/Using_js-ctypes/Working_with_data#Quirks_in_equality
+function strEquals(obj1, obj2) {
+  return obj1.toString() === obj2.toString();
 }

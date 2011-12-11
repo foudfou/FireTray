@@ -1,6 +1,7 @@
 /* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "x11" ];
+var EXPORTED_SYMBOLS = [ "x11",
+  "XATOMS", "XATOMS_ICCCM", "XATOMS_EWMH_GENERAL", "XATOMS_EWMH_WM_STATES" ];
 
 const X11_LIBNAME = "X11";
 const X11_ABIS    = [ 6 ];
@@ -13,7 +14,41 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes-utils.jsm");
 
+
+const XATOMS_ICCCM = [ "WM_DELETE_WINDOW", "WM_STATE", "WM_CHANGE_STATE" ];
+const XATOMS_EWMH_GENERAL = [ "_NET_CLOSE_WINDOW", "_NET_WM_STATE",
+  "_NET_WM_NAME", "_NET_WM_VISIBLE_NAME", "_NET_WM_ICON_NAME",
+  "_NET_WM_VISIBLE_ICON_NAME", "_NET_WM_DESKTOP", "_NET_WM_WINDOW_TYPE",
+  "_NET_WM_STATE", "_NET_WM_ALLOWED_ACTIONS", "_NET_WM_STRUT",
+  "_NET_WM_STRUT_PARTIAL", "_NET_WM_ICON_GEOMETRY", "_NET_WM_ICON",
+  "_NET_WM_PID", "_NET_WM_HANDLED_ICONS", "_NET_WM_USER_TIME",
+  "_NET_FRAME_EXTENTS"
+];
+const XATOMS_EWMH_WM_STATES =  [
+  "_NET_WM_STATE_MODAL", "_NET_WM_STATE_STICKY",
+  "_NET_WM_STATE_MAXIMIZED_VERT", "_NET_WM_STATE_MAXIMIZED_HORZ",
+  "_NET_WM_STATE_SHADED", "_NET_WM_STATE_SKIP_TASKBAR",
+  "_NET_WM_STATE_SKIP_PAGER", "_NET_WM_STATE_HIDDEN",
+  "_NET_WM_STATE_FULLSCREEN", "_NET_WM_STATE_ABOVE", "_NET_WM_STATE_BELOW",
+  "_NET_WM_STATE_DEMANDS_ATTENTION"
+];
+const XATOMS = XATOMS_ICCCM.concat(XATOMS_EWMH_WM_STATES).concat(XATOMS_EWMH_GENERAL);
+
 function x11_defines(lib) {
+  /* fundamental types need to be guessed :-( */
+  // http://mxr.mozilla.org/mozilla-central/source/configure.in
+  if (/^(Alpha|hppa|ia64|ppc64|s390|x86_64)-/.test(Services.appinfo.XPCOMABI)) {
+    this.CARD32 = ctypes.unsigned_int;
+    this.Atom = ctypes.unsigned_long;
+    this.Window = ctypes.unsigned_long;
+    this.Time = ctypes.unsigned_long;
+  } else {
+    this.CARD32 = ctypes.unsigned_long;
+    this.Atom = this.CARD32;
+    this.Window = this.CARD32;
+    this.Time =  this.CARD32;
+  }
+
   // X.h
   this.Success = 0;
   this.None = 0;
@@ -23,9 +58,12 @@ function x11_defines(lib) {
   this.BadAtom = 5;
   this.BadMatch = 8;
   this.BadAlloc = 11;
+  this.PropertyNewValue = 0;
+  this.PropertyDelete = 1;
   // Event names
   this.UnmapNotify = 18;
   this.MapNotify = 19;
+  this.PropertyNotify = 28;
   this.ClientMessage = 33;
   // Xutils.h: definitions for initial window state
   this.WithdrawnState = 0;      /* for windows that are not mapped */
@@ -45,46 +83,37 @@ function x11_defines(lib) {
     { "serial": ctypes.unsigned_long },
     { "send_event": this.Bool },
     { "display": this.Display.ptr },
-    { "window": x11.Window }
+    { "window": this.Window }
   ]);
   this.XClientMessageEvent = ctypes.StructType("XClientMessageEvent", [
     { "type": ctypes.int },
     { "serial": ctypes.unsigned_long },
     { "send_event": this.Bool },
     { "display": this.Display.ptr },
-    { "window": x11.Window },
-    { "message_type": x11.Atom },
+    { "window": this.Window },
+    { "message_type": this.Atom },
     { "format": ctypes.int },
     { "data": ctypes.long.array(5) } // actually a union char b[20]; short s[10]; long l[5];
   ]);
+  this.XPropertyEvent = ctypes.StructType("XPropertyEvent", [
+    { "type": ctypes.int },
+    { "serial": ctypes.unsigned_long },
+    { "send_event": this.Bool },
+    { "display": this.Display.ptr },
+    { "window": this.Window },
+    { "atom": this.Atom },
+    { "time": this.Time },
+    { "state": ctypes.int }     /* NewValue or Deleted */
+  ]);
 
-  lib.lazy_bind("XInternAtom", x11.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool); // only_if_exsits
-  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, x11.Window, x11.Atom, ctypes.long, ctypes.long, this.Bool, x11.Atom, x11.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_char.ptr.ptr);
-  lib.lazy_bind("XChangeProperty", ctypes.int, this.Display.ptr, x11.Window, x11.Atom, x11.Atom, ctypes.int, ctypes.int, ctypes.unsigned_char.ptr, ctypes.int);
+  lib.lazy_bind("XFree", ctypes.int, ctypes.void_t.ptr);
+  lib.lazy_bind("XInternAtom", this.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool); // only_if_exsits
+  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.array(XATOMS_EWMH_WM_STATES.length).ptr);
+  lib.lazy_bind("XChangeProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, this.Atom, ctypes.int, ctypes.int, ctypes.unsigned_char.ptr, ctypes.int);
 }
 
 if (!x11) {
-  var x11 = {};
-
-  guessX11TypeSizes();
-  x11 = new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines);
-}
-
-function guessX11TypeSizes() {
-  try {
-    // http://mxr.mozilla.org/mozilla-central/source/configure.in
-    if (/^(Alpha|hppa|ia64|ppc64|s390|x86_64)-/.test(Services.appinfo.XPCOMABI)) {
-      x11.CARD32 = ctypes.unsigned_int;
-      x11.Atom = ctypes.unsigned_long;
-      x11.Window = ctypes.unsigned_long;
-    } else {
-      x11.CARD32 = ctypes.unsigned_long;
-      x11.Atom = x11.CARD32;
-      x11.Window = x11.CARD32;
-    }
-  } catch(x) {
-    ERROR(x);
-  }
+  var x11 = new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines);
 }
 
 /* Xorg 1.10.4
