@@ -60,6 +60,9 @@ function gdk_defines(lib) {
   this.GDK_FILTER_CONTINUE  = 0;
   this.GDK_FILTER_TRANSLATE = 1;
   this.GDK_FILTER_REMOVE    = 2;
+  this.GdkWindowState = ctypes.int; // enum
+  this.GDK_WINDOW_STATE_ICONIFIED = 2;
+  this.GDK_WINDOW_STATE_MAXIMIZED = 4;
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -163,6 +166,7 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_add_filter", ctypes.void_t, this.GdkWindow.ptr, this.GdkFilterFunc, gobject.gpointer);
   lib.lazy_bind("gdk_display_get_default", this.GdkDisplay.ptr);
   lib.lazy_bind("gdk_x11_display_get_xdisplay", x11.Display.ptr, this.GdkDisplay.ptr);
+  lib.lazy_bind("gdk_window_get_state", this.GdkWindowState, this.GdkWindow.ptr);
 }
 
 if (!gdk) {

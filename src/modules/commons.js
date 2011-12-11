@@ -2,7 +2,7 @@
 
 var EXPORTED_SYMBOLS =
   [ "firetray", "Cc", "Ci", "Cu", "LOG", "WARN", "ERROR", "FIREFOX_ID",
-    "THUNDERBIRD_ID", "SEAMONKEY_ID", "XPath", "isArray",
+    "THUNDERBIRD_ID", "SEAMONKEY_ID", "XPath", "isArray", "isEmpty",
     "NOTIFICATION_DISABLED", "NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "NOTIFICATION_NEWMAIL_ICON", "NOTIFICATION_CUSTOM_ICON" ];
 
@@ -189,3 +189,12 @@ if(!Object.keys) Object.keys = function(o){
   for(p in o) if(Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
   return ret;
 };
+
+// http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object-from-json
+function isEmpty(obj) {
+  for(var prop in obj) {
+    if(obj.hasOwnProperty(prop))
+      return false;
+  }
+  return true;
+}

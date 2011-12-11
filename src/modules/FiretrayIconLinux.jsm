@@ -50,7 +50,7 @@ firetray.IconLinux = {
   tryIcon: null,
   menu: null,
   MIN_FONT_SIZE: 4,
-  X11Atoms: {},
+  X11: {},
 
   init: function() {
     try {
@@ -81,13 +81,13 @@ firetray.IconLinux = {
     }
 
     // TEST - should probably be done in Main.onLoad()
-    this._initX11Atoms();
+    this._initX11();
     let win = Services.wm.getMostRecentWindow(null);
     let gdkWin = this.getGdkWindowHandle(win);
     // TODO: register window here ? (and unregister in shutdown)
     try {
       let that = this;
-      let filterData = null;    // FIXME
+      let filterData = gdkWin;
       firetray_filterWindowCb = gdk.GdkFilterFunc_t(that.filterWindow);
       gdk.gdk_window_add_filter(gdkWin, firetray_filterWindowCb, filterData);
     } catch(x) {
@@ -127,7 +127,7 @@ firetray.IconLinux = {
     gtk.gtk_widget_show_all(menuWidget);
 
     /* NOTE: here we do use a function handler (instead of a function
-       definition) because we need the args passed to it ! On the other hand we
+       definition) because we need the args passed to it ! As a consequence, we
        need to abandon 'this' in popupMenu() */
     let that = this;
     firetray_popupMenuCb =
@@ -248,12 +248,38 @@ firetray.IconLinux = {
     return null;
   },
 
-  _initX11Atoms: function() {
+  _initX11: function() {
+    if (!isEmpty(this.X11))
+      return true; // init only once
+
+    this.X11.MAX_NET_WM_STATES = 12;
     try {
       let gdkDisplay = gdk.gdk_display_get_default();
-      let x11Display = gdk.gdk_x11_display_get_xdisplay(gdkDisplay);
-      this.X11Atoms.DeleteWindow = x11.XInternAtom(x11Display, "WM_DELETE_WINDOW", 0); // only_if_exsits=false
-      LOG("X11Atoms.DeleteWindow="+this.X11Atoms.DeleteWindow);
+      this.X11.Display = gdk.gdk_x11_display_get_xdisplay(gdkDisplay);
+      this.X11.Atoms = {};
+      let atoms = {
+        WM_DELETE_WINDOW: "WM_DELETE_WINDOW",
+        WM_STATE: "WM_STATE",
+        _NET_CLOSE_WINDOW: "_NET_CLOSE_WINDOW",
+        // don't forget to update firetray.IconLinux.X11.MAX_NET_WM_STATES
+        _NET_WM_STATE: "_NET_WM_STATE",
+        _NET_WM_STATE_MODAL: "_NET_WM_STATE_MODAL",
+        _NET_WM_STATE_STICKY: "_NET_WM_STATE_STICKY",
+        _NET_WM_STATE_MAXIMIZED_VERT: "_NET_WM_STATE_MAXIMIZED_VERT",
+        _NET_WM_STATE_MAXIMIZED_HORZ: "_NET_WM_STATE_MAXIMIZED_HORZ",
+        _NET_WM_STATE_SHADED: "_NET_WM_STATE_SHADED",
+        _NET_WM_STATE_SKIP_TASKBAR: "_NET_WM_STATE_SKIP_TASKBAR",
+        _NET_WM_STATE_SKIP_PAGER: "_NET_WM_STATE_SKIP_PAGER",
+        _NET_WM_STATE_HIDDEN: "_NET_WM_STATE_HIDDEN",
+        _NET_WM_STATE_FULLSCREEN: "_NET_WM_STATE_FULLSCREEN",
+        _NET_WM_STATE_ABOVE: "_NET_WM_STATE_ABOVE",
+        _NET_WM_STATE_BELOW: "_NET_WM_STATE_BELOW",
+        _NET_WM_STATE_DEMANDS_ATTENTION: "_NET_WM_STATE_DEMANDS_ATTENTION"
+      };
+      for (let atomName in atoms) {
+        this.X11.Atoms[atomName] = x11.XInternAtom(this.X11.Display, atoms[atomName], 0);
+        LOG("X11.Atoms."+atomName+"="+this.X11.Atoms[atomName]);
+      }
       return true;
     } catch (x) {
       ERROR(x);
@@ -265,26 +291,75 @@ firetray.IconLinux = {
     if (!xev)
       return gdk.GDK_FILTER_CONTINUE;
 
+    let gdkWin = ctypes.cast(data, gdk.GdkWindow.ptr);
+
     try {
       let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
+      let xwin = xany.contents.window;
+
       switch (xany.contents.type) {
       case x11.MapNotify:
         LOG("MapNotify");
         break;
+
       case x11.UnmapNotify:
         LOG("UnmapNotify");
+
+        let prop = firetray.IconLinux.X11.Atoms._NET_WM_STATE;
+        LOG("prop="+prop);
+
+/*
+        // infos returned by XGetWindowProperty()
+        let actual_type = new ctypes.unsigned_long; // FIXME: let actual_type = new x11.Atom;
+        let actual_format = new ctypes.int;
+        let nitems = new ctypes.unsigned_long;
+        let bytes_after = new ctypes.unsigned_long;
+        let prop_value = new ctypes.unsigned_char.ptr;
+
+        let res = x11.XGetWindowProperty(
+          firetray.IconLinux.X11.Display, xwin, prop, 0, firetray.IconLinux.X11.MAX_NET_WM_STATES, 0, x11.AnyPropertyType,
+          actual_type.address(), actual_format.address(), nitems.address(), bytes_after.address(), prop_value.address());
+        LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
+
+        if (res.toString() !== x11.Success.toString()) {
+          ERROR("XGetWindowProperty failed");
+          break;
+        }
+        if (actual_type.value.toString() === x11.None.toString()) {
+          WARN("property does not exist");
+          break;
+        }
+
+        LOG("prop_value="+prop_value);
+        // LOG("prop_value.str="+prop_value.readString());
+        // LOG("prop_value.size="+prop_value.size);
+        LOG("size="+ctypes.uint32_t.array(nitems.value).size);
+        let props;
+        // if (actual_format == 32)
+        //   props = ctypes.cast(prop_value, ctypes.uint32_t.array(nitems.value));
+        // LOG("props="+props);
+        // for (let i=0; i<nitems.value; ++i) {
+        //   // LOG(props[i]);
+        //   // let p = props[i];
+        //   // let p_ulong = ctypes.cast(p, ctypes.unsigned_long);
+        //   // LOG(p_ulong);
+        // }
+*/
+
         break;
+
       case x11.ClientMessage:
         LOG("ClientMessage");
         let xclient = ctypes.cast(xev, x11.XClientMessageEvent.ptr);
         LOG("xclient.contents.data="+xclient.contents.data);
         // NOTE: need toString() for comparison !
         if (xclient.contents.data[0].toString() ===
-            firetray.IconLinux.X11Atoms.DeleteWindow.toString()) {
+            firetray.IconLinux.X11.Atoms.WM_DELETE_WINDOW.toString()) {
           LOG("Delete Window prevented");
           return gdk.GDK_FILTER_REMOVE;
         }
         break;
+
       default:
         // LOG("xany.type="+xany.contents.type);
         break;

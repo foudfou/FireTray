@@ -15,9 +15,24 @@ Cu.import("resource://firetray/ctypes-utils.jsm");
 
 function x11_defines(lib) {
   // X.h
+  this.Success = 0;
+  this.None = 0;
+  this.AnyPropertyType = 0;
+  this.BadValue = 2;
+  this.BadWindow = 3;
+  this.BadAtom = 5;
+  this.BadMatch = 8;
+  this.BadAlloc = 11;
+  // Event names
   this.UnmapNotify = 18;
   this.MapNotify = 19;
   this.ClientMessage = 33;
+  // Xutils.h: definitions for initial window state
+  this.WithdrawnState = 0;      /* for windows that are not mapped */
+  this.NormalState = 1;         /* most applications want to start this way */
+  this.IconicState = 3;         /* application wants to start as an icon */
+  // Xtom
+  this.XA_ATOM = 4;
 
   this.Bool = ctypes.int;
   this.Display = ctypes.StructType("Display");
@@ -43,14 +58,19 @@ function x11_defines(lib) {
     { "data": ctypes.long.array(5) } // actually a union char b[20]; short s[10]; long l[5];
   ]);
 
-  lib.lazy_bind("XInternAtom", x11.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool);
-
+  lib.lazy_bind("XInternAtom", x11.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool); // only_if_exsits
+  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, x11.Window, x11.Atom, ctypes.long, ctypes.long, this.Bool, x11.Atom, x11.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_char.ptr.ptr);
+  lib.lazy_bind("XChangeProperty", ctypes.int, this.Display.ptr, x11.Window, x11.Atom, x11.Atom, ctypes.int, ctypes.int, ctypes.unsigned_char.ptr, ctypes.int);
 }
 
 if (!x11) {
   var x11 = {};
 
-  // We *try to guess* the size of Atom and Window...
+  guessX11TypeSizes();
+  x11 = new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines);
+}
+
+function guessX11TypeSizes() {
   try {
     // http://mxr.mozilla.org/mozilla-central/source/configure.in
     if (/^(Alpha|hppa|ia64|ppc64|s390|x86_64)-/.test(Services.appinfo.XPCOMABI)) {
@@ -65,8 +85,6 @@ if (!x11) {
   } catch(x) {
     ERROR(x);
   }
-
-  x11 = new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines);
 }
 
 /* Xorg 1.10.4
