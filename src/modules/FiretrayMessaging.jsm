@@ -83,7 +83,7 @@ firetray.Messaging = {
   updateUnreadMsgCount: function() {
     LOG("unreadMsgCount");
     let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
-    if (prefMailNotification === NOTIFICATION_DISABLED)
+    if (prefMailNotification === FT_NOTIFICATION_DISABLED)
       return;
 
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
@@ -127,14 +127,14 @@ firetray.Messaging = {
     } else if (this._unreadMsgCount > 0) {
       switch (prefMailNotification) {
 
-      case NOTIFICATION_UNREAD_MESSAGE_COUNT:
+      case FT_NOTIFICATION_UNREAD_MESSAGE_COUNT:
         let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
         firetray.Handler.setText(this._unreadMsgCount.toString(), prefIconTextColor);
         break;
-      case NOTIFICATION_NEWMAIL_ICON:
+      case FT_NOTIFICATION_NEWMAIL_ICON:
         firetray.Handler.setImage(firetray.Handler.FILENAME_NEWMAIL);
         break;
-      case NOTIFICATION_CUSTOM_ICON:
+      case FT_NOTIFICATION_CUSTOM_ICON:
         let prefCustomIconPath = firetray.Utils.prefService.getCharPref("custom_mail_icon");
         firetray.Handler.setImage(prefCustomIconPath);
         break;

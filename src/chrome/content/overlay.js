@@ -3,6 +3,10 @@
 Components.utils.import("resource://firetray/commons.js");
 Components.utils.import("resource://firetray/FiretrayHandler.jsm");
 
+if ("undefined" == typeof(Cc)) var Cc = Components.classes;
+if ("undefined" == typeof(Ci)) var Ci = Components.interfaces;
+if ("undefined" == typeof(Cu)) var Cu = Components.utils;
+
 /**
  * firetray namespace.
  */

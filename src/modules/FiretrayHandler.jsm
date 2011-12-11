@@ -79,7 +79,7 @@ firetray.Handler = {
       try {
         Cu.import("resource://firetray/FiretrayMessaging.jsm");
         let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
-        if (prefMailNotification !== NOTIFICATION_DISABLED) {
+        if (prefMailNotification !== FT_NOTIFICATION_DISABLED) {
           firetray.Messaging.init();
           firetray.Messaging.updateUnreadMsgCount();
         }

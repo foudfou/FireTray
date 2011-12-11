@@ -92,13 +92,13 @@ firetray.UIOptions = {
   _disableNotificationMaybe: function(notificationSetting) {
     let iconTextColor = document.getElementById("icon_text_color");
     this.disableGroup(iconTextColor,
-                      (notificationSetting !== NOTIFICATION_UNREAD_MESSAGE_COUNT));
+                      (notificationSetting !== FT_NOTIFICATION_UNREAD_MESSAGE_COUNT));
 
     let customIconGroup = document.getElementById("custom_mail_icon");
     this.disableGroup(customIconGroup,
-                      (notificationSetting !== NOTIFICATION_CUSTOM_ICON));
+                      (notificationSetting !== FT_NOTIFICATION_CUSTOM_ICON));
 
-    let isNotificationDisabled = (notificationSetting === NOTIFICATION_DISABLED);
+    let isNotificationDisabled = (notificationSetting === FT_NOTIFICATION_DISABLED);
 
     if (isNotificationDisabled) {
       document.getElementById("broadcaster-notification-disabled")
