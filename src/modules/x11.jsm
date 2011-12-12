@@ -1,7 +1,10 @@
 /* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "x11",
-  "XATOMS", "XATOMS_ICCCM", "XATOMS_EWMH_GENERAL", "XATOMS_EWMH_WM_STATES" ];
+var EXPORTED_SYMBOLS = [
+  "x11",
+  "XATOMS", "XATOMS_ICCCM", "XATOMS_EWMH_GENERAL", "XATOMS_EWMH_WM_STATES",
+  "XPROP_MAX_COUNT", "XPROP_BASE_TYPE", "XPROP_BASE_TYPE_LONG_PROPORTION"
+];
 
 const X11_LIBNAME = "X11";
 const X11_ABIS    = [ 6 ];
@@ -32,6 +35,13 @@ const XATOMS_EWMH_WM_STATES =  [
   "_NET_WM_STATE_DEMANDS_ATTENTION"
 ];
 const XATOMS = XATOMS_ICCCM.concat(XATOMS_EWMH_WM_STATES).concat(XATOMS_EWMH_GENERAL);
+
+/* needed for XGetWindowProperty: we need to use a fixed sized array for ctypes
+   casting */
+const XPROP_MAX_COUNT = XATOMS_EWMH_WM_STATES.length;
+const XPROP_BASE_TYPE = ctypes.unsigned_char;
+const XPROP_BASE_TYPE_LONG_PROPORTION = ctypes.unsigned_long.size / XPROP_BASE_TYPE.size;
+
 
 function x11_defines(lib) {
   /* fundamental types need to be guessed :-( */
@@ -68,7 +78,7 @@ function x11_defines(lib) {
   this.WithdrawnState = 0;      /* for windows that are not mapped */
   this.NormalState = 1;         /* most applications want to start this way */
   this.IconicState = 3;         /* application wants to start as an icon */
-  // Xtom
+  // Xatom
   this.XA_ATOM = 4;
 
   this.Bool = ctypes.int;
@@ -105,9 +115,15 @@ function x11_defines(lib) {
     { "state": ctypes.int }     /* NewValue or Deleted */
   ]);
 
+  // custom type needed for XGetWindowProperty
+  this.xpropArray_t = XPROP_BASE_TYPE.array(XPROP_MAX_COUNT*XPROP_BASE_TYPE_LONG_PROPORTION);
+
   lib.lazy_bind("XFree", ctypes.int, ctypes.void_t.ptr);
   lib.lazy_bind("XInternAtom", this.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool); // only_if_exsits
-  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.array(XATOMS_EWMH_WM_STATES.length).ptr);
+  // int XGetWindowProperty(
+  //  Display *display, Window w, Atom property, long long_offset, long long_length, Bool delete, Atom req_type,
+  //  Atom *actual_type_return, int *actual_format_return, unsigned long *nitems_return, unsigned long *bytes_after_return, unsigned char **prop_return);
+  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_char.array(XPROP_MAX_COUNT*XPROP_BASE_TYPE_LONG_PROPORTION).ptr);
   lib.lazy_bind("XChangeProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, this.Atom, ctypes.int, ctypes.int, ctypes.unsigned_char.ptr, ctypes.int);
 }
 

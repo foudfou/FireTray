@@ -268,21 +268,18 @@ firetray.IconLinux = {
         let prop = x11.current.Atoms._NET_WM_STATE;
         LOG("prop="+prop);
 
-        /* we may need to provide a fixed array size for csting later with ctypes */
-        const MAX_SIZE = XATOMS_EWMH_WM_STATES.length;
-        let ulongArray_t = ctypes.unsigned_long.array(MAX_SIZE);
-
         // infos returned by XGetWindowProperty()
         let actual_type = new x11.Atom;
         let actual_format = new ctypes.int;
         let nitems = new ctypes.unsigned_long;
         let bytes_after = new ctypes.unsigned_long;
-        // let prop_value = new ctypes.unsigned_char.ptr;
-        let prop_value = new ulongArray_t;
+        let prop_value = new x11.xpropArray_t;
 
         // look for _NET_WM_STATE_HIDDEN (408)
+        let bufSize = ctypes.long(XPROP_MAX_COUNT*XPROP_BASE_TYPE_LONG_PROPORTION*XPROP_BASE_TYPE.size); // cast not necessary
+        let offset = ctypes.long(0);
         let res = x11.XGetWindowProperty( // FIXME: needs to be XFree'd
-          x11.current.Display, xwin, prop, 0, MAX_SIZE*ctypes.unsigned_long.size, 0, x11.AnyPropertyType,
+          x11.current.Display, xwin, prop, offset, bufSize, 0, x11.AnyPropertyType,
           actual_type.address(), actual_format.address(), nitems.address(), bytes_after.address(), prop_value.address());
         LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
 
@@ -299,14 +296,16 @@ firetray.IconLinux = {
         // LOG("prop_value.str="+prop_value.readString());
         /* If the returned format is 32, the property data will be stored as an
          array of longs (which in a 64-bit application will be 64-bit values
-         that are padded in the upper 4 bytes). */
+         that are padded in the upper 4 bytes). [man XGetWindowProperty] */
         if (actual_format.value == 32) {
-          // var props = ctypes.cast(prop_value, ctypes.unsigned_char.array(nitems.value*2));
           var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value));
         } else
           ERROR("unsupported format: "+actual_format.value);
-        LOG("props="+props+", size="+props.size);
+        LOG("props="+props+", size="+props.constructor.size);
         LOG("props.length="+props.length);
+        // LOG("props.source="+props[0].toSource());
+        // LOG("props.hi="+ctypes.UInt64.hi(props[0]));
+        // LOG("props.lo="+ctypes.UInt64.lo(props[0]));
 
         // for (let i=0; i<nitems.value; ++i) {
         //   // LOG(props[i]);
