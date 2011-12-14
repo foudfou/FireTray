@@ -35,12 +35,6 @@ const XATOMS_EWMH_WM_STATES =  [
 ];
 const XATOMS = XATOMS_ICCCM.concat(XATOMS_EWMH_WM_STATES).concat(XATOMS_EWMH_GENERAL);
 
-/* needed for XGetWindowProperty: we need to use a fixed sized array for ctypes
-   casting */
-const XPROP_MAX_COUNT = XATOMS_EWMH_WM_STATES.length;
-const XPROP_BASE_TYPE = ctypes.unsigned_char;
-const XPROP_BASE_TYPE_LONG_PROPORTION = ctypes.unsigned_long.size / XPROP_BASE_TYPE.size;
-
 
 function x11_defines(lib) {
   /* fundamental types need to be guessed :-( */
@@ -114,15 +108,9 @@ function x11_defines(lib) {
     { "state": ctypes.int }     /* NewValue or Deleted */
   ]);
 
-  // custom type needed for XGetWindowProperty
-  this.xpropArray_t = XPROP_BASE_TYPE.array(XPROP_MAX_COUNT*XPROP_BASE_TYPE_LONG_PROPORTION);
-
   lib.lazy_bind("XFree", ctypes.int, ctypes.void_t.ptr);
   lib.lazy_bind("XInternAtom", this.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool); // only_if_exsits
-  // int XGetWindowProperty(
-  //  Display *display, Window w, Atom property, long long_offset, long long_length, Bool delete, Atom req_type,
-  //  Atom *actual_type_return, int *actual_format_return, unsigned long *nitems_return, unsigned long *bytes_after_return, unsigned char **prop_return);
-  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, XPROP_BASE_TYPE.array(XPROP_MAX_COUNT*XPROP_BASE_TYPE_LONG_PROPORTION).ptr);
+  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_char.ptr.ptr);
   lib.lazy_bind("XChangeProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, this.Atom, ctypes.int, ctypes.int, ctypes.unsigned_char.ptr, ctypes.int);
 }
 

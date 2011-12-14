@@ -273,12 +273,11 @@ firetray.IconLinux = {
         let actual_format = new ctypes.int;
         let nitems = new ctypes.unsigned_long;
         let bytes_after = new ctypes.unsigned_long;
-        let prop_value = new x11.xpropArray_t;
+        let prop_value = new ctypes.unsigned_char.ptr;
 
-        // look for _NET_WM_STATE_HIDDEN (408)
-        let bufSize = ctypes.long(XPROP_MAX_COUNT*XPROP_BASE_TYPE_LONG_PROPORTION*XPROP_BASE_TYPE.size); // cast not necessary
-        let offset = ctypes.long(0);
-        let res = x11.XGetWindowProperty( // FIXME: needs to be XFree'd
+        let bufSize = XATOMS_EWMH_WM_STATES.length*ctypes.unsigned_long.size;
+        let offset = 0;
+        let res = x11.XGetWindowProperty(
           x11.current.Display, xwin, prop, offset, bufSize, 0, x11.AnyPropertyType,
           actual_type.address(), actual_format.address(), nitems.address(), bytes_after.address(), prop_value.address());
         LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
@@ -293,26 +292,23 @@ firetray.IconLinux = {
         }
 
         LOG("prop_value="+prop_value+", size="+prop_value.constructor.size);
-        // LOG("prop_value.str="+prop_value.readString());
         /* If the returned format is 32, the property data will be stored as an
          array of longs (which in a 64-bit application will be 64-bit values
          that are padded in the upper 4 bytes). [man XGetWindowProperty] */
-        if (actual_format.value == 32) {
-          var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value));
+        if (actual_format.value === 32) {
+          LOG("format OK");
+          var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
         } else
           ERROR("unsupported format: "+actual_format.value);
         LOG("props="+props+", size="+props.constructor.size);
-        LOG("props.length="+props.length);
-        // LOG("props.source="+props[0].toSource());
-        // LOG("props.hi="+ctypes.UInt64.hi(props[0]));
-        // LOG("props.lo="+ctypes.UInt64.lo(props[0]));
 
-        // for (let i=0; i<nitems.value; ++i) {
-        //   // LOG(props[i]);
-        //   // let p = props[i];
-        //   // let p_ulong = ctypes.cast(p, ctypes.unsigned_long);
-        //   // LOG(p_ulong);
-        // }
+        for (let i=0; i<nitems.value; ++i) {
+          LOG(props.contents[i]);
+          if (strEquals(props.contents[i], x11.current.Atoms._NET_WM_STATE_HIDDEN))
+            LOG("window hidden");
+        }
+
+        x11.XFree(prop_value);
 
         break;
 
@@ -320,10 +316,10 @@ firetray.IconLinux = {
         LOG("ClientMessage");
         let xclient = ctypes.cast(xev, x11.XClientMessageEvent.ptr);
         LOG("xclient.contents.data="+xclient.contents.data);
-        if (strEquals(xclient.contents.data[0], x11.current.Atoms.WM_DELETE_WINDOW)) {
-          LOG("Delete Window prevented");
-          return gdk.GDK_FILTER_REMOVE;
-        }
+        // if (strEquals(xclient.contents.data[0], x11.current.Atoms.WM_DELETE_WINDOW)) {
+        //   LOG("Delete Window prevented");
+        //   return gdk.GDK_FILTER_REMOVE;
+        // }
         LOG("xclient.contents.send_event="+xclient.contents.send_event);
         if (strEquals(xclient.contents.send_event, x11.current.Atoms.WM_CHANGE_STATE))
           LOG("FOUDIL");
