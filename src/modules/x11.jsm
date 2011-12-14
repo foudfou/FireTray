@@ -18,13 +18,12 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes-utils.jsm");
 
 const XATOMS_ICCCM = [ "WM_DELETE_WINDOW", "WM_STATE", "WM_CHANGE_STATE" ];
-const XATOMS_EWMH_GENERAL = [ "_NET_CLOSE_WINDOW", "_NET_WM_STATE",
-  "_NET_WM_NAME", "_NET_WM_VISIBLE_NAME", "_NET_WM_ICON_NAME",
-  "_NET_WM_VISIBLE_ICON_NAME", "_NET_WM_DESKTOP", "_NET_WM_WINDOW_TYPE",
-  "_NET_WM_STATE", "_NET_WM_ALLOWED_ACTIONS", "_NET_WM_STRUT",
-  "_NET_WM_STRUT_PARTIAL", "_NET_WM_ICON_GEOMETRY", "_NET_WM_ICON",
-  "_NET_WM_PID", "_NET_WM_HANDLED_ICONS", "_NET_WM_USER_TIME",
-  "_NET_FRAME_EXTENTS"
+const XATOMS_EWMH_GENERAL = [ "_NET_CLOSE_WINDOW", "_NET_WM_NAME",
+  "_NET_WM_VISIBLE_NAME", "_NET_WM_ICON_NAME", "_NET_WM_VISIBLE_ICON_NAME",
+  "_NET_WM_DESKTOP", "_NET_WM_WINDOW_TYPE", "_NET_WM_STATE",
+  "_NET_WM_ALLOWED_ACTIONS", "_NET_WM_STRUT", "_NET_WM_STRUT_PARTIAL",
+  "_NET_WM_ICON_GEOMETRY", "_NET_WM_ICON", "_NET_WM_PID",
+  "_NET_WM_HANDLED_ICONS", "_NET_WM_USER_TIME", "_NET_FRAME_EXTENTS"
 ];
 const XATOMS_EWMH_WM_STATES =  [
   "_NET_WM_STATE_MODAL", "_NET_WM_STATE_STICKY",
@@ -123,7 +122,7 @@ function x11_defines(lib) {
   // int XGetWindowProperty(
   //  Display *display, Window w, Atom property, long long_offset, long long_length, Bool delete, Atom req_type,
   //  Atom *actual_type_return, int *actual_format_return, unsigned long *nitems_return, unsigned long *bytes_after_return, unsigned char **prop_return);
-  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_char.array(XPROP_MAX_COUNT*XPROP_BASE_TYPE_LONG_PROPORTION).ptr);
+  lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, XPROP_BASE_TYPE.array(XPROP_MAX_COUNT*XPROP_BASE_TYPE_LONG_PROPORTION).ptr);
   lib.lazy_bind("XChangeProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, this.Atom, ctypes.int, ctypes.int, ctypes.unsigned_char.ptr, ctypes.int);
 }
 
