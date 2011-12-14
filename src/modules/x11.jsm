@@ -16,6 +16,7 @@ const Ci = Components.interfaces;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes-utils.jsm");
+Cu.import("resource://firetray/logging.jsm");
 
 const XATOMS_ICCCM = [ "WM_DELETE_WINDOW", "WM_STATE", "WM_CHANGE_STATE" ];
 const XATOMS_EWMH_GENERAL = [ "_NET_CLOSE_WINDOW", "_NET_WM_NAME",
@@ -118,6 +119,7 @@ function x11_defines(lib) {
 if (!x11) {
   var x11 = new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines);
 }
+
 
 /* Xorg 1.10.4
 #if defined (_LP64) || \

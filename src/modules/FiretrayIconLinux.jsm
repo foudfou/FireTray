@@ -160,7 +160,7 @@ firetray.IconLinux = {
    * @param window nsIDOMWindow from Services.wm
    * @return a gtk.GtkWindow.ptr
    */
-  _getGtkWindowHandle: function(window) {
+  getGtkWindowHandle: function(window) {
     let baseWindow = window
       .QueryInterface(Ci.nsIInterfaceRequestor)
       .getInterface(Ci.nsIWebNavigation)
@@ -223,7 +223,7 @@ firetray.IconLinux = {
     }
   },
 
-  _getGdkWindowFromGtkWindow: function(gtkWin) {
+  getGdkWindowFromGtkWindow: function(gtkWin) {
     try {
       let gtkWid = ctypes.cast(gtkWin, gtk.GtkWidget.ptr);
       var gdkWin = gtk.gtk_widget_get_window(gtkWid);
@@ -235,9 +235,9 @@ firetray.IconLinux = {
 
   getGdkWindowHandle: function(win) {
     try {
-      let gtkWin = firetray.IconLinux._getGtkWindowHandle(win);
+      let gtkWin = firetray.IconLinux.getGtkWindowHandle(win);
       LOG("FOUND: "+gtk.gtk_window_get_title(gtkWin).readString());
-      let gdkWin = this._getGdkWindowFromGtkWindow(gtkWin);
+      let gdkWin = this.getGdkWindowFromGtkWindow(gtkWin);
       if (!gdkWin.isNull()) {
         LOG("has window");
         return gdkWin;
@@ -334,7 +334,6 @@ firetray.IconLinux = {
   }
 
 }; // firetray.IconLinux
-
 
 firetray.Handler.setImage = function(filename) {
   if (!firetray.IconLinux.trayIcon)
@@ -486,8 +485,10 @@ firetray.Handler.setText = function(text, color) { // TODO: split into smaller f
 
 
 /**
- * init X11 Display and handled XATOMS. needs to be defined and called outside
- * x11.jsm because gdk already import x11.
+ * init X11 Display and handled XAtoms.
+ * Needs to be defined and called outside x11.jsm because: gdk already import
+ * x11, and there is no means to get the default Display solely with Xlib
+ * without opening one...  :-(
  */
 x11.init = function() {
   if (!isEmpty(this.current))

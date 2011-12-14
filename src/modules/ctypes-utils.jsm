@@ -40,16 +40,9 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://firetray/logging.jsm");
 
-var EXPORTED_SYMBOLS  = [ "ctypes_library", "ERROR" ];
-
-["LOG", "WARN", "ERROR"].forEach(function(aName) {
-  this.__defineGetter__(aName, function() {
-    Components.utils.import("resource://gre/modules/AddonLogging.jsm");
-    LogManager.getLogger("firetray", this);
-    return this[aName];
-  });
-}, this);
+var EXPORTED_SYMBOLS  = [ "ctypes_library" ];
 
 function ctypes_library(name, abis, defines) {
   try {

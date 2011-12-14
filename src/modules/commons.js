@@ -1,5 +1,7 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
+/* for now, logging facilities (imported from logging.jsm are automatically
+   provided by this module */
 var EXPORTED_SYMBOLS =
   [ "firetray", "LOG", "WARN", "ERROR", "FIREFOX_ID", "THUNDERBIRD_ID",
     "SEAMONKEY_ID", "isArray", "isEmpty", "strEquals",
@@ -11,6 +13,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://firetray/logging.jsm");
 
 const FIREFOX_ID = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
 const THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
@@ -30,15 +33,6 @@ const FT_NOTIFICATION_CUSTOM_ICON = 3;
 if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
-
-// about:config extensions.logging.enabled
-["LOG", "WARN", "ERROR"].forEach(function(aName) {
-  this.__defineGetter__(aName, function() {
-    Components.utils.import("resource://gre/modules/AddonLogging.jsm");
-    LogManager.getLogger("firetray", this);
-    return this[aName];
-  });
-}, this);
 
 
 firetray.Utils = {
