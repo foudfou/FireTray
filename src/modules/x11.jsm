@@ -63,6 +63,7 @@ function x11_defines(lib) {
   this.PropertyNewValue = 0;
   this.PropertyDelete = 1;
   // Event names
+  this.DestroyNotify = 17;
   this.UnmapNotify = 18;
   this.MapNotify = 19;
   this.PropertyNotify = 28;
