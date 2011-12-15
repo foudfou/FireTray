@@ -15,7 +15,6 @@ Cu.import("resource://firetray/gdk.jsm");
 Cu.import("resource://firetray/gtk.jsm");
 Cu.import("resource://firetray/libc.jsm");
 Cu.import("resource://firetray/pango.jsm");
-Cu.import("resource://firetray/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const Services2 = {};
@@ -35,7 +34,8 @@ var firetray_iconActivateCb;
 var firetray_popupMenuCb;
 var firetray_menuItemQuitActivateCb;
 var firetray_findGtkWindowByTitleCb;
-var firetray_filterWindowCb;
+var firetray_windowDeleteCb;
+var firetray_windowStateCb;
 
 /**
  * custum type used to pass data in to and out of firetray_findGtkWindowByTitleCb
@@ -68,30 +68,46 @@ firetray.IconLinux = {
 
     // attach popupMenu to trayIcon
     try {
-      // watch out for binding problems ! here we prefer to keep 'this' in
-      // showHideToTray() and abandon the args.
-      firetray_iconActivateCb = gobject.GCallback_t(
-        function(){firetray.Handler.showHideToTray();});
-      gobject.g_signal_connect(this.trayIcon, "activate",
-                               firetray_iconActivateCb, null);
+
+      /* GTK TEST. initWindow should be done somewhere else
+         (Firetray.WindowLinux ?) */
+      let win = Services.wm.getMostRecentWindow(null);
+      /* NOTE: it should not be necessary to cast gtkWin to a GtkWidget, nor
+         gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK); */
+      let gtkWin = this.getGtkWindowHandle(win);
+      LOG("gtkWin="+gtkWin);
+      let gdkWin = gtk.gtk_widget_get_window(
+        ctypes.cast(gtkWin, gtk.GtkWidget.ptr));
+      LOG("gdkWin="+gdkWin);
+
+      firetray_iconActivateCb = gtk.GCallbackStatusIconActivate_t(firetray.IconLinux.showHideToTray);
+      // gobject.g_signal_connect(this.trayIcon, "activate", firetray_iconActivateCb, null);
+      gobject.g_signal_connect(this.trayIcon, "activate", firetray_iconActivateCb, gdkWin); // TEST
+
+      /* delete_event_cb (in gtk2/nsWindow.cpp) prevents us from catching
+         "delete-event" */
+
+      let deleteEventId = gobject.g_signal_lookup("delete-event", gtk.gtk_window_get_type());
+      LOG("deleteEventId="+deleteEventId);
+      let deleteEventHandler = gobject.g_signal_handler_find(gtkWin, gobject.G_SIGNAL_MATCH_ID, deleteEventId, 0, null, null, null);
+      LOG("deleteEventHandler="+deleteEventHandler);
+      gobject.g_signal_handler_block(gtkWin, deleteEventHandler); // not _disconnect
+
+      firetray_windowDeleteCb = gtk.GCallbackGenericEvent_t(firetray.IconLinux.windowDelete);
+      // let res = gobject.g_signal_connect(gtkWin, "delete_event", firetray_windowDeleteCb, null);
+      let res = gobject.g_signal_connect(gtkWin, "delete_event", firetray_windowDeleteCb, null);
+      LOG("g_connect delete-event="+res);
+
+
+      /* we'll catch minimize events with Gtk:
+       http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
+      firetray_windowStateCb = gtk.GCallbackGenericEvent_t(firetray.IconLinux.windowState);
+      res = gobject.g_signal_connect(gtkWin, "window-state-event", firetray_windowStateCb, null);
+      LOG("g_connect window-state-event="+res);
+
     } catch (x) {
       ERROR(x);
       return false;
-    }
-
-    // TEST - should probably be done in Main.onLoad()
-    let win = Services.wm.getMostRecentWindow(null);
-    let gdkWin = this.getGdkWindowHandle(win);
-    // TODO: register window here ? (and unregister in shutdown)
-    try {
-      let that = this;
-      let filterData = gdkWin;
-      /* NOTE: We may have to do this with Gdk:
-         http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
-      firetray_filterWindowCb = gdk.GdkFilterFunc_t(that.filterWindow);
-      gdk.gdk_window_add_filter(gdkWin, firetray_filterWindowCb, filterData);
-    } catch(x) {
-      ERROR(x);
     }
 
     return true;
@@ -223,6 +239,7 @@ firetray.IconLinux = {
     }
   },
 
+  // FIXME: it may not be worth wrapping gtk_widget_get_window...
   getGdkWindowFromGtkWindow: function(gtkWin) {
     try {
       let gtkWid = ctypes.cast(gtkWin, gtk.GtkWidget.ptr);
@@ -248,89 +265,35 @@ firetray.IconLinux = {
     return null;
   },
 
-  checkXWindowEWMState: function(xwin, prop) {
-    LOG("prop="+prop);
-
-    // infos returned by XGetWindowProperty()
-    let actual_type = new x11.Atom;
-    let actual_format = new ctypes.int;
-    let nitems = new ctypes.unsigned_long;
-    let bytes_after = new ctypes.unsigned_long;
-    let prop_value = new ctypes.unsigned_char.ptr;
-
-    let bufSize = XATOMS_EWMH_WM_STATES.length*ctypes.unsigned_long.size;
-    let offset = 0;
-    let res = x11.XGetWindowProperty(
-      x11.current.Display, xwin, x11.current.Atoms._NET_WM_STATE, offset, bufSize, 0, x11.AnyPropertyType,
-      actual_type.address(), actual_format.address(), nitems.address(), bytes_after.address(), prop_value.address());
-    LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
-
-    if (!strEquals(res, x11.Success)) {
-      ERROR("XGetWindowProperty failed");
-      return false;
-    }
-    if (strEquals(actual_type.value, x11.None)) {
-      WARN("property does not exist");
-      return false;
-    }
-
-    LOG("prop_value="+prop_value+", size="+prop_value.constructor.size);
-    /* If the returned format is 32, the property data will be stored as an
-     array of longs (which in a 64-bit application will be 64-bit values
-     that are padded in the upper 4 bytes). [man XGetWindowProperty] */
-    if (actual_format.value === 32) {
-      LOG("format OK");
-      var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
-    } else
-    ERROR("unsupported format: "+actual_format.value);
-    LOG("props="+props+", size="+props.constructor.size);
-
-    for (let i=0; i<nitems.value; ++i) {
-      LOG(props.contents[i]);
-      if (strEquals(props.contents[i], prop))
-        return true;
-    }
-
-    x11.XFree(prop_value);
-
-    return false;
-  },
-
-  filterWindow: function(xev, gdkEv, data) {
-    if (!xev)
-      return gdk.GDK_FILTER_CONTINUE;
-
+  showHideToTray: function(gtkStatusIcon, userData){
+    LOG("showHideToTray: "+userData);
     try {
-      let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
-      let xwin = xany.contents.window;
-
-      switch (xany.contents.type) {
-
-      case x11.UnmapNotify:
-        LOG("UnmapNotify");
-        LOG("isHidden="+firetray.IconLinux.checkXWindowEWMState(xwin, x11.current.Atoms._NET_WM_STATE_HIDDEN));
-        break;
-
-      case x11.ClientMessage:
-        LOG("ClientMessage");
-        let xclient = ctypes.cast(xev, x11.XClientMessageEvent.ptr);
-        LOG("xclient.data="+xclient.contents.data);
-        LOG("message_type="+xclient.contents.message_type+", format="+xclient.contents.format);
-        if (strEquals(xclient.contents.data[0], x11.current.Atoms.WM_DELETE_WINDOW)) {
-          LOG("Delete Window prevented");
-          return gdk.GDK_FILTER_REMOVE;
-        }
-        break;
-
-      default:
-        // LOG("xany.type="+xany.contents.type);
-        break;
-      }
-    } catch(x) {
+      let gdkWin = ctypes.cast(userData, gdk.GdkWindow.ptr);
+      gdk.gdk_window_show(gdkWin);
+    } catch (x) {
       ERROR(x);
     }
 
-    return gdk.GDK_FILTER_CONTINUE;
+    let stopPropagation = true;
+    return stopPropagation;
+  },
+
+  windowDelete: function(gtkWidget, gdkEv, userData){
+    LOG("gtk_widget_hide: "+gtkWidget+", "+gdkEv+", "+userData);
+    try{
+      let gdkWin = firetray.IconLinux.getGdkWindowFromGtkWindow(gtkWidget);
+      gdk.gdk_window_hide(gdkWin);
+    } catch (x) {
+      ERROR(x);
+    }
+    let stopPropagation = true;
+    return stopPropagation;
+  },
+
+  windowState: function(gtkWidget, gdkEv, userData){
+    LOG("window-state-event");
+    let stopPropagation = true;
+    return stopPropagation;
   }
 
 }; // firetray.IconLinux
@@ -483,30 +446,6 @@ firetray.Handler.setText = function(text, color) { // TODO: split into smaller f
   return true;
 };
 
-
-/**
- * init X11 Display and handled XAtoms.
- * Needs to be defined and called outside x11.jsm because: gdk already import
- * x11, and there is no means to get the default Display solely with Xlib
- * without opening one...  :-(
- */
-x11.init = function() {
-  if (!isEmpty(this.current))
-    return true; // init only once
-
-  this.current = {};
-  try {
-    let gdkDisplay = gdk.gdk_display_get_default();
-    this.current.Display = gdk.gdk_x11_display_get_xdisplay(gdkDisplay);
-    this.current.Atoms = {};
-    XATOMS.forEach(function(atomName, index, array) {
-      this.current.Atoms[atomName] = x11.XInternAtom(this.current.Display, atomName, 0);
-      LOG("x11.current.Atoms."+atomName+"="+this.current.Atoms[atomName]);
-    }, this);
-    return true;
-  } catch (x) {
-    ERROR(x);
-    return false;
-  }
+firetray.Handler.showHideToTray = function() {
+  // How to do that ?? is called in overlay.xul
 };
-x11.init();

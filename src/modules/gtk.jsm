@@ -53,10 +53,16 @@ function gtk_defines(lib) {
     ctypes.default_abi, ctypes.void_t,
     [this.GtkMenu.ptr, gobject.gint.ptr, gobject.gint.ptr,
      gobject.gboolean.ptr, gobject.gpointer]).ptr;
+  this.GCallbackStatusIconActivate_t = ctypes.FunctionType(
+    ctypes.default_abi, gobject.gboolean,
+    [this.GtkStatusIcon.ptr, gobject.gpointer]).ptr;
   this.GCallbackMenuPopup_t = ctypes.FunctionType(
     ctypes.default_abi, ctypes.void_t,
     [this.GtkStatusIcon.ptr, gobject.guint, gobject.guint,
      gobject.gpointer]).ptr;
+  this.GCallbackGenericEvent_t = ctypes.FunctionType(
+    ctypes.default_abi, gobject.gboolean,
+    [this.GtkWidget.ptr, gdk.GdkEvent.ptr, gobject.gpointer]).ptr;
 
   lib.lazy_bind("gtk_status_icon_new", this.GtkStatusIcon.ptr);
   lib.lazy_bind("gtk_status_icon_set_from_file", ctypes.void_t,
@@ -97,6 +103,13 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_window_set_decorated", ctypes.void_t, this.GtkWindow.ptr,
                 gobject.gboolean);
 
+  lib.lazy_bind("gtk_widget_hide_on_delete", gobject.gboolean, this.GtkWidget.ptr);
+  // lib.lazy_bind("gtk_widget_hide", ctypes.void_t, this.GtkWidget.ptr);
+  // lib.lazy_bind("gtk_widget_show", ctypes.void_t, this.GtkWidget.ptr);
+  lib.lazy_bind("gtk_widget_get_events", gobject.gint, this.GtkWidget.ptr);
+  lib.lazy_bind("gtk_widget_get_events", gobject.gint, this.GtkWidget.ptr);
+  lib.lazy_bind("gtk_widget_add_events", ctypes.void_t, this.GtkWidget.ptr, gobject.gint);
+  lib.lazy_bind("gtk_window_get_type", gobject.GType);
 }
 
 if (!gtk) {

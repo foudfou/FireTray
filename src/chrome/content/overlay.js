@@ -37,11 +37,13 @@ firetray.Main = {
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
       firetray.Messaging.updateUnreadMsgCount();
 
+/* GTK TEST
     // prevent window closing.
     let that = this;
     window.addEventListener('close', that.onClose, true);
     // NOTE: each new window gets a new firetray.Main, and hence listens to pref
     // changes
+*/
 
     LOG('Firetray LOADED: ' + init);
     return true;
@@ -57,6 +59,7 @@ firetray.Main = {
      tray icon) */
   },
 
+/* GTK TEST
   // TODO: prevent preceding warning about closing multiple tabs
   // (browser.tabs.warnOnClose)
   onClose: function(event) {
@@ -68,6 +71,7 @@ firetray.Main = {
       event && event.preventDefault(); // no event when called directly (xul)
     }
   },
+*/
 
   observe: function(subject, topic, data) {
     // Observer for pref changes
@@ -92,12 +96,3 @@ window.addEventListener(
     removeEventListener('unload', arguments.callee, true);
     firetray.Main.onQuit(); },
   false);
-
-// // TEST - can we catch minimize event ?
-// window.addEventListener(
-//   'command', function (e) {
-//     removeEventListener('command', arguments.callee, true);
-//     WARN("Got deactivated: "+e.originalTarget.windowState); // Ci.nsIDOMChromeWindow.STATE_MINIMIZED|STATE_NORMAL
-//     WARN("attrName: "+e.attrName);
-//   },
-//   false);

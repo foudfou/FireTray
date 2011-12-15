@@ -13,6 +13,9 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes-utils.jsm");
 
 function glib_defines(lib) {
+  /* mutual inclusion not possible */
+  this.GQuark = ctypes.uint32_t; // this.GQuark = gobject.guint32;
+
   this.GError = ctypes.StructType("GError");
 };
 

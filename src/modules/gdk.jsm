@@ -133,6 +133,7 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_destroy", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_x11_window_set_user_time", ctypes.void_t, this.GdkWindow.ptr, gobject.guint32);
   lib.lazy_bind("gdk_window_hide", ctypes.void_t, this.GdkWindow.ptr);
+  lib.lazy_bind("gdk_window_show", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_screen_get_default", this.GdkScreen.ptr);
   lib.lazy_bind("gdk_screen_get_toplevel_windows", gobject.GList.ptr, this.GdkScreen.ptr);
   lib.lazy_bind("gdk_pixbuf_new_from_file", this.GdkPixbuf.ptr, gobject.gchar.ptr, glib.GError.ptr.ptr);
