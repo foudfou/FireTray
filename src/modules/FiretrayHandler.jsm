@@ -59,12 +59,12 @@ firetray.Handler = {
     LOG("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
     switch (this.runtimeOS) {
     case "Linux":
-      Cu.import("resource://firetray/FiretrayIconLinux.jsm");
-      LOG('FiretrayIconLinux imported');
+      Cu.import("resource://firetray/gtk2/FiretrayStatusIcon.jsm");
+      LOG('FiretrayStatusIcon imported');
 
       // instanciate tray icon
-      firetray.IconLinux.init();
-      LOG('IconLinux initialized');
+      firetray.StatusIcon.init();
+      LOG('StatusIcon initialized');
 
       break;
     default:
@@ -100,7 +100,7 @@ firetray.Handler = {
 
     switch (this.runtimeOS) {
     case "Linux":
-      firetray.IconLinux.shutdown();
+      firetray.StatusIcon.shutdown();
       break;
     default:
       ERROR("runtimeOS unknown or undefined.");

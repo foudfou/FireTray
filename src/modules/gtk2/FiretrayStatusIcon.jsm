@@ -46,7 +46,7 @@ var _find_data_t = ctypes.StructType("_find_data_t", [
 ]);
 
 
-firetray.IconLinux = {
+firetray.StatusIcon = {
   trayIcon: null,
   menu: null,
   MIN_FONT_SIZE: 4,
@@ -80,7 +80,7 @@ firetray.IconLinux = {
         ctypes.cast(gtkWin, gtk.GtkWidget.ptr));
       LOG("gdkWin="+gdkWin);
 
-      firetray_iconActivateCb = gtk.GCallbackStatusIconActivate_t(firetray.IconLinux.showHideToTray);
+      firetray_iconActivateCb = gtk.GCallbackStatusIconActivate_t(firetray.StatusIcon.showHideToTray);
       // gobject.g_signal_connect(this.trayIcon, "activate", firetray_iconActivateCb, null);
       gobject.g_signal_connect(this.trayIcon, "activate", firetray_iconActivateCb, gdkWin); // TEST
 
@@ -93,7 +93,7 @@ firetray.IconLinux = {
       LOG("deleteEventHandler="+deleteEventHandler);
       gobject.g_signal_handler_block(gtkWin, deleteEventHandler); // not _disconnect
 
-      firetray_windowDeleteCb = gtk.GCallbackGenericEvent_t(firetray.IconLinux.windowDelete);
+      firetray_windowDeleteCb = gtk.GCallbackGenericEvent_t(firetray.StatusIcon.windowDelete);
       // let res = gobject.g_signal_connect(gtkWin, "delete_event", firetray_windowDeleteCb, null);
       let res = gobject.g_signal_connect(gtkWin, "delete_event", firetray_windowDeleteCb, null);
       LOG("g_connect delete-event="+res);
@@ -101,7 +101,7 @@ firetray.IconLinux = {
 
       /* we'll catch minimize events with Gtk:
        http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
-      firetray_windowStateCb = gtk.GCallbackGenericEvent_t(firetray.IconLinux.windowState);
+      firetray_windowStateCb = gtk.GCallbackGenericEvent_t(firetray.StatusIcon.windowState);
       res = gobject.g_signal_connect(gtkWin, "window-state-event", firetray_windowStateCb, null);
       LOG("g_connect window-state-event="+res);
 
@@ -252,7 +252,7 @@ firetray.IconLinux = {
 
   getGdkWindowHandle: function(win) {
     try {
-      let gtkWin = firetray.IconLinux.getGtkWindowHandle(win);
+      let gtkWin = firetray.StatusIcon.getGtkWindowHandle(win);
       LOG("FOUND: "+gtk.gtk_window_get_title(gtkWin).readString());
       let gdkWin = this.getGdkWindowFromGtkWindow(gtkWin);
       if (!gdkWin.isNull()) {
@@ -281,7 +281,7 @@ firetray.IconLinux = {
   windowDelete: function(gtkWidget, gdkEv, userData){
     LOG("gtk_widget_hide: "+gtkWidget+", "+gdkEv+", "+userData);
     try{
-      let gdkWin = firetray.IconLinux.getGdkWindowFromGtkWindow(gtkWidget);
+      let gdkWin = firetray.StatusIcon.getGdkWindowFromGtkWindow(gtkWidget);
       gdk.gdk_window_hide(gdkWin);
     } catch (x) {
       ERROR(x);
@@ -296,15 +296,15 @@ firetray.IconLinux = {
     return stopPropagation;
   }
 
-}; // firetray.IconLinux
+}; // firetray.StatusIcon
 
 firetray.Handler.setImage = function(filename) {
-  if (!firetray.IconLinux.trayIcon)
+  if (!firetray.StatusIcon.trayIcon)
     return false;
   LOG(filename);
 
   try {
-    gtk.gtk_status_icon_set_from_file(firetray.IconLinux.trayIcon,
+    gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
                                       filename);
   } catch (x) {
     ERROR(x);
@@ -321,11 +321,11 @@ firetray.Handler.setImageDefault = function() {
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
 firetray.Handler.setTooltip = function(toolTipStr) {
-  if (!firetray.IconLinux.trayIcon)
+  if (!firetray.StatusIcon.trayIcon)
     return false;
 
   try {
-    gtk.gtk_status_icon_set_tooltip_text(firetray.IconLinux.trayIcon,
+    gtk.gtk_status_icon_set_tooltip_text(firetray.StatusIcon.trayIcon,
                                          toolTipStr);
   } catch (x) {
     ERROR(x);
@@ -399,8 +399,8 @@ firetray.Handler.setText = function(text, color) { // TODO: split into smaller f
     // fit text to the icon by decreasing font size
     while ( tw.value > (w - border) || th.value > (h - border) ) {
       sz = pango.pango_font_description_get_size(fnt);
-      if(sz < firetray.IconLinux.MIN_FONT_SIZE) {
-        sz = firetray.IconLinux.MIN_FONT_SIZE;
+      if(sz < firetray.StatusIcon.MIN_FONT_SIZE) {
+        sz = firetray.StatusIcon.MIN_FONT_SIZE;
         break;
       }
       sz -= pango.PANGO_SCALE;
@@ -437,7 +437,7 @@ firetray.Handler.setText = function(text, color) { // TODO: split into smaller f
     gdk.gdk_pixbuf_composite(bufAlpha,dest,0,0,w,h,0,0,1,1,gdk.GDK_INTERP_NEAREST,255);
     gobject.g_object_unref(bufAlpha);
 
-    gtk.gtk_status_icon_set_from_pixbuf(firetray.IconLinux.trayIcon, dest);
+    gtk.gtk_status_icon_set_from_pixbuf(firetray.StatusIcon.trayIcon, dest);
   } catch (x) {
     ERROR(x);
     return false;
