@@ -47,7 +47,7 @@ var _find_data_t = ctypes.StructType("_find_data_t", [
 
 
 firetray.IconLinux = {
-  tryIcon: null,
+  trayIcon: null,
   menu: null,
   MIN_FONT_SIZE: 4,
 
