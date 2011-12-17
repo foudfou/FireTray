@@ -35,11 +35,9 @@ firetray.Handler = {
   FILENAME_NEWMAIL: null,
   runtimeOS: null,
   inMailApp: false,
+  windows: [],
 
-  _windowsHidden: false,
-  _handledDOMWindows: [],
-
-  init: function() {            // creates icon
+  init: function() {            // does creates icon
     this.appName = Services.appinfo.name.toLowerCase();
     this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/" +  this.appName + this.FILENAME_SUFFIX);
@@ -48,8 +46,10 @@ firetray.Handler = {
     this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/message-mail-new.png");
 
+/* GTK TEST
     // init all handled windows
     this._updateHandledDOMWindows();
+*/
 
     // OS/platform checks
     this.runtimeABI = Services.appinfo.XPCOMABI;
@@ -61,6 +61,8 @@ firetray.Handler = {
     case "Linux":
       Cu.import("resource://firetray/gtk2/FiretrayStatusIcon.jsm");
       LOG('FiretrayStatusIcon imported');
+      Cu.import("resource://firetray/gtk2/FiretrayWindow.jsm");
+      LOG('FiretrayWindow imported');
 
       // instanciate tray icon
       firetray.StatusIcon.init();
@@ -116,6 +118,9 @@ firetray.Handler = {
   setText: function(text, color) {},
   setTooltip: function(localizedMessage) {},
   setTooltipDefault: function() {},
+  showHideToTray: function() {},
+  registerWindow: function(win) {},
+  unregisterWindow: function(win) {},
 
   _getBaseOrXULWindowFromDOMWindow: function(win, winType) {
     let winInterface, winOut;
@@ -143,24 +148,26 @@ firetray.Handler = {
     return winOut;
   },
 
-  /*
-   * DAMN IT ! getZOrderDOMWindowEnumerator doesn't work on Linux :-(
-   * https://bugzilla.mozilla.org/show_bug.cgi?id=156333, and all windows
-   * seem to have the same zlevel ("normalZ") which is different from the
-   * z-order. There seems to be no means to get/set the z-order at this
-   * time...
-   */
-  _updateHandledDOMWindows: function() {
-    LOG("_updateHandledDOMWindows");
-    this._handledDOMWindows = [];
-    var windowsEnumerator = Services.wm.getEnumerator(null); // returns a nsIDOMWindow
-    while (windowsEnumerator.hasMoreElements()) {
-      this._handledDOMWindows[this._handledDOMWindows.length] =
-        windowsEnumerator.getNext();
-    }
-  },
 
 /* GTK TEST */
+
+  // /*
+  //  * DAMN IT ! getZOrderDOMWindowEnumerator doesn't work on Linux :-(
+  //  * https://bugzilla.mozilla.org/show_bug.cgi?id=156333, and all windows
+  //  * seem to have the same zlevel ("normalZ") which is different from the
+  //  * z-order. There seems to be no means to get/set the z-order at this
+  //  * time...
+  //  */
+  // _updateHandledDOMWindows: function() {
+  //   LOG("_updateHandledDOMWindows");
+  //   this._handledDOMWindows = [];
+  //   var windowsEnumerator = Services.wm.getEnumerator(null); // returns a nsIDOMWindow
+  //   while (windowsEnumerator.hasMoreElements()) {
+  //     this._handledDOMWindows[this._handledDOMWindows.length] =
+  //       windowsEnumerator.getNext();
+  //   }
+  // },
+
   // showHideToTray: function(a1) { // unused param
   //   LOG("showHideToTray");
 

@@ -17,36 +17,17 @@ Cu.import("resource://firetray/libc.jsm");
 Cu.import("resource://firetray/pango.jsm");
 Cu.import("resource://firetray/commons.js");
 
-const Services2 = {};
-XPCOMUtils.defineLazyServiceGetter(
-  Services2,
-  "uuid",
-  "@mozilla.org/uuid-generator;1",
-  "nsIUUIDGenerator"
-);
-
 if ("undefined" == typeof(firetray.Handler))
-  ERROR("FiretrayIcon*.jsm MUST be imported from/after FiretrayHandler !");
+  ERROR("This module MUST be imported from/after FiretrayHandler !");
 
-// pointers to JS functions. should *not* be eaten by GC ("Running global
-// cleanup code from study base classes" ?)
+// pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
 var firetray_iconActivateCb;
 var firetray_popupMenuCb;
 var firetray_menuItemQuitActivateCb;
-var firetray_findGtkWindowByTitleCb;
-var firetray_windowDeleteCb;
-var firetray_windowStateCb;
-
-/**
- * custum type used to pass data in to and out of firetray_findGtkWindowByTitleCb
- */
-var _find_data_t = ctypes.StructType("_find_data_t", [
-  { inTitle: ctypes.char.ptr },
-  { outWindow: gtk.GtkWindow.ptr }
-]);
 
 
 firetray.StatusIcon = {
+  initialized: false,
   trayIcon: null,
   menu: null,
   MIN_FONT_SIZE: 4,
@@ -66,60 +47,23 @@ firetray.StatusIcon = {
 
     firetray.Handler.setTooltipDefault();
 
-    // attach popupMenu to trayIcon
-    try {
+    LOG("showHideToTray: "+firetray.Handler.hasOwnProperty("showHideToTray"));
+    firetray_iconActivateCb = gtk.GCallbackStatusIconActivate_t(firetray.Handler.showHideToTray);
+    let res = gobject.g_signal_connect(firetray.StatusIcon.trayIcon, "activate", firetray_iconActivateCb, null);
+    LOG("g_connect activate="+res);
 
-      /* GTK TEST. initWindow should be done somewhere else
-         (Firetray.WindowLinux ?) */
-      let win = Services.wm.getMostRecentWindow(null);
-      /* NOTE: it should not be necessary to cast gtkWin to a GtkWidget, nor
-         gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK); */
-      let gtkWin = this.getGtkWindowHandle(win);
-      LOG("gtkWin="+gtkWin);
-      let gdkWin = gtk.gtk_widget_get_window(
-        ctypes.cast(gtkWin, gtk.GtkWidget.ptr));
-      LOG("gdkWin="+gdkWin);
-
-      firetray_iconActivateCb = gtk.GCallbackStatusIconActivate_t(firetray.StatusIcon.showHideToTray);
-      // gobject.g_signal_connect(this.trayIcon, "activate", firetray_iconActivateCb, null);
-      gobject.g_signal_connect(this.trayIcon, "activate", firetray_iconActivateCb, gdkWin); // TEST
-
-      /* delete_event_cb (in gtk2/nsWindow.cpp) prevents us from catching
-         "delete-event" */
-
-      let deleteEventId = gobject.g_signal_lookup("delete-event", gtk.gtk_window_get_type());
-      LOG("deleteEventId="+deleteEventId);
-      let deleteEventHandler = gobject.g_signal_handler_find(gtkWin, gobject.G_SIGNAL_MATCH_ID, deleteEventId, 0, null, null, null);
-      LOG("deleteEventHandler="+deleteEventHandler);
-      gobject.g_signal_handler_block(gtkWin, deleteEventHandler); // not _disconnect
-
-      firetray_windowDeleteCb = gtk.GCallbackGenericEvent_t(firetray.StatusIcon.windowDelete);
-      // let res = gobject.g_signal_connect(gtkWin, "delete_event", firetray_windowDeleteCb, null);
-      let res = gobject.g_signal_connect(gtkWin, "delete_event", firetray_windowDeleteCb, null);
-      LOG("g_connect delete-event="+res);
-
-
-      /* we'll catch minimize events with Gtk:
-       http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
-      firetray_windowStateCb = gtk.GCallbackGenericEvent_t(firetray.StatusIcon.windowState);
-      res = gobject.g_signal_connect(gtkWin, "window-state-event", firetray_windowStateCb, null);
-      LOG("g_connect window-state-event="+res);
-
-    } catch (x) {
-      ERROR(x);
-      return false;
-    }
-
+    this.initialized = true;
     return true;
   },
 
   shutdown: function() {
     cairo.close();
-    // glib.close();
     gobject.close();
     gdk.close();
     gtk.close();
     pango.close();
+
+    this.initialized = false;
   },
 
   _buildPopupMenu: function() {
@@ -146,8 +90,7 @@ firetray.StatusIcon = {
        definition) because we need the args passed to it ! As a consequence, we
        need to abandon 'this' in popupMenu() */
     let that = this;
-    firetray_popupMenuCb =
-      gtk.GCallbackMenuPopup_t(that.popupMenu);
+    firetray_popupMenuCb = gtk.GCallbackMenuPopup_t(that.popupMenu);
     gobject.g_signal_connect(this.trayIcon, "popup-menu",
                              firetray_popupMenuCb, this.menu);
   },
@@ -165,135 +108,6 @@ firetray.StatusIcon = {
     } catch (x) {
       LOG(x);
     }
-
-  },
-
-  /**
-   * Iterate over all Gtk toplevel windows to find a window. We rely on
-   * Service.wm to watch windows correctly: we should find only one window.
-   *
-   * @author Nils Maier (stolen from MiniTrayR)
-   * @param window nsIDOMWindow from Services.wm
-   * @return a gtk.GtkWindow.ptr
-   */
-  getGtkWindowHandle: function(window) {
-    let baseWindow = window
-      .QueryInterface(Ci.nsIInterfaceRequestor)
-      .getInterface(Ci.nsIWebNavigation)
-      .QueryInterface(Ci.nsIBaseWindow);
-
-    // Tag the base window
-    let oldTitle = baseWindow.title;
-    baseWindow.title = Services2.uuid.generateUUID().toString();
-
-    try {
-      // Search the window by the *temporary* title
-      let widgets = gtk.gtk_window_list_toplevels();
-      let that = this;
-      firetray_findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle);
-      var userData = new _find_data_t(
-        ctypes.char.array()(baseWindow.title),
-        null
-      ).address();
-      LOG("userData="+userData);
-      gobject.g_list_foreach(widgets, firetray_findGtkWindowByTitleCb, userData);
-      gobject.g_list_free(widgets);
-
-      if (userData.contents.outWindow.isNull()) {
-        throw new Error("Window not found!");
-      }
-      LOG("found window: "+userData.contents.outWindow);
-    } catch (x) {
-      ERROR(x);
-    } finally {
-      // Restore
-      baseWindow.title = oldTitle;
-    }
-
-    return userData.contents.outWindow;
-  },
-
-  /**
-   * compares a GtkWindow's title with a string passed in userData
-   * @param gtkWidget: GtkWidget from gtk_window_list_toplevels()
-   * @param userData: _find_data_t
-   */
-  _findGtkWindowByTitle: function(gtkWidget, userData) {
-    LOG("GTK Window: "+gtkWidget+", "+userData);
-
-    let data = ctypes.cast(userData, _find_data_t.ptr);
-    let inTitle = data.contents.inTitle;
-    LOG("inTitle="+inTitle.readString());
-
-    let gtkWin = ctypes.cast(gtkWidget, gtk.GtkWindow.ptr);
-    let winTitle = gtk.gtk_window_get_title(gtkWin);
-
-    try {
-      if (!winTitle.isNull()) {
-        LOG(inTitle+" = "+winTitle);
-        if (libc.strcmp(inTitle, winTitle) == 0)
-          data.contents.outWindow = gtkWin;
-      }
-    } catch (x) {
-      ERROR(x);
-    }
-  },
-
-  // FIXME: it may not be worth wrapping gtk_widget_get_window...
-  getGdkWindowFromGtkWindow: function(gtkWin) {
-    try {
-      let gtkWid = ctypes.cast(gtkWin, gtk.GtkWidget.ptr);
-      var gdkWin = gtk.gtk_widget_get_window(gtkWid);
-    } catch (x) {
-      ERROR(x);
-    }
-    return gdkWin;
-  },
-
-  getGdkWindowHandle: function(win) {
-    try {
-      let gtkWin = firetray.StatusIcon.getGtkWindowHandle(win);
-      LOG("FOUND: "+gtk.gtk_window_get_title(gtkWin).readString());
-      let gdkWin = this.getGdkWindowFromGtkWindow(gtkWin);
-      if (!gdkWin.isNull()) {
-        LOG("has window");
-        return gdkWin;
-      }
-    } catch (x) {
-      ERROR(x);
-    }
-    return null;
-  },
-
-  showHideToTray: function(gtkStatusIcon, userData){
-    LOG("showHideToTray: "+userData);
-    try {
-      let gdkWin = ctypes.cast(userData, gdk.GdkWindow.ptr);
-      gdk.gdk_window_show(gdkWin);
-    } catch (x) {
-      ERROR(x);
-    }
-
-    let stopPropagation = true;
-    return stopPropagation;
-  },
-
-  windowDelete: function(gtkWidget, gdkEv, userData){
-    LOG("gtk_widget_hide: "+gtkWidget+", "+gdkEv+", "+userData);
-    try{
-      let gdkWin = firetray.StatusIcon.getGdkWindowFromGtkWindow(gtkWidget);
-      gdk.gdk_window_hide(gdkWin);
-    } catch (x) {
-      ERROR(x);
-    }
-    let stopPropagation = true;
-    return stopPropagation;
-  },
-
-  windowState: function(gtkWidget, gdkEv, userData){
-    LOG("window-state-event");
-    let stopPropagation = true;
-    return stopPropagation;
   }
 
 }; // firetray.StatusIcon
@@ -444,8 +258,4 @@ firetray.Handler.setText = function(text, color) { // TODO: split into smaller f
   }
 
   return true;
-};
-
-firetray.Handler.showHideToTray = function() {
-  // How to do that ?? is called in overlay.xul
 };

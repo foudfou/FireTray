@@ -32,6 +32,7 @@ firetray.Main = {
     }
 
     let init = firetray.Handler.initialized || firetray.Handler.init();
+    firetray.Handler.registerWindow(window);
 
     // update unread messages count
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)

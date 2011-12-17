@@ -129,6 +129,7 @@ function gdk_defines(lib) {
     ctypes.default_abi, this.GdkFilterReturn,
     [this.GdkXEvent.ptr, this.GdkEvent.ptr, gobject.gpointer]).ptr;
 
+  lib.lazy_bind("gdk_x11_drawable_get_xid", x11.XID, this.GdkDrawable.ptr);
   lib.lazy_bind("gdk_window_new", this.GdkWindow.ptr, this.GdkWindow.ptr, this.GdkWindowAttributes.ptr, gobject.gint);
   lib.lazy_bind("gdk_window_destroy", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_x11_window_set_user_time", ctypes.void_t, this.GdkWindow.ptr, gobject.guint32);

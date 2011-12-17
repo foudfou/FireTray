@@ -45,11 +45,13 @@ function x11_defines(lib) {
     this.Atom = ctypes.unsigned_long;
     this.Window = ctypes.unsigned_long;
     this.Time = ctypes.unsigned_long;
+    this.XID = ctypes.unsigned_long;
   } else {
     this.CARD32 = ctypes.unsigned_long;
     this.Atom = this.CARD32;
     this.Window = this.CARD32;
     this.Time =  this.CARD32;
+    this.XID =  this.CARD32;
   }
 
   // X.h
