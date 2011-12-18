@@ -46,11 +46,6 @@ firetray.Handler = {
     this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/message-mail-new.png");
 
-/* GTK TEST
-    // init all handled windows
-    this._updateHandledDOMWindows();
-*/
-
     // OS/platform checks
     this.runtimeABI = Services.appinfo.XPCOMABI;
     this.runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"

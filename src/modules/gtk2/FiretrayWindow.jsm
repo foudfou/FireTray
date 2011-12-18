@@ -43,24 +43,18 @@ var _find_data_t = ctypes.StructType("_find_data_t", [
 
 
 firetray.Handler.registerWindow = function(win) {
+  LOG("register window");
   let that = this;
 
-  /* GTK TEST. */
+  // register
+  let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
+  /* NOTE: it should not be necessary to gtk_widget_add_events(gtkWin,
+   gdk.GDK_ALL_EVENTS_MASK); */
+  this.windows[xid] = {}; // windows.hasOwnProperty(xid) is true, remove with: delete windows[xid]
+  this.windows[xid].gtkWin = gtkWin;
+  this.windows[xid].gdkWin = gdkWin;
+
   try {
-
-    let gtkWin = firetray.Window.getGtkWindowHandle(win);
-    LOG("gtkWin="+gtkWin);
-    let gdkWin = gtk.gtk_widget_get_window(ctypes.cast(gtkWin, gtk.GtkWidget.ptr));
-    LOG("gdkWin="+gdkWin);
-    /* NOTE: it should not be necessary to gtk_widget_add_events(gtkWin,
-       gdk.GDK_ALL_EVENTS_MASK); */
-
-    // register
-    let xid = gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
-    LOG("XID="+xid);
-    this.windows[xid] = {}; // windows.hasOwnProperty(xid) is true, remove with: delete windows[xid]
-    this.windows[xid].gtkWin = gtkWin;
-    this.windows[xid].gdkWin = gdkWin;
 
     /* delete_event_cb (in gtk2/nsWindow.cpp) prevents us from catching
      "delete-event" */
@@ -82,6 +76,7 @@ firetray.Handler.registerWindow = function(win) {
     LOG("g_connect window-state-event="+res);
 
   } catch (x) {
+    this._unregisterWindowByXID(xid);
     ERROR(x);
     return false;
   }
@@ -89,7 +84,22 @@ firetray.Handler.registerWindow = function(win) {
   return true;
 };
 
-firetray.Handler.unregisterWindow = function(win) {};
+firetray.Handler.unregisterWindow = function(win) {
+  LOG("unregister window");
+
+  let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
+  return this._unregisterWindowByXID(xid);
+};
+
+firetray.Handler._unregisterWindowByXID = function(xid) {
+  if (this.windows.hasOwnProperty(xid))
+    delete this.windows[xid];
+  else {
+    ERROR("can't unregister unknown window "+xid);
+    return false;
+  }
+  return true;
+};
 
 firetray.Handler.showHideToTray = function(gtkStatusIcon, userData) {
   LOG("showHideToTray: "+userData);
@@ -181,30 +191,28 @@ firetray.Window = {
     }
   },
 
-  // FIXME: it may not be worth wrapping gtk_widget_get_window...
   getGdkWindowFromGtkWindow: function(gtkWin) {
     try {
       let gtkWid = ctypes.cast(gtkWin, gtk.GtkWidget.ptr);
-      var gdkWin = gtk.gtk_widget_get_window(gtkWid);
-    } catch (x) {
-      ERROR(x);
-    }
-    return gdkWin;
-  },
-
-  getGdkWindowHandle: function(win) {
-    try {
-      let gtkWin = firetray.Window.getGtkWindowHandle(win);
-      LOG("FOUND: "+gtk.gtk_window_get_title(gtkWin).readString());
-      let gdkWin = this.getGdkWindowFromGtkWindow(gtkWin);
-      if (!gdkWin.isNull()) {
-        LOG("has window");
-        return gdkWin;
-      }
+      return gtk.gtk_widget_get_window(gtkWid);
     } catch (x) {
       ERROR(x);
     }
     return null;
+  },
+
+  getXIDFromGdkWindow: function(gdkWin) {
+    return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
+  },
+
+  getWindowsFromChromeWindow: function(win) {
+    let gtkWin = firetray.Window.getGtkWindowHandle(win);
+    LOG("gtkWin="+gtkWin);
+    let gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWin);
+    LOG("gdkWin="+gdkWin);
+    let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
+    LOG("XID="+xid);
+    return [gtkWin, gdkWin, xid];
   },
 
   windowDelete: function(gtkWidget, gdkEv, userData){

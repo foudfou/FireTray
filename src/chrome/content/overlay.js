@@ -54,10 +54,13 @@ firetray.Main = {
     // Remove observer
     let that = this;
     firetray.Utils.prefService.removeObserver("", that);
-    LOG('Firetray UNLOADED !');
+
+    firetray.Handler.unregisterWindow(window);
+
     /* NOTE: don't firetray.Handler.initialized=false here, otherwise after a
      window close, a new window will create a new handler (and hence, a new
      tray icon) */
+    LOG('Firetray UNLOADED !');
   },
 
 /* GTK TEST
