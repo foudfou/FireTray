@@ -48,11 +48,13 @@ firetray.Handler.registerWindow = function(win) {
 
   // register
   let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
-  /* NOTE: it should not be necessary to gtk_widget_add_events(gtkWin,
-   gdk.GDK_ALL_EVENTS_MASK); */
-  this.windows[xid] = {}; // windows.hasOwnProperty(xid) is true, remove with: delete windows[xid]
+  this.windows[xid] = {};
+  this.windows[xid].win = win;
   this.windows[xid].gtkWin = gtkWin;
   this.windows[xid].gdkWin = gdkWin;
+  LOG("window "+xid+" registered");
+  /* NOTE: it should not be necessary to gtk_widget_add_events(gtkWin,
+   gdk.GDK_ALL_EVENTS_MASK); */
 
   try {
 
@@ -60,20 +62,21 @@ firetray.Handler.registerWindow = function(win) {
      "delete-event" */
     let deleteEventId = gobject.g_signal_lookup("delete-event", gtk.gtk_window_get_type());
     LOG("deleteEventId="+deleteEventId);
-    let mozDeleteEventCb = gobject.g_signal_handler_find(gtkWin, gobject.G_SIGNAL_MATCH_ID, deleteEventId, 0, null, null, null);
-    LOG("mozDeleteEventCb="+mozDeleteEventCb);
-    gobject.g_signal_handler_block(gtkWin, mozDeleteEventCb); // not _disconnect !
-    this.windows[xid].mozDeleteEventCb = mozDeleteEventCb; // FIXME: cb should be unblocked
+    let mozDeleteEventCbId = gobject.g_signal_handler_find(gtkWin, gobject.G_SIGNAL_MATCH_ID, deleteEventId, 0, null, null, null);
+    LOG("mozDeleteEventCbId="+mozDeleteEventCbId);
+    gobject.g_signal_handler_block(gtkWin, mozDeleteEventCbId); // not _disconnect !
+    this.windows[xid].mozDeleteEventCbId = mozDeleteEventCbId;
 
     this.windows[xid].windowDeleteCb = gtk.GCallbackGenericEvent_t(firetray.Window.windowDelete);
-    res = gobject.g_signal_connect(gtkWin, "delete-event", that.windows[xid].windowDeleteCb, null);
-    LOG("g_connect delete-event="+res);
+    // NOTE: it'd be nice to pass the xid to g_signal_connect...
+    this.windows[xid].windowDeleteCbId = gobject.g_signal_connect(gtkWin, "delete-event", that.windows[xid].windowDeleteCb, null);
+    LOG("g_connect delete-event="+this.windows[xid].windowDeleteCbId);
 
     /* we'll catch minimize events with Gtk:
      http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
-    this.windows[xid].windowStateCb = gtk.GCallbackGenericEvent_t(firetray.Window.windowState);
-    res = gobject.g_signal_connect(gtkWin, "window-state-event", this.windows[xid].windowStateCb, null);
-    LOG("g_connect window-state-event="+res);
+    this.windows[xid].windowStateCb = gtk.GCallbackWindowStateEvent_t(firetray.Window.windowState);
+    this.windows[xid].windowStateCbId = gobject.g_signal_connect(gtkWin, "window-state-event", this.windows[xid].windowStateCb, null);
+    LOG("g_connect window-state-event="+this.windows[xid].windowStateCbId);
 
   } catch (x) {
     this._unregisterWindowByXID(xid);
@@ -87,30 +90,55 @@ firetray.Handler.registerWindow = function(win) {
 firetray.Handler.unregisterWindow = function(win) {
   LOG("unregister window");
 
-  let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
-  return this._unregisterWindowByXID(xid);
+  try {
+    let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
+
+    // unblock Moz original delete-event handler
+    gobject.g_signal_handler_disconnect(gtkWin, this.windows[xid].windowDeleteCbId);
+    gobject.g_signal_handler_unblock(gtkWin, this.windows[xid].mozDeleteEventCbId);
+
+    return this._unregisterWindowByXID(xid);
+  } catch (x) {
+    ERROR(x);
+  }
+  return null;
 };
 
 firetray.Handler._unregisterWindowByXID = function(xid) {
+    try {
   if (this.windows.hasOwnProperty(xid))
     delete this.windows[xid];
   else {
     ERROR("can't unregister unknown window "+xid);
     return false;
   }
-  return true;
-};
-
-firetray.Handler.showHideToTray = function(gtkStatusIcon, userData) {
-  LOG("showHideToTray: "+userData);
-
-  for (let xid in firetray.Handler.windows) {
-    LOG(xid);
-    try {
-      gdk.gdk_window_show(firetray.Handler.windows[xid].gdkWin);
     } catch (x) {
       ERROR(x);
     }
+  LOG("window "+xid+" unregistered");
+  return true;
+};
+
+firetray.Handler.showSingleWindow = function(xid) {
+    try {
+      // keep z-order - and try to restore previous state
+      LOG("gdkWin="+firetray.Handler.windows[xid].gdkWin);
+      gdk.gdk_window_show_unraised(firetray.Handler.windows[xid].gdkWin);
+      // need to restore *after* showing for correction
+      // firetray.Window._restoreWindowPositionSizeState(xid);
+    } catch (x) {
+      ERROR(x);
+    }
+};
+
+firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
+  LOG("showHideAllWindows: "+userData);
+
+  // NOTE: showHideAllWindows being a callback, we need to use 'firetray.Handler'
+  // explicitely instead of 'this'
+  for (let xid in firetray.Handler.windows) {
+    LOG("show xid="+xid);
+    firetray.Handler.showSingleWindow(xid);
   }
 
   let stopPropagation = true;
@@ -136,6 +164,7 @@ firetray.Window = {
 
     // Tag the base window
     let oldTitle = baseWindow.title;
+    LOG("oldTitle="+oldTitle);
     baseWindow.title = Services2.uuid.generateUUID().toString();
 
     try {
@@ -205,6 +234,16 @@ firetray.Window = {
     return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
   },
 
+  getXIDFromGtkWidget: function(gtkWid) {
+    try {
+      let gdkWin = gtk.gtk_widget_get_window(gtkWid);
+      return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
+    } catch (x) {
+      ERROR(x);
+    }
+    return null;
+  },
+
   getWindowsFromChromeWindow: function(win) {
     let gtkWin = firetray.Window.getGtkWindowHandle(win);
     LOG("gtkWin="+gtkWin);
@@ -217,18 +256,68 @@ firetray.Window = {
 
   windowDelete: function(gtkWidget, gdkEv, userData){
     LOG("gtk_widget_hide: "+gtkWidget+", "+gdkEv+", "+userData);
-    try{
+    let xid = firetray.Window.getXIDFromGtkWidget(gtkWidget);
+    LOG("windowDelete XID="+xid);
+
+    try {
+      firetray.Window._saveWindowPositionSizeState(xid);
+
+      // hide window - NOTE: we don't use BaseWindow.visibility to have full
+      // control
       let gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWidget);
       gdk.gdk_window_hide(gdkWin);
     } catch (x) {
       ERROR(x);
     }
+
     let stopPropagation = true;
     return stopPropagation;
   },
 
-  windowState: function(gtkWidget, gdkEv, userData){
-    LOG("window-state-event");
+  _saveWindowPositionSizeState: function(xid) {
+    let gdkWin = firetray.Handler.windows[xid].gdkWin;
+
+    try {
+      let gx = new gobject.gint; let gy = new gobject.gint;
+      // gtk.gtk_window_get_position(gtkWin, gx.address(), gy.address());
+      gdk.gdk_window_get_position(gdkWin, gx.address(), gy.address());
+      let gwidth = new gobject.gint; let gheight = new gobject.gint;
+      // gtk.gtk_window_get_size(gtkWin, gwidth.address(), gheight.address());
+      gdk.gdk_drawable_get_size(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr), gwidth.address(), gheight.address());
+      let windowState  = gdk.gdk_window_get_state(firetray.Handler.windows[xid].gdkWin);
+      LOG("gx="+gx+", gy="+gy+", gwidth="+gwidth+", gheight="+gheight+", windowState="+windowState);
+      firetray.Handler.windows[xid].savedX = gx;
+      firetray.Handler.windows[xid].savedY = gy;
+      firetray.Handler.windows[xid].savedWidth = gwidth;
+      firetray.Handler.windows[xid].savedHeight = gheight;
+      firetray.Handler.windows[xid].savedState = windowState;
+    } catch (x) {
+      ERROR(x);
+    }
+
+  },
+
+  _restoreWindowPositionSizeState: function(xid) {
+    let gdkWin = firetray.Handler.windows[xid].gdkWin;
+    if (!firetray.Handler.windows[xid].savedX)
+      return; // windows[xid].saved* may not be initialized
+
+    LOG("restore gdkWin: "+gdkWin+", x="+firetray.Handler.windows[xid].savedX+", y="+firetray.Handler.windows[xid].savedY+", w="+firetray.Handler.windows[xid].savedWidth+", h="+firetray.Handler.windows[xid].savedHeight);
+    try {
+      gdk.gdk_window_move_resize(gdkWin,
+                                 firetray.Handler.windows[xid].savedX,
+                                 firetray.Handler.windows[xid].savedY,
+                                 firetray.Handler.windows[xid].savedWidth,
+                                 firetray.Handler.windows[xid].savedHeight);
+      // firetray.Handler.windows[xid].savedState
+    } catch (x) {
+      ERROR(x);
+    }
+  },
+
+  windowState: function(gtkWidget, gdkEventState, userData){
+    // LOG("window-state-event");
+    // if(event->new_window_state & GDK_WINDOW_STATE_ICONIFIED){
     let stopPropagation = true;
     return stopPropagation;
   }

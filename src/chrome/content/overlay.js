@@ -16,7 +16,7 @@ if ("undefined" == typeof(firetray)) {
 
 firetray.Main = {
 
-  onLoad: function(e) {
+  onLoad: function(win) {
     // initialization code
     this.strings = document.getElementById("firetray-strings");
 
@@ -32,7 +32,7 @@ firetray.Main = {
     }
 
     let init = firetray.Handler.initialized || firetray.Handler.init();
-    firetray.Handler.registerWindow(window);
+    firetray.Handler.registerWindow(win);
 
     // update unread messages count
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
@@ -50,12 +50,12 @@ firetray.Main = {
     return true;
   },
 
-  onQuit: function(e) {
+  onQuit: function(win) {
     // Remove observer
     let that = this;
     firetray.Utils.prefService.removeObserver("", that);
 
-    firetray.Handler.unregisterWindow(window);
+    firetray.Handler.unregisterWindow(win);
 
     /* NOTE: don't firetray.Handler.initialized=false here, otherwise after a
      window close, a new window will create a new handler (and hence, a new
@@ -64,8 +64,7 @@ firetray.Main = {
   },
 
 /* GTK TEST
-  // TODO: prevent preceding warning about closing multiple tabs
-  // (browser.tabs.warnOnClose)
+  // TODO: prevent preceding warning about closing multiple tabs (browser.tabs.warnOnClose)
   onClose: function(event) {
     LOG('Firetray CLOSE');
     let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
@@ -90,13 +89,14 @@ firetray.Main = {
 // https://developer.mozilla.org/en/Extensions/Performance_best_practices_in_extensions
 // https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
 // https://developer.mozilla.org/en/Extensions/Performance_best_practices_in_extensions#Removing_Event_Listeners
+let thatWindow = window;
 window.addEventListener(
   'load', function (e) {
     removeEventListener('load', arguments.callee, true);
-    firetray.Main.onLoad(); },
+    firetray.Main.onLoad(thatWindow); },
   false);
 window.addEventListener(
   'unload', function (e) {
     removeEventListener('unload', arguments.callee, true);
-    firetray.Main.onQuit(); },
+    firetray.Main.onQuit(thatWindow); },
   false);

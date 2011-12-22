@@ -113,7 +113,7 @@ firetray.Handler = {
   setText: function(text, color) {},
   setTooltip: function(localizedMessage) {},
   setTooltipDefault: function() {},
-  showHideToTray: function() {},
+  showHideAllWindows: function() {},
   registerWindow: function(win) {},
   unregisterWindow: function(win) {},
 

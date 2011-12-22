@@ -61,8 +61,53 @@ function gdk_defines(lib) {
   this.GDK_FILTER_TRANSLATE = 1;
   this.GDK_FILTER_REMOVE    = 2;
   this.GdkWindowState = ctypes.int; // enum
-  this.GDK_WINDOW_STATE_ICONIFIED = 2;
-  this.GDK_WINDOW_STATE_MAXIMIZED = 4;
+  this.GDK_WINDOW_STATE_WITHDRAWN  = 1 << 0,
+  this.GDK_WINDOW_STATE_ICONIFIED  = 1 << 1,
+  this.GDK_WINDOW_STATE_MAXIMIZED  = 1 << 2,
+  this.GDK_WINDOW_STATE_STICKY     = 1 << 3,
+  this.GDK_WINDOW_STATE_FULLSCREEN = 1 << 4,
+  this.GDK_WINDOW_STATE_ABOVE      = 1 << 5,
+  this.GDK_WINDOW_STATE_BELOW      = 1 << 6;
+  this.GdkEventType = ctypes.int; // enum
+  this.GDK_NOTHING           = -1;
+  this.GDK_DELETE            = 0;
+  this.GDK_DESTROY           = 1;
+  this.GDK_EXPOSE            = 2;
+  this.GDK_MOTION_NOTIFY     = 3;
+  this.GDK_BUTTON_PRESS      = 4;
+  this.GDK_2BUTTON_PRESS     = 5;
+  this.GDK_3BUTTON_PRESS     = 6;
+  this.GDK_BUTTON_RELEASE    = 7;
+  this.GDK_KEY_PRESS         = 8;
+  this.GDK_KEY_RELEASE       = 9;
+  this.GDK_ENTER_NOTIFY      = 10;
+  this.GDK_LEAVE_NOTIFY      = 11;
+  this.GDK_FOCUS_CHANGE      = 12;
+  this.GDK_CONFIGURE         = 13;
+  this.GDK_MAP               = 14;
+  this.GDK_UNMAP             = 15;
+  this.GDK_PROPERTY_NOTIFY   = 16;
+  this.GDK_SELECTION_CLEAR   = 17;
+  this.GDK_SELECTION_REQUEST = 18;
+  this.GDK_SELECTION_NOTIFY  = 19;
+  this.GDK_PROXIMITY_IN      = 20;
+  this.GDK_PROXIMITY_OUT     = 21;
+  this.GDK_DRAG_ENTER        = 22;
+  this.GDK_DRAG_LEAVE        = 23;
+  this.GDK_DRAG_MOTION       = 24;
+  this.GDK_DRAG_STATUS       = 25;
+  this.GDK_DROP_START        = 26;
+  this.GDK_DROP_FINISHED     = 27;
+  this.GDK_CLIENT_EVENT      = 28;
+  this.GDK_VISIBILITY_NOTIFY = 29;
+  this.GDK_NO_EXPOSE         = 30;
+  this.GDK_SCROLL            = 31;
+  this.GDK_WINDOW_STATE      = 32;
+  this.GDK_SETTING           = 33;
+  this.GDK_OWNER_CHANGE      = 34;
+  this.GDK_GRAB_BROKEN       = 35;
+  this.GDK_DAMAGE            = 36;
+  this.GDK_EVENT_LAST = 37;      /* helper variable for decls */
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -124,6 +169,13 @@ function gdk_defines(lib) {
   this.GdkEvent = ctypes.void_t;
   this.GdkDisplay = ctypes.StructType("GdkDisplay");
   this.GdkFilterFunc = ctypes.voidptr_t;
+  this.GdkEventWindowState = ctypes.StructType("GdkEventWindowState", [
+    { "type": this.GdkEventType },
+    { "window": this.GdkWindow.ptr },
+    { "send_event": gobject.gint8 },
+    { "changed_mask": this.GdkWindowState },
+    { "new_window_state": this.GdkWindowState },
+  ]);
 
   this.GdkFilterFunc_t = ctypes.FunctionType(
     ctypes.default_abi, this.GdkFilterReturn,
@@ -134,7 +186,7 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_destroy", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_x11_window_set_user_time", ctypes.void_t, this.GdkWindow.ptr, gobject.guint32);
   lib.lazy_bind("gdk_window_hide", ctypes.void_t, this.GdkWindow.ptr);
-  lib.lazy_bind("gdk_window_show", ctypes.void_t, this.GdkWindow.ptr);
+  lib.lazy_bind("gdk_window_show_unraised", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_screen_get_default", this.GdkScreen.ptr);
   lib.lazy_bind("gdk_screen_get_toplevel_windows", gobject.GList.ptr, this.GdkScreen.ptr);
   lib.lazy_bind("gdk_pixbuf_new_from_file", this.GdkPixbuf.ptr, gobject.gchar.ptr, glib.GError.ptr.ptr);
@@ -169,6 +221,11 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_display_get_default", this.GdkDisplay.ptr);
   lib.lazy_bind("gdk_x11_display_get_xdisplay", x11.Display.ptr, this.GdkDisplay.ptr);
   lib.lazy_bind("gdk_window_get_state", this.GdkWindowState, this.GdkWindow.ptr);
+  lib.lazy_bind("gdk_window_get_position", ctypes.void_t, this.GdkWindow.ptr, gobject.gint.ptr, gobject.gint.ptr);
+  lib.lazy_bind("gdk_drawable_get_size", ctypes.void_t, this.GdkDrawable.ptr, gobject.gint.ptr, gobject.gint.ptr);
+  // lib.lazy_bind("gdk_window_get_geometry", ctypes.void_t, this.GdkWindow.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr);
+  lib.lazy_bind("gdk_window_move_resize", ctypes.void_t, this.GdkWindow.ptr, gobject.gint, gobject.gint, gobject.gint, gobject.gint);
+
 }
 
 if (!gdk) {

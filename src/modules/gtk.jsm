@@ -63,6 +63,9 @@ function gtk_defines(lib) {
   this.GCallbackGenericEvent_t = ctypes.FunctionType(
     ctypes.default_abi, gobject.gboolean,
     [this.GtkWidget.ptr, gdk.GdkEvent.ptr, gobject.gpointer]).ptr;
+  this.GCallbackWindowStateEvent_t = ctypes.FunctionType(
+    ctypes.default_abi, gobject.gboolean,
+    [this.GtkWidget.ptr, gdk.GdkEventWindowState.ptr, gobject.gpointer]).ptr;
 
   lib.lazy_bind("gtk_status_icon_new", this.GtkStatusIcon.ptr);
   lib.lazy_bind("gtk_status_icon_set_from_file", ctypes.void_t,
@@ -110,6 +113,15 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_widget_get_events", gobject.gint, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_add_events", ctypes.void_t, this.GtkWidget.ptr, gobject.gint);
   lib.lazy_bind("gtk_window_get_type", gobject.GType);
+  lib.lazy_bind("gtk_window_get_position", ctypes.void_t, this.GtkWindow.ptr, gobject.gint.ptr, gobject.gint.ptr);
+  lib.lazy_bind("gtk_window_move", ctypes.void_t, this.GtkWindow.ptr, gobject.gint, gobject.gint);
+  lib.lazy_bind("gtk_window_get_size", ctypes.void_t, this.GtkWindow.ptr, gobject.gint.ptr, gobject.gint.ptr);
+  lib.lazy_bind("gtk_window_resize", ctypes.void_t, this.GtkWindow.ptr, gobject.gint, gobject.gint);
+  lib.lazy_bind("gtk_window_iconify", gobject.gint, this.GtkWindow.ptr);
+  lib.lazy_bind("gtk_window_stick", gobject.gint, this.GtkWindow.ptr);
+  lib.lazy_bind("gtk_window_maximize", gobject.gint, this.GtkWindow.ptr);
+  lib.lazy_bind("gtk_window_fullscreen", gobject.gint, this.GtkWindow.ptr);
+
 }
 
 if (!gtk) {

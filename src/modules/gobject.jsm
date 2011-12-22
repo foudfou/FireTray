@@ -89,6 +89,7 @@ function gobject_defines(lib) {
   this.guint32 = ctypes.uint32_t;
   this.guint16 = ctypes.uint16_t;
   this.gint = ctypes.int;
+  this.gint8 = ctypes.int8_t;
   this.gchar = ctypes.char;
   this.guchar = ctypes.unsigned_char;
   this.gboolean = this.gint;

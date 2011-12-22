@@ -47,8 +47,8 @@ firetray.StatusIcon = {
 
     firetray.Handler.setTooltipDefault();
 
-    LOG("showHideToTray: "+firetray.Handler.hasOwnProperty("showHideToTray"));
-    firetray_iconActivateCb = gtk.GCallbackStatusIconActivate_t(firetray.Handler.showHideToTray);
+    LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
+    firetray_iconActivateCb = gtk.GCallbackStatusIconActivate_t(firetray.Handler.showHideAllWindows);
     let res = gobject.g_signal_connect(firetray.StatusIcon.trayIcon, "activate", firetray_iconActivateCb, null);
     LOG("g_connect activate="+res);
 
