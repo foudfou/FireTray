@@ -16,15 +16,16 @@ if ("undefined" == typeof(firetray)) {
 
 firetray.Main = {
 
-  onLoad: function(win) {
+  onLoad: function() {
+    window.removeEventListener('load', arguments.callee, true);
+
     // initialization code
     this.strings = document.getElementById("firetray-strings");
 
     try {
       // Set up preference change observer
       firetray.Utils.prefService.QueryInterface(Ci.nsIPrefBranch2);
-      let that = this;
-      firetray.Utils.prefService.addObserver("", that, false);
+      firetray.Utils.prefService.addObserver("", firetray.Main, false);
     }
     catch (ex) {
       ERROR(ex);
@@ -32,30 +33,28 @@ firetray.Main = {
     }
 
     let init = firetray.Handler.initialized || firetray.Handler.init();
-    firetray.Handler.registerWindow(win);
+    firetray.Handler.registerWindow(window);
 
     // update unread messages count
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
       firetray.Messaging.updateUnreadMsgCount();
 
-/* GTK TEST
     // prevent window closing.
-    let that = this;
-    window.addEventListener('close', that.onClose, true);
+    window.addEventListener('close', firetray.Main.onClose, true);
     // NOTE: each new window gets a new firetray.Main, and hence listens to pref
     // changes
-*/
 
     LOG('Firetray LOADED: ' + init);
     return true;
   },
 
-  onQuit: function(win) {
-    // Remove observer
-    let that = this;
-    firetray.Utils.prefService.removeObserver("", that);
+  onQuit: function(e) {
+    window.removeEventListener('unload', arguments.callee, true);
 
-    firetray.Handler.unregisterWindow(win);
+    // Remove observer
+    firetray.Utils.prefService.removeObserver("", firetray.Main);
+
+    firetray.Handler.unregisterWindow(window);
 
     /* NOTE: don't firetray.Handler.initialized=false here, otherwise after a
      window close, a new window will create a new handler (and hence, a new
@@ -63,18 +62,21 @@ firetray.Main = {
     LOG('Firetray UNLOADED !');
   },
 
-/* GTK TEST
   // TODO: prevent preceding warning about closing multiple tabs (browser.tabs.warnOnClose)
   onClose: function(event) {
     LOG('Firetray CLOSE');
     let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
-    LOG('hides_on_close: '+hides_on_close);
+    let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+    LOG('hides_on_close: '+hides_on_close+', hides_single_window='+hides_single_window);
+    LOG('event.originalTarget: '+event.originalTarget);
     if (hides_on_close) {
-      firetray.Handler.showHideToTray();
+      if (hides_single_window)
+        firetray.Window.hideWindow(window);
+      else
+        firetray.Handler.hideAllWindows(window);
       event && event.preventDefault(); // no event when called directly (xul)
     }
   },
-*/
 
   observe: function(subject, topic, data) {
     // Observer for pref changes
@@ -86,17 +88,7 @@ firetray.Main = {
 };
 
 // should be sufficient for a delayed Startup (no need for window.setTimeout())
-// https://developer.mozilla.org/en/Extensions/Performance_best_practices_in_extensions
 // https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
 // https://developer.mozilla.org/en/Extensions/Performance_best_practices_in_extensions#Removing_Event_Listeners
-let thatWindow = window;
-window.addEventListener(
-  'load', function (e) {
-    removeEventListener('load', arguments.callee, true);
-    firetray.Main.onLoad(thatWindow); },
-  false);
-window.addEventListener(
-  'unload', function (e) {
-    removeEventListener('unload', arguments.callee, true);
-    firetray.Main.onQuit(thatWindow); },
-  false);
+window.addEventListener('load', firetray.Main.onLoad, false);
+window.addEventListener('unload', firetray.Main.onQuit, false);

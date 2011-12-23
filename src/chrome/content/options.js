@@ -23,7 +23,9 @@ const TREELEVEL_EXCLUDED_ACCOUNTS = 1;
 firetray.UIOptions = {
   strings: null,
 
-  onLoad: function() {
+  onLoad: function(e) {
+    window.removeEventListener('load', arguments.callee, true);
+
     this.strings = document.getElementById("firetray-options-strings");
 
     if(firetray.Handler.inMailApp) {
@@ -36,7 +38,9 @@ firetray.UIOptions = {
 
   },
 
-  onQuit: function() {
+  onQuit: function(e) {
+    window.removeEventListener('unload', arguments.callee, true);
+
     // cleaning: removeEventListener on cells
     // NOTE: not sure this is necessary on window close
     let tree = document.getElementById("ui_tree_mail_accounts");
@@ -415,13 +419,5 @@ firetray.UIOptions = {
 };
 
 
-window.addEventListener(
-  'load', function (e) {
-    removeEventListener('load', arguments.callee, true);
-    firetray.UIOptions.onLoad(); },
-  false);
-window.addEventListener(
-  'unload', function (e) {
-    removeEventListener('unload', arguments.callee, true);
-    firetray.UIOptions.onQuit(); },
-  false);
+window.addEventListener('load', firetray.UIOptions.onLoad, false);
+window.addEventListener('unload', firetray.UIOptions.onQuit, false);

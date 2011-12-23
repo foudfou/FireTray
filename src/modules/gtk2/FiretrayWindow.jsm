@@ -57,20 +57,9 @@ firetray.Handler.registerWindow = function(win) {
    gdk.GDK_ALL_EVENTS_MASK); */
 
   try {
-
-    /* delete_event_cb (in gtk2/nsWindow.cpp) prevents us from catching
-     "delete-event" */
-    let deleteEventId = gobject.g_signal_lookup("delete-event", gtk.gtk_window_get_type());
-    LOG("deleteEventId="+deleteEventId);
-    let mozDeleteEventCbId = gobject.g_signal_handler_find(gtkWin, gobject.G_SIGNAL_MATCH_ID, deleteEventId, 0, null, null, null);
-    LOG("mozDeleteEventCbId="+mozDeleteEventCbId);
-    gobject.g_signal_handler_block(gtkWin, mozDeleteEventCbId); // not _disconnect !
-    this.windows[xid].mozDeleteEventCbId = mozDeleteEventCbId;
-
-    this.windows[xid].windowDeleteCb = gtk.GCallbackGenericEvent_t(firetray.Window.windowDelete);
-    // NOTE: it'd be nice to pass the xid to g_signal_connect...
-    this.windows[xid].windowDeleteCbId = gobject.g_signal_connect(gtkWin, "delete-event", that.windows[xid].windowDeleteCb, null);
-    LOG("g_connect delete-event="+this.windows[xid].windowDeleteCbId);
+    /* NOTE: we could try to catch the "delete-event" here and block
+       delete_event_cb (in gtk2/nsWindow.cpp), but we prefer to use the
+       provided "close" JS event */
 
     /* we'll catch minimize events with Gtk:
      http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
@@ -91,30 +80,26 @@ firetray.Handler.unregisterWindow = function(win) {
   LOG("unregister window");
 
   try {
-    let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
-
-    // unblock Moz original delete-event handler
-    gobject.g_signal_handler_disconnect(gtkWin, this.windows[xid].windowDeleteCbId);
-    gobject.g_signal_handler_unblock(gtkWin, this.windows[xid].mozDeleteEventCbId);
-
+    let xid = firetray.Window.getXIDFromChromeWindow(win);
     return this._unregisterWindowByXID(xid);
   } catch (x) {
     ERROR(x);
   }
-  return null;
+  return false;
 };
 
 firetray.Handler._unregisterWindowByXID = function(xid) {
-    try {
-  if (this.windows.hasOwnProperty(xid))
-    delete this.windows[xid];
-  else {
-    ERROR("can't unregister unknown window "+xid);
+  try {
+    if (this.windows.hasOwnProperty(xid))
+      delete this.windows[xid];
+    else {
+      ERROR("can't unregister unknown window "+xid);
+      return false;
+    }
+  } catch (x) {
+    ERROR(x);
     return false;
   }
-    } catch (x) {
-      ERROR(x);
-    }
   LOG("window "+xid+" unregistered");
   return true;
 };
@@ -200,11 +185,11 @@ firetray.Window = {
    * @param userData: _find_data_t
    */
   _findGtkWindowByTitle: function(gtkWidget, userData) {
-    LOG("GTK Window: "+gtkWidget+", "+userData);
+    // LOG("GTK Window: "+gtkWidget+", "+userData);
 
     let data = ctypes.cast(userData, _find_data_t.ptr);
     let inTitle = data.contents.inTitle;
-    LOG("inTitle="+inTitle.readString());
+    // LOG("inTitle="+inTitle.readString());
 
     let gtkWin = ctypes.cast(gtkWidget, gtk.GtkWindow.ptr);
     let winTitle = gtk.gtk_window_get_title(gtkWin);
@@ -244,6 +229,7 @@ firetray.Window = {
     return null;
   },
 
+  /** consider using getXIDFromChromeWindow() if you only need the XID */
   getWindowsFromChromeWindow: function(win) {
     let gtkWin = firetray.Window.getGtkWindowHandle(win);
     LOG("gtkWin="+gtkWin);
@@ -254,24 +240,27 @@ firetray.Window = {
     return [gtkWin, gdkWin, xid];
   },
 
-  windowDelete: function(gtkWidget, gdkEv, userData){
-    LOG("gtk_widget_hide: "+gtkWidget+", "+gdkEv+", "+userData);
-    let xid = firetray.Window.getXIDFromGtkWidget(gtkWidget);
-    LOG("windowDelete XID="+xid);
+  getXIDFromChromeWindow: function(win) {
+    for (let xid in firetray.Handler.windows)
+      if (firetray.Handler.windows[xid].win === win)
+        return xid;
+    ERROR("unknown window while lookup");
+    return null;
+  },
 
+  hideWindow: function(win) {
+    LOG("hideWindow");
+    let xid = this.getXIDFromChromeWindow(win);
+    LOG("found xid="+xid);
     try {
       firetray.Window._saveWindowPositionSizeState(xid);
 
       // hide window - NOTE: we don't use BaseWindow.visibility to have full
       // control
-      let gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWidget);
-      gdk.gdk_window_hide(gdkWin);
+      gdk.gdk_window_hide(firetray.Handler.windows[xid].gdkWin);
     } catch (x) {
       ERROR(x);
     }
-
-    let stopPropagation = true;
-    return stopPropagation;
   },
 
   _saveWindowPositionSizeState: function(xid) {
