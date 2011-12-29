@@ -7,24 +7,17 @@ if ("undefined" == typeof(Cc)) var Cc = Components.classes;
 if ("undefined" == typeof(Ci)) var Ci = Components.interfaces;
 if ("undefined" == typeof(Cu)) var Cu = Components.utils;
 
-/**
- * firetray namespace.
- */
-if ("undefined" == typeof(firetray)) {
-  var firetray = {};
-};
-
-firetray.Main = {
-  self: function() { return this; },
+// https://groups.google.com/group/mozilla.dev.extensions/browse_thread/thread/e89e9c2a834ff2b6#
+var firetrayChrome = {
 
   onLoad: function(win) {
-    // initialization code
+    // strings a chrome-specific
     this.strings = document.getElementById("firetray-strings");
 
     try {
       // Set up preference change observer
       firetray.Utils.prefService.QueryInterface(Ci.nsIPrefBranch2);
-      firetray.Utils.prefService.addObserver("", firetray.Main, false);
+      firetray.Utils.prefService.addObserver("", firetrayChrome, false);
     }
     catch (ex) {
       ERROR(ex);
@@ -39,8 +32,8 @@ firetray.Main = {
       firetray.Messaging.updateUnreadMsgCount();
 
     // prevent window closing.
-    win.addEventListener('close', firetray.Main.onClose, true);
-    // NOTE: each new window gets a new firetray.Main, and hence listens to
+    win.addEventListener('close', firetrayChrome.onClose, true);
+    // NOTE: each new window gets a new firetrayChrome, and hence listens to
     // pref changes
 
     LOG('Firetray LOADED: ' + init);
@@ -49,7 +42,7 @@ firetray.Main = {
 
   onQuit: function(win) {
     // Remove observer
-    firetray.Utils.prefService.removeObserver("", firetray.Main);
+    firetray.Utils.prefService.removeObserver("", firetrayChrome);
 
     firetray.Handler.unregisterWindow(win);
 
@@ -87,22 +80,13 @@ firetray.Main = {
 // should be sufficient for a delayed Startup (no need for window.setTimeout())
 // https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management.html
 // https://developer.mozilla.org/en/Extensions/Performance_best_practices_in_extensions#Removing_Event_Listeners
-/* NOTE: this is tricky: it seems we need to keep some reference to 'firetray'
-   outside listeners. Otherwise the following will fail: open a new window
-   twice, and close them (CTRL-w). On the second close, onQuit fails because
-   globals ('firetray', 'Ci', ...) are undefined. THIS IS BECAUSE 'firetray'
-   GETS DEFINED IN commons.js !! I could achieve the "linkage" in two ways:
-   1. bind some method of firetray.Main to itself, or 2. use handlers instead
-   of an anonymous function in the listeners: window.addEventListener('load',
-   firetray.Main.onLoad, false); */
-var firetrayMain = firetray.Main.self.bind(firetray.Main);
 window.addEventListener(
   'load', function (e) {
     removeEventListener('load', arguments.callee, true);
-    firetrayMain().onLoad(this); },
+    firetrayChrome.onLoad(this); },
   false);
 window.addEventListener(
   'unload', function (e) {
     removeEventListener('unload', arguments.callee, true);
-    firetrayMain().onQuit(this); },
+    firetrayChrome.onQuit(this); },
   false);
