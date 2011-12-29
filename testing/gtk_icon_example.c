@@ -71,7 +71,7 @@ static void winShowHide(GtkMenuItem *item, gpointer window)
 SetIconText(GtkStatusIcon *tray_icon, const char *text, const char *color) {
 
   // build background from image
-  GdkPixbuf* special_icon = gdk_pixbuf_new_from_file("newmail.png", NULL); // GError **error);
+  GdkPixbuf* special_icon = gdk_pixbuf_new_from_file("message-mail-new.png", NULL); // GError **error);
   GdkPixbuf *dest = gdk_pixbuf_copy(special_icon);
   int w=gdk_pixbuf_get_width(special_icon);
   int h=gdk_pixbuf_get_height(special_icon);
