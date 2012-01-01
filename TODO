@@ -1,10 +1,9 @@
 TODO
 ----
 
-* convert to a https://developer.mozilla.org/en/Extensions/Bootstrapped_extensions
+* restore window state
 
-see ../restartless-restart-ffext/ and
-http://erikvold.com/blog/index.cfm/2010/10/28/restartless-firefox-addons-part-1-giving-your-addon-the-bootstrap
+* add entry to popup menu when registering
 
 WONTFIX
 -------
@@ -15,6 +14,11 @@ WONTFIX
   `login_at_startup` and `check_new_mail` is a bad idea. Mainly because the
   user may be toggling them after we store the previous values (and before we
   restore them)
+
+* convert to a
+  [Bootstrapped extension](https://developer.mozilla.org/en/Extensions/Bootstrapped_extensions),
+  nor to an JetPack/Restartable because not supported yet by Thunderbird
+
 
 ROADMAP
 -------

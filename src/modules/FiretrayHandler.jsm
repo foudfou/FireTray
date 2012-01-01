@@ -28,7 +28,7 @@ if ("undefined" == typeof(firetray)) {
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 firetray.Handler = {
   initialized: false,
-  appName: null,
+  appNameOriginal: null,
   FILENAME_DEFAULT: null,
   FILENAME_SUFFIX: "32.png",
   FILENAME_BLANK: null,
@@ -40,9 +40,9 @@ firetray.Handler = {
   visibleWindowsCount: 0,
 
   init: function() {            // does creates icon
-    this.appName = Services.appinfo.name.toLowerCase();
+    this.appNameOriginal = Services.appinfo.name;
     this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/" +  this.appName + this.FILENAME_SUFFIX);
+      "chrome://firetray/skin/" +  this.appNameOriginal.toLowerCase() + this.FILENAME_SUFFIX);
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/blank-icon.png");
     this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
@@ -158,112 +158,6 @@ firetray.Handler = {
 
     return winOut;
   },
-
-
-/* GTK TEST */
-
-  // /*
-  //  * DAMN IT ! getZOrderDOMWindowEnumerator doesn't work on Linux :-(
-  //  * https://bugzilla.mozilla.org/show_bug.cgi?id=156333, and all windows
-  //  * seem to have the same zlevel ("normalZ") which is different from the
-  //  * z-order. There seems to be no means to get/set the z-order at this
-  //  * time...
-  //  */
-  // _updateHandledDOMWindows: function() {
-  //   LOG("_updateHandledDOMWindows");
-  //   this._handledDOMWindows = [];
-  //   var windowsEnumerator = Services.wm.getEnumerator(null); // returns a nsIDOMWindow
-  //   while (windowsEnumerator.hasMoreElements()) {
-  //     this._handledDOMWindows[this._handledDOMWindows.length] =
-  //       windowsEnumerator.getNext();
-  //   }
-  // },
-
-  // showHideToTray: function(a1) { // unused param
-  //   LOG("showHideToTray");
-
-  //   /*
-  //    * we update _handledDOMWindows only when hiding, because remembered{X,Y}
-  //    * properties are attached to them, and we suppose there won't be
-  //    * created/delete windows when all are hidden.
-  //    *
-  //    * NOTE: this may not be a good design if we want to show/hide one window
-  //    * at a time... might need win.QueryInterface(Ci.nsIInterfaceRequestor)
-  //    * .getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
-  //    */
-  //   if (!this._windowsHidden)   // hide
-  //     this._updateHandledDOMWindows();
-  //   LOG("nb Windows: " + this._handledDOMWindows.length);
-
-  //   for(let i=0; i<this._handledDOMWindows.length; i++) {
-  //     let bw = this._getBaseOrXULWindowFromDOMWindow(
-  //       this._handledDOMWindows[i], "BaseWindow");
-
-  //     LOG('isHidden: ' + this._windowsHidden);
-  //     LOG("bw.visibility: " + bw.visibility);
-  //     try {
-  //       if (this._windowsHidden) { // show
-
-  //         // correct position, size and state
-  //         let x = this._handledDOMWindows[i].rememberedX;
-  //         let y = this._handledDOMWindows[i].rememberedY;
-  //         let cx = this._handledDOMWindows[i].rememberedWidth;
-  //         let cy = this._handledDOMWindows[i].rememberedHeight;
-  //         LOG("set bw.position: " + x + ", " + y + ", " + cx + ", " + cy);
-  //         let windowState = this._handledDOMWindows[i].rememberedState;
-  //         LOG("set windowState: " + windowState);
-
-  //         switch (windowState) {
-  //         case Ci.nsIDOMChromeWindow.STATE_MAXIMIZED: // 1
-  //           this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).maximize();
-  //           break;
-  //         case Ci.nsIDOMChromeWindow.STATE_MINIMIZED: // 2
-  //           let prefHidesOnMinimize = firetray.Utils.prefService.getBoolPref("hides_on_minimize");
-  //           if (!prefHidesOnMinimize)
-  //             this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).minimize();
-  //           break;
-  //         case Ci.nsIDOMChromeWindow.STATE_NORMAL: // 3
-  //           bw.setPositionAndSize(x, y, cx, cy, false); // repaint
-  //           break;
-  //         case Ci.nsIDOMChromeWindow.STATE_FULLSCREEN: // 4
-  //           // FIXME: NOT IMPLEMENTED YET
-  //         default:
-  //         }
-  //         LOG("maximize after: " + this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).windowState);
-
-  //         bw.visibility = true;
-
-  //       } else {                // hide
-
-  //         // remember position and size
-  //         let x = {}, y = {}, cx = {}, cy = {};
-  //         bw.getPositionAndSize(x, y, cx, cy);
-  //         LOG("remember bw.position: " + x.value + ", " + y.value + ", " + cx.value + ", " + cy.value);
-  //         this._handledDOMWindows[i].rememberedX = x.value;
-  //         this._handledDOMWindows[i].rememberedY = y.value;
-  //         this._handledDOMWindows[i].rememberedWidth = cx.value;
-  //         this._handledDOMWindows[i].rememberedHeight = cy.value;
-  //         this._handledDOMWindows[i].rememberedState = this._handledDOMWindows[i]
-  //           .QueryInterface(Ci.nsIDOMChromeWindow).windowState;
-  //         LOG("maximized: " + this._handledDOMWindows[i].rememberedState);
-
-  //         bw.visibility = false;
-  //       }
-
-  //     } catch (x) {
-  //       LOG(x);
-  //     }
-  //     LOG("bw.visibility: " + bw.visibility);
-  //     LOG("bw.title: " + bw.title);
-  //   }
-
-  //   if (this._windowsHidden) {
-  //     this._windowsHidden = false;
-  //   } else {
-  //     this._windowsHidden = true;
-  //   }
-
-  // }, // showHideToTray
 
   quitApplication: function() {
     try {

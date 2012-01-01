@@ -150,9 +150,9 @@ firetray.Handler.setTooltip = function(toolTipStr) {
 };
 
 firetray.Handler.setTooltipDefault = function() {
-  if (!this.appName)
+  if (!this.appNameOriginal)
     throw "application name not initialized";
-  this.setTooltip(this.appName);
+  this.setTooltip(this.appNameOriginal);
 };
 
 firetray.Handler.setText = function(text, color) { // TODO: split into smaller functions;

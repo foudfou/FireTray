@@ -173,7 +173,6 @@ firetray.Window = {
     } catch (x) {
       ERROR(x);
     }
-
   },
 
   restoreWindowPositionSizeState: function(xid) {
@@ -189,13 +188,12 @@ firetray.Window = {
     // well. And unfortunately, we need to show the window before restoring
     // position and size :-( TODO: Might be worth trying with x11 or
     // BaseWindow.visibility ?
-    try {
-      gtk.gtk_window_move(gtkWin, firetray.Handler.windows[xid].savedX, firetray.Handler.windows[xid].savedY);
-      gtk.gtk_window_resize(gtkWin, firetray.Handler.windows[xid].savedWidth, firetray.Handler.windows[xid].savedHeight);
-      // firetray.Handler.windows[xid].savedState
-    } catch (x) {
-      ERROR(x);
-    }
+    gtk.gtk_window_move(gtkWin, firetray.Handler.windows[xid].savedX, firetray.Handler.windows[xid].savedY);
+    gtk.gtk_window_resize(gtkWin, firetray.Handler.windows[xid].savedWidth, firetray.Handler.windows[xid].savedHeight);
+
+    // TODO: restore state
+    firetray.Handler.windows[xid].win.setCursor("help");
+    // firetray.Handler.windows[xid].savedState
   },
 
   onWindowState: function(gtkWidget, gdkEventState, userData){
@@ -230,8 +228,15 @@ firetray.Handler.registerWindow = function(win) {
   let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
   this.windows[xid] = {};
   this.windows[xid].win = win;
-  this.gtkWindows.insert(xid, gtkWin);
-  this.gdkWindows.insert(xid, gdkWin);
+  try {
+    this.gtkWindows.insert(xid, gtkWin);
+    this.gdkWindows.insert(xid, gdkWin);
+  } catch (x) {
+    if (x.name === "RangeError") // instanceof not working :-(
+      win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
+                +" windows open. This breaks FireTray and most probably "
+                +firetray.Handler.appNameOriginal+".");
+  }
   this.windowsCount += 1;
   this.visibleWindowsCount += 1;
   this.windows[xid].visibility = true;
@@ -335,3 +340,108 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   let stopPropagation = true;
   return stopPropagation;
 };
+
+/* GTK TEST */
+
+// /*
+//  * DAMN IT ! getZOrderDOMWindowEnumerator doesn't work on Linux :-(
+//  * https://bugzilla.mozilla.org/show_bug.cgi?id=156333, and all windows
+//  * seem to have the same zlevel ("normalZ") which is different from the
+//  * z-order. There seems to be no means to get/set the z-order at this
+//  * time...
+//  */
+// _updateHandledDOMWindows: function() {
+//   LOG("_updateHandledDOMWindows");
+//   this._handledDOMWindows = [];
+//   var windowsEnumerator = Services.wm.getEnumerator(null); // returns a nsIDOMWindow
+//   while (windowsEnumerator.hasMoreElements()) {
+//     this._handledDOMWindows[this._handledDOMWindows.length] =
+//       windowsEnumerator.getNext();
+//   }
+// },
+
+// showHideToTray: function(a1) { // unused param
+//   LOG("showHideToTray");
+
+//   /*
+//    * we update _handledDOMWindows only when hiding, because remembered{X,Y}
+//    * properties are attached to them, and we suppose there won't be
+//    * created/delete windows when all are hidden.
+//    *
+//    * NOTE: this may not be a good design if we want to show/hide one window
+//    * at a time... might need win.QueryInterface(Ci.nsIInterfaceRequestor)
+//    * .getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
+//    */
+//   if (!this._windowsHidden)   // hide
+//     this._updateHandledDOMWindows();
+//   LOG("nb Windows: " + this._handledDOMWindows.length);
+
+//   for(let i=0; i<this._handledDOMWindows.length; i++) {
+//     let bw = this._getBaseOrXULWindowFromDOMWindow(
+//       this._handledDOMWindows[i], "BaseWindow");
+
+//     LOG('isHidden: ' + this._windowsHidden);
+//     LOG("bw.visibility: " + bw.visibility);
+//     try {
+//       if (this._windowsHidden) { // show
+
+//         // correct position, size and state
+//         let x = this._handledDOMWindows[i].rememberedX;
+//         let y = this._handledDOMWindows[i].rememberedY;
+//         let cx = this._handledDOMWindows[i].rememberedWidth;
+//         let cy = this._handledDOMWindows[i].rememberedHeight;
+//         LOG("set bw.position: " + x + ", " + y + ", " + cx + ", " + cy);
+//         let windowState = this._handledDOMWindows[i].rememberedState;
+//         LOG("set windowState: " + windowState);
+
+//         switch (windowState) {
+//         case Ci.nsIDOMChromeWindow.STATE_MAXIMIZED: // 1
+//           this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).maximize();
+//           break;
+//         case Ci.nsIDOMChromeWindow.STATE_MINIMIZED: // 2
+//           let prefHidesOnMinimize = firetray.Utils.prefService.getBoolPref("hides_on_minimize");
+//           if (!prefHidesOnMinimize)
+//             this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).minimize();
+//           break;
+//         case Ci.nsIDOMChromeWindow.STATE_NORMAL: // 3
+//           bw.setPositionAndSize(x, y, cx, cy, false); // repaint
+//           break;
+//         case Ci.nsIDOMChromeWindow.STATE_FULLSCREEN: // 4
+//           // FIXME: NOT IMPLEMENTED YET
+//         default:
+//         }
+//         LOG("maximize after: " + this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).windowState);
+
+//         bw.visibility = true;
+
+//       } else {                // hide
+
+//         // remember position and size
+//         let x = {}, y = {}, cx = {}, cy = {};
+//         bw.getPositionAndSize(x, y, cx, cy);
+//         LOG("remember bw.position: " + x.value + ", " + y.value + ", " + cx.value + ", " + cy.value);
+//         this._handledDOMWindows[i].rememberedX = x.value;
+//         this._handledDOMWindows[i].rememberedY = y.value;
+//         this._handledDOMWindows[i].rememberedWidth = cx.value;
+//         this._handledDOMWindows[i].rememberedHeight = cy.value;
+//         this._handledDOMWindows[i].rememberedState = this._handledDOMWindows[i]
+//           .QueryInterface(Ci.nsIDOMChromeWindow).windowState;
+//         LOG("maximized: " + this._handledDOMWindows[i].rememberedState);
+
+//         bw.visibility = false;
+//       }
+
+//     } catch (x) {
+//       LOG(x);
+//     }
+//     LOG("bw.visibility: " + bw.visibility);
+//     LOG("bw.title: " + bw.title);
+//   }
+
+//   if (this._windowsHidden) {
+//     this._windowsHidden = false;
+//   } else {
+//     this._windowsHidden = true;
+//   }
+
+// }, // showHideToTray

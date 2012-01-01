@@ -1,6 +1,6 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "ctypesMap", "CTYPES_ARRAY_MAX_SIZE" ];
+var EXPORTED_SYMBOLS = [ "ctypesMap", "FIRETRAY_WINDOW_COUNT_MAX" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -31,7 +31,7 @@ ctypesMap.prototype.get = function(key) {
 };
 
 ctypesMap.prototype.insert = function(key, item) {
-  if (this.map.hasOwnProperty(key)) { // replace
+  if (this.map.hasOwnProperty(key)) {
     LOG("REPLACE");
     this.array[this.map[key]] = item;
 
