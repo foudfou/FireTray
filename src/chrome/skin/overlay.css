@@ -23,3 +23,5 @@ treechildren::-moz-tree-cell(disabled) {
     background-color: #eeeeee;
 }
 */
+
+[tooltiptext] { cursor: help; }
