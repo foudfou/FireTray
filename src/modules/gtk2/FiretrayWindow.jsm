@@ -21,6 +21,7 @@ Cu.import("resource://firetray/gobject.jsm");
 Cu.import("resource://firetray/gdk.jsm");
 Cu.import("resource://firetray/gtk.jsm");
 Cu.import("resource://firetray/libc.jsm");
+Cu.import("resource://firetray/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const Services2 = {};
@@ -203,26 +204,118 @@ firetray.Window = {
     LOG("restored WindowState: " + firetray.Handler.windows[xid].chromeWin.windowState);
   },
 
-  // http://www.gtkforums.com/viewtopic.php?t=1624
-  onWindowState: function(gtkWidget, gdkEventState, userData){
+/* KEPT FOR LATER USE
+  onWindowState: function(gtkWidget, gdkEventState, userData) {
     LOG("window-state-event: "+gdkEventState.contents.new_window_state);
 
     if (gdkEventState.contents.new_window_state & gdk.GDK_WINDOW_STATE_ICONIFIED) {
       let xid = firetray.Window.getXIDFromGtkWidget(gtkWidget);
       LOG(xid+" iconified: "+gdkEventState.contents.changed_mask+" "+gdkEventState.contents.new_window_state);
-
-      // let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-      // let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-      // if (hides_on_minimize) {
-      //   if (hides_single_window) {
-      //     firetray.Handler.hideSingleWindow(xid);
-      //   } else
-      //     firetray.Handler.hideAllWindows();
-      // }
     }
 
     let stopPropagation = true; // not usefull
     return stopPropagation;
+  },
+*/
+
+  checkXWindowEWMState: function(xwin, prop) {
+    LOG("xwin="+xwin+" prop="+prop);
+
+    // infos returned by XGetWindowProperty()
+    let actual_type = new x11.Atom;
+    let actual_format = new ctypes.int;
+    let nitems = new ctypes.unsigned_long;
+    let bytes_after = new ctypes.unsigned_long;
+    let prop_value = new ctypes.unsigned_char.ptr;
+
+    let bufSize = XATOMS_EWMH_WM_STATES.length*ctypes.unsigned_long.size;
+    let offset = 0;
+    let res = x11.XGetWindowProperty(
+      x11.current.Display, xwin, x11.current.Atoms._NET_WM_STATE, offset, bufSize, 0, x11.AnyPropertyType,
+      actual_type.address(), actual_format.address(), nitems.address(), bytes_after.address(), prop_value.address());
+    LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
+
+    if (!strEquals(res, x11.Success)) {
+      ERROR("XGetWindowProperty failed");
+      return false;
+    }
+    if (strEquals(actual_type.value, x11.None)) {
+      WARN("property not found");
+      return false;
+    }
+
+    LOG("prop_value="+prop_value+", size="+prop_value.constructor.size);
+    /* If the returned format is 32, the property data will be stored as an
+     array of longs (which in a 64-bit application will be 64-bit values
+     that are padded in the upper 4 bytes). [man XGetWindowProperty] */
+    if (actual_format.value !== 32) {
+      ERROR("unsupported format: "+actual_format.value);
+      x11.XFree(prop_value);
+      return false;
+    }
+    LOG("format OK");
+    var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
+    LOG("props="+props+", size="+props.constructor.size);
+
+    for (let i=0; i<nitems.value; ++i) {
+      LOG(props.contents[i]);
+      if (strEquals(props.contents[i], prop))
+        return true;
+    }
+
+    x11.XFree(prop_value);
+
+    return false;
+  },
+
+  filterWindow: function(xev, gdkEv, data) {
+    if (!xev)
+      return gdk.GDK_FILTER_CONTINUE;
+
+    try {
+      let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
+      let xwin = xany.contents.window;
+
+      switch (xany.contents.type) {
+
+      case x11.UnmapNotify:
+        LOG("UnmapNotify");
+        let isHidden = firetray.Window.checkXWindowEWMState(xwin, x11.current.Atoms._NET_WM_STATE_HIDDEN);
+        LOG("isHidden="+isHidden);
+        if (isHidden) {
+          let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+          let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+          if (hides_on_minimize) {
+            if (hides_single_window) {
+              firetray.Handler.hideSingleWindow(xwin);
+            } else
+              firetray.Handler.hideAllWindows();
+          }
+        }
+        break;
+
+/* KEPT FOR LATER USE
+      case x11.ClientMessage:   // not very useful
+        LOG("ClientMessage");
+        let xclient = ctypes.cast(xev, x11.XClientMessageEvent.ptr);
+        LOG("xclient.data="+xclient.contents.data);
+        LOG("message_type="+xclient.contents.message_type+", format="+xclient.contents.format);
+        if (strEquals(xclient.contents.data[0], x11.current.Atoms.WM_DELETE_WINDOW)) {
+          LOG("Delete Window prevented");
+          return gdk.GDK_FILTER_REMOVE;
+        }
+        break;
+*/
+
+      default:
+        // LOG("xany.type="+xany.contents.type);
+        break;
+      }
+    } catch(x) {
+      ERROR(x);
+    }
+
+    return gdk.GDK_FILTER_CONTINUE;
   }
 
 }; // firetray.Window
@@ -273,11 +366,14 @@ firetray.Handler.registerWindow = function(win) {
      // delete_event_cb (in gtk2/nsWindow.cpp), but we prefer to use the
      // provided 'close' JS event
 
-    /* we'll catch minimize events with Gtk:
-       http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
+/* KEPT FOR LATER USE
     this.windows[xid].onWindowStateCb = gtk.GCallbackWindowStateEvent_t(firetray.Window.onWindowState);
     this.windows[xid].onWindowStateCbId = gobject.g_signal_connect(gtkWin, "window-state-event", this.windows[xid].onWindowStateCb, null);
     LOG("g_connect window-state-event="+this.windows[xid].onWindowStateCbId);
+*/
+
+    this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
+    gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
 
   } catch (x) {
     this._unregisterWindowByXID(xid);
@@ -357,3 +453,31 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   let stopPropagation = true;
   return stopPropagation;
 };
+
+
+/**
+ * init X11 Display and handled XAtoms.
+ * Needs to be defined and called outside x11.jsm because: gdk already imports
+ * x11, and there is no means to get the default Display solely with Xlib
+ * without opening one...  :-(
+ */
+x11.init = function() {
+  if (!isEmpty(this.current))
+    return true; // init only once
+
+  this.current = {};
+  try {
+    let gdkDisplay = gdk.gdk_display_get_default();
+    this.current.Display = gdk.gdk_x11_display_get_xdisplay(gdkDisplay);
+    this.current.Atoms = {};
+    XATOMS.forEach(function(atomName, index, array) {
+      this.current.Atoms[atomName] = x11.XInternAtom(this.current.Display, atomName, 0);
+      LOG("x11.current.Atoms."+atomName+"="+this.current.Atoms[atomName]);
+    }, this);
+    return true;
+  } catch (x) {
+    ERROR(x);
+    return false;
+  }
+};
+x11.init();

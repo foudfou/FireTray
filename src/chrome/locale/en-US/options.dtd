@@ -12,11 +12,11 @@
 
 <!ENTITY bool_hides_on_close.label "Closing window hides to tray">
 <!ENTITY bool_hides_on_close.accesskey "C">
+<!ENTITY bool_hides_single_window.tooltip "not all windows at once">
+<!ENTITY bool_hides_on_minimize.label "Minimizing window hides to tray">
+<!ENTITY bool_hides_on_minimize.accesskey "M">
 <!ENTITY bool_hides_single_window.label "Hide the current window only">
 <!ENTITY bool_hides_single_window.accesskey "H">
-<!ENTITY bool_hides_single_window.tooltip "not all windows at once">
-<!ENTITY bool_hides_on_minimize.label "Minimize window hides to tray">
-<!ENTITY bool_hides_on_minimize.accesskey "M">
 
 <!ENTITY mail_notification.label "Mail notification">
 <!ENTITY mail_notification_disabled.label "disabled">
