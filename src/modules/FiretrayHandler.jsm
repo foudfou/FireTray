@@ -122,37 +122,32 @@ firetray.Handler = {
   showHideAllWindows: function() {},
 
   showAllWindows: function() {
-    for (let winId in firetray.Handler.windows)
+    LOG("showAllWindows");
+    for (let winId in firetray.Handler.windows) {
       if (!firetray.Handler.windows[winId].visibility)
         firetray.Handler.showSingleWindow(winId);
+    }
   },
   hideAllWindows: function() {
+    LOG("hideAllWindows");
     for (let winId in firetray.Handler.windows) {
       if (firetray.Handler.windows[winId].visibility)
         firetray.Handler.hideSingleWindow(winId);
     }
   },
 
-  _getBaseOrXULWindowFromDOMWindow: function(win, winType) {
+  /** nsIBaseWindow, nsIXULWindow, ... */
+  getWindowInterface: function(win, iface) {
     let winInterface, winOut;
     try {                       // thx Neil Deakin !!
-      winInterface =  win.QueryInterface(Ci.nsIInterfaceRequestor)
+      winOut =  win.QueryInterface(Ci.nsIInterfaceRequestor)
         .getInterface(Ci.nsIWebNavigation)
         .QueryInterface(Ci.nsIDocShellTreeItem)
         .treeOwner
-        .QueryInterface(Ci.nsIInterfaceRequestor);
+        .QueryInterface(Ci.nsIInterfaceRequestor)[iface];
     } catch (ex) {
       // ignore no-interface exception
       ERROR(ex);
-      return null;
-    }
-
-    if (winType == "BaseWindow")
-      winOut = winInterface.getInterface(Ci.nsIBaseWindow);
-    else if (winType == "XUL")
-      winOut = winInterface.getInterface(Ci.nsIXULWindow);
-    else {
-      ERROR("FIRETRAY: unknown winType '" + winType + "'");
       return null;
     }
 

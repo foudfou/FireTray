@@ -148,52 +148,59 @@ firetray.Window = {
 
   getXIDFromChromeWindow: function(win) {
     for (let xid in firetray.Handler.windows)
-      if (firetray.Handler.windows[xid].win === win)
+      if (firetray.Handler.windows[xid].chromeWin === win)
         return xid;
     ERROR("unknown window while lookup");
     return null;
   },
 
-  saveWindowPositionSizeState: function(xid) {
-    let gtkWin = firetray.Handler.gtkWindows.get(xid);
-    let gdkWin = firetray.Handler.gdkWindows.get(xid);
-
-    try {
-      let gx = new gobject.gint; let gy = new gobject.gint;
-      gtk.gtk_window_get_position(gtkWin, gx.address(), gy.address());
-      let gwidth = new gobject.gint; let gheight = new gobject.gint;
-      gtk.gtk_window_get_size(gtkWin, gwidth.address(), gheight.address());
-      let windowState  = gdk.gdk_window_get_state(gdkWin);
-      LOG("save: gx="+gx+", gy="+gy+", gwidth="+gwidth+", gheight="+gheight+", windowState="+windowState);
-      firetray.Handler.windows[xid].savedX = gx;
-      firetray.Handler.windows[xid].savedY = gy;
-      firetray.Handler.windows[xid].savedWidth = gwidth;
-      firetray.Handler.windows[xid].savedHeight = gheight;
-      firetray.Handler.windows[xid].savedState = windowState;
-    } catch (x) {
-      ERROR(x);
-    }
+  saveWindowPositionAndSize: function(xid) {
+    let gx = {}, gy = {}, gwidth = {}, gheight = {};
+    firetray.Handler.windows[xid].baseWin.getPositionAndSize(gx, gy, gwidth, gheight);
+    firetray.Handler.windows[xid].savedX = gx.value;
+    firetray.Handler.windows[xid].savedY = gy.value;
+    firetray.Handler.windows[xid].savedWidth = gwidth.value;
+    firetray.Handler.windows[xid].savedHeight = gheight.value;
+    LOG("save: gx="+gx+", gy="+gy+", gwidth="+gwidth+", gheight="+gheight);
   },
 
-  restoreWindowPositionSizeState: function(xid) {
+  restoreWindowPositionAndSize: function(xid) {
     if (!firetray.Handler.windows[xid].savedX)
       return; // windows[xid].saved* may not be initialized
 
-    let gtkWin = firetray.Handler.gtkWindows.get(xid);
-    let gdkWin = firetray.Handler.gdkWindows.get(xid);
-
     LOG("restore: x="+firetray.Handler.windows[xid].savedX+", y="+firetray.Handler.windows[xid].savedY+", w="+firetray.Handler.windows[xid].savedWidth+", h="+firetray.Handler.windows[xid].savedHeight);
-    // NOTE: unfortunately, this is the best way I found *inside GTK* to
-    // restore position and size: gdk.gdk_window_move_resize doesn't work
-    // well. And unfortunately, we need to show the window before restoring
-    // position and size :-( TODO: Might be worth trying with x11 or
-    // BaseWindow.visibility ?
-    gtk.gtk_window_move(gtkWin, firetray.Handler.windows[xid].savedX, firetray.Handler.windows[xid].savedY);
-    gtk.gtk_window_resize(gtkWin, firetray.Handler.windows[xid].savedWidth, firetray.Handler.windows[xid].savedHeight);
+    firetray.Handler.windows[xid].baseWin.setPositionAndSize(
+      firetray.Handler.windows[xid].savedX,
+      firetray.Handler.windows[xid].savedY,
+      firetray.Handler.windows[xid].savedWidth,
+      firetray.Handler.windows[xid].savedHeight,
+      false); // repaint
+  },
 
-    // TODO: restore state
-    firetray.Handler.windows[xid].win.setCursor("help");
-    // firetray.Handler.windows[xid].savedState
+  saveWindowState: function(xid) {
+    // FIXME: windowState = STATE_MINIMIZED when we're on another virtual
+    // desktop... besides we may want to restore the window onto its orininal
+    // desktop
+    firetray.Handler.windows[xid].savedWindowState =
+      firetray.Handler.windows[xid].chromeWin.windowState;
+    LOG("save: windowState="+firetray.Handler.windows[xid].savedWindowState);
+  },
+
+  restoreWindowState: function(xid) {
+    switch (firetray.Handler.windows[xid].savedWindowState) {
+    case Ci.nsIDOMChromeWindow.STATE_MAXIMIZED: // 1
+      firetray.Handler.windows[xid].chromeWin.maximize();
+      break;
+    case Ci.nsIDOMChromeWindow.STATE_MINIMIZED: // 2
+      firetray.Handler.windows[xid].chromeWin.minimize();
+      break;
+    case Ci.nsIDOMChromeWindow.STATE_NORMAL: // 3
+      break;
+    case Ci.nsIDOMChromeWindow.STATE_FULLSCREEN: // 4
+      // FIXME: NOT IMPLEMENTED YET
+    default:
+    }
+    LOG("restored WindowState: " + firetray.Handler.windows[xid].chromeWin.windowState);
   },
 
   onWindowState: function(gtkWidget, gdkEventState, userData){
@@ -227,7 +234,8 @@ firetray.Handler.registerWindow = function(win) {
   // register
   let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
   this.windows[xid] = {};
-  this.windows[xid].win = win;
+  this.windows[xid].chromeWin = win;
+  this.windows[xid].baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
   try {
     this.gtkWindows.insert(xid, gtkWin);
     this.gdkWindows.insert(xid, gdkWin);
@@ -238,19 +246,20 @@ firetray.Handler.registerWindow = function(win) {
                 +firetray.Handler.appNameOriginal+".");
   }
   this.windowsCount += 1;
+  // NOTE: no need to check for window state to set visibility because all
+  // windows *are* shown at startup
+  this.windows[xid].visibility = true; // this.windows[xid].baseWin.visibility always true :-(
   this.visibleWindowsCount += 1;
-  this.windows[xid].visibility = true;
   LOG("window "+xid+" registered");
-  /* NOTE: it should not be necessary to gtk_widget_add_events(gtkWin,
-   gdk.GDK_ALL_EVENTS_MASK); */
+  // NOTE: shouldn't be necessary to gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK);
 
   try {
-    /* NOTE: we could try to catch the "delete-event" here and block
-       delete_event_cb (in gtk2/nsWindow.cpp), but we prefer to use the
-       provided 'close' JS event */
+     // NOTE: we could try to catch the "delete-event" here and block
+     // delete_event_cb (in gtk2/nsWindow.cpp), but we prefer to use the
+     // provided 'close' JS event
 
     /* we'll catch minimize events with Gtk:
-     http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
+       http://stackoverflow.com/questions/8018328/what-is-the-gtk-event-called-when-a-window-minimizes */
     this.windows[xid].onWindowStateCb = gtk.GCallbackWindowStateEvent_t(firetray.Window.onWindowState);
     this.windows[xid].onWindowStateCbId = gobject.g_signal_connect(gtkWin, "window-state-event", this.windows[xid].onWindowStateCb, null);
     LOG("g_connect window-state-event="+this.windows[xid].onWindowStateCbId);
@@ -282,43 +291,36 @@ firetray.Handler._unregisterWindowByXID = function(xid) {
   return true;
 };
 
+firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeWindow;
+
 firetray.Handler.unregisterWindow = function(win) {
   LOG("unregister window");
 
-  try {
-    let xid = firetray.Window.getXIDFromChromeWindow(win);
-    return this._unregisterWindowByXID(xid);
-  } catch (x) {
-    ERROR(x);
-  }
-  return false;
+  let xid = firetray.Window.getWinXIDFromChromeWindow(win);
+  return this._unregisterWindowByXID(xid);
 };
-
-firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeWindow;
 
 firetray.Handler.showSingleWindow = function(xid) {
   LOG("show xid="+xid);
-  try {
-    // try to restore previous state. TODO: z-order respected ?
-    gdk.gdk_window_show_unraised(firetray.Handler.gdkWindows.get(xid));
-    // need to restore *after* showing for correctness
-    firetray.Window.restoreWindowPositionSizeState(xid);
-  } catch (x) {
-    ERROR(x);
-  }
+
+  // try to restore previous state. TODO: z-order respected ?
+  firetray.Window.restoreWindowPositionAndSize(xid);
+  firetray.Window.restoreWindowState(xid); // no need to be saved
+  firetray.Handler.windows[xid].baseWin.visibility = true; // show
+
   firetray.Handler.windows[xid].visibility = true;
   firetray.Handler.visibleWindowsCount += 1;
 };
 
+// NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
+// gdk_window_show_unraised)
 firetray.Handler.hideSingleWindow = function(xid) {
   LOG("hideSingleWindow");
-  try {
-    firetray.Window.saveWindowPositionSizeState(xid);
-    // NOTE: we don't use BaseWindow.visibility to have full control
-    gdk.gdk_window_hide(firetray.Handler.gdkWindows.get(xid));
-  } catch (x) {
-    ERROR(x);
-  }
+
+  firetray.Window.saveWindowPositionAndSize(xid);
+  firetray.Window.saveWindowState(xid);
+  firetray.Handler.windows[xid].baseWin.visibility = false; // hide
+
   firetray.Handler.windows[xid].visibility = false;
   firetray.Handler.visibleWindowsCount -= 1;
 };
@@ -340,108 +342,3 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   let stopPropagation = true;
   return stopPropagation;
 };
-
-/* GTK TEST */
-
-// /*
-//  * DAMN IT ! getZOrderDOMWindowEnumerator doesn't work on Linux :-(
-//  * https://bugzilla.mozilla.org/show_bug.cgi?id=156333, and all windows
-//  * seem to have the same zlevel ("normalZ") which is different from the
-//  * z-order. There seems to be no means to get/set the z-order at this
-//  * time...
-//  */
-// _updateHandledDOMWindows: function() {
-//   LOG("_updateHandledDOMWindows");
-//   this._handledDOMWindows = [];
-//   var windowsEnumerator = Services.wm.getEnumerator(null); // returns a nsIDOMWindow
-//   while (windowsEnumerator.hasMoreElements()) {
-//     this._handledDOMWindows[this._handledDOMWindows.length] =
-//       windowsEnumerator.getNext();
-//   }
-// },
-
-// showHideToTray: function(a1) { // unused param
-//   LOG("showHideToTray");
-
-//   /*
-//    * we update _handledDOMWindows only when hiding, because remembered{X,Y}
-//    * properties are attached to them, and we suppose there won't be
-//    * created/delete windows when all are hidden.
-//    *
-//    * NOTE: this may not be a good design if we want to show/hide one window
-//    * at a time... might need win.QueryInterface(Ci.nsIInterfaceRequestor)
-//    * .getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
-//    */
-//   if (!this._windowsHidden)   // hide
-//     this._updateHandledDOMWindows();
-//   LOG("nb Windows: " + this._handledDOMWindows.length);
-
-//   for(let i=0; i<this._handledDOMWindows.length; i++) {
-//     let bw = this._getBaseOrXULWindowFromDOMWindow(
-//       this._handledDOMWindows[i], "BaseWindow");
-
-//     LOG('isHidden: ' + this._windowsHidden);
-//     LOG("bw.visibility: " + bw.visibility);
-//     try {
-//       if (this._windowsHidden) { // show
-
-//         // correct position, size and state
-//         let x = this._handledDOMWindows[i].rememberedX;
-//         let y = this._handledDOMWindows[i].rememberedY;
-//         let cx = this._handledDOMWindows[i].rememberedWidth;
-//         let cy = this._handledDOMWindows[i].rememberedHeight;
-//         LOG("set bw.position: " + x + ", " + y + ", " + cx + ", " + cy);
-//         let windowState = this._handledDOMWindows[i].rememberedState;
-//         LOG("set windowState: " + windowState);
-
-//         switch (windowState) {
-//         case Ci.nsIDOMChromeWindow.STATE_MAXIMIZED: // 1
-//           this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).maximize();
-//           break;
-//         case Ci.nsIDOMChromeWindow.STATE_MINIMIZED: // 2
-//           let prefHidesOnMinimize = firetray.Utils.prefService.getBoolPref("hides_on_minimize");
-//           if (!prefHidesOnMinimize)
-//             this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).minimize();
-//           break;
-//         case Ci.nsIDOMChromeWindow.STATE_NORMAL: // 3
-//           bw.setPositionAndSize(x, y, cx, cy, false); // repaint
-//           break;
-//         case Ci.nsIDOMChromeWindow.STATE_FULLSCREEN: // 4
-//           // FIXME: NOT IMPLEMENTED YET
-//         default:
-//         }
-//         LOG("maximize after: " + this._handledDOMWindows[i].QueryInterface(Ci.nsIDOMChromeWindow).windowState);
-
-//         bw.visibility = true;
-
-//       } else {                // hide
-
-//         // remember position and size
-//         let x = {}, y = {}, cx = {}, cy = {};
-//         bw.getPositionAndSize(x, y, cx, cy);
-//         LOG("remember bw.position: " + x.value + ", " + y.value + ", " + cx.value + ", " + cy.value);
-//         this._handledDOMWindows[i].rememberedX = x.value;
-//         this._handledDOMWindows[i].rememberedY = y.value;
-//         this._handledDOMWindows[i].rememberedWidth = cx.value;
-//         this._handledDOMWindows[i].rememberedHeight = cy.value;
-//         this._handledDOMWindows[i].rememberedState = this._handledDOMWindows[i]
-//           .QueryInterface(Ci.nsIDOMChromeWindow).windowState;
-//         LOG("maximized: " + this._handledDOMWindows[i].rememberedState);
-
-//         bw.visibility = false;
-//       }
-
-//     } catch (x) {
-//       LOG(x);
-//     }
-//     LOG("bw.visibility: " + bw.visibility);
-//     LOG("bw.title: " + bw.title);
-//   }
-
-//   if (this._windowsHidden) {
-//     this._windowsHidden = false;
-//   } else {
-//     this._windowsHidden = true;
-//   }
-
-// }, // showHideToTray

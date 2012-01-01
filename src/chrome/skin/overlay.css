@@ -24,4 +24,4 @@ treechildren::-moz-tree-cell(disabled) {
 }
 */
 
-[tooltiptext] { cursor: help; }
+#firetray-preferences [tooltiptext] { cursor: help; }
