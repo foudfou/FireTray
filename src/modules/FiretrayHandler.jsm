@@ -20,7 +20,7 @@ if ("undefined" == typeof(firetray)) {
 };
 
 /**
- * Singleton object and abstraction for tray icon management.
+ * Singleton object and abstraction for windows and tray icon management.
  */
 // NOTE: modules work outside of the window scope. Unlike scripts in the
 // chrome, modules don't have access to objects such as window, document, or
@@ -35,7 +35,9 @@ firetray.Handler = {
   FILENAME_NEWMAIL: null,
   runtimeOS: null,
   inMailApp: false,
-  windows: [],
+  windows: {},
+  windowsCount: 0,
+  visibleWindowsCount: 0,
 
   init: function() {            // does creates icon
     this.appName = Services.appinfo.name.toLowerCase();
@@ -58,16 +60,15 @@ firetray.Handler = {
       LOG('FiretrayStatusIcon imported');
       Cu.import("resource://firetray/gtk2/FiretrayWindow.jsm");
       LOG('FiretrayWindow imported');
-
-      // instanciate tray icon
-      firetray.StatusIcon.init();
-      LOG('StatusIcon initialized');
-
       break;
     default:
       ERROR("FIRETRAY: only Linux platform supported at this time. Firetray not loaded");
       return false;
     }
+
+    // instanciate tray icon
+    firetray.StatusIcon.init();
+    LOG('StatusIcon initialized');
 
     // check if in mail app
     var mozAppId = Services.appinfo.ID;
@@ -107,15 +108,30 @@ firetray.Handler = {
     return true;
   },
 
-  // these get overridden in OS-specific Icon handlers
+  // these get overridden in OS-specific Window handlers
   setImage: function(filename) {},
   setImageDefault: function() {},
   setText: function(text, color) {},
   setTooltip: function(localizedMessage) {},
   setTooltipDefault: function() {},
-  showHideAllWindows: function() {},
   registerWindow: function(win) {},
   unregisterWindow: function(win) {},
+  getWindowIdFromChromeWindow: function(win) {},
+  hideSingleWindow: function(winId) {},
+  showSingleWindow: function(winId) {},
+  showHideAllWindows: function() {},
+
+  showAllWindows: function() {
+    for (let winId in firetray.Handler.windows)
+      if (!firetray.Handler.windows[winId].visibility)
+        firetray.Handler.showSingleWindow(winId);
+  },
+  hideAllWindows: function() {
+    for (let winId in firetray.Handler.windows) {
+      if (firetray.Handler.windows[winId].visibility)
+        firetray.Handler.hideSingleWindow(winId);
+    }
+  },
 
   _getBaseOrXULWindowFromDOMWindow: function(win, winType) {
     let winInterface, winOut;

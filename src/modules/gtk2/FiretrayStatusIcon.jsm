@@ -112,6 +112,7 @@ firetray.StatusIcon = {
 
 }; // firetray.StatusIcon
 
+
 firetray.Handler.setImage = function(filename) {
   if (!firetray.StatusIcon.trayIcon)
     return false;

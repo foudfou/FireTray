@@ -198,3 +198,11 @@ function isEmpty(obj) {
 function strEquals(obj1, obj2) {
   return obj1.toString() === obj2.toString();
 }
+
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
+function DeleteError(message) {
+    this.name = "DeleteError";
+    this.message = message || "Could not delete object memeber";
+}
+DeleteError.prototype = new Error();
+DeleteError.prototype.constructor = DeleteError;

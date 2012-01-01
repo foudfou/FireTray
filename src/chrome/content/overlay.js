@@ -24,7 +24,10 @@ var firetrayChrome = {
       return false;
     }
 
+    LOG("Handler initialized: "+firetray.Handler.initialized);
     let init = firetray.Handler.initialized || firetray.Handler.init();
+
+    LOG("ONLOAD"); firetray.Handler.dumpWindows();
     firetray.Handler.registerWindow(win);
 
     // update unread messages count
@@ -55,15 +58,19 @@ var firetrayChrome = {
   // TODO: prevent preceding warning about closing multiple tabs (browser.tabs.warnOnClose)
   onClose: function(event) {
     LOG('Firetray CLOSE');
+    let win = event.originalTarget;
+    if (!win instanceof ChromeWindow)
+      throw new TypeError('originalTarget not a ChromeWindow');
+
     let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
     let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
     LOG('hides_on_close: '+hides_on_close+', hides_single_window='+hides_single_window);
-    LOG('event.originalTarget: '+event.originalTarget);
     if (hides_on_close) {
-      if (hides_single_window)
-        firetray.Window.hideWindow(window);
-      else
-        firetray.Handler.hideAllWindows(window);
+      if (hides_single_window) {
+        let winId = firetray.Handler.getWindowIdFromChromeWindow(win);
+        firetray.Handler.hideSingleWindow(winId);
+      } else
+        firetray.Handler.hideAllWindows();
       event && event.preventDefault(); // no event when called directly (xul)
     }
   },
