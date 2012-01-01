@@ -203,10 +203,25 @@ firetray.Window = {
     LOG("restored WindowState: " + firetray.Handler.windows[xid].chromeWin.windowState);
   },
 
+  // http://www.gtkforums.com/viewtopic.php?t=1624
   onWindowState: function(gtkWidget, gdkEventState, userData){
-    // LOG("window-state-event");
-    // if(event->new_window_state & GDK_WINDOW_STATE_ICONIFIED){
-    let stopPropagation = true;
+    LOG("window-state-event: "+gdkEventState.contents.new_window_state);
+
+    if (gdkEventState.contents.new_window_state & gdk.GDK_WINDOW_STATE_ICONIFIED) {
+      let xid = firetray.Window.getXIDFromGtkWidget(gtkWidget);
+      LOG(xid+" iconified: "+gdkEventState.contents.changed_mask+" "+gdkEventState.contents.new_window_state);
+
+      // let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+      // let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+      // if (hides_on_minimize) {
+      //   if (hides_single_window) {
+      //     firetray.Handler.hideSingleWindow(xid);
+      //   } else
+      //     firetray.Handler.hideAllWindows();
+      // }
+    }
+
+    let stopPropagation = true; // not usefull
     return stopPropagation;
   }
 
@@ -296,7 +311,7 @@ firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeW
 firetray.Handler.unregisterWindow = function(win) {
   LOG("unregister window");
 
-  let xid = firetray.Window.getWinXIDFromChromeWindow(win);
+  let xid = firetray.Window.getXIDFromChromeWindow(win);
   return this._unregisterWindowByXID(xid);
 };
 
