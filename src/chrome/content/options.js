@@ -7,26 +7,19 @@ const Cu = Components.utils;
 Cu.import("resource://firetray/FiretrayHandler.jsm");
 Cu.import("resource://firetray/commons.js");
 
-/**
- * firetray namespace.
- */
-if ("undefined" == typeof(firetray)) {
-  var firetray = {};
-};
-
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED = 1;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_ORDER    = 2;
 const TREELEVEL_SERVER_TYPES      = 0;
 const TREELEVEL_EXCLUDED_ACCOUNTS = 1;
 
-firetray.UIOptions = {
+var firetrayUIOptions = {
   strings: null,
 
   onLoad: function(e) {
-    window.removeEventListener('load', arguments.callee, true);
-
     this.strings = document.getElementById("firetray-options-strings");
+
+    this.initWindowAndIconControls();
 
     if(firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
@@ -35,12 +28,9 @@ firetray.UIOptions = {
       let mailTab = document.getElementById("mail_tab");
       this.hideElement(mailTab, true);
     }
-
   },
 
   onQuit: function(e) {
-    window.removeEventListener('unload', arguments.callee, true);
-
     // cleaning: removeEventListener on cells
     // NOTE: not sure this is necessary on window close
     let tree = document.getElementById("ui_tree_mail_accounts");
@@ -70,6 +60,16 @@ firetray.UIOptions = {
       for(var i=0; i< group.childNodes.length; i++)
         group.childNodes[i].disabled = disableval;
     } catch(e) {}
+  },
+
+  initWindowAndIconControls: function() {
+    this.disableHidesOptions(!firetray.Utils.prefService.getBoolPref('hides_on_close'));
+  },
+
+  disableHidesOptions: function(doDisable) {
+    LOG("doDisable="+doDisable);
+    document.getElementById('ui_hides_single_window').disabled = doDisable;
+    // TODO: NOT IMPLEMENTED YET: document.getElementById('ui_hides_on_minimize').disabled = doDisable;
   },
 
   initMailControls: function() {
@@ -229,7 +229,7 @@ firetray.UIOptions = {
         'ancestor::xul:treeitem[1]/descendant::xul:treechildren//xul:treerow');
       LOG("subRows="+subRows);
       for (let i=0; i<subRows.length; i++) {
-        firetray.UIOptions._disableTreeRow(
+        firetrayUIOptions._disableTreeRow(
           subRows[i], (checkboxCell.getAttribute("value") === "false"));
       }
 
@@ -419,5 +419,13 @@ firetray.UIOptions = {
 };
 
 
-window.addEventListener('load', firetray.UIOptions.onLoad, false);
-window.addEventListener('unload', firetray.UIOptions.onQuit, false);
+window.addEventListener(
+  'load', function (e) {
+    removeEventListener('load', arguments.callee, true);
+    firetrayUIOptions.onLoad(); },
+  false);
+window.addEventListener(
+  'unload', function (e) {
+    removeEventListener('unload', arguments.callee, true);
+    firetrayUIOptions.onQuit(); },
+  false);

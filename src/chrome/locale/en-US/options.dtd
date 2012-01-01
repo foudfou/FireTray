@@ -12,10 +12,10 @@
 
 <!ENTITY bool_hides_on_close.label "Closing window hides to tray">
 <!ENTITY bool_hides_on_close.accesskey "C">
-<!ENTITY bool_hides_on_minimize.label "Minimize window hides to tray">
-<!ENTITY bool_hides_on_minimize.accesskey "M">
 <!ENTITY bool_hides_single_window.label "Hide the current window only (not all windows)">
 <!ENTITY bool_hides_single_window.accesskey "H">
+<!ENTITY bool_hides_on_minimize.label "Minimize window hides to tray">
+<!ENTITY bool_hides_on_minimize.accesskey "M">
 
 <!ENTITY mail_notification.label "Mail notification">
 <!ENTITY mail_notification_disabled.label "disabled">

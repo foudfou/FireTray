@@ -42,14 +42,15 @@
 
             <checkbox id="ui_hides_on_close" preference="pref_bool_hides_on_close"
                       label="&bool_hides_on_close.label;"
-                      accesskey="&bool_hides_on_close.accesskey;"/>
+                      accesskey="&bool_hides_on_close.accesskey;"
+                      onclick="firetrayUIOptions.disableHidesOptions(this.checked);"/>
+            <checkbox id="ui_hides_single_window" preference="pref_bool_hides_single_window"
+                      label="&bool_hides_single_window.label;"
+                      accesskey="&bool_hides_single_window.accesskey;"/>
             <checkbox id="ui_hides_on_minimize" preference="pref_bool_hides_on_minimize"
                       label="&bool_hides_on_minimize.label;"
                       accesskey="&bool_hides_on_minimize.accesskey;"
                       disabled="true" tooltiptext="&NOT_IMPLEMENTED_YET;"/>
-            <checkbox id="ui_hides_single_window" preference="pref_bool_hides_single_window"
-                      label="&bool_hides_single_window.label;"
-                      accesskey="&bool_hides_single_window.accesskey;"/>
           </groupbox>
 
         </tabpanel>
@@ -65,11 +66,11 @@
             <radiogroup id="radiogroup_mail_notification">
               <radio id="radio_mail_icon1" label="&mail_notification_disabled.label;"
                      accesskey="&mail_notification_disabled.accesskey;"
-                     oncommand="firetray.UIOptions.updateNotificationSettings()" />
+                     oncommand="firetrayUIOptions.updateNotificationSettings()" />
               <hbox>
                 <radio id="radio_mail_icon2" label="&mail_notification_unread_count.label;"
                        accesskey="&mail_notification_unread_count.accesskey;"
-                       oncommand="firetray.UIOptions.updateNotificationSettings()" />
+                       oncommand="firetrayUIOptions.updateNotificationSettings()" />
                 <hbox id="icon_text_color" align="center">
                   <label value="&icon_text_color;" accesskey="&icon_text_color.accesskey;"/>
                   <colorpicker id="btn_icon_text_color" type="button"
@@ -79,17 +80,17 @@
               </hbox>
               <radio id="radio_mail_icon3" label="&mail_notification_newmail_icon.label;"
                      accesskey="&mail_notification_newmail_icon.accesskey;"
-                     oncommand="firetray.UIOptions.updateNotificationSettings()" />
+                     oncommand="firetrayUIOptions.updateNotificationSettings()" />
               <hbox>
                 <radio id="radio_mail_icon4" label="&mail_notification_custom_mail_icon.label;"
                        accesskey="&mail_notification_custom_mail_icon.accesskey;"
-                       oncommand="firetray.UIOptions.updateNotificationSettings()" />
+                       oncommand="firetrayUIOptions.updateNotificationSettings()" />
                 <hbox id="custom_mail_icon" align="center" flex="1" >
                   <textbox id="custom_mail_icon_filename" preference="pref_string_custom_mail_icon"
                            onblur="firetray.Messaging.updateUnreadMsgCount();" flex="1" />
                   <button id="custom_mail_icon_select" label="&choose;"
                           accesskey="&choose.accesskey;"
-                          oncommand="firetray.UIOptions.chooseMailIconFile()" />
+                          oncommand="firetrayUIOptions.chooseMailIconFile()" />
                 </hbox>
               </hbox>
             </radiogroup>
@@ -106,7 +107,7 @@
 
             <listbox id="excluded_folders_list" rows="7" flex="1" seltype="multiple"
                      tooltiptext="&excluded_folders_list.tooltip;"
-                     onselect="firetray.UIOptions.updateExcludedFoldersPref()"
+                     onselect="firetrayUIOptions.updateExcludedFoldersPref()"
                      observes="broadcaster-notification-disabled" />
           </groupbox>
 
@@ -123,7 +124,7 @@
                   observes="broadcaster-notification-disabled"
                   preference-editable="true"
                   preference="pref_string_mail_accounts"
-                  onsynctopreference="return firetray.UIOptions.saveTreeAccountsOrServerTypes();">
+                  onsynctopreference="return firetrayUIOptions.saveTreeAccountsOrServerTypes();">
               <treecols>
                 <treecol id="account_or_server_type_name" editable="false" flex="2"
                          persist="width" primary="true" label="&account_or_server_type_name;"
