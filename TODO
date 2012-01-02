@@ -1,6 +1,8 @@
 TODO
 ----
 
+* use for (var i = 0; myArray[i++];) instead of i<myArray.length
+
 * add entry to popup menu when registering
 
 WONTFIX

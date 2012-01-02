@@ -9,12 +9,12 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/cairo.jsm");
-Cu.import("resource://firetray/gobject.jsm");
-Cu.import("resource://firetray/gdk.jsm");
-Cu.import("resource://firetray/gtk.jsm");
-Cu.import("resource://firetray/libc.jsm");
-Cu.import("resource://firetray/pango.jsm");
+Cu.import("resource://firetray/ctypes/cairo.jsm");
+Cu.import("resource://firetray/ctypes/gobject.jsm");
+Cu.import("resource://firetray/ctypes/gdk.jsm");
+Cu.import("resource://firetray/ctypes/gtk.jsm");
+Cu.import("resource://firetray/ctypes/libc.jsm");
+Cu.import("resource://firetray/ctypes/pango.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.Handler))

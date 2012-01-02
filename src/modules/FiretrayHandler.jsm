@@ -8,8 +8,8 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/gobject.jsm");
-Cu.import("resource://firetray/gtk.jsm");
+Cu.import("resource://firetray/ctypes/gobject.jsm");
+Cu.import("resource://firetray/ctypes/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
 
 /**

@@ -15,7 +15,7 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/ctypes-utils.jsm");
+Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
 const XATOMS_ICCCM = [ "WM_DELETE_WINDOW", "WM_STATE", "WM_CHANGE_STATE" ];

@@ -16,12 +16,12 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/ctypesMap.jsm");
-Cu.import("resource://firetray/gobject.jsm");
-Cu.import("resource://firetray/gdk.jsm");
-Cu.import("resource://firetray/gtk.jsm");
-Cu.import("resource://firetray/libc.jsm");
-Cu.import("resource://firetray/x11.jsm");
+Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
+Cu.import("resource://firetray/ctypes/gobject.jsm");
+Cu.import("resource://firetray/ctypes/gdk.jsm");
+Cu.import("resource://firetray/ctypes/gtk.jsm");
+Cu.import("resource://firetray/ctypes/libc.jsm");
+Cu.import("resource://firetray/ctypes/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const Services2 = {};
@@ -98,11 +98,8 @@ firetray.Window = {
    * @param userData: _find_data_t
    */
   _findGtkWindowByTitle: function(gtkWidget, userData) {
-    // LOG("GTK Window: "+gtkWidget+", "+userData);
-
     let data = ctypes.cast(userData, _find_data_t.ptr);
     let inTitle = data.contents.inTitle;
-    // LOG("inTitle="+inTitle.readString());
 
     let gtkWin = ctypes.cast(gtkWidget, gtk.GtkWindow.ptr);
     let winTitle = gtk.gtk_window_get_title(gtkWin);
@@ -332,8 +329,7 @@ firetray.Handler.gdkWindows = new ctypesMap(gdk.GdkWindow.ptr),
 /** debug facility */
 firetray.Handler.dumpWindows = function() {
   LOG(firetray.Handler.windowsCount);
-  for (let winId in firetray.Handler.windows)
-    LOG(winId+"="+firetray.Handler.gtkWindows.get(winId));
+  for (let winId in firetray.Handler.windows) LOG(winId+"="+firetray.Handler.gtkWindows.get(winId));
 };
 
 firetray.Handler.registerWindow = function(win) {

@@ -382,7 +382,6 @@ var firetrayUIOptions = {
       let accountOrServerTypeOrder = parseInt(
         tree.view.getCellText(
           i, tree.columns.getNamedColumn("account_or_server_type_order")));
-
       LOG("account: "+accountOrServerTypeName+", "+accountOrServerTypeExcluded);
 
       if (tree.view.getLevel(i) === TREELEVEL_SERVER_TYPES) {

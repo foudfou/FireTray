@@ -8,7 +8,6 @@ const Cu = Components.utils;
 
 Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/PluralForm.jsm");
-// Cu.import("resource://firetray/FiretrayHandler.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const FLDRS_UNINTERESTING = {
@@ -35,7 +34,7 @@ firetray.Messaging = {
 
   init: function() {
     if (this.initialized) {
-      LOG("Messaging already initialized");
+      WARN("Messaging already initialized");
       return;
     }
     LOG("Enabling Messaging");

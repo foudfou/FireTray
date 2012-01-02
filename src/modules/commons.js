@@ -68,11 +68,10 @@ firetray.Utils = {
   },
 
   QueryInterfaces: function(obj) {
-    for each (i in Components.interfaces) {
+    for each (i in Components.interfaces)
       try {
-        if (obj instanceof i) { LOG(i); }
-      } catch (x) {}
-    }
+        if (obj instanceof i) LOG (i);
+      } catch(x) {}
   },
 
   // adapted from http://forums.mozillazine.org/viewtopic.php?p=921150#921150

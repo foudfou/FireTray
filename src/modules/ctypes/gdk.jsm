@@ -47,11 +47,11 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/ctypes-utils.jsm");
-Cu.import("resource://firetray/cairo.jsm");
-Cu.import("resource://firetray/glib.jsm");
-Cu.import("resource://firetray/gobject.jsm");
-Cu.import("resource://firetray/x11.jsm");
+Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
+Cu.import("resource://firetray/ctypes/cairo.jsm");
+Cu.import("resource://firetray/ctypes/glib.jsm");
+Cu.import("resource://firetray/ctypes/gobject.jsm");
+Cu.import("resource://firetray/ctypes/x11.jsm");
 
 function gdk_defines(lib) {
   this.GdkInterpType = ctypes.int; // enum

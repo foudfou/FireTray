@@ -84,7 +84,10 @@ chrome_sources := $(chrome_sources_js) \
 modules_dir := modules
 
 # The sources for the module files.
-modules_sources := $(wildcard $(modules_dir)/*.js) $(wildcard $(modules_dir)/*.jsm)
+modules_sources := $(wildcard $(modules_dir)/*.js) \
+		$(wildcard $(modules_dir)/*.jsm) \
+		$(wildcard $(modules_dir)/ctypes/*.jsm) \
+		$(wildcard $(modules_dir)/gtk2/*.jsm)
 
 # The sources for the XPI file. Uses variables defined in the included
 # Makefiles.

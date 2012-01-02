@@ -47,8 +47,8 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/ctypes-utils.jsm");
-Cu.import("resource://firetray/glib.jsm");
+Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
+Cu.import("resource://firetray/ctypes/glib.jsm");
 
 function gobject_defines(lib) {
 
