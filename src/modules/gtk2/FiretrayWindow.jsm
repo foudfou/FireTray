@@ -269,7 +269,7 @@ firetray.Window = {
     if (!propsFound) return 0;
 
     let maximizedHorz = maximizedVert = false;
-    for (let i=0, propsFoundLen=nitems.value; i<propsFoundLen; ++i) {
+    for (let i=0, len=nitems.value; i<len; ++i) {
       LOG("i: "+propsFound.contents[i]);
       let foundProp = propsFound.contents[i].toString();
       if (strEquals(propsFound.contents[i], x11.current.Atoms['_NET_WM_STATE_HIDDEN']))

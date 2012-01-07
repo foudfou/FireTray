@@ -35,7 +35,7 @@ var firetrayUIOptions = {
     // NOTE: not sure this is necessary on window close
     let tree = document.getElementById("ui_tree_mail_accounts");
     let that = this;
-    for (let i=0; i < tree.view.rowCount; i++) {
+    for (let i=0, len=tree.view.rowCount; i<len ; ++i) {
       let cells = tree.view.getItemAtIndex(i).getElementsByTagName("treecell");
       if (tree.view.getLevel(i) === TREELEVEL_SERVER_TYPES) {
         // account_or_server_type_excluded, account_or_server_type_order
@@ -57,7 +57,7 @@ var firetrayUIOptions = {
 
   disableGroup: function(group, disableval) {
     try {
-      for(var i=0; i< group.childNodes.length; i++)
+      for (let i=0, len=group.childNodes.length; i<len ; ++i)
         group.childNodes[i].disabled = disableval;
     } catch(e) {}
   },
@@ -144,7 +144,7 @@ var firetrayUIOptions = {
 
     let prefExcludedFoldersFlags = firetray.Utils.prefService
       .getIntPref("excluded_folders_flags");
-    for(let folderType in FLDRS_UNINTERESTING) {
+    for (let folderType in FLDRS_UNINTERESTING) {
       let localizedFolderType = this.strings.getString(folderType);
       let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
       item.setAttribute("observes", "broadcaster-notification-disabled");
@@ -159,7 +159,7 @@ var firetrayUIOptions = {
 
     LOG("LAST SELECTED: "+excludedFoldersList.currentItem.label);
     let excludedFoldersFlags = null;
-    for(let i = 0; i < excludedFoldersList.itemCount; i++) {
+    for (let i = 0, len=excludedFoldersList.itemCount; i<len; ++i) {
       let folder = excludedFoldersList.getItemAtIndex(i);
       if (folder.selected)
         excludedFoldersFlags &= ~FLDRS_UNINTERESTING[folder.value];
@@ -182,7 +182,7 @@ var firetrayUIOptions = {
     try {
       let cells = row.childNodes; // .getElementsByTagName('treecell');
       LOG("CELLS: "+cells);
-      for (let i=0; i< cells.length; i++) {
+      for (let i=0, len=cells.length; i<len; ++i) {
         LOG("i: "+i+", cell:"+cells[i]);
         if (disable === true) {
           cells[i].setAttribute('properties', "disabled");
@@ -226,7 +226,7 @@ var firetrayUIOptions = {
         checkboxCell,
         'ancestor::xul:treeitem[1]/descendant::xul:treechildren//xul:treerow');
       LOG("subRows="+subRows);
-      for (let i=0; i<subRows.length; i++) {
+      for (let i=0, len=subRows.length; i<len; ++i) {
         firetrayUIOptions._disableTreeRow(
           subRows[i], (checkboxCell.getAttribute("value") === "false"));
       }
@@ -267,7 +267,7 @@ var firetrayUIOptions = {
     LOG("serverTypesSorted: "+serverTypesSorted);
 
     let target = document.getElementById("ui_mail_accounts");
-    for (let i=0; i<serverTypesSorted.length; i++) {
+    for (let i=0, len=serverTypesSorted.length; i<len; ++i) {
       let serverTypeName = serverTypesSorted[i];
 
       let item = document.createElement('treeitem');
@@ -307,7 +307,7 @@ var firetrayUIOptions = {
         continue;
 
       let rowDisabled = (cellExcluded.getAttribute("value") === "false");
-      for (let i=0; i<typeAccounts.length; i++) {
+      for (let i=0, len=typeAccounts.length; i<len; ++i) {
         let subItem = document.createElement('treeitem');
         let subRow = document.createElement('treerow');
 
@@ -363,7 +363,7 @@ var firetrayUIOptions = {
 
     LOG("VIEW="+ tree.view + ", rowCount="+tree.view.rowCount);
     let prefObj = {"serverTypes":{}, "excludedAccounts":[]};
-    for (let i=0; i < tree.view.rowCount; i++) {
+    for (let i=0, len=tree.view.rowCount; i<len; ++i) {
       let accountOrServerTypeName = tree.view.getCellText(
         i, tree.columns.getNamedColumn("account_or_server_type_name"));
       let accountOrServerTypeExcluded = (

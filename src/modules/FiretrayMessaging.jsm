@@ -178,7 +178,7 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
    (nsISupportsArray, nsICollection). Should be OK to re-build a JS-Array for
    few accounts */
   let accountServers = [];
-  for (let i = 0; i < accounts.Count(); i++) {
+  for (let i=0, len=accounts.Count(); i<len; ++i) {
     let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
     let accountServer = account.incomingServer;
     accountServers[i] = accountServer;
@@ -202,7 +202,7 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
     });
   }
 
-  for (i = 0; i < accountServers.length; i++) {
+  for (let i=0, len=accountServers.length; i<len; ++i) {
     LOG("ACCOUNT: "+accountServers[i].prettyName+" type: "+accountServers[i].type);
     yield accountServers[i];
   }
