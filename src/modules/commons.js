@@ -4,7 +4,7 @@
    provided by this module */
 var EXPORTED_SYMBOLS =
   [ "firetray", "LOG", "WARN", "ERROR", "FIREFOX_ID", "THUNDERBIRD_ID",
-    "SEAMONKEY_ID", "isArray", "isEmpty", "strEquals",
+    "SEAMONKEY_ID", "getType", "isArray", "isEmpty", "strEquals",
     "FT_NOTIFICATION_DISABLED", "FT_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FT_NOTIFICATION_NEWMAIL_ICON", "FT_NOTIFICATION_CUSTOM_ICON" ];
 
@@ -170,7 +170,11 @@ firetray.Utils = {
 
 // http://stackoverflow.com/questions/767486/how-do-you-check-if-a-variable-is-an-array-in-javascript
 function isArray(o) {
-  return Object.prototype.toString.call(o) === '[object Array]';
+  return getType(o) === '[object Array]';
+}
+function getType(thing){
+    if(thing === null) return "[object Null]"; // special case
+    return Object.prototype.toString.call(thing);
 }
 
 // http://stackoverflow.com/questions/18912/how-to-find-keys-of-a-hash

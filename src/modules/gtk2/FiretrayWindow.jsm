@@ -24,6 +24,9 @@ Cu.import("resource://firetray/ctypes/libc.jsm");
 Cu.import("resource://firetray/ctypes/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 
+if ("undefined" == typeof(firetray.Handler))
+  ERROR("This module MUST be imported from/after FiretrayHandler !");
+
 const Services2 = {};
 XPCOMUtils.defineLazyServiceGetter(
   Services2,
@@ -32,8 +35,8 @@ XPCOMUtils.defineLazyServiceGetter(
   "nsIUUIDGenerator"
 );
 
-if ("undefined" == typeof(firetray.Handler))
-  ERROR("This module MUST be imported from/after FiretrayHandler !");
+const FIRETRAY_XWINDOW_HIDDEN    = 1 << 0; // when minimized also
+const FIRETRAY_XWINDOW_MAXIMIZED = 1 << 1;
 
 /**
  * custum type used to pass data in to and out of findGtkWindowByTitleCb
@@ -175,30 +178,24 @@ firetray.Window = {
       false); // repaint
   },
 
-  saveWindowState: function(xid) {
-    // FIXME: windowState = STATE_MINIMIZED when we're on another virtual
-    // desktop... besides we may want to restore the window onto its orininal
-    // desktop
-    firetray.Handler.windows[xid].savedWindowState =
-      firetray.Handler.windows[xid].chromeWin.windowState;
-    LOG("save: windowState="+firetray.Handler.windows[xid].savedWindowState);
+  saveWindowStates: function(xid) {
+    // TODO: we may want to restore the window onto its original
+    // desktop/monitor/etc.
+    let winStates = firetray.Window.getXWindowStates(x11.Window(xid));
+    firetray.Handler.windows[xid].savedWindowStates = winStates;
+    LOG("save: windowStates="+winStates);
   },
 
-  restoreWindowState: function(xid) {
-    switch (firetray.Handler.windows[xid].savedWindowState) {
-    case Ci.nsIDOMChromeWindow.STATE_MAXIMIZED: // 1
+  restoreWindowStates: function(xid) {
+    let winStates = firetray.Handler.windows[xid].savedWindowStates;
+    LOG("restored WindowStates: " + winStates);
+    if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
       firetray.Handler.windows[xid].chromeWin.maximize();
-      break;
-    case Ci.nsIDOMChromeWindow.STATE_MINIMIZED: // 2
-      firetray.Handler.windows[xid].chromeWin.minimize();
-      break;
-    case Ci.nsIDOMChromeWindow.STATE_NORMAL: // 3
-      break;
-    case Ci.nsIDOMChromeWindow.STATE_FULLSCREEN: // 4
-      // FIXME: NOT IMPLEMENTED YET
-    default:
     }
-    LOG("restored WindowState: " + firetray.Handler.windows[xid].chromeWin.windowState);
+    let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+    if (!hides_on_minimize && (winStates & FIRETRAY_XWINDOW_HIDDEN)) {
+      firetray.Handler.windows[xid].chromeWin.minimize();
+    }
   },
 
 /* KEPT FOR LATER USE
@@ -215,9 +212,12 @@ firetray.Window = {
   },
 */
 
-  checkXWindowEWMState: function(xwin, prop) {
-    LOG("xwin="+xwin+" prop="+prop);
-
+  /**
+   * YOU MUST x11.XFree() THE VARIABLE RETURN BY THIS FUNCTION
+   * @param xwin: a x11.Window
+   * @param prop: a x11.Atom
+   */
+  getXWindowProperties: function(xwin, prop) {
     // infos returned by XGetWindowProperty()
     let actual_type = new x11.Atom;
     let actual_format = new ctypes.int;
@@ -228,17 +228,17 @@ firetray.Window = {
     let bufSize = XATOMS_EWMH_WM_STATES.length*ctypes.unsigned_long.size;
     let offset = 0;
     let res = x11.XGetWindowProperty(
-      x11.current.Display, xwin, x11.current.Atoms._NET_WM_STATE, offset, bufSize, 0, x11.AnyPropertyType,
+      x11.current.Display, xwin, prop, offset, bufSize, 0, x11.AnyPropertyType,
       actual_type.address(), actual_format.address(), nitems.address(), bytes_after.address(), prop_value.address());
     LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
 
     if (!strEquals(res, x11.Success)) {
       ERROR("XGetWindowProperty failed");
-      return false;
+      return [null, null];
     }
     if (strEquals(actual_type.value, x11.None)) {
       WARN("property not found");
-      return false;
+      return [null, null];
     }
 
     LOG("prop_value="+prop_value+", size="+prop_value.constructor.size);
@@ -247,22 +247,45 @@ firetray.Window = {
      that are padded in the upper 4 bytes). [man XGetWindowProperty] */
     if (actual_format.value !== 32) {
       ERROR("unsupported format: "+actual_format.value);
-      x11.XFree(prop_value);
-      return false;
     }
     LOG("format OK");
     var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
     LOG("props="+props+", size="+props.constructor.size);
 
-    for (let i=0; i<nitems.value; ++i) {
-      LOG(props.contents[i]);
-      if (strEquals(props.contents[i], prop))
-        return true;
+    return [props, nitems];
+  },
+
+  /**
+   * check the state of a window by its EWMH window state. This is more
+   * accurate than the chromeWin.windowState or the GdkWindowState which are
+   * based on WM_STATE. For instance, WM_STATE becomes 'Iconic' on virtual
+   * desktop change...
+   */
+  getXWindowStates: function(xwin) {
+    let winStates = 0;
+
+    let [propsFound, nitems] = firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_STATE);
+    LOG("propsFound, nitems="+propsFound+", "+nitems);
+    if (!propsFound) return 0;
+
+    let maximizedHorz = maximizedVert = false;
+    for (let i=0, propsFoundLen=nitems.value; i<propsFoundLen; ++i) {
+      LOG("i: "+propsFound.contents[i]);
+      let foundProp = propsFound.contents[i].toString();
+      if (strEquals(propsFound.contents[i], x11.current.Atoms['_NET_WM_STATE_HIDDEN']))
+        winStates |= FIRETRAY_XWINDOW_HIDDEN;
+      else if (strEquals(propsFound.contents[i], x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_HORZ']))
+        maximizedHorz = true;
+      else if (strEquals(propsFound.contents[i], x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_VERT']))
+        maximizedVert = true;
     }
 
-    x11.XFree(prop_value);
+    if (maximizedHorz && maximizedVert)
+      winStates |= FIRETRAY_XWINDOW_MAXIMIZED;
 
-    return false;
+    x11.XFree(propsFound);
+
+    return winStates;
   },
 
   filterWindow: function(xev, gdkEv, data) {
@@ -277,8 +300,9 @@ firetray.Window = {
 
       case x11.UnmapNotify:
         LOG("UnmapNotify");
-        let isHidden = firetray.Window.checkXWindowEWMState(xwin, x11.current.Atoms._NET_WM_STATE_HIDDEN);
-        LOG("isHidden="+isHidden);
+        let winStates = firetray.Window.getXWindowStates(xwin);
+        let isHidden =  winStates & FIRETRAY_XWINDOW_HIDDEN;
+        LOG("winStates="+winStates+", isHidden="+isHidden);
         if (isHidden) {
           let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
           let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
@@ -291,9 +315,9 @@ firetray.Window = {
         }
         break;
 
-/* KEPT FOR LATER USE
       case x11.ClientMessage:   // not very useful
         LOG("ClientMessage");
+/* KEPT FOR LATER USE
         let xclient = ctypes.cast(xev, x11.XClientMessageEvent.ptr);
         LOG("xclient.data="+xclient.contents.data);
         LOG("message_type="+xclient.contents.message_type+", format="+xclient.contents.format);
@@ -301,8 +325,8 @@ firetray.Window = {
           LOG("Delete Window prevented");
           return gdk.GDK_FILTER_REMOVE;
         }
-        break;
 */
+        break;
 
       default:
         // LOG("xany.type="+xany.contents.type);
@@ -412,7 +436,7 @@ firetray.Handler.showSingleWindow = function(xid) {
 
   // try to restore previous state. TODO: z-order respected ?
   firetray.Window.restoreWindowPositionAndSize(xid);
-  firetray.Window.restoreWindowState(xid); // no need to be saved
+  firetray.Window.restoreWindowStates(xid); // no need to be saved
   firetray.Handler.windows[xid].baseWin.visibility = true; // show
 
   firetray.Handler.windows[xid].visibility = true;
@@ -425,7 +449,7 @@ firetray.Handler.hideSingleWindow = function(xid) {
   LOG("hideSingleWindow");
 
   firetray.Window.saveWindowPositionAndSize(xid);
-  firetray.Window.saveWindowState(xid);
+  firetray.Window.saveWindowStates(xid);
   firetray.Handler.windows[xid].baseWin.visibility = false; // hide
 
   firetray.Handler.windows[xid].visibility = false;

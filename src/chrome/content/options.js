@@ -19,7 +19,7 @@ var firetrayUIOptions = {
   onLoad: function(e) {
     this.strings = document.getElementById("firetray-options-strings");
 
-    this.initWindowAndIconControls();
+    this.updateWindowAndIconOptions();
 
     if(firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
@@ -62,21 +62,12 @@ var firetrayUIOptions = {
     } catch(e) {}
   },
 
-  initWindowAndIconControls: function() {
-    let doDisable = !(firetray.Utils.prefService.getBoolPref('hides_on_close') ||
-                    firetray.Utils.prefService.getBoolPref('hides_on_minimize'));
-    this.updateHidesOptions(doDisable);
-  },
-
-  updateHidesOptions: function(doDisable) {
-    if ("undefined" === typeof(doDisable)) {
-      let hides_on_close    = document.getElementById("ui_hides_on_close").checked;
-      let hides_on_minimize = document.getElementById("ui_hides_on_minimize").checked;
-      LOG("hides_on_close="+hides_on_close+", hides_on_minimize="+hides_on_minimize);
-      doDisable = !hides_on_close && !hides_on_minimize;
-    }
-
-    document.getElementById('ui_hides_single_window').disabled = doDisable;
+  updateWindowAndIconOptions: function() {
+    let hides_on_close    = document.getElementById("ui_hides_on_close").checked;
+    let hides_on_minimize = document.getElementById("ui_hides_on_minimize").checked;
+    LOG("hides_on_close="+hides_on_close+", hides_on_minimize="+hides_on_minimize);
+    document.getElementById('ui_hides_single_window').disabled =
+      !(hides_on_close || hides_on_minimize);
   },
 
   initMailControls: function() {
