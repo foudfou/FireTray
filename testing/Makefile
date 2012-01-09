@@ -1,5 +1,6 @@
 includes := $(shell pkg-config --libs --cflags gtk+-2.0)
-executables :=  gtk_icon_example trayicon hide xtypes x11XGetWindowProp window_state_event
+executables :=  gtk_icon_example trayicon hide xtypes x11XGetWindowProp \
+	window_state_event xev_desktop
 
 .PHONY: all
 all: $(executables)
@@ -25,3 +26,6 @@ x11XGetWindowProp: x11XGetWindowProp.c
 
 window_state_event: window_state_event.c
 	gcc $(includes) -o window_state_event window_state_event.c
+
+xev_desktop: xev_desktop.c
+	gcc -lXm -lXt -lX11 -o xev_desktop xev_desktop.c

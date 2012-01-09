@@ -108,6 +108,10 @@ function gdk_defines(lib) {
   this.GDK_GRAB_BROKEN       = 35;
   this.GDK_DAMAGE            = 36;
   this.GDK_EVENT_LAST = 37;      /* helper variable for decls */
+  this.GdkPropMode = ctypes.int; // enum
+  this.GDK_PROP_MODE_REPLACE = 0;
+  this.GDK_PROP_MODE_PREPEN  = 1;
+  this.GDK_PROP_MODE_APPEND  = 2;
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -176,6 +180,7 @@ function gdk_defines(lib) {
     { "changed_mask": this.GdkWindowState },
     { "new_window_state": this.GdkWindowState },
   ]);
+  this.GdkAtom = ctypes.StructType("GdkAtom");
 
   this.GdkFilterFunc_t = ctypes.FunctionType(
     ctypes.default_abi, this.GdkFilterReturn,
@@ -225,6 +230,8 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_drawable_get_size", ctypes.void_t, this.GdkDrawable.ptr, gobject.gint.ptr, gobject.gint.ptr);
   // lib.lazy_bind("gdk_window_get_geometry", ctypes.void_t, this.GdkWindow.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr);
   lib.lazy_bind("gdk_window_move_resize", ctypes.void_t, this.GdkWindow.ptr, gobject.gint, gobject.gint, gobject.gint, gobject.gint);
+  lib.lazy_bind("gdk_atom_intern", this.GdkAtom, gobject.gchar.ptr, gobject.gboolean);
+  lib.lazy_bind("gdk_property_change", ctypes.void_t, this.GdkWindow.ptr, this.GdkAtom, this.GdkAtom, gobject.gint, this.GdkPropMode, gobject.guchar.ptr, gobject.gint);
 
 }
 

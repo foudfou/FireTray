@@ -176,18 +176,20 @@ firetray.Window = {
       firetray.Handler.windows[xid].savedWidth,
       firetray.Handler.windows[xid].savedHeight,
       false); // repaint
+
+    ['savedX', 'savedX', 'savedWidth', 'savedHeight'].forEach(function(element, index, array) {
+      delete firetray.Handler.windows[xid][element];
+    });
   },
 
   saveWindowStates: function(xid) {
-    // TODO: we may want to restore the window onto its original
-    // desktop/monitor/etc.
     let winStates = firetray.Window.getXWindowStates(x11.Window(xid));
-    firetray.Handler.windows[xid].savedWindowStates = winStates;
+    firetray.Handler.windows[xid].savedStates = winStates;
     LOG("save: windowStates="+winStates);
   },
 
   restoreWindowStates: function(xid) {
-    let winStates = firetray.Handler.windows[xid].savedWindowStates;
+    let winStates = firetray.Handler.windows[xid].savedStates;
     LOG("restored WindowStates: " + winStates);
     if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
       firetray.Handler.windows[xid].chromeWin.maximize();
@@ -196,6 +198,36 @@ firetray.Window = {
     if (!hides_on_minimize && (winStates & FIRETRAY_XWINDOW_HIDDEN)) {
       firetray.Handler.windows[xid].chromeWin.minimize();
     }
+
+    delete firetray.Handler.windows[xid].savedStates;
+  },
+
+  saveWindowDesktop: function(xid) {
+    let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
+    firetray.Handler.windows[xid].savedDesktop = winDesktop;
+    LOG("save: windowDesktop="+winDesktop);
+  },
+
+  restoreWindowDesktop: function(xid) {
+    let desktopDest = firetray.Handler.windows[xid].savedDesktop;
+    if (desktopDest === null) return;
+
+    let xev = new x11.XClientMessageEvent;
+    xev.type = x11.ClientMessage;
+    xev.window = x11.Window(xid);
+    xev.message_type = x11.current.Atoms._NET_WM_DESKTOP;
+    xev.format = 32;
+    xev.data[0] = desktopDest;
+
+    let rootWin = x11.XDefaultRootWindow(x11.current.Display);
+    let propagate = false;
+    let mask = ctypes.long(x11.SubstructureNotifyMask|x11.SubstructureRedirectMask);
+    // fortunately, it's OK not to cast xev. ctypes.cast to a void_t doesn't work (length pb)
+    let status = x11.XSendEvent(x11.current.Display, rootWin, propagate, mask, xev.address());
+    // always returns 1 (BadRequest as a coincidence)
+
+    LOG("restored to desktop: "+desktopDest);
+    delete firetray.Handler.windows[xid].savedDesktop;
   },
 
 /* KEPT FOR LATER USE
@@ -213,12 +245,12 @@ firetray.Window = {
 */
 
   /**
-   * YOU MUST x11.XFree() THE VARIABLE RETURN BY THIS FUNCTION
+   * YOU MUST x11.XFree() THE VARIABLE RETURNED BY THIS FUNCTION
    * @param xwin: a x11.Window
    * @param prop: a x11.Atom
    */
   getXWindowProperties: function(xwin, prop) {
-    // infos returned by XGetWindowProperty()
+    // infos returned by XGetWindowProperty() - FIXME: should be freed ?
     let actual_type = new x11.Atom;
     let actual_format = new ctypes.int;
     let nitems = new ctypes.unsigned_long;
@@ -229,7 +261,8 @@ firetray.Window = {
     let offset = 0;
     let res = x11.XGetWindowProperty(
       x11.current.Display, xwin, prop, offset, bufSize, 0, x11.AnyPropertyType,
-      actual_type.address(), actual_format.address(), nitems.address(), bytes_after.address(), prop_value.address());
+      actual_type.address(), actual_format.address(), nitems.address(),
+      bytes_after.address(), prop_value.address());
     LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
 
     if (!strEquals(res, x11.Success)) {
@@ -264,19 +297,20 @@ firetray.Window = {
   getXWindowStates: function(xwin) {
     let winStates = 0;
 
-    let [propsFound, nitems] = firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_STATE);
+    let [propsFound, nitems] =
+      firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_STATE);
     LOG("propsFound, nitems="+propsFound+", "+nitems);
     if (!propsFound) return 0;
 
     let maximizedHorz = maximizedVert = false;
     for (let i=0, len=nitems.value; i<len; ++i) {
       LOG("i: "+propsFound.contents[i]);
-      let foundProp = propsFound.contents[i].toString();
-      if (strEquals(propsFound.contents[i], x11.current.Atoms['_NET_WM_STATE_HIDDEN']))
+      let currentProp = propsFound.contents[i];
+      if (strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_HIDDEN']))
         winStates |= FIRETRAY_XWINDOW_HIDDEN;
-      else if (strEquals(propsFound.contents[i], x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_HORZ']))
+      else if (strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_HORZ']))
         maximizedHorz = true;
-      else if (strEquals(propsFound.contents[i], x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_VERT']))
+      else if (strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_VERT']))
         maximizedVert = true;
     }
 
@@ -286,6 +320,25 @@ firetray.Window = {
     x11.XFree(propsFound);
 
     return winStates;
+  },
+
+  getXWindowDesktop: function(xwin) {
+    let desktop = null;
+
+    let [propsFound, nitems] =
+      firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_DESKTOP);
+    LOG("DESKTOP propsFound, nitems="+propsFound+", "+nitems);
+
+    if (strEquals(nitems.value, 0))
+      WARN("desktop number not found");
+    else if (strEquals(nitems.value, 1))
+      desktop = propsFound.contents[0];
+    else
+      throw new RangeError("more than one desktop found");
+
+    x11.XFree(propsFound);
+
+    return desktop;
   },
 
   filterWindow: function(xev, gdkEv, data) {
@@ -301,7 +354,7 @@ firetray.Window = {
       case x11.UnmapNotify:
         LOG("UnmapNotify");
         let winStates = firetray.Window.getXWindowStates(xwin);
-        let isHidden =  winStates & FIRETRAY_XWINDOW_HIDDEN;
+        let isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
         LOG("winStates="+winStates+", isHidden="+isHidden);
         if (isHidden) {
           let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
@@ -436,8 +489,10 @@ firetray.Handler.showSingleWindow = function(xid) {
 
   // try to restore previous state. TODO: z-order respected ?
   firetray.Window.restoreWindowPositionAndSize(xid);
-  firetray.Window.restoreWindowStates(xid); // no need to be saved
+  firetray.Window.restoreWindowStates(xid);
   firetray.Handler.windows[xid].baseWin.visibility = true; // show
+  firetray.Window.restoreWindowDesktop(xid);               // after show
+  // TODO: we need want to restore to the original monitor (screen)
 
   firetray.Handler.windows[xid].visibility = true;
   firetray.Handler.visibleWindowsCount += 1;
@@ -450,6 +505,7 @@ firetray.Handler.hideSingleWindow = function(xid) {
 
   firetray.Window.saveWindowPositionAndSize(xid);
   firetray.Window.saveWindowStates(xid);
+  firetray.Window.saveWindowDesktop(xid);
   firetray.Handler.windows[xid].baseWin.visibility = false; // hide
 
   firetray.Handler.windows[xid].visibility = false;
@@ -477,9 +533,9 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
 
 /**
  * init X11 Display and handled XAtoms.
- * Needs to be defined and called outside x11.jsm because: gdk already imports
- * x11, and there is no means to get the default Display solely with Xlib
- * without opening one...  :-(
+ * Needs to be defined and called outside x11.jsm because: 1. gdk already
+ * imports x11, 2. there is no means to get the default Display solely with
+ * Xlib without opening one... :-(
  */
 x11.init = function() {
   if (!isEmpty(this.current))

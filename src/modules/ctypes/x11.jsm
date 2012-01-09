@@ -34,7 +34,8 @@ const XATOMS_EWMH_WM_STATES =  [
   "_NET_WM_STATE_FULLSCREEN", "_NET_WM_STATE_ABOVE", "_NET_WM_STATE_BELOW",
   "_NET_WM_STATE_DEMANDS_ATTENTION"
 ];
-const XATOMS = XATOMS_ICCCM.concat(XATOMS_EWMH_WM_STATES).concat(XATOMS_EWMH_GENERAL);
+const XATOMS = XATOMS_ICCCM.concat(XATOMS_EWMH_WM_STATES)
+  .concat(XATOMS_EWMH_GENERAL).concat(["CARDINAL"]);
 
 
 function x11_defines(lib) {
@@ -55,35 +56,43 @@ function x11_defines(lib) {
   }
 
   // X.h
-  this.Success = 0;
-  this.None = 0;
-  this.AnyPropertyType = 0;
-  this.BadValue = 2;
-  this.BadWindow = 3;
-  this.BadAtom = 5;
-  this.BadMatch = 8;
-  this.BadAlloc = 11;
+  this.Success          = 0;
+  this.None             = 0;
+  this.AnyPropertyType  = 0;
+  this.BadValue         = 2;
+  this.BadWindow        = 3;
+  this.BadAtom          = 5;
+  this.BadMatch         = 8;
+  this.BadAlloc         = 11;
   this.PropertyNewValue = 0;
-  this.PropertyDelete = 1;
+  this.PropertyDelete   = 1;
+  this.PropModeReplace  = 0;
+  this.PropModePrepend  = 1;
+  this.PropModeAppend   = 2;
   // Event names
-  this.DestroyNotify = 17;
-  this.UnmapNotify = 18;
-  this.MapNotify = 19;
+  this.DestroyNotify  = 17;
+  this.UnmapNotify    = 18;
+  this.MapNotify      = 19;
   this.PropertyNotify = 28;
-  this.ClientMessage = 33;
+  this.ClientMessage  = 33;
   // Xutils.h: definitions for initial window state
   this.WithdrawnState = 0;      /* for windows that are not mapped */
-  this.NormalState = 1;         /* most applications want to start this way */
-  this.IconicState = 3;         /* application wants to start as an icon */
+  this.NormalState    = 1;      /* most applications want to start this way */
+  this.IconicState    = 3;      /* application wants to start as an icon */
   // Xatom
-  this.XA_ATOM = 4;
+  this.XA_ATOM     = 4;
+  this.XA_CARDINAL = 6;
+  // Input Event Masks
+  this.SubstructureNotifyMask   = 1<<19;
+  this.SubstructureRedirectMask = 1<<20;
 
   this.Bool = ctypes.int;
+  this.Status = ctypes.int;
   this.Display = ctypes.StructType("Display");
   // union not supported by js-ctypes
   // https://bugzilla.mozilla.org/show_bug.cgi?id=535378 "You can always
   // typecast pointers, at least as long as you know which type is the biggest"
-  this.XEvent = ctypes.void_t;
+  this.XEvent = ctypes.void_t;  // union
   this.XAnyEvent = ctypes.StructType("XAnyEvent", [
     { "type": ctypes.int },
     { "serial": ctypes.unsigned_long },
@@ -116,6 +125,9 @@ function x11_defines(lib) {
   lib.lazy_bind("XInternAtom", this.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool); // only_if_exsits
   lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_char.ptr.ptr);
   lib.lazy_bind("XChangeProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, this.Atom, ctypes.int, ctypes.int, ctypes.unsigned_char.ptr, ctypes.int);
+  lib.lazy_bind("XDefaultRootWindow", this.Window, this.Display.ptr);
+  lib.lazy_bind("XSendEvent", this.Status, this.Display.ptr, this.Window, this.Bool, ctypes.long, this.XEvent.ptr);
+
 }
 
 if (!x11) {
@@ -148,68 +160,4 @@ typedef unsigned long Atom;
 #  else
 typedef CARD32 Atom;
 #  endif
-*/
-
-/*
-XEvent {
-        int type;
-        XAnyEvent xany;
-        XKeyEvent xkey;
-        XButtonEvent xbutton;
-        XMotionEvent xmotion;
-        XCrossingEvent xcrossing;
-        XFocusChangeEvent xfocus;
-        XExposeEvent xexpose;
-        XGraphicsExposeEvent xgraphicsexpose;
-        XNoExposeEvent xnoexpose;
-        XVisibilityEvent xvisibility;
-        XCreateWindowEvent xcreatewindow;
-        XDestroyWindowEvent xdestroywindow;
-        XUnmapEvent xunmap;
-        XMapEvent xmap;
-        XMapRequestEvent xmaprequest;
-        XReparentEvent xreparent;
-        XConfigureEvent xconfigure;
-        XGravityEvent xgravity;
-        XResizeRequestEvent xresizerequest;
-        XConfigureRequestEvent xconfigurerequest;
-        XCirculateEvent xcirculate;
-        XCirculateRequestEvent xcirculaterequest;
-        XPropertyEvent xproperty;
-        XSelectionClearEvent xselectionclear;
-        XSelectionRequestEvent xselectionrequest;
-        XSelectionEvent xselection;
-        XColormapEvent xcolormap;
-        XClientMessageEvent xclient;
-        XMappingEvent xmapping;
-        XErrorEvent xerror;
-        XKeymapEvent xkeymap;
-        XGenericEvent xgeneric;
-        XGenericEventCookie xcookie;
-        long pad[24];
-}
-
-GdkEvent {
-  GdkEventType              type;
-  GdkEventAny               any;
-  GdkEventExpose            expose;
-  GdkEventNoExpose          no_expose;
-  GdkEventVisibility        visibility;
-  GdkEventMotion            motion;
-  GdkEventButton            button;
-  GdkEventScroll            scroll;
-  GdkEventKey               key;
-  GdkEventCrossing          crossing;
-  GdkEventFocus             focus_change;
-  GdkEventConfigure         configure;
-  GdkEventProperty          property;
-  GdkEventSelection         selection;
-  GdkEventOwnerChange       owner_change;
-  GdkEventProximity         proximity;
-  GdkEventClient            client;
-  GdkEventDND               dnd;
-  GdkEventWindowState       window_state;
-  GdkEventSetting           setting;
-  GdkEventGrabBroken        grab_broken;
-};
 */
