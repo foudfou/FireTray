@@ -154,6 +154,15 @@ firetray.Handler = {
     return winOut;
   },
 
+  openBrowserWindow: function() {
+    var handler = Components.classes["@mozilla.org/browser/clh;1"]
+      .getService(Components.interfaces.nsIBrowserHandler);
+    var homePage = handler.defaultArgs;
+    LOG("homePage="+homePage);
+    var win = Services.wm.getMostRecentWindow("navigator:browser"); // nsIDOMWindow=[object ChromeWindow]
+    win.open(homePage);
+  },
+
   quitApplication: function() {
     try {
       let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']

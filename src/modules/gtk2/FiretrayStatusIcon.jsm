@@ -20,14 +20,10 @@ Cu.import("resource://firetray/commons.js");
 if ("undefined" == typeof(firetray.Handler))
   ERROR("This module MUST be imported from/after FiretrayHandler !");
 
-// pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
-var firetray_iconActivateCb;
-var firetray_popupMenuCb;
-var firetray_menuItemQuitActivateCb;
-
 
 firetray.StatusIcon = {
   initialized: false,
+  callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
   trayIcon: null,
   menu: null,
   MIN_FONT_SIZE: 4,
@@ -48,8 +44,10 @@ firetray.StatusIcon = {
     firetray.Handler.setTooltipDefault();
 
     LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
-    firetray_iconActivateCb = gtk.GCallbackStatusIconActivate_t(firetray.Handler.showHideAllWindows);
-    let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon, "activate", firetray_iconActivateCb, null);
+    this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
+      firetray.Handler.showHideAllWindows);
+    let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
+      "activate", firetray.StatusIcon.callbacks.iconActivate, null);
     LOG("g_connect activate="+handlerId);
 
     this.initialized = true;
@@ -68,6 +66,34 @@ firetray.StatusIcon = {
 
   _buildPopupMenu: function() {
     this.menu = gtk.gtk_menu_new();
+    var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
+
+    /*
+     * FIXME: somehow a ctypes callback calling win.open() seems to break
+     * main-thread-only rule :-(
+     * https://developer.mozilla.org/en/js-ctypes/js-ctypes_reference/Callbacks
+     * https://bugzilla.mozilla.org/show_bug.cgi?id=513778#c4
+     * https://wiki.mozilla.org/Jsctypes/api#Callbacks
+     * consider using nsIJetpackService
+     */
+/*
+    var mozAppId = Services.appinfo.ID;
+    if (mozAppId === FIREFOX_ID || mozAppId === SEAMONKEY_ID) { // browser
+		  var menuItemNewWindowLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewWindow");
+      var menuItemNewWindow = gtk.gtk_image_menu_item_new_with_label(
+        menuItemNewWindowLabel);
+      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewWindow, gtk.GtkWidget.ptr));
+
+      this.callbacks.menuItemNewWindowActivate = gobject.GCallback_t(
+        firetray.Handler.sendOpenBrowserWindowEvent);
+      gobject.g_signal_connect(menuItemNewWindow, "activate",
+                               firetray.StatusIcon.callbacks.menuItemNewWindowActivate, null);
+
+      var menuSeparator = gtk.gtk_separator_menu_item_new();
+      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuSeparator, gtk.GtkWidget.ptr));
+    }
+*/
+
     // shouldn't need to convert to utf8 thank to js-ctypes
 		var menuItemQuitLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.Quit");
     var menuItemQuit = gtk.gtk_image_menu_item_new_with_label(
@@ -75,13 +101,12 @@ firetray.StatusIcon = {
     var menuItemQuitIcon = gtk.gtk_image_new_from_stock(
       "gtk-quit", gtk.GTK_ICON_SIZE_MENU);
     gtk.gtk_image_menu_item_set_image(menuItemQuit, menuItemQuitIcon);
-    var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
-    gtk.gtk_menu_shell_append(menuShell, menuItemQuit);
+    gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemQuit, gtk.GtkWidget.ptr));
 
-    firetray_menuItemQuitActivateCb = gobject.GCallback_t(
-      function(){firetray.Handler.quitApplication();});
+    this.callbacks.menuItemQuitActivate = gobject.GCallback_t(
+      firetray.Handler.quitApplication);
     gobject.g_signal_connect(menuItemQuit, "activate",
-                             firetray_menuItemQuitActivateCb, null);
+      firetray.StatusIcon.callbacks.menuItemQuitActivate, null);
 
     var menuWidget = ctypes.cast(this.menu, gtk.GtkWidget.ptr);
     gtk.gtk_widget_show_all(menuWidget);
@@ -90,9 +115,9 @@ firetray.StatusIcon = {
        definition) because we need the args passed to it ! As a consequence, we
        need to abandon 'this' in popupMenu() */
     let that = this;
-    firetray_popupMenuCb = gtk.GCallbackMenuPopup_t(that.popupMenu);
+    this.callbacks.popupMenu = gtk.GCallbackMenuPopup_t(that.popupMenu);
     gobject.g_signal_connect(this.trayIcon, "popup-menu",
-                             firetray_popupMenuCb, this.menu);
+      firetray.StatusIcon.callbacks.popupMenu, this.menu);
   },
 
   popupMenu: function(icon, button, activateTime, menu) {
@@ -106,7 +131,7 @@ firetray.StatusIcon = {
         gtkMenuPtr, null, null, gtk.gtk_status_icon_position_menu,
         iconGpointer, button, activateTime);
     } catch (x) {
-      LOG(x);
+      ERROR(x);
     }
   }
 
