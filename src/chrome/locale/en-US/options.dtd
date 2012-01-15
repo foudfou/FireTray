@@ -8,7 +8,6 @@
 <!ENTITY mail_options "Mail">
 
 <!ENTITY windows_behaviour "Windows behaviour">
-
 <!ENTITY bool_hides_on_close.label "Closing window hides to tray">
 <!ENTITY bool_hides_on_close.accesskey "C">
 <!ENTITY bool_hides_single_window.tooltip "not all windows at once">
@@ -18,6 +17,10 @@
 <!ENTITY bool_hides_single_window.accesskey "H">
 <!ENTITY bool_start_hidden.label "Start application hidden to tray">
 <!ENTITY bool_start_hidden.accesskey "S">
+
+<!ENTITY icon_settings "Icon settings">
+<!ENTITY bool_show_icon_on_hide.label "Show only if at least a window is hidden">
+<!ENTITY bool_show_icon_on_hide.accesskey "w">
 
 <!ENTITY mail_notification.label "Mail notification">
 <!ENTITY mail_notification_disabled.label "disabled">

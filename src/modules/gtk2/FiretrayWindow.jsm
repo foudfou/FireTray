@@ -506,6 +506,8 @@ firetray.Handler.showSingleWindow = function(xid) {
 
   firetray.Handler.windows[xid].visibility = true;
   firetray.Handler.visibleWindowsCount += 1;
+
+  firetray.Handler.showHideIcon();
 };
 
 // NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
@@ -520,6 +522,8 @@ firetray.Handler.hideSingleWindow = function(xid) {
 
   firetray.Handler.windows[xid].visibility = false;
   firetray.Handler.visibleWindowsCount -= 1;
+
+  firetray.Handler.showHideIcon();
 };
 
 firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {

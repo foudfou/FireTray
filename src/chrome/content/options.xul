@@ -23,6 +23,7 @@
       <preference id="pref_bool_hides_on_minimize" name="extensions.firetray.hides_on_minimize" type="bool"/>
       <preference id="pref_bool_hides_single_window" name="extensions.firetray.hides_single_window" type="bool"/>
       <preference id="pref_bool_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
+      <preference id="pref_bool_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
       <preference id="pref_string_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_string_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
       <preference id="pref_string_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
@@ -37,10 +38,10 @@
       <tabpanels flex="1">
 
         <tabpanel id="general_tabpanel" flex="1">
+          <vbox pack="start" align="left" flex="1">
 
-          <groupbox flex="1">
+          <groupbox>
             <caption label="&windows_behaviour;" />
-
             <checkbox id="ui_hides_on_close" preference="pref_bool_hides_on_close"
                       label="&bool_hides_on_close.label;"
                       accesskey="&bool_hides_on_close.accesskey;"
@@ -58,6 +59,14 @@
                       accesskey="&bool_start_hidden.accesskey;"/>
           </groupbox>
 
+          <groupbox>
+            <caption label="&icon_settings;" />
+            <checkbox id="ui_show_icon_on_hide" preference="pref_bool_show_icon_on_hide"
+                      label="&bool_show_icon_on_hide.label;"
+                      accesskey="&bool_show_icon_on_hide.accesskey;"/>
+          </groupbox>
+
+          </vbox>
         </tabpanel>
 
         <tabpanel id="input_tabpanel" flex="1" />

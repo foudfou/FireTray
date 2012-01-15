@@ -53,7 +53,7 @@ firetray.Messaging = {
     LOG("Disabling Messaging");
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
-    firetray.Handler.setImageDefault();
+    firetray.Handler.setIconImageDefault();
 
     this.initialized = false;
   },
@@ -120,22 +120,22 @@ firetray.Messaging = {
 
     // update icon
     if (this._unreadMsgCount == 0) {
-      firetray.Handler.setImageDefault();
-      firetray.Handler.setTooltipDefault();
+      firetray.Handler.setIconImageDefault();
+      firetray.Handler.setIconTooltipDefault();
 
     } else if (this._unreadMsgCount > 0) {
       switch (prefMailNotification) {
 
       case FT_NOTIFICATION_UNREAD_MESSAGE_COUNT:
         let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
-        firetray.Handler.setText(this._unreadMsgCount.toString(), prefIconTextColor);
+        firetray.Handler.setIconText(this._unreadMsgCount.toString(), prefIconTextColor);
         break;
       case FT_NOTIFICATION_NEWMAIL_ICON:
-        firetray.Handler.setImage(firetray.Handler.FILENAME_NEWMAIL);
+        firetray.Handler.setIconImage(firetray.Handler.FILENAME_NEWMAIL);
         break;
       case FT_NOTIFICATION_CUSTOM_ICON:
         let prefCustomIconPath = firetray.Utils.prefService.getCharPref("custom_mail_icon");
-        firetray.Handler.setImage(prefCustomIconPath);
+        firetray.Handler.setIconImage(prefCustomIconPath);
         break;
       default:
         ERROR("Unknown notification mode");
@@ -145,7 +145,7 @@ firetray.Messaging = {
         this._unreadMsgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
         .replace("#1", this._unreadMsgCount);;
-      firetray.Handler.setTooltip(localizedMessage);
+      firetray.Handler.setIconTooltip(localizedMessage);
 
     } else {
       throw "negative message count"; // should never happen

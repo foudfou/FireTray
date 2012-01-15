@@ -71,6 +71,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_status_icon_new", this.GtkStatusIcon.ptr);
   lib.lazy_bind("gtk_status_icon_set_from_file", ctypes.void_t, this.GtkStatusIcon.ptr, ctypes.char.ptr);
   lib.lazy_bind("gtk_status_icon_set_tooltip_text", ctypes.void_t, this.GtkStatusIcon.ptr, ctypes.char.ptr);
+  lib.lazy_bind("gtk_status_icon_set_visible", ctypes.void_t, this.GtkStatusIcon.ptr, gobject.gboolean);
   lib.lazy_bind("gtk_menu_new", this.GtkMenu.ptr);
   lib.lazy_bind("gtk_image_menu_item_new_with_label", this.GtkImageMenuItem.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gtk_image_new_from_stock", this.GtkWidget.ptr, gobject.gchar.ptr, ctypes.int); // enum

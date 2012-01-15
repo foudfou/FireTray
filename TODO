@@ -6,8 +6,6 @@ TODO
 WONTFIX
 -------
 
-* ability to hide windows individually/globally
-
 * disable notifications for excluded mail account servers. NOTE: toggle
   `login_at_startup` and `check_new_mail` is a bad idea. Mainly because the
   user may be toggling them after we store the previous values (and before we
@@ -38,6 +36,5 @@ NEXT FEATURES
 * mouse scrolls on tray icon hides/shows
 * when restoring, if the window is iconified, deiconify it
 * keyboard shortcut hide/show
-* show icon only when hidden to tray
 
 [Vote](https://docs.google.com/spreadsheet/viewform?hl=fr&formkey=dFJqUC1pLTQzNkJYQldFdzdSV1BaSkE6MQ#gid=0)

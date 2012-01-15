@@ -11,9 +11,10 @@ Features
 
 * for all applications:
   * show/hide a single or all windows
-  * a window restored to its previous state, position, size, virtual desktop
-  * ability to hide to tray on minimize
-  * ability to start minimized to tray
+  * a window gets restored to its previous state, position, size, virtual desktop
+  * optional hide to tray on minimize
+  * optional start minimized to tray
+  * optional show icon only when hidden to tray
 
 * for mail applications:
   * display unread messages count in tray icon

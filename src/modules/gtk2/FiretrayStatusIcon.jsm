@@ -38,11 +38,11 @@ firetray.StatusIcon = {
       return false;
     }
 
-    firetray.Handler.setImageDefault();
+    firetray.Handler.setIconImageDefault();
 
     this._buildPopupMenu();
 
-    firetray.Handler.setTooltipDefault();
+    firetray.Handler.setIconTooltipDefault();
 
     LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
     this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
@@ -148,7 +148,7 @@ firetray.StatusIcon = {
 }; // firetray.StatusIcon
 
 
-firetray.Handler.setImage = function(filename) {
+firetray.Handler.setIconImage = function(filename) {
   if (!firetray.StatusIcon.trayIcon)
     return false;
   LOG(filename);
@@ -163,14 +163,14 @@ firetray.Handler.setImage = function(filename) {
   return true;
 };
 
-firetray.Handler.setImageDefault = function() {
+firetray.Handler.setIconImageDefault = function() {
   if (!this.FILENAME_DEFAULT)
     throw "Default application icon filename not set";
-  this.setImage(this.FILENAME_DEFAULT);
+  this.setIconImage(this.FILENAME_DEFAULT);
 };
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
-firetray.Handler.setTooltip = function(toolTipStr) {
+firetray.Handler.setIconTooltip = function(toolTipStr) {
   if (!firetray.StatusIcon.trayIcon)
     return false;
 
@@ -184,14 +184,14 @@ firetray.Handler.setTooltip = function(toolTipStr) {
   return true;
 };
 
-firetray.Handler.setTooltipDefault = function() {
+firetray.Handler.setIconTooltipDefault = function() {
   if (!this.appNameOriginal)
     throw "application name not initialized";
-  this.setTooltip(this.appNameOriginal);
+  this.setIconTooltip(this.appNameOriginal);
 };
 
-firetray.Handler.setText = function(text, color) { // TODO: split into smaller functions;
-  LOG("setText, color="+color);
+firetray.Handler.setIconText = function(text, color) { // TODO: split into smaller functions;
+  LOG("setIconText, color="+color);
   if (typeof(text) != "string")
     throw new TypeError();
 
@@ -293,5 +293,12 @@ firetray.Handler.setText = function(text, color) { // TODO: split into smaller f
     return false;
   }
 
+  return true;
+};
+
+firetray.Handler.setIconVisibility = function(visible) {
+  if (!firetray.StatusIcon.trayIcon)
+    return false;
+  gtk.gtk_status_icon_set_visible(firetray.StatusIcon.trayIcon, visible);
   return true;
 };

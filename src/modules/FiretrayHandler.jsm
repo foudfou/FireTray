@@ -75,6 +75,7 @@ firetray.Handler = {
     LOG('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
 
     firetray.StatusIcon.init();
+    firetray.Handler.showHideIcon();
     LOG('StatusIcon initialized');
 
     if (this.inMailApp) {
@@ -146,12 +147,13 @@ firetray.Handler = {
     }
   },
 
-  // these get overridden in OS-specific Window handlers
-  setImage: function(filename) {},
-  setImageDefault: function() {},
-  setText: function(text, color) {},
-  setTooltip: function(localizedMessage) {},
-  setTooltipDefault: function() {},
+  // these get overridden in OS-specific Icon/Window handlers
+  setIconImage: function(filename) {},
+  setIconImageDefault: function() {},
+  setIconText: function(text, color) {},
+  setIconTooltip: function(localizedMessage) {},
+  setIconTooltipDefault: function() {},
+  setIconVisibility: function(visible) {},
   registerWindow: function(win) {},
   unregisterWindow: function(win) {},
   getWindowIdFromChromeWindow: function(win) {},
@@ -172,6 +174,12 @@ firetray.Handler = {
       if (firetray.Handler.windows[winId].visibility)
         firetray.Handler.hideSingleWindow(winId);
     }
+  },
+
+  showHideIcon: function() {
+    if (firetray.Utils.prefService.getBoolPref('show_icon_on_hide'))
+      firetray.Handler.setIconVisibility(
+        (firetray.Handler.visibleWindowsCount !== firetray.Handler.windowsCount));
   },
 
   /** nsIBaseWindow, nsIXULWindow, ... */
