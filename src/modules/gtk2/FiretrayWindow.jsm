@@ -328,6 +328,7 @@ firetray.Window = {
     let [propsFound, nitems] =
       firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_DESKTOP);
     LOG("DESKTOP propsFound, nitems="+propsFound+", "+nitems);
+    if (!propsFound) return null;
 
     if (strEquals(nitems.value, 0))
       WARN("desktop number not found");

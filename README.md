@@ -46,5 +46,5 @@ Acknowledgment
 * Some code borrowed from
   [Nils Mayer](https://addons.mozilla.org/fr/firefox/addon/minimizetotray-revived/
   "MinToTrayR addon page").
-* kind support from Neil Deaking
+* kind support from Neil Deaking, Bobby Holley
 

@@ -9,6 +9,7 @@ pref("browser.tabs.warnOnClose", false);
 pref("extensions.firetray.hides_on_close", true);
 pref("extensions.firetray.hides_on_minimize", true);
 pref("extensions.firetray.hides_single_window", false);
+pref("extensions.firetray.start_hidden", false);
 
 pref("extensions.firetray.mail_notification", 1);
 pref("extensions.firetray.icon_text_color", "#000000");

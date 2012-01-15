@@ -18,9 +18,8 @@ var firetrayChrome = {
       // Set up preference change observer
       firetray.Utils.prefService.QueryInterface(Ci.nsIPrefBranch2);
       firetray.Utils.prefService.addObserver("", firetrayChrome, false);
-    }
-    catch (ex) {
-      ERROR(ex);
+    } catch (x) {
+      ERROR(x);
       return false;
     }
 
@@ -38,6 +37,14 @@ var firetrayChrome = {
     win.addEventListener('close', firetrayChrome.onClose, true);
     // NOTE: each new window gets a new firetrayChrome, and hence listens to
     // pref changes
+
+    if (!firetray.Handler.appStarted
+        && firetray.Utils.prefService.getBoolPref('start_hidden')) {
+      LOG('start_hidden');
+      let winId = firetray.Handler.getWindowIdFromChromeWindow(win);
+      LOG('winId='+winId);
+      firetray.Handler.hideSingleWindow(winId);
+    }
 
     LOG('Firetray LOADED: ' + init);
     return true;
@@ -76,10 +83,12 @@ var firetrayChrome = {
   },
 
   observe: function(subject, topic, data) {
-    // Observer for pref changes
-    if (topic != "nsPref:changed") return;
-    LOG('Pref changed: '+data);
-    // switch(data) { ...
+    switch (topic) {
+    case "nsPref:changed":
+      LOG('Pref changed: '+data);
+      break;
+    default:
+    }
   }
 
 };

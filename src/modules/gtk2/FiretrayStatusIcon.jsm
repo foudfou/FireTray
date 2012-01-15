@@ -67,32 +67,40 @@ firetray.StatusIcon = {
   _buildPopupMenu: function() {
     this.menu = gtk.gtk_menu_new();
     var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
+    var addMenuSeparator = false;
 
-    /*
-     * FIXME: somehow a ctypes callback calling win.open() seems to break
-     * main-thread-only rule :-(
-     * https://developer.mozilla.org/en/js-ctypes/js-ctypes_reference/Callbacks
-     * https://bugzilla.mozilla.org/show_bug.cgi?id=513778#c4
-     * https://wiki.mozilla.org/Jsctypes/api#Callbacks
-     * consider using nsIJetpackService
-     */
-/*
-    var mozAppId = Services.appinfo.ID;
-    if (mozAppId === FIREFOX_ID || mozAppId === SEAMONKEY_ID) { // browser
+    if (firetray.Handler.inBrowserApp) {
 		  var menuItemNewWindowLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewWindow");
       var menuItemNewWindow = gtk.gtk_image_menu_item_new_with_label(
         menuItemNewWindowLabel);
       gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewWindow, gtk.GtkWidget.ptr));
 
       this.callbacks.menuItemNewWindowActivate = gobject.GCallback_t(
-        firetray.Handler.sendOpenBrowserWindowEvent);
+        firetray.Handler.openBrowserWindow);
       gobject.g_signal_connect(menuItemNewWindow, "activate",
-                               firetray.StatusIcon.callbacks.menuItemNewWindowActivate, null);
+        firetray.StatusIcon.callbacks.menuItemNewWindowActivate, null);
 
+      addMenuSeparator = true;
+    }
+
+    if (firetray.Handler.inMailApp) {
+		  var menuItemNewMessageLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewMessage");
+      var menuItemNewMessage = gtk.gtk_image_menu_item_new_with_label(
+        menuItemNewMessageLabel);
+      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewMessage, gtk.GtkWidget.ptr));
+
+      this.callbacks.menuItemNewMessageActivate = gobject.GCallback_t(
+        firetray.Handler.openMailMessage);
+      gobject.g_signal_connect(menuItemNewMessage, "activate",
+        firetray.StatusIcon.callbacks.menuItemNewMessageActivate, null);
+
+      addMenuSeparator = true;
+    }
+
+    if (addMenuSeparator) {
       var menuSeparator = gtk.gtk_separator_menu_item_new();
       gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuSeparator, gtk.GtkWidget.ptr));
     }
-*/
 
     // shouldn't need to convert to utf8 thank to js-ctypes
 		var menuItemQuitLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.Quit");
