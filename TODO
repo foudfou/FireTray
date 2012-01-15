@@ -1,8 +1,6 @@
 TODO
 ----
 
-* use for (var i = 0; myArray[i++];) instead of i<myArray.length
-
 * add entry to popup menu when registering
 
 WONTFIX
@@ -38,10 +36,8 @@ NEXT FEATURES
 -------------
 
 * mouse scrolls on tray icon hides/shows
-* hide to tray on minimize
-* ability to start minimized to tray
-* when restoring if the window is iconified, deiconify it
-* custom tray icon
+* when restoring, if the window is iconified, deiconify it
 * keyboard shortcut hide/show
+* show icon only when hidden to tray
 
 [Vote](https://docs.google.com/spreadsheet/viewform?hl=fr&formkey=dFJqUC1pLTQzNkJYQldFdzdSV1BaSkE6MQ#gid=0)

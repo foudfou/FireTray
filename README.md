@@ -6,6 +6,20 @@ Overview
 
 Js-ctypes rewrite of the binary XPCOM version of **Firetray**.
 
+Features
+--------
+
+* for all applications:
+  * show/hide a single or all windows
+  * a window restored to its previous state, position, size, virtual desktop
+  * ability to hide to tray on minimize
+  * ability to start minimized to tray
+
+* for mail applications:
+  * display unread messages count in tray icon
+  * customizable tray icon for mail biff
+  * include/exclude mail accounts and folders types to/from unread messages count
+
 Notes
 -----
 

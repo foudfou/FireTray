@@ -61,6 +61,8 @@ function ctypes_library(name, abis, defines) {
       }
     }
 
+    this.name = name;
+
     this.close = function() {
       library.close();
       this.ABI = -1;

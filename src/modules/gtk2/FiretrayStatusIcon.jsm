@@ -55,12 +55,7 @@ firetray.StatusIcon = {
   },
 
   shutdown: function() {
-    cairo.close();
-    gobject.close();
-    gdk.close();
-    gtk.close();
-    pango.close();
-
+    firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gtk, pango]);
     this.initialized = false;
   },
 

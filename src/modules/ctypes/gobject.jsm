@@ -37,7 +37,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var EXPORTED_SYMBOLS = [ "gobject" ];
+var EXPORTED_SYMBOLS = [ "gobject", "glib" ];
 
 const GOBJECT_LIBNAME = "gobject-2.0";
 const GOBJECT_ABIS = [ 0 ];

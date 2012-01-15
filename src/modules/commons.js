@@ -169,6 +169,16 @@ firetray.Utils = {
     }
 
     return list;
+  },
+
+  tryCloseLibs: function(libs) {
+    try {
+      libs.forEach(function(lib) {
+        LOG("try closing "+lib.name);
+        if (lib.available())
+          lib.close();
+      });
+    } catch(x) { ERROR(x); }
   }
 
 };

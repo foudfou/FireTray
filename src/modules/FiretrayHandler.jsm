@@ -92,6 +92,7 @@ firetray.Handler = {
     }
 
     Services.obs.addObserver(this, this.getAppStartupTopic(this.mozAppId), false);
+    Services.obs.addObserver(this, "xpcom-will-shutdown", false);
 
     this.initialized = true;
     return true;
@@ -100,17 +101,13 @@ firetray.Handler = {
   shutdown: function() {
     if (this.inMailApp)
       firetray.Messaging.shutdown();
+    firetray.StatusIcon.shutdown();
+    firetray.Window.shutdown();
 
-    switch (this.runtimeOS) {
-    case "Linux":
-      firetray.StatusIcon.shutdown();
-      break;
-    default:
-      ERROR("runtimeOS unknown or undefined.");
-      return false;
-    }
+    firetray.Utils.tryCloseLibs([gobject, glib, gtk]);
 
     Services.obs.removeObserver(this, this.getAppStartupTopic(this.mozAppId), false);
+    Services.obs.removeObserver(this, "xpcom-will-shutdown", false);
 
     return true;
   },
@@ -128,6 +125,10 @@ firetray.Handler = {
         firetray.Handler.appStarted = true;
         LOG("*** appStarted ***");
       }, FIRETRAY_BROWSER_STARTUP_DELAY_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      break;
+    case "xpcom-will-shutdown":
+      LOG("xpcom-will-shutdown");
+      this.shutdown();
       break;
     default:
     }

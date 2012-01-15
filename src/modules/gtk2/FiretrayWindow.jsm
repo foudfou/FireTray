@@ -49,6 +49,15 @@ var _find_data_t = ctypes.StructType("_find_data_t", [
 
 firetray.Window = {
 
+  init: function() {
+    this.initialized = true;
+  },
+
+  shutdown: function() {
+    firetray.Utils.tryCloseLibs([gobject, gdk, gtk, libc, x11]);
+    this.initialized = false;
+  },
+
   /**
    * Iterate over all Gtk toplevel windows to find a window. We rely on
    * Service.wm to watch windows correctly: we should find only one window.

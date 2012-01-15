@@ -44,11 +44,11 @@
             <checkbox id="ui_hides_on_close" preference="pref_bool_hides_on_close"
                       label="&bool_hides_on_close.label;"
                       accesskey="&bool_hides_on_close.accesskey;"
-                      oncommand="firetrayUIOptions.updateHidesOptions();"/>
+                      oncommand="firetrayUIOptions.updateWindowAndIconOptions();"/>
             <checkbox id="ui_hides_on_minimize" preference="pref_bool_hides_on_minimize"
                       label="&bool_hides_on_minimize.label;"
                       accesskey="&bool_hides_on_minimize.accesskey;"
-                      oncommand="firetrayUIOptions.updateHidesOptions();"/>
+                      oncommand="firetrayUIOptions.updateWindowAndIconOptions();"/>
             <checkbox id="ui_hides_single_window" preference="pref_bool_hides_single_window"
                       label="&bool_hides_single_window.label;"
                       accesskey="&bool_hides_single_window.accesskey;"
