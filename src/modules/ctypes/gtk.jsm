@@ -112,6 +112,4 @@ function gtk_defines(lib) {
 
 }
 
-if (!gtk) {
-  var gtk = new ctypes_library(GTK_LIBNAME, GTK_ABIS, gtk_defines);
-}
+new ctypes_library(GTK_LIBNAME, GTK_ABIS, gtk_defines, this);

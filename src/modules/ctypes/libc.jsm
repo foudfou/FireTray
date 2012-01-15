@@ -25,6 +25,4 @@ function libc_defines(lib) {
   lib.lazy_bind("strcmp", ctypes.int, ctypes.char.ptr, ctypes.char.ptr);
 };
 
-if (!libc) {
-  var libc = new ctypes_library(LIBC_LIBNAME, LIBC_ABIS, libc_defines);
-}
+var libc = new ctypes_library(LIBC_LIBNAME, LIBC_ABIS, libc_defines, this);

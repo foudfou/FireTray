@@ -4,8 +4,6 @@ var EXPORTED_SYMBOLS = [ "pango", "pangocairo" ];
 
 const PANGO_LIBNAME = "pango-1.0";
 const PANGO_ABIS    = [ 0 ];
-const PANGOCAIRO_LIBNAME = "pangocairo-1.0";
-const PANGOCAIRO_ABIS    = [ 0 ];
 
 const Cu = Components.utils;
 const Cc = Components.classes;
@@ -46,15 +44,4 @@ function pango_defines(lib) {
 
 }
 
-if (!pango) {
-  var pango = new ctypes_library(PANGO_LIBNAME, PANGO_ABIS, pango_defines);
-}
-
-
-function pangocairo_defines(lib) {
-  lib.lazy_bind("pango_cairo_show_layout", ctypes.void_t, cairo.cairo_t.ptr, pango.PangoLayout.ptr);
-}
-
-if (!pangocairo) {
-  var pangocairo = new ctypes_library(PANGOCAIRO_LIBNAME, PANGOCAIRO_ABIS, pangocairo_defines);
-}
+new ctypes_library(PANGO_LIBNAME, PANGO_ABIS, pango_defines, this);

@@ -130,9 +130,7 @@ function x11_defines(lib) {
 
 }
 
-if (!x11) {
-  var x11 = new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines);
-}
+new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines, this);
 
 
 /* Xorg 1.10.4

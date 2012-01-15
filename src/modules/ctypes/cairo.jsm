@@ -23,6 +23,4 @@ function cairo_defines(lib) {
 
 }
 
-if (!cairo) {
-  var cairo = new ctypes_library(CAIRO_LIBNAME, CAIRO_ABIS, cairo_defines);
-}
+new ctypes_library(CAIRO_LIBNAME, CAIRO_ABIS, cairo_defines, this);

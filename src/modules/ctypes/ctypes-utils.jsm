@@ -44,12 +44,72 @@ Cu.import("resource://firetray/logging.jsm");
 
 var EXPORTED_SYMBOLS  = [ "ctypes_library" ];
 
-function ctypes_library(name, abis, defines) {
+/**
+ * Loads a library using ctypes and exports an object on to the specified
+ * global object. The name of the exported object will be the first name
+ * specified in the global objects EXPORTED_SYMBOLS list.
+ *
+ * It is an error to call this function more than once in a JS module. This
+ * implies that you should have one JS module per ctypes library.
+ *
+ * In addition to native types and functions, the exported object will contain
+ * some additional utility functions:
+ *
+ * close      Close the library and unload the JS module
+ * available  Returns true if the library is available, false otherwise
+ * ABI        A property containing the library ABI loaded (or -1 if unavailable)
+ *
+ * @param  aName
+ *         The name of the library to load, without the "lib" prefix or any
+ *         file extension.
+ *
+ * @param  aABIs
+ *         An array of library ABI's to search for. The first one found will
+ *         be loaded and the loaded ABI will be saved on the exported object.
+ *
+ * @param  aDefines
+ *         A function which will be called to load library symbols and create
+ *         types. The function will be called with one parameter, which contains
+ *         several functions for binding symbols. The "this" object will be
+ *         the exported object, on to which you can should types and symbols.
+ *
+ * @param  aGlobal
+ *         The global object on to which we export an object. This must be a
+ *         a valid JSM global object.
+ *
+ */
+function ctypes_library(aName, aABIs, aDefines, aGlobal) {
   try {
-    LOG("Loading library: " + name);
+    LOG("Trying to load library: " + aName);
+
+    if (typeof(aName) != "string") {
+      throw Error("Invalid library name");
+    }
+
+    if (!aABIs || typeof(aABIs) != "object") {
+      throw Error("Invalid range of library ABI's");
+    }
+
+    if (typeof(aDefines) != "function") {
+      throw Error("Invalid defines function");
+    }
+
+    if (!aGlobal || typeof(aGlobal) != "object" || !aGlobal.EXPORTED_SYMBOLS ||
+        typeof(aGlobal.EXPORTED_SYMBOLS) != "object") {
+      throw Error("Must specify a valid global object from a loaded JS module");
+    }
+
+    if (!("__URI__" in aGlobal) || !aGlobal.__URI__) {
+      throw Error("This JS module has already been unloaded");
+    }
+
+    if (aGlobal[aGlobal.EXPORTED_SYMBOLS[0]]) {
+      throw Error("Was ctypes_library() called more than once for this module?");
+    }
+
     var library;
-    for each (let abi in abis) {
-      let soname = "lib" + name + ".so." + abi.toString();
+    for each (let abi in aABIs) {
+      let soname = "lib" + aName + ".so." + abi.toString();
       LOG("Trying " + soname);
       try {
         library = ctypes.open(soname);
@@ -61,11 +121,18 @@ function ctypes_library(name, abis, defines) {
       }
     }
 
-    this.name = name;
-
     this.close = function() {
+      LOG("Closing library " + aName);
       library.close();
       this.ABI = -1;
+
+      if (!("__URI__" in aGlobal) || !aGlobal.__URI__) {
+        // We could have already been unloaded by now
+        return;
+      }
+
+      LOG("Unloading JS module " + aGlobal.__URI__);
+      Cu.unload(aGlobal.__URI__);
     };
 
     this.available = function() {
@@ -73,7 +140,7 @@ function ctypes_library(name, abis, defines) {
     };
 
     if (!library) {
-      LOG("Failed to load library: " + name);
+      LOG("Failed to load library: " + aName);
       this.ABI = -1;
       return;
     }
@@ -91,7 +158,8 @@ function ctypes_library(name, abis, defines) {
 
           return library.declare.apply(library, args);
         } catch (ex) {
-          ERROR("Missing symbol " + arguments[0] + " in library " + name);
+          Cu.reportError(ex);
+          ERROR("Missing symbol " + arguments[0] + " in library " + aName);
           self.ABI = -1;
           return null;
         }
@@ -109,9 +177,12 @@ function ctypes_library(name, abis, defines) {
       }
     };
 
-    defines.call(this, lib);
+    aDefines.call(this, lib);
+
+    aGlobal[aGlobal.EXPORTED_SYMBOLS[0]] = this;
   } catch(e) {
-    ERROR(name+" definition error: "+e);
+    Cu.reportError(e);
+    ERROR(aName+" definition error: "+e);
     this.ABI = -1;
   }
 }

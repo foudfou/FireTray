@@ -174,7 +174,6 @@ firetray.Utils = {
   tryCloseLibs: function(libs) {
     try {
       libs.forEach(function(lib) {
-        LOG("try closing "+lib.name);
         if (lib.available())
           lib.close();
       });
@@ -182,6 +181,8 @@ firetray.Utils = {
   }
 
 };
+
+////////////////////////// more fundamental helpers //////////////////////////
 
 // http://stackoverflow.com/questions/767486/how-do-you-check-if-a-variable-is-an-array-in-javascript
 function isArray(o) {

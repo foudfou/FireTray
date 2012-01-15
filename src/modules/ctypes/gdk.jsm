@@ -235,6 +235,4 @@ function gdk_defines(lib) {
 
 }
 
-if (!gdk) {
-  var gdk = new ctypes_library(GDK_LIBNAME, GDK_ABIS, gdk_defines);
-}
+new ctypes_library(GDK_LIBNAME, GDK_ABIS, gdk_defines, this);

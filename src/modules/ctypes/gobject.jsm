@@ -151,6 +151,4 @@ function gobject_defines(lib) {
 
 }
 
-if (!gobject) {
-  var gobject = new ctypes_library(GOBJECT_LIBNAME, GOBJECT_ABIS, gobject_defines);
-}
+new ctypes_library(GOBJECT_LIBNAME, GOBJECT_ABIS, gobject_defines, this);

@@ -18,6 +18,4 @@ function glib_defines(lib) {
   this.GError = ctypes.StructType("GError");
 };
 
-if (!glib) {
-  var glib = new ctypes_library(GLIB_LIBNAME, GLIB_ABIS, glib_defines);
-}
+new ctypes_library(GLIB_LIBNAME, GLIB_ABIS, glib_defines, this);

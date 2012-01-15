@@ -15,6 +15,7 @@ Cu.import("resource://firetray/ctypes/gdk.jsm");
 Cu.import("resource://firetray/ctypes/gtk.jsm");
 Cu.import("resource://firetray/ctypes/libc.jsm");
 Cu.import("resource://firetray/ctypes/pango.jsm");
+Cu.import("resource://firetray/ctypes/pangocairo.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.Handler))
@@ -55,7 +56,7 @@ firetray.StatusIcon = {
   },
 
   shutdown: function() {
-    firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gtk, pango]);
+    firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gtk, pango, pangocairo]);
     this.initialized = false;
   },
 
