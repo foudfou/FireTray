@@ -121,7 +121,7 @@ firetray.Handler = {
     case "mail-startup-done":
     case "final-ui-startup":
       LOG("RECEIVED: "+topic+", launching timer");
-      // sessionstore-windows-restored does not come after the realisation of
+      // sessionstore-windows-restored does not come after the realization of
       // all windows... so we wait a little
       var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
       timer.initWithCallback(function() {

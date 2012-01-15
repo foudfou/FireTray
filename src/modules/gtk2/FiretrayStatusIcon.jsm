@@ -73,6 +73,9 @@ firetray.StatusIcon = {
 		  var menuItemNewWindowLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewWindow");
       var menuItemNewWindow = gtk.gtk_image_menu_item_new_with_label(
         menuItemNewWindowLabel);
+      var menuItemNewWindowIcon = gtk.gtk_image_new_from_stock(
+        "gtk-new", gtk.GTK_ICON_SIZE_MENU);
+      gtk.gtk_image_menu_item_set_image(menuItemNewWindow, menuItemNewWindowIcon);
       gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewWindow, gtk.GtkWidget.ptr));
 
       this.callbacks.menuItemNewWindowActivate = gobject.GCallback_t(
@@ -87,6 +90,9 @@ firetray.StatusIcon = {
 		  var menuItemNewMessageLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewMessage");
       var menuItemNewMessage = gtk.gtk_image_menu_item_new_with_label(
         menuItemNewMessageLabel);
+      var menuItemNewMessageIcon = gtk.gtk_image_new_from_stock(
+        "gtk-edit", gtk.GTK_ICON_SIZE_MENU);
+      gtk.gtk_image_menu_item_set_image(menuItemNewMessage, menuItemNewMessageIcon);
       gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewMessage, gtk.GtkWidget.ptr));
 
       this.callbacks.menuItemNewMessageActivate = gobject.GCallback_t(
