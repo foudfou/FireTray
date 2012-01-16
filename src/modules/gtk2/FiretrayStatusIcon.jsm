@@ -128,10 +128,13 @@ firetray.StatusIcon = {
     this.callbacks.popupMenu = gtk.GCallbackMenuPopup_t(that.popupMenu);
     gobject.g_signal_connect(this.trayIcon, "popup-menu",
       firetray.StatusIcon.callbacks.popupMenu, this.menu);
+    this.callbacks.onScroll = gtk.GCallbackOnScroll_t(that.onScroll);
+    gobject.g_signal_connect(this.trayIcon, "scroll-event",
+      firetray.StatusIcon.callbacks.onScroll, null);
   },
 
   popupMenu: function(icon, button, activateTime, menu) {
-    LOG("MENU POPUP");
+    LOG("menu-popup");
     LOG("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
 
     try {
@@ -143,6 +146,11 @@ firetray.StatusIcon = {
     } catch (x) {
       ERROR(x);
     }
+  },
+
+  onScroll: function(icon, event, data) {
+    LOG("scroll-event");
+        // TODO:
   }
 
 }; // firetray.StatusIcon

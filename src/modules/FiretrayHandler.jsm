@@ -27,14 +27,16 @@ if ("undefined" == typeof(firetray)) {
 // other global functions
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 firetray.Handler = {
-  initialized: false,
-  appNameOriginal: null,
   FILENAME_DEFAULT: null,
   FILENAME_SUFFIX: "32.png",
   FILENAME_BLANK: null,
   FILENAME_NEWMAIL: null,
+
+  initialized: false,
+  appNameOriginal: null,
+  appStarted: false,
+  appId: null,
   runtimeOS: null,
-  mozAppId: null,
   inMailApp: false,
   inBrowserApp: false,
   windows: {},
@@ -67,10 +69,10 @@ firetray.Handler = {
       return false;
     }
 
-    this.mozAppId = Services.appinfo.ID;
-    if (this.mozAppId === THUNDERBIRD_ID || this.mozAppId === SEAMONKEY_ID)
+    this.appId = Services.appinfo.ID;
+    if (this.appId === THUNDERBIRD_ID || this.appId === SEAMONKEY_ID)
       this.inMailApp = true;
-    if (this.mozAppId === FIREFOX_ID || this.mozAppId === SEAMONKEY_ID)
+    if (this.appId === FIREFOX_ID || this.appId === SEAMONKEY_ID)
       this.inBrowserApp = true;
     LOG('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
 
@@ -92,7 +94,7 @@ firetray.Handler = {
       }
     }
 
-    Services.obs.addObserver(this, this.getAppStartupTopic(this.mozAppId), false);
+    Services.obs.addObserver(this, this.getAppStartupTopic(this.appId), false);
     Services.obs.addObserver(this, "xpcom-will-shutdown", false);
 
     this.initialized = true;
@@ -107,9 +109,11 @@ firetray.Handler = {
 
     firetray.Utils.tryCloseLibs([gobject, glib, gtk]);
 
-    Services.obs.removeObserver(this, this.getAppStartupTopic(this.mozAppId), false);
+    Services.obs.removeObserver(this, this.getAppStartupTopic(this.appId), false);
     Services.obs.removeObserver(this, "xpcom-will-shutdown", false);
 
+    this.appStarted = false;
+    this.initialized = false;
     return true;
   },
 
@@ -122,10 +126,10 @@ firetray.Handler = {
       // sessionstore-windows-restored does not come after the realization of
       // all windows... so we wait a little
       var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-      timer.initWithCallback(function() {
+      timer.initWithCallback({ notify: function() {
         firetray.Handler.appStarted = true;
         LOG("*** appStarted ***");
-      }, FIRETRAY_BROWSER_STARTUP_DELAY_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      }}, FIRETRAY_BROWSER_STARTUP_DELAY_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
       break;
     case "xpcom-will-shutdown":
       LOG("xpcom-will-shutdown");
@@ -201,9 +205,9 @@ firetray.Handler = {
   },
 
   _getBrowserProperties: function() {
-    if (firetray.Handler.mozAppId === FIREFOX_ID)
+    if (firetray.Handler.appId === FIREFOX_ID)
       return "chrome://branding/locale/browserconfig.properties";
-    else if (firetray.Handler.mozAppId === SEAMONKEY_ID)
+    else if (firetray.Handler.appId === SEAMONKEY_ID)
       return "chrome://navigator-region/locale/region.properties";
     else return null;
   },
@@ -235,10 +239,10 @@ firetray.Handler = {
       // FIXME: obviously we need to wait to avoid seg fault on jsapi.cpp:827
       // 827         if (t->data.requestDepth) {
       var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-      timer.initWithCallback(function() {
+      timer.initWithCallback({ notify: function() {
         for(var key in firetray.Handler.windows) break;
         firetray.Handler.windows[key].chromeWin.open(home);
-      }, FIRETRAY_BROWSER_NEW_WINDOW_DELAY_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      }}, FIRETRAY_BROWSER_NEW_WINDOW_DELAY_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
     } catch (x) { ERROR(x); }
   },
 
@@ -247,7 +251,7 @@ firetray.Handler = {
       var aURI = Services.io.newURI("mailto:", null, null);
       var msgComposeService = Cc["@mozilla.org/messengercompose;1"]
         .getService(Ci.nsIMsgComposeService);
-      msgComposeService.OpenComposeWindowWithURI (null, aURI);
+      msgComposeService.OpenComposeWindowWithURI(null, aURI);
     } catch (x) { ERROR(x); }
   },
 

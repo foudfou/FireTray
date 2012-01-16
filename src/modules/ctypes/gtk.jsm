@@ -61,6 +61,9 @@ function gtk_defines(lib) {
     ctypes.default_abi, ctypes.void_t,
     [this.GtkStatusIcon.ptr, gobject.guint, gobject.guint,
      gobject.gpointer]).ptr;
+  this.GCallbackOnScroll_t = ctypes.FunctionType(
+    ctypes.default_abi, gobject.gboolean,
+    [this.GtkStatusIcon.ptr, gdk.GdkEvent.ptr, gobject.gpointer]).ptr;
   this.GCallbackGenericEvent_t = ctypes.FunctionType(
     ctypes.default_abi, gobject.gboolean,
     [this.GtkWidget.ptr, gdk.GdkEvent.ptr, gobject.gpointer]).ptr;
