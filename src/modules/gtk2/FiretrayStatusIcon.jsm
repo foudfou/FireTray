@@ -149,8 +149,29 @@ firetray.StatusIcon = {
   },
 
   onScroll: function(icon, event, data) {
-    LOG("scroll-event");
-        // TODO:
+    let iconGpointer = ctypes.cast(icon, gobject.gpointer);
+    let gdkEventScroll = ctypes.cast(event, gdk.GdkEventScroll.ptr);
+    let scroll_mode = firetray.Utils.prefService.getCharPref("scroll_mode");
+
+    let direction = gdkEventScroll.contents.direction;
+    switch(direction) {
+    case gdk.GDK_SCROLL_UP:
+	    LOG("SCROLL UP");
+      if (scroll_mode === "down_hides")
+        firetray.Handler.showAllWindows();
+      else if (scroll_mode === "up_hides")
+        firetray.Handler.hideAllWindows();
+	    break;
+    case gdk.GDK_SCROLL_DOWN:
+	    LOG("SCROLL DOWN");
+      if (scroll_mode === "down_hides")
+        firetray.Handler.hideAllWindows();
+      else if (scroll_mode === "up_hides")
+        firetray.Handler.showAllWindows();
+	    break;
+    default:
+	    ERROR("SCROLL UNKNOWN");
+    }
   }
 
 }; // firetray.StatusIcon

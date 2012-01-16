@@ -112,6 +112,11 @@ function gdk_defines(lib) {
   this.GDK_PROP_MODE_REPLACE = 0;
   this.GDK_PROP_MODE_PREPEN  = 1;
   this.GDK_PROP_MODE_APPEND  = 2;
+  this.GdkScrollDirection = ctypes.int; // enum
+  this.GDK_SCROLL_UP    = 0;
+  this.GDK_SCROLL_DOWN  = 1;
+  this.GDK_SCROLL_LEFT  = 2;
+  this.GDK_SCROLL_RIGHT = 3;
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -179,6 +184,19 @@ function gdk_defines(lib) {
     { "send_event": gobject.gint8 },
     { "changed_mask": this.GdkWindowState },
     { "new_window_state": this.GdkWindowState },
+  ]);
+  this.GdkDevice = ctypes.StructType("GdkDevice");
+  this.GdkEventScroll = ctypes.StructType("GdkEventScroll", [
+    { "type": this.GdkEventType },
+    { "window": this.GdkWindow.ptr },
+    { "send_event": gobject.gint8 },
+    { "time": gobject.guint32 },
+    { "x": gobject.gdouble },
+    { "y": gobject.gdouble },
+    { "state": gobject.guint },
+    { "direction": this.GdkScrollDirection },
+    { "device": this.GdkDevice.ptr },
+    { "x_root": gobject.gdouble }, { "y_root": gobject.gdouble }
   ]);
   this.GdkAtom = ctypes.StructType("GdkAtom");
 

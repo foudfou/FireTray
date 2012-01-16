@@ -20,6 +20,7 @@ var firetrayUIOptions = {
     this.strings = document.getElementById("firetray-options-strings");
 
     this.updateWindowAndIconOptions();
+    this.updateScrollOptions();
 
     if(firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
@@ -68,6 +69,11 @@ var firetrayUIOptions = {
     LOG("hides_on_close="+hides_on_close+", hides_on_minimize="+hides_on_minimize);
     document.getElementById('ui_hides_single_window').disabled =
       !(hides_on_close || hides_on_minimize);
+  },
+
+  updateScrollOptions: function() {
+    let scroll_to_hide = document.getElementById("ui_scroll_to_hide").checked;
+    this.disableGroup(document.getElementById("ui_radiogroup_scroll"), !scroll_to_hide);
   },
 
   initMailControls: function() {

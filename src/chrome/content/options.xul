@@ -24,6 +24,8 @@
       <preference id="pref_bool_hides_single_window" name="extensions.firetray.hides_single_window" type="bool"/>
       <preference id="pref_bool_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
       <preference id="pref_bool_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
+      <preference id="pref_bool_scroll_to_hide" name="extensions.firetray.scroll_to_hide" type="bool" />
+      <preference id="pref_string_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
       <preference id="pref_string_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_string_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
       <preference id="pref_string_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
@@ -32,7 +34,6 @@
     <tabbox>
       <tabs>
         <tab label="&general_options;"/>
-        <tab label="&input_options;" disabled="true" tooltiptext="&NOT_IMPLEMENTED_YET;"/>
         <tab label="&mail_options;" id="mail_tab" />
       </tabs>
       <tabpanels flex="1">
@@ -64,12 +65,18 @@
             <checkbox id="ui_show_icon_on_hide" preference="pref_bool_show_icon_on_hide"
                       label="&bool_show_icon_on_hide.label;"
                       accesskey="&bool_show_icon_on_hide.accesskey;"/>
+            <checkbox id="ui_scroll_to_hide" preference="pref_bool_scroll_to_hide"
+                      label="&enable_mouse_scroll.label;"
+                      accesskey="&enable_mouse_scroll.accesskey;"
+                      oncommand="firetrayUIOptions.updateScrollOptions()" />
+            <radiogroup id="ui_radiogroup_scroll" preference="pref_string_scroll_mode">
+              <radio id="ui_radio_scroll_down_hides" label="&down;=&hide;, &up;=&restore;" value="down_hides" />
+              <radio id="ui_radio_scroll_up_hides" label="&up;=&hide;, &down;=&restore;" value="up_hides" />
+            </radiogroup>
           </groupbox>
 
           </vbox>
         </tabpanel>
-
-        <tabpanel id="input_tabpanel" flex="1" />
 
         <tabpanel id="mail_tabpanel" flex="1">
           <vbox align="left" flex="1">

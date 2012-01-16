@@ -93,6 +93,7 @@ function gobject_defines(lib) {
   this.guchar = ctypes.unsigned_char;
   this.gboolean = this.gint;
   this.gfloat = ctypes.float;
+  this.gdouble = ctypes.double;
   this.gsize = ctypes.unsigned_long;
   this.GCallback = ctypes.voidptr_t;
   this.GClosureNotify = this.gpointer;
