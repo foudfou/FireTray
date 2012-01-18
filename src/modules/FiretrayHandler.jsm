@@ -11,6 +11,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/gobject.jsm");
 Cu.import("resource://firetray/ctypes/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/FiretrayVersionChange.jsm");
 
 /**
  * firetray namespace.
@@ -96,6 +97,8 @@ firetray.Handler = {
 
     Services.obs.addObserver(this, this.getAppStartupTopic(this.appId), false);
     Services.obs.addObserver(this, "xpcom-will-shutdown", false);
+
+    firetray.VersionChange.watch();
 
     this.initialized = true;
     return true;

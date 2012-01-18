@@ -1,6 +1,9 @@
 TODO
 ----
 
+* when updating from 0.3 to 0.4, since prefs names have changed, will we need
+  to unsinstall addon ?
+
 * add entry to popup menu when registering
 
 WONTFIX
