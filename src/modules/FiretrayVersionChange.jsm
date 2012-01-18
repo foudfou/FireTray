@@ -81,6 +81,12 @@ firetray.VersionChange = {
       ERROR("unsupported application");
   },
 
+  initPrefs: function(version) {
+    firetray.Utils.prefService.setBoolPref("firstrun", false);
+    firetray.Utils.prefService.setCharPref("installedVersion", version);
+    this.openTab();
+  },
+
   onVersionChange: function(addon) {
     LOG("VERSION: "+addon.version);
 
@@ -88,10 +94,8 @@ firetray.VersionChange = {
     var firstrun = firetray.Utils.prefService.getBoolPref("firstrun");
 
     if (firstrun) {
-      firetray.Utils.prefService.setBoolPref("firstrun", false);
-      firetray.Utils.prefService.setCharPref("installedVersion", curVersion);
       WARN("FIRST RUN");
-      this.openTab();
+      this.initPrefs(curVersion);
 
     } else {
       try {
@@ -103,9 +107,10 @@ firetray.VersionChange = {
           WARN("UPGRADE");
           this.openTab();
         }
+
       } catch (ex) {
         WARN("REINSTALL");
-        this.openTab();
+        this.initPrefs(curVersion);
       }
     }
   }
