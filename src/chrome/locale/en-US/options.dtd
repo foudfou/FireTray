@@ -3,8 +3,7 @@
 
 <!ENTITY NOT_IMPLEMENTED_YET "NOT IMPLEMENTED YET">
 
-<!ENTITY general_options "General">
-<!ENTITY input_options "Input">
+<!ENTITY windows_icon_options "Windows and Icon">
 <!ENTITY mail_options "Mail">
 
 <!ENTITY windows_behaviour "Windows behaviour">

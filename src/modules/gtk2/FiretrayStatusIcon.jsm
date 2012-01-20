@@ -16,6 +16,7 @@ Cu.import("resource://firetray/ctypes/gtk.jsm");
 Cu.import("resource://firetray/ctypes/libc.jsm");
 Cu.import("resource://firetray/ctypes/pango.jsm");
 Cu.import("resource://firetray/ctypes/pangocairo.jsm");
+Cu.import("resource://firetray/ctypes/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.Handler))
@@ -24,9 +25,11 @@ if ("undefined" == typeof(firetray.Handler))
 
 firetray.StatusIcon = {
   initialized: false,
-  callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
+  // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
+  callbacks: {menuItemWindowActivate: {}},
   trayIcon: null,
   menu: null,
+  menuSeparatorWindows: null,
   MIN_FONT_SIZE: 4,
 
   init: function() {
@@ -60,7 +63,7 @@ firetray.StatusIcon = {
     this.initialized = false;
   },
 
-  _buildPopupMenu: function() {
+  _buildPopupMenu: function() { // FIXME: function too long
     this.menu = gtk.gtk_menu_new();
     var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
     var addMenuSeparator = false;
@@ -131,6 +134,11 @@ firetray.StatusIcon = {
     this.callbacks.onScroll = gtk.GCallbackOnScroll_t(that.onScroll);
     gobject.g_signal_connect(this.trayIcon, "scroll-event",
       firetray.StatusIcon.callbacks.onScroll, null);
+
+    var menuSeparatorWindows = gtk.gtk_separator_menu_item_new();
+    gtk.gtk_menu_shell_prepend(menuShell, ctypes.cast(menuSeparatorWindows, gtk.GtkWidget.ptr));
+    firetray.StatusIcon.menuSeparatorWindows = menuSeparatorWindows;
+
   },
 
   popupMenu: function(icon, button, activateTime, menu) {
@@ -146,6 +154,77 @@ firetray.StatusIcon = {
     } catch (x) {
       ERROR(x);
     }
+  },
+
+  // we keep the definition here, as it is(?) specific to the
+  // platform-dependant StatusIcon (there might be no popup menu in other
+  // platforms)
+  popupMenuWindowItemsHandled: function() {
+    return (firetray.Handler.inBrowserApp &&
+            firetray.Utils.prefService.getBoolPref('hides_single_window'));
+  },
+
+  // we'll be creating menuItems for windows (and not showing them) even if
+  // hides_single_window is false, because if hides_single_window becomes true,
+  // we'll just have to show the menuItems
+  addPopupMenuWindowItem: function(xid) { // on registerWindow
+    var menuItemWindow = gtk.gtk_image_menu_item_new();
+    firetray.Handler.gtkPopupMenuWindowItems.insert(xid, menuItemWindow);
+
+    var menuShell = ctypes.cast(firetray.StatusIcon.menu, gtk.GtkMenuShell.ptr);
+    gtk.gtk_menu_shell_prepend(menuShell,
+                               ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr));
+
+    this.callbacks.menuItemWindowActivate[xid] = gobject.GCallback_t(
+      function(){firetray.Handler.showSingleWindow(xid);});
+    gobject.g_signal_connect(menuItemWindow, "activate",
+      firetray.StatusIcon.callbacks.menuItemWindowActivate[xid], null);
+
+    LOG("add gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
+  },
+
+  removePopupMenuWindowItem: function(xid) { // on unregisterWindow
+    let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
+    firetray.Handler.gtkPopupMenuWindowItems.remove(xid);
+    gtk.gtk_widget_destroy(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr));
+
+    LOG("remove gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
+  },
+
+  showSinglePopupMenuWindowItem: function(xid) {
+    LOG("showSinglePopupMenuWindowItem");
+    let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
+
+    let title = firetray.Handler.windows[xid].baseWin.title;
+    let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appNameOriginal);
+    if (tailIndex !== -1)
+      title = title.substring(0, tailIndex);
+    gtk.gtk_menu_item_set_label(ctypes.cast(menuItemWindow, gtk.GtkMenuItem.ptr), title);
+    gtk.gtk_widget_show(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr));
+    gtk.gtk_widget_show(ctypes.cast(firetray.StatusIcon.menuSeparatorWindows, gtk.GtkWidget.ptr));
+  },
+
+  hideSinglePopupMenuWindowItem: function(xid, forceHideSeparator) {
+    LOG("hideSinglePopupMenuWindowItem");
+    let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
+    gtk.gtk_widget_hide(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr)); // on hideSingleWindow
+
+    if (!forceHideSeparator || (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)) {
+      LOG("hiding menuSeparatorWindows");
+      gtk.gtk_widget_hide(
+        ctypes.cast(firetray.StatusIcon.menuSeparatorWindows, gtk.GtkWidget.ptr));
+    }
+  },
+
+  showAllPopupMenuWindowItems: function(filterVisibleWindows) {
+    for (let xid in firetray.Handler.windows)
+      if (!filterVisibleWindows || !firetray.Handler.windows[xid].visibility)
+        this.showSinglePopupMenuWindowItem(xid);
+  },
+
+  hideAllPopupMenuWindowItems: function(forceHideSeparator) {
+    for (let xid in firetray.Handler.windows)
+      this.hideSinglePopupMenuWindowItem(xid, forceHideSeparator);
   },
 
   onScroll: function(icon, event, data) {
@@ -219,7 +298,7 @@ firetray.Handler.setIconTooltipDefault = function() {
   this.setIconTooltip(this.appNameOriginal);
 };
 
-firetray.Handler.setIconText = function(text, color) { // TODO: split into smaller functions;
+firetray.Handler.setIconText = function(text, color) { // FIXME: function too long
   LOG("setIconText, color="+color);
   if (typeof(text) != "string")
     throw new TypeError();

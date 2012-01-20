@@ -187,6 +187,8 @@ firetray.Handler = {
     if (firetray.Utils.prefService.getBoolPref('show_icon_on_hide'))
       firetray.Handler.setIconVisibility(
         (firetray.Handler.visibleWindowsCount !== firetray.Handler.windowsCount));
+    else
+      firetray.Handler.setIconVisibility(true);
   },
 
   /** nsIBaseWindow, nsIXULWindow, ... */

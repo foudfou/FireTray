@@ -412,6 +412,7 @@ firetray.Window = {
 // need to store them into a real ctypes array !
 firetray.Handler.gtkWindows = new ctypesMap(gtk.GtkWindow.ptr),
 firetray.Handler.gdkWindows = new ctypesMap(gdk.GdkWindow.ptr),
+firetray.Handler.gtkPopupMenuWindowItems = new ctypesMap(gtk.GtkImageMenuItem.ptr),
 
 /** debug facility */
 firetray.Handler.dumpWindows = function() {
@@ -430,6 +431,7 @@ firetray.Handler.registerWindow = function(win) {
   try {
     this.gtkWindows.insert(xid, gtkWin);
     this.gdkWindows.insert(xid, gdkWin);
+    firetray.StatusIcon.addPopupMenuWindowItem(xid);
   } catch (x) {
     if (x.name === "RangeError") // instanceof not working :-(
       win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
@@ -477,6 +479,7 @@ firetray.Handler._unregisterWindowByXID = function(xid) {
       throw new DeleteError();
     this.gtkWindows.remove(xid);
     this.gdkWindows.remove(xid);
+    firetray.StatusIcon.removePopupMenuWindowItem(xid);
   } else {
     ERROR("can't unregister unknown window "+xid);
     return false;
@@ -507,11 +510,17 @@ firetray.Handler.showSingleWindow = function(xid) {
   firetray.Handler.windows[xid].visibility = true;
   firetray.Handler.visibleWindowsCount += 1;
 
+    try {
+  LOG("popupMenuWindowItemsHandled="+firetray.StatusIcon.popupMenuWindowItemsHandled());
+  if (firetray.StatusIcon.popupMenuWindowItemsHandled())
+    firetray.StatusIcon.hideSinglePopupMenuWindowItem(xid);
   firetray.Handler.showHideIcon();
+    } catch(x) {ERROR(x);}
 };
 
 // NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
 // gdk_window_show_unraised)
+/* FIXME: hiding windows should also hide child windows */
 firetray.Handler.hideSingleWindow = function(xid) {
   LOG("hideSingleWindow");
 
@@ -523,6 +532,8 @@ firetray.Handler.hideSingleWindow = function(xid) {
   firetray.Handler.windows[xid].visibility = false;
   firetray.Handler.visibleWindowsCount -= 1;
 
+  if (firetray.StatusIcon.popupMenuWindowItemsHandled())
+    firetray.StatusIcon.showSinglePopupMenuWindowItem(xid);
   firetray.Handler.showHideIcon();
 };
 

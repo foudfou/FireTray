@@ -82,10 +82,24 @@ var firetrayChrome = {
     }
   },
 
+  // the chosen design is not to destroy/re-create existing objects, but
+  // show/hide (Gtk objects) and apply/not (callbacks) them instead
   observe: function(subject, topic, data) {
     switch (topic) {
     case "nsPref:changed":
       LOG('Pref changed: '+data);
+      switch (data) {
+      case 'hides_single_window':
+        if (firetray.StatusIcon.popupMenuWindowItemsHandled())
+          firetray.StatusIcon.showAllPopupMenuWindowItems(true);
+        else
+          firetray.StatusIcon.hideAllPopupMenuWindowItems(true);
+        break;
+      case 'show_icon_on_hide':
+        firetray.Handler.showHideIcon();
+        break;
+      default:
+      }
       break;
     default:
     }

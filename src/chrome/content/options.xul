@@ -33,7 +33,7 @@
 
     <tabbox>
       <tabs>
-        <tab label="&general_options;"/>
+        <tab label="&windows_icon_options;"/>
         <tab label="&mail_options;" id="mail_tab" />
       </tabs>
       <tabpanels flex="1">

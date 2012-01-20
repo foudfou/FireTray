@@ -54,6 +54,9 @@ KNOWN BUGS
   the scope of this addon, but you may want to give a try to the
   [MailAlert extension](https://addons.mozilla.org/en-US/thunderbird/addon/mailbox-alert/)
 
+* child windows (compose message, preferences, ...)  are not handled by
+  Firetray. For ex., they are not hidden along with there top-level window.
+
 Acknowledgment
 --------------
 
