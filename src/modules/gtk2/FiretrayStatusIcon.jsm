@@ -170,6 +170,7 @@ firetray.StatusIcon = {
   addPopupMenuWindowItem: function(xid) { // on registerWindow
     var menuItemWindow = gtk.gtk_image_menu_item_new();
     firetray.Handler.gtkPopupMenuWindowItems.insert(xid, menuItemWindow);
+    this.setPopupMenuWindowItemLabel(menuItemWindow, xid);
 
     var menuShell = ctypes.cast(firetray.StatusIcon.menu, gtk.GtkMenuShell.ptr);
     gtk.gtk_menu_shell_prepend(menuShell,
@@ -183,6 +184,14 @@ firetray.StatusIcon = {
     LOG("add gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
   },
 
+  setPopupMenuWindowItemLabel: function(menuItem, xid) {
+    let title = firetray.Handler.windows[xid].baseWin.title;
+    let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appNameOriginal);
+    if (tailIndex !== -1)
+      title = title.substring(0, tailIndex);
+    gtk.gtk_menu_item_set_label(ctypes.cast(menuItem, gtk.GtkMenuItem.ptr), title);
+  },
+
   removePopupMenuWindowItem: function(xid) { // on unregisterWindow
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     firetray.Handler.gtkPopupMenuWindowItems.remove(xid);
@@ -191,17 +200,22 @@ firetray.StatusIcon = {
     LOG("remove gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
   },
 
+  showAllPopupMenuWindowItems: function(filterVisibleWindows) {
+    for (let xid in firetray.Handler.windows)
+      if (!filterVisibleWindows || !firetray.Handler.windows[xid].visibility)
+        this.showSinglePopupMenuWindowItem(xid);
+  },
+
   showSinglePopupMenuWindowItem: function(xid) {
     LOG("showSinglePopupMenuWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
-
-    let title = firetray.Handler.windows[xid].baseWin.title;
-    let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appNameOriginal);
-    if (tailIndex !== -1)
-      title = title.substring(0, tailIndex);
-    gtk.gtk_menu_item_set_label(ctypes.cast(menuItemWindow, gtk.GtkMenuItem.ptr), title);
     gtk.gtk_widget_show(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr));
-    gtk.gtk_widget_show(ctypes.cast(firetray.StatusIcon.menuSeparatorWindows, gtk.GtkWidget.ptr));
+    this.showPopupMenuWindowSeparator();
+  },
+
+  hideAllPopupMenuWindowItems: function(forceHideSeparator) {
+    for (let xid in firetray.Handler.windows)
+      this.hideSinglePopupMenuWindowItem(xid, forceHideSeparator);
   },
 
   hideSinglePopupMenuWindowItem: function(xid, forceHideSeparator) {
@@ -210,21 +224,17 @@ firetray.StatusIcon = {
     gtk.gtk_widget_hide(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr)); // on hideSingleWindow
 
     if (!forceHideSeparator || (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)) {
-      LOG("hiding menuSeparatorWindows");
-      gtk.gtk_widget_hide(
-        ctypes.cast(firetray.StatusIcon.menuSeparatorWindows, gtk.GtkWidget.ptr));
+      this.hidePopupMenuWindowSeparator();
     }
   },
 
-  showAllPopupMenuWindowItems: function(filterVisibleWindows) {
-    for (let xid in firetray.Handler.windows)
-      if (!filterVisibleWindows || !firetray.Handler.windows[xid].visibility)
-        this.showSinglePopupMenuWindowItem(xid);
+  showPopupMenuWindowSeparator: function() {
+    LOG("showing menuSeparatorWindows");
+    gtk.gtk_widget_show(ctypes.cast(firetray.StatusIcon.menuSeparatorWindows, gtk.GtkWidget.ptr));
   },
-
-  hideAllPopupMenuWindowItems: function(forceHideSeparator) {
-    for (let xid in firetray.Handler.windows)
-      this.hideSinglePopupMenuWindowItem(xid, forceHideSeparator);
+  hidePopupMenuWindowSeparator: function() {
+    LOG("hiding menuSeparatorWindows");
+    gtk.gtk_widget_hide(ctypes.cast(firetray.StatusIcon.menuSeparatorWindows, gtk.GtkWidget.ptr));
   },
 
   onScroll: function(icon, event, data) {

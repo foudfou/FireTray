@@ -164,6 +164,23 @@ firetray.Window = {
     return null;
   },
 
+  unregisterWindowByXID: function(xid) {
+    firetray.Handler.windowsCount -= 1;
+    if (firetray.Handler.windows[xid].visibility) firetray.Handler.visibleWindowsCount -= 1;
+    if (firetray.Handler.windows.hasOwnProperty(xid)) {
+      if (!delete firetray.Handler.windows[xid])
+        throw new DeleteError();
+      firetray.Handler.gtkWindows.remove(xid);
+      firetray.Handler.gdkWindows.remove(xid);
+      firetray.StatusIcon.removePopupMenuWindowItem(xid);
+    } else {
+      ERROR("can't unregister unknown window "+xid);
+      return false;
+    }
+    LOG("window "+xid+" unregistered");
+    return true;
+  },
+
   saveWindowPositionAndSize: function(xid) {
     let gx = {}, gy = {}, gwidth = {}, gheight = {};
     firetray.Handler.windows[xid].baseWin.getPositionAndSize(gx, gy, gwidth, gheight);
@@ -420,6 +437,8 @@ firetray.Handler.dumpWindows = function() {
   for (let winId in firetray.Handler.windows) LOG(winId+"="+firetray.Handler.gtkWindows.get(winId));
 };
 
+firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeWindow;
+
 firetray.Handler.registerWindow = function(win) {
   LOG("register window");
 
@@ -461,7 +480,7 @@ firetray.Handler.registerWindow = function(win) {
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
 
   } catch (x) {
-    this._unregisterWindowByXID(xid);
+    firetray.Window.unregisterWindowByXID(xid);
     ERROR(x);
     return false;
   }
@@ -471,30 +490,11 @@ firetray.Handler.registerWindow = function(win) {
   return true;
 };
 
-firetray.Handler._unregisterWindowByXID = function(xid) {
-  this.windowsCount -= 1;
-  if (this.windows[xid].visibility) this.visibleWindowsCount -= 1;
-  if (this.windows.hasOwnProperty(xid)) {
-    if (!delete this.windows[xid])
-      throw new DeleteError();
-    this.gtkWindows.remove(xid);
-    this.gdkWindows.remove(xid);
-    firetray.StatusIcon.removePopupMenuWindowItem(xid);
-  } else {
-    ERROR("can't unregister unknown window "+xid);
-    return false;
-  }
-  LOG("window "+xid+" unregistered");
-  return true;
-};
-
-firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeWindow;
-
 firetray.Handler.unregisterWindow = function(win) {
   LOG("unregister window");
 
   let xid = firetray.Window.getXIDFromChromeWindow(win);
-  return this._unregisterWindowByXID(xid);
+  return firetray.Window.unregisterWindowByXID(xid);
 };
 
 firetray.Handler.showSingleWindow = function(xid) {
@@ -510,12 +510,9 @@ firetray.Handler.showSingleWindow = function(xid) {
   firetray.Handler.windows[xid].visibility = true;
   firetray.Handler.visibleWindowsCount += 1;
 
-    try {
-  LOG("popupMenuWindowItemsHandled="+firetray.StatusIcon.popupMenuWindowItemsHandled());
   if (firetray.StatusIcon.popupMenuWindowItemsHandled())
     firetray.StatusIcon.hideSinglePopupMenuWindowItem(xid);
   firetray.Handler.showHideIcon();
-    } catch(x) {ERROR(x);}
 };
 
 // NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
