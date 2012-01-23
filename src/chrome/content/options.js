@@ -7,6 +7,16 @@ const Cu = Components.utils;
 Cu.import("resource://firetray/FiretrayHandler.jsm");
 Cu.import("resource://firetray/commons.js");
 
+const FLDRS_UNINTERESTING = {
+  Archive:   Ci.nsMsgFolderFlags.Archive,
+  Drafts:    Ci.nsMsgFolderFlags.Drafts,
+  Junk:      Ci.nsMsgFolderFlags.Junk,
+  Queue:     Ci.nsMsgFolderFlags.Queue,
+  SentMail:  Ci.nsMsgFolderFlags.SentMail,
+  Templates: Ci.nsMsgFolderFlags.Templates,
+  Trash:     Ci.nsMsgFolderFlags.Trash
+};
+
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED = 1;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_ORDER    = 2;

@@ -90,10 +90,7 @@ var firetrayChrome = {
       LOG('Pref changed: '+data);
       switch (data) {
       case 'hides_single_window':
-        if (firetray.StatusIcon.popupMenuWindowItemsHandled())
-          firetray.StatusIcon.showAllPopupMenuWindowItems(true);
-        else
-          firetray.StatusIcon.hideAllPopupMenuWindowItems(true);
+        firetray.Handler.updatePopupMenu();
         break;
       case 'show_icon_on_hide':
         firetray.Handler.showHideIcon();

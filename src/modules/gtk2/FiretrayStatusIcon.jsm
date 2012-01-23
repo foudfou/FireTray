@@ -170,7 +170,6 @@ firetray.StatusIcon = {
   addPopupMenuWindowItem: function(xid) { // on registerWindow
     var menuItemWindow = gtk.gtk_image_menu_item_new();
     firetray.Handler.gtkPopupMenuWindowItems.insert(xid, menuItemWindow);
-    this.setPopupMenuWindowItemLabel(menuItemWindow, xid);
 
     var menuShell = ctypes.cast(firetray.StatusIcon.menu, gtk.GtkMenuShell.ptr);
     gtk.gtk_menu_shell_prepend(menuShell,
@@ -210,6 +209,7 @@ firetray.StatusIcon = {
     LOG("showSinglePopupMenuWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     gtk.gtk_widget_show(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr));
+    this.setPopupMenuWindowItemLabel(menuItemWindow, xid); // not when creating item !
     this.showPopupMenuWindowSeparator();
   },
 
@@ -218,12 +218,13 @@ firetray.StatusIcon = {
       this.hideSinglePopupMenuWindowItem(xid, forceHideSeparator);
   },
 
+  // PopupMenu.hideItem(firetray.Handler.gtkPopupMenuWindowItems.get(xid))
   hideSinglePopupMenuWindowItem: function(xid, forceHideSeparator) {
     LOG("hideSinglePopupMenuWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     gtk.gtk_widget_hide(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr)); // on hideSingleWindow
 
-    if (!forceHideSeparator || (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)) {
+    if (forceHideSeparator || (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)) {
       this.hidePopupMenuWindowSeparator();
     }
   },
@@ -419,4 +420,11 @@ firetray.Handler.setIconVisibility = function(visible) {
     return false;
   gtk.gtk_status_icon_set_visible(firetray.StatusIcon.trayIcon, visible);
   return true;
+};
+
+firetray.Handler.updatePopupMenu = function() {
+  if (firetray.StatusIcon.popupMenuWindowItemsHandled())
+    firetray.StatusIcon.showAllPopupMenuWindowItems(true);
+  else
+    firetray.StatusIcon.hideAllPopupMenuWindowItems(true);
 };
