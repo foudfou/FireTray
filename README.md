@@ -24,6 +24,7 @@ Features
 Notes
 -----
 
+* requires GTK+ 2.20 and higher.
 * Firetray unsets the `tabs.warnOnClose` built-in preference, which otherwise disrupts the handeling of the close event.
 * Experimental non-customizable keyboard shortcut for hiding all windows set to: `accel-shift-w`
 

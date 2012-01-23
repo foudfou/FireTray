@@ -11,7 +11,7 @@
   <keyset>
     <!-- otherwise window.addEventListener("keypress", firetrayChrome.onKeyPress, true);
          see https://addons.mozilla.org/en-US/firefox/addon/move-tabs/ -->
-    <key id="key_close" key="W" modifiers="shift meta" oncommand="firetray.Handler.showHideToTray();" /> <!-- firetrayChrome.onKeyClose(); -->
+    <key id="key_close" key="W" modifiers="shift meta" oncommand="firetray.Handler.showHideAllWindows();" /> <!-- firetrayChrome.onKeyClose(); -->
   </keyset>
 
 </overlay>
