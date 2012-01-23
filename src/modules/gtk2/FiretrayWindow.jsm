@@ -46,6 +46,13 @@ var _find_data_t = ctypes.StructType("_find_data_t", [
   { outWindow: gtk.GtkWindow.ptr }
 ]);
 
+// NOTE: storing ctypes pointers into a JS object doesn't work: pointers are
+// "evolving" after a while (maybe due to back and forth conversion). So we
+// need to store them into a real ctypes array !
+firetray.Handler.gtkWindows              = new ctypesMap(gtk.GtkWindow.ptr),
+firetray.Handler.gdkWindows              = new ctypesMap(gdk.GdkWindow.ptr),
+firetray.Handler.gtkPopupMenuWindowItems = new ctypesMap(gtk.GtkImageMenuItem.ptr),
+
 
 firetray.Window = {
 
@@ -172,7 +179,7 @@ firetray.Window = {
         throw new DeleteError();
       firetray.Handler.gtkWindows.remove(xid);
       firetray.Handler.gdkWindows.remove(xid);
-      firetray.StatusIcon.removePopupMenuWindowItem(xid);
+      firetray.PopupMenu.removeWindowItem(xid);
     } else {
       ERROR("can't unregister unknown window "+xid);
       return false;
@@ -368,6 +375,15 @@ firetray.Window = {
     return desktop;
   },
 
+  getWindowTitle: function(xid) {
+    let title = firetray.Handler.windows[xid].baseWin.title;
+    let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appNameOriginal);
+    if (tailIndex !== -1)
+      return title.substring(0, tailIndex)
+    else
+      return null;
+  },
+
   filterWindow: function(xev, gdkEv, data) {
     if (!xev)
       return gdk.GDK_FILTER_CONTINUE;
@@ -395,19 +411,6 @@ firetray.Window = {
         }
         break;
 
-      case x11.ClientMessage:   // not very useful
-        LOG("ClientMessage");
-/* KEPT FOR LATER USE
-        let xclient = ctypes.cast(xev, x11.XClientMessageEvent.ptr);
-        LOG("xclient.data="+xclient.contents.data);
-        LOG("message_type="+xclient.contents.message_type+", format="+xclient.contents.format);
-        if (strEquals(xclient.contents.data[0], x11.current.Atoms.WM_DELETE_WINDOW)) {
-          LOG("Delete Window prevented");
-          return gdk.GDK_FILTER_REMOVE;
-        }
-*/
-        break;
-
       default:
         // LOG("xany.type="+xany.contents.type);
         break;
@@ -423,13 +426,6 @@ firetray.Window = {
 
 
 ///////////////////////// firetray.Handler overriding /////////////////////////
-
-// NOTE: storing ctypes pointers into a JS object doesn't work: pointers are
-// "evolving" after a while (maybe due to back and forth conversion). So we
-// need to store them into a real ctypes array !
-firetray.Handler.gtkWindows = new ctypesMap(gtk.GtkWindow.ptr),
-firetray.Handler.gdkWindows = new ctypesMap(gdk.GdkWindow.ptr),
-firetray.Handler.gtkPopupMenuWindowItems = new ctypesMap(gtk.GtkImageMenuItem.ptr),
 
 /** debug facility */
 firetray.Handler.dumpWindows = function() {
@@ -450,7 +446,7 @@ firetray.Handler.registerWindow = function(win) {
   try {
     this.gtkWindows.insert(xid, gtkWin);
     this.gdkWindows.insert(xid, gdkWin);
-    firetray.StatusIcon.addPopupMenuWindowItem(xid);
+    firetray.PopupMenu.addWindowItem(xid);
   } catch (x) {
     if (x.name === "RangeError") // instanceof not working :-(
       win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
@@ -470,12 +466,6 @@ firetray.Handler.registerWindow = function(win) {
      // delete_event_cb (in gtk2/nsWindow.cpp), but we prefer to use the
      // provided 'close' JS event
 
-/* KEPT FOR LATER USE
-    this.windows[xid].onWindowStateCb = gtk.GCallbackWindowStateEvent_t(firetray.Window.onWindowState);
-    this.windows[xid].onWindowStateCbId = gobject.g_signal_connect(gtkWin, "window-state-event", this.windows[xid].onWindowStateCb, null);
-    LOG("g_connect window-state-event="+this.windows[xid].onWindowStateCbId);
-*/
-
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
 
@@ -492,7 +482,6 @@ firetray.Handler.registerWindow = function(win) {
 
 firetray.Handler.unregisterWindow = function(win) {
   LOG("unregister window");
-
   let xid = firetray.Window.getXIDFromChromeWindow(win);
   return firetray.Window.unregisterWindowByXID(xid);
 };
@@ -510,8 +499,8 @@ firetray.Handler.showSingleWindow = function(xid) {
   firetray.Handler.windows[xid].visibility = true;
   firetray.Handler.visibleWindowsCount += 1;
 
-  if (firetray.StatusIcon.popupMenuWindowItemsHandled())
-    firetray.StatusIcon.hideSinglePopupMenuWindowItem(xid);
+  if (firetray.Handler.popupMenuWindowItemsHandled())
+    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
   firetray.Handler.showHideIcon();
 };
 
@@ -529,8 +518,8 @@ firetray.Handler.hideSingleWindow = function(xid) {
   firetray.Handler.windows[xid].visibility = false;
   firetray.Handler.visibleWindowsCount -= 1;
 
-  if (firetray.StatusIcon.popupMenuWindowItemsHandled())
-    firetray.StatusIcon.showSinglePopupMenuWindowItem(xid);
+  if (firetray.Handler.popupMenuWindowItemsHandled())
+    firetray.PopupMenu.showSingleWindowItem(xid);
   firetray.Handler.showHideIcon();
 };
 
@@ -543,10 +532,11 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   LOG("windowsCount="+firetray.Handler.windowsCount);
   let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
   LOG("visibilityRate="+visibilityRate);
-  if (visibilityRate > 0.5)     // TODO: should be configurable
-    firetray.Handler.hideAllWindows();
-  else
+  if ((0.5 < visibilityRate) && (visibilityRate < 1)
+      || visibilityRate === 0) // TODO: should be configurable
     firetray.Handler.showAllWindows();
+  else
+    firetray.Handler.hideAllWindows();
 
   let stopPropagation = true;
   return stopPropagation;

@@ -8,20 +8,10 @@ if ("undefined" == typeof(Ci)) var Ci = Components.interfaces;
 if ("undefined" == typeof(Cu)) var Cu = Components.utils;
 
 // https://groups.google.com/group/mozilla.dev.extensions/browse_thread/thread/e89e9c2a834ff2b6#
-var firetrayChrome = {
+var firetrayChrome = { // each new window gets a new firetrayChrome !
 
   onLoad: function(win) {
-    // strings a chrome-specific
-    this.strings = document.getElementById("firetray-strings");
-
-    try {
-      // Set up preference change observer
-      firetray.Utils.prefService.QueryInterface(Ci.nsIPrefBranch2);
-      firetray.Utils.prefService.addObserver("", firetrayChrome, false);
-    } catch (x) {
-      ERROR(x);
-      return false;
-    }
+    this.strings = document.getElementById("firetray-strings"); // chrome-specific
 
     LOG("Handler initialized: "+firetray.Handler.initialized);
     let init = firetray.Handler.initialized || firetray.Handler.init();
@@ -35,8 +25,6 @@ var firetrayChrome = {
 
     // prevent window closing.
     win.addEventListener('close', firetrayChrome.onClose, true);
-    // NOTE: each new window gets a new firetrayChrome, and hence listens to
-    // pref changes
 
     if (!firetray.Handler.appStarted
         && firetray.Utils.prefService.getBoolPref('start_hidden')) {
@@ -51,13 +39,10 @@ var firetrayChrome = {
   },
 
   onQuit: function(win) {
-    // Remove observer
-    firetray.Utils.prefService.removeObserver("", firetrayChrome);
-
     firetray.Handler.unregisterWindow(win);
 
-    /* NOTE: don't firetray.Handler.initialized=false here, otherwise after a
-     window close, a new window will create a new handler (and hence, a new
+    /* NOTE: don't do firetray.Handler.initialized=false here, otherwise after
+     a window close, a new window will create a new handler (and hence, a new
      tray icon) */
     LOG('Firetray UNLOADED !');
   },
@@ -80,28 +65,7 @@ var firetrayChrome = {
         firetray.Handler.hideAllWindows();
       event && event.preventDefault(); // no event when called directly (xul)
     }
-  },
-
-  // the chosen design is not to destroy/re-create existing objects, but
-  // show/hide (Gtk objects) and apply/not (callbacks) them instead
-  observe: function(subject, topic, data) {
-    switch (topic) {
-    case "nsPref:changed":
-      LOG('Pref changed: '+data);
-      switch (data) {
-      case 'hides_single_window':
-        firetray.Handler.updatePopupMenu();
-        break;
-      case 'show_icon_on_hide':
-        firetray.Handler.showHideIcon();
-        break;
-      default:
-      }
-      break;
-    default:
-    }
   }
-
 };
 
 // should be sufficient for a delayed Startup (no need for window.setTimeout())

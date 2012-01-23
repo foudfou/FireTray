@@ -13,10 +13,8 @@ Cu.import("resource://firetray/ctypes/cairo.jsm");
 Cu.import("resource://firetray/ctypes/gobject.jsm");
 Cu.import("resource://firetray/ctypes/gdk.jsm");
 Cu.import("resource://firetray/ctypes/gtk.jsm");
-Cu.import("resource://firetray/ctypes/libc.jsm");
 Cu.import("resource://firetray/ctypes/pango.jsm");
 Cu.import("resource://firetray/ctypes/pangocairo.jsm");
-Cu.import("resource://firetray/ctypes/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.Handler))
@@ -26,11 +24,8 @@ if ("undefined" == typeof(firetray.Handler))
 firetray.StatusIcon = {
   initialized: false,
   // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
-  callbacks: {menuItemWindowActivate: {}},
+  callbacks: {},
   trayIcon: null,
-  menu: null,
-  menuSeparatorWindows: null,
-  MIN_FONT_SIZE: 4,
 
   init: function() {
     try {
@@ -43,16 +38,13 @@ firetray.StatusIcon = {
 
     firetray.Handler.setIconImageDefault();
 
-    this._buildPopupMenu();
-
     firetray.Handler.setIconTooltipDefault();
 
-    LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
-    this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
-      firetray.Handler.showHideAllWindows);
-    let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
-      "activate", firetray.StatusIcon.callbacks.iconActivate, null);
-    LOG("g_connect activate="+handlerId);
+    Cu.import("resource://firetray/gtk2/FiretrayPopupMenu.jsm");
+    if (!firetray.PopupMenu.init())
+      return false;
+
+    this.addCallbacks();
 
     this.initialized = true;
     return true;
@@ -63,179 +55,23 @@ firetray.StatusIcon = {
     this.initialized = false;
   },
 
-  _buildPopupMenu: function() { // FIXME: function too long
-    this.menu = gtk.gtk_menu_new();
-    var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
-    var addMenuSeparator = false;
-
-    if (firetray.Handler.inBrowserApp) {
-		  var menuItemNewWindowLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewWindow");
-      var menuItemNewWindow = gtk.gtk_image_menu_item_new_with_label(
-        menuItemNewWindowLabel);
-      var menuItemNewWindowIcon = gtk.gtk_image_new_from_stock(
-        "gtk-new", gtk.GTK_ICON_SIZE_MENU);
-      gtk.gtk_image_menu_item_set_image(menuItemNewWindow, menuItemNewWindowIcon);
-      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewWindow, gtk.GtkWidget.ptr));
-
-      this.callbacks.menuItemNewWindowActivate = gobject.GCallback_t(
-        firetray.Handler.openBrowserWindow);
-      gobject.g_signal_connect(menuItemNewWindow, "activate",
-        firetray.StatusIcon.callbacks.menuItemNewWindowActivate, null);
-
-      addMenuSeparator = true;
-    }
-
-    if (firetray.Handler.inMailApp) {
-		  var menuItemNewMessageLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewMessage");
-      var menuItemNewMessage = gtk.gtk_image_menu_item_new_with_label(
-        menuItemNewMessageLabel);
-      var menuItemNewMessageIcon = gtk.gtk_image_new_from_stock(
-        "gtk-edit", gtk.GTK_ICON_SIZE_MENU);
-      gtk.gtk_image_menu_item_set_image(menuItemNewMessage, menuItemNewMessageIcon);
-      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewMessage, gtk.GtkWidget.ptr));
-
-      this.callbacks.menuItemNewMessageActivate = gobject.GCallback_t(
-        firetray.Handler.openMailMessage);
-      gobject.g_signal_connect(menuItemNewMessage, "activate",
-        firetray.StatusIcon.callbacks.menuItemNewMessageActivate, null);
-
-      addMenuSeparator = true;
-    }
-
-    if (addMenuSeparator) {
-      var menuSeparator = gtk.gtk_separator_menu_item_new();
-      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuSeparator, gtk.GtkWidget.ptr));
-    }
-
-    // shouldn't need to convert to utf8 thank to js-ctypes
-		var menuItemQuitLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.Quit");
-    var menuItemQuit = gtk.gtk_image_menu_item_new_with_label(
-      menuItemQuitLabel);
-    var menuItemQuitIcon = gtk.gtk_image_new_from_stock(
-      "gtk-quit", gtk.GTK_ICON_SIZE_MENU);
-    gtk.gtk_image_menu_item_set_image(menuItemQuit, menuItemQuitIcon);
-    gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemQuit, gtk.GtkWidget.ptr));
-
-    this.callbacks.menuItemQuitActivate = gobject.GCallback_t(
-      firetray.Handler.quitApplication);
-    gobject.g_signal_connect(menuItemQuit, "activate",
-      firetray.StatusIcon.callbacks.menuItemQuitActivate, null);
-
-    var menuWidget = ctypes.cast(this.menu, gtk.GtkWidget.ptr);
-    gtk.gtk_widget_show_all(menuWidget);
-
+  addCallbacks: function() {
     /* NOTE: here we do use a function handler (instead of a function
-       definition) because we need the args passed to it ! As a consequence, we
-       need to abandon 'this' in popupMenu() */
-    let that = this;
-    this.callbacks.popupMenu = gtk.GCallbackMenuPopup_t(that.popupMenu);
+     definition) because we need the args passed to it ! As a consequence, we
+     need to abandon 'this' in PopupMenu.popup() */
+    this.callbacks.menuPopup = gtk.GCallbackMenuPopup_t(firetray.PopupMenu.popup);
     gobject.g_signal_connect(this.trayIcon, "popup-menu",
-      firetray.StatusIcon.callbacks.popupMenu, this.menu);
-    this.callbacks.onScroll = gtk.GCallbackOnScroll_t(that.onScroll);
+                             firetray.StatusIcon.callbacks.menuPopup, firetray.PopupMenu.menu);
+    this.callbacks.onScroll = gtk.GCallbackOnScroll_t(firetray.StatusIcon.onScroll);
     gobject.g_signal_connect(this.trayIcon, "scroll-event",
-      firetray.StatusIcon.callbacks.onScroll, null);
+                             firetray.StatusIcon.callbacks.onScroll, null);
 
-    var menuSeparatorWindows = gtk.gtk_separator_menu_item_new();
-    gtk.gtk_menu_shell_prepend(menuShell, ctypes.cast(menuSeparatorWindows, gtk.GtkWidget.ptr));
-    firetray.StatusIcon.menuSeparatorWindows = menuSeparatorWindows;
-
-  },
-
-  popupMenu: function(icon, button, activateTime, menu) {
-    LOG("menu-popup");
-    LOG("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
-
-    try {
-      var gtkMenuPtr = ctypes.cast(menu, gtk.GtkMenu.ptr);
-      var iconGpointer = ctypes.cast(icon, gobject.gpointer);
-      gtk.gtk_menu_popup(
-        gtkMenuPtr, null, null, gtk.gtk_status_icon_position_menu,
-        iconGpointer, button, activateTime);
-    } catch (x) {
-      ERROR(x);
-    }
-  },
-
-  // we keep the definition here, as it is(?) specific to the
-  // platform-dependant StatusIcon (there might be no popup menu in other
-  // platforms)
-  popupMenuWindowItemsHandled: function() {
-    return (firetray.Handler.inBrowserApp &&
-            firetray.Utils.prefService.getBoolPref('hides_single_window'));
-  },
-
-  // we'll be creating menuItems for windows (and not showing them) even if
-  // hides_single_window is false, because if hides_single_window becomes true,
-  // we'll just have to show the menuItems
-  addPopupMenuWindowItem: function(xid) { // on registerWindow
-    var menuItemWindow = gtk.gtk_image_menu_item_new();
-    firetray.Handler.gtkPopupMenuWindowItems.insert(xid, menuItemWindow);
-
-    var menuShell = ctypes.cast(firetray.StatusIcon.menu, gtk.GtkMenuShell.ptr);
-    gtk.gtk_menu_shell_prepend(menuShell,
-                               ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr));
-
-    this.callbacks.menuItemWindowActivate[xid] = gobject.GCallback_t(
-      function(){firetray.Handler.showSingleWindow(xid);});
-    gobject.g_signal_connect(menuItemWindow, "activate",
-      firetray.StatusIcon.callbacks.menuItemWindowActivate[xid], null);
-
-    LOG("add gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
-  },
-
-  setPopupMenuWindowItemLabel: function(menuItem, xid) {
-    let title = firetray.Handler.windows[xid].baseWin.title;
-    let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appNameOriginal);
-    if (tailIndex !== -1)
-      title = title.substring(0, tailIndex);
-    gtk.gtk_menu_item_set_label(ctypes.cast(menuItem, gtk.GtkMenuItem.ptr), title);
-  },
-
-  removePopupMenuWindowItem: function(xid) { // on unregisterWindow
-    let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
-    firetray.Handler.gtkPopupMenuWindowItems.remove(xid);
-    gtk.gtk_widget_destroy(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr));
-
-    LOG("remove gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
-  },
-
-  showAllPopupMenuWindowItems: function(filterVisibleWindows) {
-    for (let xid in firetray.Handler.windows)
-      if (!filterVisibleWindows || !firetray.Handler.windows[xid].visibility)
-        this.showSinglePopupMenuWindowItem(xid);
-  },
-
-  showSinglePopupMenuWindowItem: function(xid) {
-    LOG("showSinglePopupMenuWindowItem");
-    let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
-    gtk.gtk_widget_show(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr));
-    this.setPopupMenuWindowItemLabel(menuItemWindow, xid); // not when creating item !
-    this.showPopupMenuWindowSeparator();
-  },
-
-  hideAllPopupMenuWindowItems: function(forceHideSeparator) {
-    for (let xid in firetray.Handler.windows)
-      this.hideSinglePopupMenuWindowItem(xid, forceHideSeparator);
-  },
-
-  // PopupMenu.hideItem(firetray.Handler.gtkPopupMenuWindowItems.get(xid))
-  hideSinglePopupMenuWindowItem: function(xid, forceHideSeparator) {
-    LOG("hideSinglePopupMenuWindowItem");
-    let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
-    gtk.gtk_widget_hide(ctypes.cast(menuItemWindow, gtk.GtkWidget.ptr)); // on hideSingleWindow
-
-    if (forceHideSeparator || (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)) {
-      this.hidePopupMenuWindowSeparator();
-    }
-  },
-
-  showPopupMenuWindowSeparator: function() {
-    LOG("showing menuSeparatorWindows");
-    gtk.gtk_widget_show(ctypes.cast(firetray.StatusIcon.menuSeparatorWindows, gtk.GtkWidget.ptr));
-  },
-  hidePopupMenuWindowSeparator: function() {
-    LOG("hiding menuSeparatorWindows");
-    gtk.gtk_widget_hide(ctypes.cast(firetray.StatusIcon.menuSeparatorWindows, gtk.GtkWidget.ptr));
+    LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
+    this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
+      firetray.Handler.showHideAllWindows);
+    let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
+                                             "activate", firetray.StatusIcon.callbacks.iconActivate, null);
+    LOG("g_connect activate="+handlerId);
   },
 
   onScroll: function(icon, event, data) {
@@ -420,11 +256,4 @@ firetray.Handler.setIconVisibility = function(visible) {
     return false;
   gtk.gtk_status_icon_set_visible(firetray.StatusIcon.trayIcon, visible);
   return true;
-};
-
-firetray.Handler.updatePopupMenu = function() {
-  if (firetray.StatusIcon.popupMenuWindowItemsHandled())
-    firetray.StatusIcon.showAllPopupMenuWindowItems(true);
-  else
-    firetray.StatusIcon.hideAllPopupMenuWindowItems(true);
 };

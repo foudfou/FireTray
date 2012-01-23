@@ -11,6 +11,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/gobject.jsm");
 Cu.import("resource://firetray/ctypes/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/FiretrayPrefListener.jsm");
 Cu.import("resource://firetray/FiretrayVersionChange.jsm");
 
 /**
@@ -45,6 +46,8 @@ firetray.Handler = {
   visibleWindowsCount: 0,
 
   init: function() {            // does creates icon
+    firetray.PrefListener.register(false);
+
     this.appNameOriginal = Services.appinfo.name;
     this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/" +  this.appNameOriginal.toLowerCase() + this.FILENAME_SUFFIX);
@@ -105,6 +108,8 @@ firetray.Handler = {
   },
 
   shutdown: function() {
+    firetray.PrefListener.unregister();
+
     if (this.inMailApp)
       firetray.Messaging.shutdown();
     firetray.StatusIcon.shutdown();
@@ -272,3 +277,19 @@ firetray.Handler = {
   }
 
 }; // firetray.Handler
+
+
+firetray.PrefListener = new PrefListener(
+  "extensions.firetray.",
+  function(branch, name) {
+    LOG('Pref changed: '+name);
+    switch (name) {
+    case 'hides_single_window':
+      firetray.Handler.updatePopupMenu();
+      break;
+    case 'show_icon_on_hide':
+      firetray.Handler.showHideIcon();
+      break;
+    default:
+    }
+  });
