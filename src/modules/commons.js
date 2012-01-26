@@ -7,8 +7,8 @@ var EXPORTED_SYMBOLS =
     "SEAMONKEY_ID", "getType", "isArray", "isEmpty", "strEquals",
     "FT_NOTIFICATION_DISABLED", "FT_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FT_NOTIFICATION_NEWMAIL_ICON", "FT_NOTIFICATION_CUSTOM_ICON",
-    "FIRETRAY_BROWSER_STARTUP_DELAY_MILLISECONDS",
-    "FIRETRAY_BROWSER_NEW_WINDOW_DELAY_MILLISECONDS" ];
+    "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
+    "FIRETRAY_DELAY_NOWAIT_MILLISECONDS" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -29,8 +29,8 @@ const FT_NOTIFICATION_UNREAD_MESSAGE_COUNT = 1;
 const FT_NOTIFICATION_NEWMAIL_ICON = 2;
 const FT_NOTIFICATION_CUSTOM_ICON = 3;
 
-const FIRETRAY_BROWSER_STARTUP_DELAY_MILLISECONDS = 500;
-const FIRETRAY_BROWSER_NEW_WINDOW_DELAY_MILLISECONDS = 0;
+const FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS = 500;
+const FIRETRAY_DELAY_NOWAIT_MILLISECONDS          = 0;
 
 /**
  * firetray namespace.
@@ -170,6 +170,13 @@ firetray.Utils = {
 
     return list;
   },
+
+  timer: function(callback, delay, timerType) {
+    var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    timer.initWithCallback({ notify: callback },
+      delay, timerType);
+  },
+
 
   tryCloseLibs: function(libs) {
     try {

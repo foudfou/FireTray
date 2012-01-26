@@ -137,7 +137,7 @@ firetray.Handler = {
       timer.initWithCallback({ notify: function() {
         firetray.Handler.appStarted = true;
         LOG("*** appStarted ***");
-      }}, FIRETRAY_BROWSER_STARTUP_DELAY_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      }}, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
       break;
     case "xpcom-will-shutdown":
       LOG("xpcom-will-shutdown");
@@ -228,8 +228,7 @@ firetray.Handler = {
     try {
       url = Services.prefs.getComplexValue(prefDomain,
         Components.interfaces.nsIPrefLocalizedString).data;
-    } catch (e) {
-    }
+    } catch (e) {}
 
     // use this if we can't find the pref
     if (!url) {
@@ -248,11 +247,10 @@ firetray.Handler = {
 
       // FIXME: obviously we need to wait to avoid seg fault on jsapi.cpp:827
       // 827         if (t->data.requestDepth) {
-      var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-      timer.initWithCallback({ notify: function() {
+      firetray.Utils.timer(function() {
         for(var key in firetray.Handler.windows) break;
         firetray.Handler.windows[key].chromeWin.open(home);
-      }}, FIRETRAY_BROWSER_NEW_WINDOW_DELAY_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
     } catch (x) { ERROR(x); }
   },
 
@@ -267,13 +265,12 @@ firetray.Handler = {
 
   quitApplication: function() {
     try {
-      let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']
-        .getService(Ci.nsIAppStartup);
-      appStartup.quit(Components.interfaces.nsIAppStartup.eAttemptQuit);
-    } catch (x) {
-      ERROR(x);
-      return;
-    }
+      firetray.Utils.timer(function() {
+        let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']
+          .getService(Ci.nsIAppStartup);
+        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
+      }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+    } catch (x) { ERROR(x); }
   }
 
 }; // firetray.Handler

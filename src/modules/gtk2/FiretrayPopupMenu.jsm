@@ -19,8 +19,7 @@ if ("undefined" == typeof(firetray.StatusIcon))
 
 firetray.PopupMenu = {
   initialized: false,
-  // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
-  callbacks: {menuItemWindowActivate: {}},
+  callbacks: {menuItemWindowActivate: {}}, // FIXME: try to store them into a ctypes array/struct.
   menu: null,
   menuSeparatorWindows: null,
   MIN_FONT_SIZE: 4,
@@ -80,7 +79,7 @@ firetray.PopupMenu = {
 
     this.callbacks.menuItemQuitActivate = gobject.GCallback_t(
       firetray.Handler.quitApplication);
-    gobject.g_signal_connect(menuItemQuit, "activate",
+     gobject.g_signal_connect(menuItemQuit, "activate",
       firetray.PopupMenu.callbacks.menuItemQuitActivate, null);
 
     var menuWidget = ctypes.cast(this.menu, gtk.GtkWidget.ptr);
