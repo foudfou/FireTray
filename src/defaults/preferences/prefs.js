@@ -12,7 +12,7 @@ pref("extensions.firetray.hides_on_minimize", true);
 pref("extensions.firetray.hides_single_window", false);
 pref("extensions.firetray.start_hidden", false);
 pref("extensions.firetray.show_icon_on_hide", false);
-pref("extensions.firetray.scroll_to_hide", true);
+pref("extensions.firetray.scroll_hides", true);
 pref("extensions.firetray.scroll_mode", "down_hides");
 
 pref("extensions.firetray.mail_notification", 1);

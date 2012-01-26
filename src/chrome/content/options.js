@@ -82,8 +82,8 @@ var firetrayUIOptions = {
   },
 
   updateScrollOptions: function() {
-    let scroll_to_hide = document.getElementById("ui_scroll_to_hide").checked;
-    this.disableGroup(document.getElementById("ui_radiogroup_scroll"), !scroll_to_hide);
+    let scroll_hides = document.getElementById("ui_scroll_hides").checked;
+    this.disableGroup(document.getElementById("ui_radiogroup_scroll"), !scroll_hides);
   },
 
   initMailControls: function() {

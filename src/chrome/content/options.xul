@@ -24,7 +24,7 @@
       <preference id="pref_bool_hides_single_window" name="extensions.firetray.hides_single_window" type="bool"/>
       <preference id="pref_bool_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
       <preference id="pref_bool_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
-      <preference id="pref_bool_scroll_to_hide" name="extensions.firetray.scroll_to_hide" type="bool" />
+      <preference id="pref_bool_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_string_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
       <preference id="pref_string_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_string_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
@@ -65,7 +65,7 @@
             <checkbox id="ui_show_icon_on_hide" preference="pref_bool_show_icon_on_hide"
                       label="&bool_show_icon_on_hide.label;"
                       accesskey="&bool_show_icon_on_hide.accesskey;"/>
-            <checkbox id="ui_scroll_to_hide" preference="pref_bool_scroll_to_hide"
+            <checkbox id="ui_scroll_hides" preference="pref_bool_scroll_hides"
                       label="&enable_mouse_scroll.label;"
                       accesskey="&enable_mouse_scroll.accesskey;"
                       oncommand="firetrayUIOptions.updateScrollOptions()" />
