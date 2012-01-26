@@ -114,11 +114,10 @@ firetray.VersionChange.openMailTab = function() {
   }
 
   if (tabmail) {
-    var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-    timer.initWithCallback({ notify: function() {
+    firetray.Utils.timer(function() {
       LOG("openMailTab");
       tabmail.openTab("contentTab", {contentPage: FIRETRAY_SPLASH_PAGE});
-    }}, FIRETRAY_BROWSER_STARTUP_DELAY_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+    }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
   }
 };
 
