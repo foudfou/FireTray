@@ -315,6 +315,7 @@ firetray.Window = {
       ERROR("unsupported format: "+actual_format.value);
     }
     LOG("format OK");
+// FIXME: how about https://developer.mozilla.org/en/JavaScript_typed_arrays
     var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
     LOG("props="+props+", size="+props.constructor.size);
 
