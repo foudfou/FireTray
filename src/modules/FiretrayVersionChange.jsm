@@ -15,6 +15,7 @@ const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
  * handles version changes, by doing things like opening a tab for release notes
  */
 firetray.VersionChange = {
+  curVersion: null,
 
   versionComparator: Cc["@mozilla.org/xpcom/version-comparator;1"]
     .getService(Ci.nsIVersionComparator),
@@ -43,57 +44,57 @@ firetray.VersionChange = {
   onVersionChange: function(addon) {
     LOG("VERSION: "+addon.version);
 
-    var curVersion = addon.version;
+    this.curVersion = addon.version;
     var firstrun = firetray.Utils.prefService.getBoolPref("firstrun");
 
     if (firstrun) {
       WARN("FIRST RUN");
-      this.initPrefs(curVersion);
-      this.installHook(curVersion);
+      this.initPrefs();
+      this.installHook();
 
     } else {
       try {
         var installedVersion = firetray.Utils.prefService.getCharPref("installedVersion");
-        var versionDelta = this.versionComparator.compare(curVersion, installedVersion);
+        var versionDelta = this.versionComparator.compare(this.curVersion, installedVersion);
         if (versionDelta > 0) {
-          firetray.Utils.prefService.setCharPref("installedVersion", curVersion);
+          firetray.Utils.prefService.setCharPref("installedVersion", this.curVersion);
           WARN("UPGRADE");
-          this.upgradeHook(installedVersion, curVersion);
+          this.upgradeHook();
         }
 
       } catch (ex) {
         WARN("REINSTALL");
-        this.initPrefs(curVersion);
-        this.reinstallHook(curVersion);
+        this.initPrefs();
+        this.reinstallHook();
       }
     }
   },
 
-  initPrefs: function(version) {
+  initPrefs: function() {
     firetray.Utils.prefService.setBoolPref("firstrun", false);
-    firetray.Utils.prefService.setCharPref("installedVersion", version);
+    firetray.Utils.prefService.setCharPref("installedVersion", firetray.VersionChange.curVersion);
   },
 
-  installHook: function(curVersion) {},
-  upgradeHook: function(prevVersion, curVersion) {},
-  reinstallHook: function(curVersion) {}
+  installHook: function() {},
+  upgradeHook: function() {},
+  reinstallHook: function() {}
 
 };
 
 
 
-firetray.VersionChange.installHook = function(curVersion) {
+firetray.VersionChange.installHook = function() {
   this.openTab();
   this.tryEraseV03Options();
 };
 
-firetray.VersionChange.upgradeHook = function(prevVersion, curVersion) {
+firetray.VersionChange.upgradeHook = function() {
   this.openTab();
   this.tryEraseV03Options(); // FIXME: should check versions here
 };
 
-firetray.VersionChange.reinstallHook = function(curVersion) {
-  this.openTab();
+firetray.VersionChange.reinstallHook = function() {
+  this.openTab(Version);
 };
 
 firetray.VersionChange.openTab = function() {
@@ -116,7 +117,8 @@ firetray.VersionChange.openMailTab = function() {
   if (tabmail) {
     firetray.Utils.timer(function() {
       LOG("openMailTab");
-      tabmail.openTab("contentTab", {contentPage: FIRETRAY_SPLASH_PAGE});
+      let page = FIRETRAY_SPLASH_PAGE+"#"+firetray.VersionChange.curVersion;
+      tabmail.openTab("contentTab", {contentPage: page});
     }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
   }
 };
@@ -134,7 +136,8 @@ firetray.VersionChange.openBrowserTab = function() {
 
     mainWindow.setTimeout(function(win){
       LOG("openBrowser");
-      mainWindow.gBrowser.selectedTab = mainWindow.gBrowser.addTab(FIRETRAY_SPLASH_PAGE);
+      let page = FIRETRAY_SPLASH_PAGE+"#"+firetray.VersionChange.curVersion;
+      mainWindow.gBrowser.selectedTab = mainWindow.gBrowser.addTab(page);
     }, 1000);
   }
 };
