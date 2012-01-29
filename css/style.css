@@ -166,6 +166,10 @@ body{
 	font-family:Calibri, Helvetica, Helvetica Neue, Arial, sans-serif;
 }
 
+p {
+    margin: 10px 0 10px;
+}
+
 .wrapper{
 	margin:auto;
 	width:960px;
