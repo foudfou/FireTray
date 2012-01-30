@@ -4,9 +4,10 @@
    provided by this module */
 var EXPORTED_SYMBOLS =
   [ "firetray", "LOG", "WARN", "ERROR", "FIREFOX_ID", "THUNDERBIRD_ID",
-    "SEAMONKEY_ID", "getType", "isArray", "isEmpty", "strEquals",
-    "FT_NOTIFICATION_DISABLED", "FT_NOTIFICATION_UNREAD_MESSAGE_COUNT",
-    "FT_NOTIFICATION_NEWMAIL_ICON", "FT_NOTIFICATION_CUSTOM_ICON",
+    "SEAMONKEY_ID", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE", "getType",
+    "isArray", "isEmpty", "strEquals", "FT_NOTIFICATION_DISABLED",
+    "FT_NOTIFICATION_UNREAD_MESSAGE_COUNT", "FT_NOTIFICATION_NEWMAIL_ICON",
+    "FT_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS" ];
 
@@ -23,6 +24,9 @@ const SONGBIRD_ID    = "songbird@songbirdnest.com";
 const SUNBIRD_ID     = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
 const SEAMONKEY_ID   = "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}";
 const CHATZILLA_ID   = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
+
+const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
+const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
 
 const FT_NOTIFICATION_DISABLED = 0;
 const FT_NOTIFICATION_UNREAD_MESSAGE_COUNT = 1;
@@ -176,7 +180,6 @@ firetray.Utils = {
     timer.initWithCallback({ notify: callback },
       delay, timerType);
   },
-
 
   tryCloseLibs: function(libs) {
     try {

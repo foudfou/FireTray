@@ -101,6 +101,17 @@ firetray.Handler = {
     Services.obs.addObserver(this, this.getAppStartupTopic(this.appId), false);
     Services.obs.addObserver(this, "xpcom-will-shutdown", false);
 
+    firetray.VersionChange.setInstallHook(function(ver) {
+      firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
+      firetray.Handler.tryEraseV03Options();
+    });
+    firetray.VersionChange.setUpgradeHook(function(ver) {
+      firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
+      firetray.Handler.tryEraseV03Options(); // FIXME: should check versions here
+    });
+    firetray.VersionChange.setReinstallHook(function(ver) {
+      firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
+    });
     firetray.VersionChange.watch();
 
     this.initialized = true;
@@ -261,6 +272,67 @@ firetray.Handler = {
         .getService(Ci.nsIMsgComposeService);
       msgComposeService.OpenComposeWindowWithURI(null, aURI);
     } catch (x) { ERROR(x); }
+  },
+
+  openTab: function(url) {
+    let appId = Services.appinfo.ID;
+    if (appId === THUNDERBIRD_ID)
+      this.openMailTab(url);
+    else if (appId === FIREFOX_ID || appId === SEAMONKEY_ID)
+      this.openBrowserTab(url);
+    else
+      ERROR("unsupported application");
+  },
+
+  openMailTab: function(url) {
+    let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
+    if (mail3PaneWindow) {
+      var tabmail = mail3PaneWindow.document.getElementById("tabmail");
+      mail3PaneWindow.focus();
+    }
+
+    if (tabmail) {
+      firetray.Utils.timer(function() {
+        LOG("openMailTab");
+        tabmail.openTab("contentTab", {contentPage: url});
+      }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+    }
+  },
+
+  openBrowserTab: function(url) {
+    let win = Services.wm.getMostRecentWindow("navigator:browser");
+    WARN("WIN="+win);
+    if (win) {
+      var mainWindow = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+            .getInterface(Components.interfaces.nsIWebNavigation)
+            .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+            .rootTreeItem
+            .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+            .getInterface(Components.interfaces.nsIDOMWindow);
+
+      mainWindow.setTimeout(function(win){
+        LOG("openBrowser");
+        mainWindow.gBrowser.selectedTab = mainWindow.gBrowser.addTab(url);
+      }, 1000);
+    }
+  },
+
+  tryEraseV03Options: function() {
+    let v03options = [
+      "close_to_tray", "minimize_to_tray", "start_minimized", "confirm_exit",
+      "restore_to_next_unread", "mail_count_type", "show_mail_count",
+      "dont_count_spam", "dont_count_archive", "dont_count_drafts",
+      "dont_count_sent", "dont_count_templates", "show_mail_notification",
+      "show_icon_only_minimized", "use_custom_normal_icon",
+      "use_custom_special_icon", "custom_normal_icon", "custom_special_icon",
+      "text_color", "scroll_to_hide", "scroll_action", "grab_multimedia_keys",
+      "hide_show_mm_key", "accounts_to_exclude" ];
+
+    for (let i = 0, length = v03options.length; i<length; ++i) {
+      try {
+        firetray.Utils.prefService.clearUserPref(v03options[i]);
+      } catch (x) {}
+    }
   },
 
   quitApplication: function() {
