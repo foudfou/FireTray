@@ -251,6 +251,9 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_atom_intern", this.GdkAtom, gobject.gchar.ptr, gobject.gboolean);
   lib.lazy_bind("gdk_property_change", ctypes.void_t, this.GdkWindow.ptr, this.GdkAtom, this.GdkAtom, gobject.gint, this.GdkPropMode, gobject.guchar.ptr, gobject.gint);
 
+  lib.lazy_bind("gdk_display_get_n_screens", gobject.gint, this.GdkDisplay.ptr);
+  lib.lazy_bind("gdk_display_get_screen", this.GdkScreen.ptr, this.GdkDisplay.ptr, gobject.gint);
+
 }
 
 new ctypes_library(GDK_LIBNAME, GDK_ABIS, gdk_defines, this);

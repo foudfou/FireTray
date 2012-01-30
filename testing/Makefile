@@ -1,6 +1,6 @@
 includes := $(shell pkg-config --libs --cflags gtk+-2.0)
 executables :=  gtk_icon_example trayicon hide xtypes x11XGetWindowProp \
-	window_state_event xev_desktop
+	window_state_event xev_desktop teststatusicon
 
 .PHONY: all
 all: $(executables)
@@ -29,3 +29,6 @@ window_state_event: window_state_event.c
 
 xev_desktop: xev_desktop.c
 	gcc -lXm -lXt -lX11 -o xev_desktop xev_desktop.c
+
+teststatusicon: teststatusicon.c prop-editor.c
+	gcc $(includes) -o teststatusicon teststatusicon.c prop-editor.c
