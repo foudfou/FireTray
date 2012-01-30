@@ -1,6 +1,6 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "firetray" ];
+var EXPORTED_SYMBOLS = [ "firetray", "FLDRS_UNINTERESTING" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -9,6 +9,16 @@ const Cu = Components.utils;
 Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://firetray/commons.js");
+
+const FLDRS_UNINTERESTING = {
+  Archive:   Ci.nsMsgFolderFlags.Archive,
+  Drafts:    Ci.nsMsgFolderFlags.Drafts,
+  Junk:      Ci.nsMsgFolderFlags.Junk,
+  Queue:     Ci.nsMsgFolderFlags.Queue,
+  SentMail:  Ci.nsMsgFolderFlags.SentMail,
+  Templates: Ci.nsMsgFolderFlags.Templates,
+  Trash:     Ci.nsMsgFolderFlags.Trash
+};
 
 /**
  * firetray namespace.
