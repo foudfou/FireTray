@@ -75,6 +75,9 @@ firetray.StatusIcon = {
   },
 
   onScroll: function(icon, event, data) {
+    if (!firetray.Utils.prefService.getBoolPref("scroll_hides"))
+      return;
+
     let iconGpointer = ctypes.cast(icon, gobject.gpointer);
     let gdkEventScroll = ctypes.cast(event, gdk.GdkEventScroll.ptr);
     let scroll_mode = firetray.Utils.prefService.getCharPref("scroll_mode");
