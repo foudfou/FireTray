@@ -263,19 +263,12 @@ firetray.Window = {
     delete firetray.Handler.windows[xid].savedDesktop;
   },
 
-/* KEPT FOR LATER USE
-  onWindowState: function(gtkWidget, gdkEventState, userData) {
-    LOG("window-state-event: "+gdkEventState.contents.new_window_state);
-
-    if (gdkEventState.contents.new_window_state & gdk.GDK_WINDOW_STATE_ICONIFIED) {
-      let xid = firetray.Window.getXIDFromGtkWidget(gtkWidget);
-      LOG(xid+" iconified: "+gdkEventState.contents.changed_mask+" "+gdkEventState.contents.new_window_state);
-    }
-
-    let stopPropagation = true; // not usefull
-    return stopPropagation;
+  ensureRaised: function(xid) {
+    if (!firetray.Utils.prefService.getBoolPref('show_raised'));
+      return;
+    let gdkWin = firetray.Handler.gdkWindows.get(xid);
+    gdk.gdk_window_raise(gdkWin);
   },
-*/
 
   /**
    * YOU MUST x11.XFree() THE VARIABLE RETURNED BY THIS FUNCTION
@@ -303,7 +296,7 @@ firetray.Window = {
       return [null, null];
     }
     if (strEquals(actual_type.value, x11.None)) {
-      WARN("property not found");
+      LOG("property not found");
       return [null, null];
     }
 
@@ -315,7 +308,6 @@ firetray.Window = {
       ERROR("unsupported format: "+actual_format.value);
     }
     LOG("format OK");
-// FIXME: how about https://developer.mozilla.org/en/JavaScript_typed_arrays
     var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
     LOG("props="+props+", size="+props.constructor.size);
 
@@ -495,6 +487,7 @@ firetray.Handler.showSingleWindow = function(xid) {
   firetray.Window.restoreWindowStates(xid);
   firetray.Handler.windows[xid].baseWin.visibility = true; // show
   firetray.Window.restoreWindowDesktop(xid);               // after show
+  firetray.Window.ensureRaised(xid);
   // TODO: we need want to restore to the original monitor (screen)
 
   firetray.Handler.windows[xid].visibility = true;

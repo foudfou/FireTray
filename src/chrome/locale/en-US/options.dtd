@@ -1,4 +1,4 @@
-<!ENTITY prefwindow.title "FireTray preferences">
+<!ENTITY prefwindow.title "y preferences">
 <!ENTITY pane1.title "FireTray preferences">
 
 <!ENTITY NOT_IMPLEMENTED_YET "NOT IMPLEMENTED YET">
@@ -16,6 +16,9 @@
 <!ENTITY bool_hides_single_window.accesskey "H">
 <!ENTITY bool_start_hidden.label "Start application hidden to tray">
 <!ENTITY bool_start_hidden.accesskey "S">
+<!ENTITY bool_show_raised.label "Ensure windows are restored on top">
+<!ENTITY bool_show_raised.accesskey "E">
+<!ENTITY bool_show_raised.tooltip "otherwise let the window manager handle it">
 
 <!ENTITY icon_settings "Icon settings">
 <!ENTITY bool_show_icon_on_hide.label "Show tray icon only if a window is hidden">
