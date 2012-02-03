@@ -49,7 +49,7 @@ KNOWN BUGS
 * notifications for excluded mail account servers are not
   disabled. Newmailalerts are
   [hard-coded](http://mxr.mozilla.org/comm-central/find?string=content/newmailalert)
-  and we can't easily disable thme on a per-server basis (only globally, see
+  and we can't easily disable them on a per-server basis (only globally, see
   `mail.biff.show_alert`). The proper way would probably be to disable default
   notifications globally, and handle notifications ourselves. This is out of
   the scope of this addon, but you may want to give a try to the
