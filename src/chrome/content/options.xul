@@ -23,7 +23,7 @@
       <preference id="pref_bool_hides_on_minimize" name="extensions.firetray.hides_on_minimize" type="bool"/>
       <preference id="pref_bool_hides_single_window" name="extensions.firetray.hides_single_window" type="bool"/>
       <preference id="pref_bool_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
-      <preference id="pref_bool_show_raised" name="extensions.firetray.show_raised" type="bool"/>
+      <preference id="pref_bool_show_activates" name="extensions.firetray.show_activates" type="bool"/>
       <preference id="pref_bool_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
       <preference id="pref_bool_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_string_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
@@ -59,10 +59,10 @@
             <checkbox id="ui_start_hidden" preference="pref_bool_start_hidden"
                       label="&bool_start_hidden.label;"
                       accesskey="&bool_start_hidden.accesskey;"/>
-            <checkbox id="ui_show_raised" preference="pref_bool_show_raised"
-                      label="&bool_show_raised.label;"
-                      accesskey="&bool_show_raised.accesskey;"
-                      tooltiptext="&bool_show_raised.tooltip;"/>
+            <checkbox id="ui_show_activates" preference="pref_bool_show_activates"
+                      label="&bool_show_activates.label;"
+                      accesskey="&bool_show_activates.accesskey;"
+                      tooltiptext="&bool_show_activates.tooltip;"/>
           </groupbox>
 
           <groupbox>
