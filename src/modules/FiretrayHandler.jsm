@@ -114,39 +114,8 @@ firetray.Handler = {
     });
     firetray.VersionChange.watch();
 
-    // TEST - check Screens and Monitors !
-    try {
-      Cu.import("resource://firetray/ctypes/x11.jsm");
-      Cu.import("resource://firetray/ctypes/xinerama.jsm");
-      LOG("XINERAMA: "+xinerama.XineramaIsActive(x11.current.Display));
-
-      Cu.import("resource://firetray/ctypes/gdk.jsm");
-      LOG("SCREENS: "+gdk.gdk_display_get_n_screens(gdk.gdk_display_get_default()));
-
-  // GdkScreen *screen = gtk_widget_get_screen (widget);
-  // gint i = gdk_screen_get_monitor_at_window (screen,
-	// 				     widget->window);
-
-
-      // let dl = gdk.gdk_display_list_devices(gdk.gdk_display_get_default()); // "should not be freed"
-      // LOG("LENGTH="+gobject.g_list_length(dl));
-      // let mozt_func = gobject.GFunc_t(firetray.Handler.glist_foreach);
-      // gobject.g_list_foreach(dl, mozt_func, null);
-
-    } catch(x) {ERROR(x);}
-
     this.initialized = true;
     return true;
-  },
-
-  // TEST
-  glist_foreach: function(a1, a2) {
-    LOG("glist_foreach: "+a1);
-    let gdkDev = ctypes.cast(a1, gdk.GdkDevice.ptr);
-    let devName = gdk.gdk_device_get_name(gdkDev);
-    LOG(devName.readString());
-    LOG(gdk.gdk_device_get_source(gdkDev));
-    LOG(gdk.gdk_device_get_mode(gdkDev));
   },
 
   shutdown: function() {

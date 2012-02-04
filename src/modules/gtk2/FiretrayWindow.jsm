@@ -195,11 +195,11 @@ firetray.Window = {
     firetray.Handler.windows[xid].savedY = gy.value;
     firetray.Handler.windows[xid].savedWidth = gwidth.value;
     firetray.Handler.windows[xid].savedHeight = gheight.value;
-    LOG("save: gx="+gx+", gy="+gy+", gwidth="+gwidth+", gheight="+gheight);
+    LOG("save: gx="+gx.value+", gy="+gy.value+", gwidth="+gwidth.value+", gheight="+gheight.value);
   },
 
   restoreWindowPositionAndSize: function(xid) {
-    if (!firetray.Handler.windows[xid].savedX)
+    if ("undefined" === typeof(firetray.Handler.windows[xid].savedX))
       return; // windows[xid].saved* may not be initialized
 
     LOG("restore: x="+firetray.Handler.windows[xid].savedX+", y="+firetray.Handler.windows[xid].savedY+", w="+firetray.Handler.windows[xid].savedWidth+", h="+firetray.Handler.windows[xid].savedHeight);
