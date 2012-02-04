@@ -245,12 +245,23 @@ firetray.Window = {
     let desktopDest = firetray.Handler.windows[xid].savedDesktop;
     if (desktopDest === null) return;
 
+    let dataSize = 1;
+    let data = ctypes.long(dataSize);
+    data[0] = desktopDest;
+    this.xSendClientMessgeEvent(xid, x11.current.Atoms._NET_WM_DESKTOP, data, dataSize);
+
+    LOG("restored to desktop: "+desktopDest);
+    delete firetray.Handler.windows[xid].savedDesktop;
+  },
+
+  xSendClientMessgeEvent: function(xid, atom, data, dataSize) {
     let xev = new x11.XClientMessageEvent;
     xev.type = x11.ClientMessage;
     xev.window = x11.Window(xid);
-    xev.message_type = x11.current.Atoms._NET_WM_DESKTOP;
+    xev.message_type = atom;
     xev.format = 32;
-    xev.data[0] = desktopDest;
+    for (let i=0; i<dataSize; ++i)
+      xev.data[i] = data[i];
 
     let rootWin = x11.XDefaultRootWindow(x11.current.Display);
     let propagate = false;
@@ -258,24 +269,25 @@ firetray.Window = {
     // fortunately, it's OK not to cast xev. ctypes.cast to a void_t doesn't work (length pb)
     let status = x11.XSendEvent(x11.current.Display, rootWin, propagate, mask, xev.address());
     // always returns 1 (BadRequest as a coincidence)
-
-    LOG("restored to desktop: "+desktopDest);
-    delete firetray.Handler.windows[xid].savedDesktop;
   },
 
-/* KEPT FOR LATER USE
-  onWindowState: function(gtkWidget, gdkEventState, userData) {
-    LOG("window-state-event: "+gdkEventState.contents.new_window_state);
 
-    if (gdkEventState.contents.new_window_state & gdk.GDK_WINDOW_STATE_ICONIFIED) {
-      let xid = firetray.Window.getXIDFromGtkWidget(gtkWidget);
-      LOG(xid+" iconified: "+gdkEventState.contents.changed_mask+" "+gdkEventState.contents.new_window_state);
-    }
+  /**
+   * raises window on top and give focus.
+   */
+  activate: function(xid) {
+    if (!firetray.Utils.prefService.getBoolPref('show_activates'))
+      return;
 
-    let stopPropagation = true; // not usefull
-    return stopPropagation;
+    let dataSize = 3;
+    let data = ctypes.long(dataSize);
+    data[0] = 1; // source indication (0=none, 1=app, 2=pager)
+    data[1] = 0; // timestamp
+    data[2] = 0; // requestor's currently active window, 0 if none
+    this.xSendClientMessgeEvent(xid, x11.current.Atoms._NET_ACTIVE_WINDOW, data, dataSize);
+
+    LOG("window raised");
   },
-*/
 
   /**
    * YOU MUST x11.XFree() THE VARIABLE RETURNED BY THIS FUNCTION
@@ -303,7 +315,7 @@ firetray.Window = {
       return [null, null];
     }
     if (strEquals(actual_type.value, x11.None)) {
-      WARN("property not found");
+      LOG("property not found");
       return [null, null];
     }
 
@@ -315,7 +327,6 @@ firetray.Window = {
       ERROR("unsupported format: "+actual_format.value);
     }
     LOG("format OK");
-// FIXME: how about https://developer.mozilla.org/en/JavaScript_typed_arrays
     var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
     LOG("props="+props+", size="+props.constructor.size);
 
@@ -495,6 +506,7 @@ firetray.Handler.showSingleWindow = function(xid) {
   firetray.Window.restoreWindowStates(xid);
   firetray.Handler.windows[xid].baseWin.visibility = true; // show
   firetray.Window.restoreWindowDesktop(xid);               // after show
+  firetray.Window.activate(xid);
   // TODO: we need want to restore to the original monitor (screen)
 
   firetray.Handler.windows[xid].visibility = true;

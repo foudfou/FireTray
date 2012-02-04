@@ -34,8 +34,12 @@ const XATOMS_EWMH_WM_STATES =  [
   "_NET_WM_STATE_FULLSCREEN", "_NET_WM_STATE_ABOVE", "_NET_WM_STATE_BELOW",
   "_NET_WM_STATE_DEMANDS_ATTENTION"
 ];
-const XATOMS = XATOMS_ICCCM.concat(XATOMS_EWMH_WM_STATES)
-  .concat(XATOMS_EWMH_GENERAL).concat(["CARDINAL"]);
+const XATOMS_EWMH_ROOT = [ "_NET_ACTIVE_WINDOW" ]
+const XATOMS = XATOMS_ICCCM
+  .concat(XATOMS_EWMH_WM_STATES)
+  .concat(XATOMS_EWMH_GENERAL)
+  .concat(XATOMS_EWMH_ROOT)
+  .concat(["CARDINAL"]);
 
 
 function x11_defines(lib) {
@@ -127,6 +131,7 @@ function x11_defines(lib) {
   lib.lazy_bind("XChangeProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, this.Atom, ctypes.int, ctypes.int, ctypes.unsigned_char.ptr, ctypes.int);
   lib.lazy_bind("XDefaultRootWindow", this.Window, this.Display.ptr);
   lib.lazy_bind("XSendEvent", this.Status, this.Display.ptr, this.Window, this.Bool, ctypes.long, this.XEvent.ptr);
+  lib.lazy_bind("XRaiseWindow", ctypes.int, this.Display.ptr, this.Window);
 
 }
 
