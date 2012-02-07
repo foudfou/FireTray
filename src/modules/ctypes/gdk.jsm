@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var EXPORTED_SYMBOLS = [ "gdk", "glib" ];
+var EXPORTED_SYMBOLS = [ "gdk" ];
 
 const GDK_LIBNAME = "gdk-x11-2.0";
 const GDK_ABIS    = [ 0 ];

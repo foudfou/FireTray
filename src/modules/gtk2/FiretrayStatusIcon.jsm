@@ -111,9 +111,12 @@ firetray.Handler.setIconImage = function(filename) {
     return false;
   LOG(filename);
 
+  let pixbuf = gdk.gdk_pixbuf_new_from_file(filename, null);
+  if (strEquals(pixbuf, gdk.GdkPixbuf.ptr(null)))
+    return false;
+
   try {
-    gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
-                                      filename);
+    gtk.gtk_status_icon_set_from_pixbuf(firetray.StatusIcon.trayIcon, pixbuf);
   } catch (x) {
     ERROR(x);
     return false;
