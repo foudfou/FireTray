@@ -21,7 +21,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
 
     // update unread messages count
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
-      firetray.Messaging.updateUnreadMsgCount();
+      firetray.Messaging.updateMsgCount();
 
     // prevent window closing.
     win.addEventListener('close', firetrayChrome.onClose, true);

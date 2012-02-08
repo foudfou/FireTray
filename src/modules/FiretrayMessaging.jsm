@@ -20,16 +20,8 @@ const FLDRS_UNINTERESTING = {
   Trash:     Ci.nsMsgFolderFlags.Trash
 };
 
-/**
- * firetray namespace.
- */
-if ("undefined" == typeof(firetray)) {
-  var firetray = {};
-};
-
 
 firetray.Messaging = {
-  _unreadMsgCount: 0,
   initialized: false,
 
   init: function() {
@@ -66,13 +58,17 @@ firetray.Messaging = {
      * @param newFlag: New header flag (long).
      */
     OnItemIntPropertyChanged: function(folder, property, oldValue, newValue) {
-      let excludedFoldersFlags = firetray.Utils.prefService
-        .getIntPref("excluded_folders_flags");
-      if (property.toString() === "TotalUnreadMessages" &&
-          !(folder.flags & excludedFoldersFlags)) {
-        LOG("Unread msgs for folder "+folder.prettyName+" was "+oldValue+" became "+newValue);
-        firetray.Messaging.updateUnreadMsgCount();
+      let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
+      let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
+
+      if (!(folder.flags & excludedFoldersFlags)) {
+        let prop = property.toString();
+        LOG("intProperty "+prop+" for folder "+folder.prettyName+" was "+oldValue+" became "+newValue);
+        if (prop === "TotalUnreadMessages" && msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD ||
+            prop === "BiffState" && msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW)
+          firetray.Messaging.updateMsgCount();
       }
+
     }
   },
 
@@ -82,10 +78,9 @@ firetray.Messaging = {
    * considered new, so we may have to use nsMsgFolderFlagType.GotNew on all
    * folders
    */
-  updateUnreadMsgCount: function() {
-    LOG("unreadMsgCount");
-    let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
-    if (prefMailNotification === FT_NOTIFICATION_DISABLED)
+  updateMsgCount: function() {
+    LOG("updateMsgCount");
+    if (!this.initialized)
       return;
 
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
@@ -95,7 +90,17 @@ firetray.Messaging = {
     let excludedFoldersFlags = firetray.Utils.prefService
       .getIntPref("excluded_folders_flags");
 
-    this._unreadMsgCount = 0;   // reset
+    let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type"),
+        getNewMessageCount   = '';
+    LOG("msgCountType="+msgCountType);
+    if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD)
+      getNewMessageCount = 'getNumUnread';
+    else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW)
+      getNewMessageCount = 'getNumNewMessages';
+    else
+      ERROR('unknown message count type');
+
+    let newMsgCount = 0;
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
@@ -110,8 +115,9 @@ firetray.Messaging = {
           while(subFolders.hasMoreElements()) {
             let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
             if (!(folder.flags & excludedFoldersFlags)) {
-              LOG(folder.prettyName+" unread="+folder.getNumUnread(true));
-              this._unreadMsgCount += folder.getNumUnread(true); // includes subfolders
+              folderNewMsgCount = folder[getNewMessageCount](true); // includes subfolders
+              LOG(folder.prettyName+" "+getNewMessageCount+"="+folderNewMsgCount);
+              newMsgCount += folderNewMsgCount;
             }
           }
         }
@@ -119,35 +125,35 @@ firetray.Messaging = {
     } catch (x) {
       ERROR(x);
     }
-    LOG("TotalUnread="+this._unreadMsgCount);
+    LOG("Total Unread="+newMsgCount);
 
     // update icon
-    if (this._unreadMsgCount == 0) {
+    if (newMsgCount == 0) {
       firetray.Handler.setIconImageDefault();
       firetray.Handler.setIconTooltipDefault();
 
-    } else if (this._unreadMsgCount > 0) {
+    } else if (newMsgCount > 0) {
+      let prefMailNotification = firetray.Utils.prefService.getIntPref('mail_notification_type');
       switch (prefMailNotification) {
-
-      case FT_NOTIFICATION_UNREAD_MESSAGE_COUNT:
+      case FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT:
         let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
-        firetray.Handler.setIconText(this._unreadMsgCount.toString(), prefIconTextColor);
+        firetray.Handler.setIconText(newMsgCount.toString(), prefIconTextColor);
         break;
-      case FT_NOTIFICATION_NEWMAIL_ICON:
+      case FIRETRAY_NOTIFICATION_NEWMAIL_ICON:
         firetray.Handler.setIconImage(firetray.Handler.FILENAME_NEWMAIL);
         break;
-      case FT_NOTIFICATION_CUSTOM_ICON:
+      case FIRETRAY_NOTIFICATION_CUSTOM_ICON:
         let prefCustomIconPath = firetray.Utils.prefService.getCharPref("custom_mail_icon");
         firetray.Handler.setIconImage(prefCustomIconPath);
         break;
       default:
-        ERROR("Unknown notification mode");
+        ERROR("Unknown notification mode: "+prefMailNotification);
       }
 
       let localizedMessage = PluralForm.get(
-        this._unreadMsgCount,
+        newMsgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
-        .replace("#1", this._unreadMsgCount);;
+        .replace("#1", newMsgCount);;
       firetray.Handler.setIconTooltip(localizedMessage);
 
     } else {

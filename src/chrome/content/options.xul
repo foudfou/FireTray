@@ -19,17 +19,19 @@
   <prefpane id="pane1" label="&pane1.title;">
 
     <preferences>
-      <preference id="pref_bool_hides_on_close" name="extensions.firetray.hides_on_close" type="bool"/>
-      <preference id="pref_bool_hides_on_minimize" name="extensions.firetray.hides_on_minimize" type="bool"/>
-      <preference id="pref_bool_hides_single_window" name="extensions.firetray.hides_single_window" type="bool"/>
-      <preference id="pref_bool_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
-      <preference id="pref_bool_show_activates" name="extensions.firetray.show_activates" type="bool"/>
-      <preference id="pref_bool_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
-      <preference id="pref_bool_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
-      <preference id="pref_string_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
-      <preference id="pref_string_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
-      <preference id="pref_string_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
-      <preference id="pref_string_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
+      <preference id="pref_hides_on_close" name="extensions.firetray.hides_on_close" type="bool"/>
+      <preference id="pref_hides_on_minimize" name="extensions.firetray.hides_on_minimize" type="bool"/>
+      <preference id="pref_hides_single_window" name="extensions.firetray.hides_single_window" type="bool"/>
+      <preference id="pref_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
+      <preference id="pref_show_activates" name="extensions.firetray.show_activates" type="bool"/>
+      <preference id="pref_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
+      <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
+      <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
+      <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
+      <preference id="pref_mail_notification_enabled" name="extensions.firetray.mail_notification_enabled" type="bool" />
+      <preference id="pref_message_count_type" name="extensions.firetray.message_count_type" type="int" />
+      <preference id="pref_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
+      <preference id="pref_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
     </preferences>
 
     <tabbox>
@@ -44,22 +46,22 @@
 
           <groupbox>
             <caption label="&windows_behaviour;" />
-            <checkbox id="ui_hides_on_close" preference="pref_bool_hides_on_close"
+            <checkbox id="ui_hides_on_close" preference="pref_hides_on_close"
                       label="&bool_hides_on_close.label;"
                       accesskey="&bool_hides_on_close.accesskey;"
                       oncommand="firetrayUIOptions.updateWindowAndIconOptions();"/>
-            <checkbox id="ui_hides_on_minimize" preference="pref_bool_hides_on_minimize"
+            <checkbox id="ui_hides_on_minimize" preference="pref_hides_on_minimize"
                       label="&bool_hides_on_minimize.label;"
                       accesskey="&bool_hides_on_minimize.accesskey;"
                       oncommand="firetrayUIOptions.updateWindowAndIconOptions();"/>
-            <checkbox id="ui_hides_single_window" preference="pref_bool_hides_single_window"
+            <checkbox id="ui_hides_single_window" preference="pref_hides_single_window"
                       label="&bool_hides_single_window.label;"
                       accesskey="&bool_hides_single_window.accesskey;"
                       tooltiptext="&bool_hides_single_window.tooltip;"/>
-            <checkbox id="ui_start_hidden" preference="pref_bool_start_hidden"
+            <checkbox id="ui_start_hidden" preference="pref_start_hidden"
                       label="&bool_start_hidden.label;"
                       accesskey="&bool_start_hidden.accesskey;"/>
-            <checkbox id="ui_show_activates" preference="pref_bool_show_activates"
+            <checkbox id="ui_show_activates" preference="pref_show_activates"
                       label="&bool_show_activates.label;"
                       accesskey="&bool_show_activates.accesskey;"
                       tooltiptext="&bool_show_activates.tooltip;"/>
@@ -67,14 +69,14 @@
 
           <groupbox>
             <caption label="&icon_settings;" />
-            <checkbox id="ui_show_icon_on_hide" preference="pref_bool_show_icon_on_hide"
+            <checkbox id="ui_show_icon_on_hide" preference="pref_show_icon_on_hide"
                       label="&bool_show_icon_on_hide.label;"
                       accesskey="&bool_show_icon_on_hide.accesskey;"/>
-            <checkbox id="ui_scroll_hides" preference="pref_bool_scroll_hides"
+            <checkbox id="ui_scroll_hides" preference="pref_scroll_hides"
                       label="&enable_mouse_scroll.label;"
                       accesskey="&enable_mouse_scroll.accesskey;"
                       oncommand="firetrayUIOptions.updateScrollOptions()" />
-            <radiogroup id="ui_radiogroup_scroll" preference="pref_string_scroll_mode">
+            <radiogroup id="ui_radiogroup_scroll" preference="pref_scroll_mode">
               <radio id="ui_radio_scroll_down_hides" label="&down;=&hide;, &up;=&restore;" value="down_hides" />
               <radio id="ui_radio_scroll_up_hides" label="&up;=&hide;, &down;=&restore;" value="up_hides" />
             </radiogroup>
@@ -86,48 +88,76 @@
         <tabpanel id="mail_tabpanel" flex="1">
           <vbox align="left" flex="1">
 
-          <!-- <label value="&mail_notification;" class="header" /> -->
-          <groupbox flex="1">
-            <caption label="&mail_notification.label;" />
-            <radiogroup id="radiogroup_mail_notification">
-              <radio id="radio_mail_icon1" label="&mail_notification_disabled.label;"
-                     accesskey="&mail_notification_disabled.accesskey;"
-                     oncommand="firetrayUIOptions.updateNotificationSettings()" />
+          <checkbox id="ui_mail_notification_enabled"
+                    label="&mail_notification_enabled.label;"
+                    class="header"
+                    accesskey="&mail_notification_enabled.accesskey;"
+                    preference="pref_mail_notification_enabled"
+                    oncommand="firetrayUIOptions.toggleNotifications(this.checked)"/>
+
+          <radiogroup id="ui_message_count_type" preference="pref_message_count_type">
+            <hbox align="center" flex="1">
+              <label observes="broadcaster-notification-disabled">&message_count_type;</label>
+              <radio id="ui_message_count_type_unread" label="&message_count_type_unread;"
+                     observes="broadcaster-notification-disabled"/>
+              <radio id="ui_message_count_type_new" label="&message_count_type_new;"
+                     tooltiptext="&message_count_type_new.tooltip;"
+                     observes="broadcaster-notification-disabled"/>
+            </hbox>
+          </radiogroup>
+
+          <groupbox id="ui_mail_notification" flex="1">
+            <caption>
+              <label id="ui_mail_notification_type_label"
+                     value="&mail_notification_type.label;"
+                     tooltiptext="&mail_notification_type.tooltip;"
+                     observes="broadcaster-notification-disabled" />
+            </caption>
+
+            <radiogroup id="ui_radiogroup_mail_notification">
               <hbox>
-                <radio id="radio_mail_icon2" label="&mail_notification_unread_count.label;"
+                <radio id="ui_radio_mail_notification_unread_count" label="&mail_notification_unread_count.label;"
                        accesskey="&mail_notification_unread_count.accesskey;"
-                       oncommand="firetrayUIOptions.updateNotificationSettings()" />
+                       oncommand="firetrayUIOptions.updateNotificationSettings()"
+                       observes="broadcaster-notification-disabled" />
                 <hbox id="icon_text_color" align="center">
-                  <label value="&icon_text_color;" accesskey="&icon_text_color.accesskey;"/>
+                  <label value="&icon_text_color;" accesskey="&icon_text_color.accesskey;"
+                         observes="broadcaster-notification-disabled"/>
                   <colorpicker id="btn_icon_text_color" type="button"
-                               preference="pref_string_icon_text_color"
-                               onchange="firetray.Messaging.updateUnreadMsgCount();"/>
+                               preference="pref_icon_text_color"
+                               onchange="firetray.Messaging.updateMsgCount();"
+                               observes="broadcaster-notification-disabled"/>
                 </hbox>
               </hbox>
-              <radio id="radio_mail_icon3" label="&mail_notification_newmail_icon.label;"
+              <radio id="ui_radio_mail_notification_newmail_icon" label="&mail_notification_newmail_icon.label;"
                      accesskey="&mail_notification_newmail_icon.accesskey;"
-                     oncommand="firetrayUIOptions.updateNotificationSettings()" />
+                     oncommand="firetrayUIOptions.updateNotificationSettings()"
+                     observes="broadcaster-notification-disabled" />
               <hbox>
-                <radio id="radio_mail_icon4" label="&mail_notification_custom_mail_icon.label;"
+                <radio id="ui_radio_mail_notification_custom_mail_icon" label="&mail_notification_custom_mail_icon.label;"
                        accesskey="&mail_notification_custom_mail_icon.accesskey;"
-                       oncommand="firetrayUIOptions.updateNotificationSettings()" />
+                       oncommand="firetrayUIOptions.updateNotificationSettings()" 
+                       observes="broadcaster-notification-disabled" />
                 <hbox id="custom_mail_icon" align="center" flex="1" >
-                  <textbox id="custom_mail_icon_filename" preference="pref_string_custom_mail_icon"
-                           onblur="firetray.Messaging.updateUnreadMsgCount();" flex="1" />
+                  <textbox id="custom_mail_icon_filename" preference="pref_custom_mail_icon"
+                           onblur="firetray.Messaging.updateMsgCount();" flex="1" />
                   <button id="custom_mail_icon_select" label="&choose;"
                           accesskey="&choose.accesskey;"
                           oncommand="firetrayUIOptions.chooseMailIconFile()" />
                 </hbox>
               </hbox>
+
             </radiogroup>
+
           </groupbox>
 
           <!-- NOTE: groupbox and caption don't have a 'disabled' attribute !! -->
           <groupbox id="unread_count_folder_exceptions" flex="1">
             <!-- label extracted from caption so we can disable it -->
-            <caption tooltiptext="&unread_count_folder_exceptions.tooltip;">
+            <caption>
               <label id="unread_count_folder_exceptions_caption_label"
                      value="&unread_count_folder_exceptions.label;"
+                     tooltiptext="&unread_count_folder_exceptions.tooltip;"
                      observes="broadcaster-notification-disabled" />
             </caption>
 
@@ -139,9 +169,10 @@
 
           <groupbox id="unread_count_account_exceptions" flex="1">
             <!-- label extracted from caption so we can disable it -->
-            <caption tooltiptext="&unread_count_account_exceptions.tooltip;">
+            <caption>
               <label id="unread_count_account_exceptions_caption_label"
                      value="&unread_count_account_exceptions.label;"
+                     tooltiptext="&unread_count_account_exceptions.tooltip;"
                      observes="broadcaster-notification-disabled" />
             </caption>
 
@@ -149,7 +180,7 @@
                   seltype="single" editable="true" hidecolumnpicker="false"
                   observes="broadcaster-notification-disabled"
                   preference-editable="true"
-                  preference="pref_string_mail_accounts"
+                  preference="pref_mail_accounts"
                   onsynctopreference="return firetrayUIOptions.saveTreeAccountsOrServerTypes();">
               <treecols>
                 <treecol id="account_or_server_type_name" editable="false" flex="2"
