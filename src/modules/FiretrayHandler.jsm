@@ -331,7 +331,7 @@ firetray.Handler = {
 
     for (let i = 0, length = oldOptions.length; i<length; ++i) {
       try {
-        firetray.Utils.prefService.clearUserPref(v03options[i]);
+        firetray.Utils.prefService.clearUserPref(oldOptions[i]);
       } catch (x) {}
     }
   },
