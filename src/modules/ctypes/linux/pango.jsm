@@ -11,8 +11,8 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
-Cu.import("resource://firetray/ctypes/cairo.jsm");
-Cu.import("resource://firetray/ctypes/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/cairo.jsm");
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 
 function pango_defines(lib) {
   this.PANGO_WEIGHT_THIN       = 100;

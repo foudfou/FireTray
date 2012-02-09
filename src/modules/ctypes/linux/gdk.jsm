@@ -48,10 +48,10 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
-Cu.import("resource://firetray/ctypes/cairo.jsm");
-Cu.import("resource://firetray/ctypes/glib.jsm");
-Cu.import("resource://firetray/ctypes/gobject.jsm");
-Cu.import("resource://firetray/ctypes/x11.jsm");
+Cu.import("resource://firetray/ctypes/linux/cairo.jsm");
+Cu.import("resource://firetray/ctypes/linux/glib.jsm");
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/x11.jsm");
 
 function gdk_defines(lib) {
   this.GdkInterpType = ctypes.int; // enum

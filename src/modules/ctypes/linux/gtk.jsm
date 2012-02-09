@@ -11,9 +11,9 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
-Cu.import("resource://firetray/ctypes/gdk.jsm");
-Cu.import("resource://firetray/ctypes/gobject.jsm");
-Cu.import("resource://firetray/ctypes/pango.jsm");
+Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 
 function gtk_defines(lib) {
   this.GTK_ICON_SIZE_MENU = 1; // enum GtkIconSize

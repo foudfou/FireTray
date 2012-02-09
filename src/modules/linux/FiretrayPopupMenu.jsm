@@ -9,8 +9,8 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/ctypes/gobject.jsm");
-Cu.import("resource://firetray/ctypes/gtk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.StatusIcon))

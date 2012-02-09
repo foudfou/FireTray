@@ -8,10 +8,10 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/ctypes/gobject.jsm");
-Cu.import("resource://firetray/ctypes/gtk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
-Cu.import("resource://firetray/FiretrayPrefListener.jsm");
+Cu.import("resource://firetray/PrefListener.jsm");
 Cu.import("resource://firetray/FiretrayVersionChange.jsm");
 
 /**
@@ -63,9 +63,9 @@ firetray.Handler = {
     LOG("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
     switch (this.runtimeOS) {
     case "Linux":
-      Cu.import("resource://firetray/gtk2/FiretrayStatusIcon.jsm");
+      Cu.import("resource://firetray/linux/FiretrayStatusIcon.jsm");
       LOG('FiretrayStatusIcon imported');
-      Cu.import("resource://firetray/gtk2/FiretrayWindow.jsm");
+      Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
       LOG('FiretrayWindow imported');
       break;
     default:

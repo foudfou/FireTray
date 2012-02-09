@@ -87,7 +87,8 @@ modules_dir := modules
 modules_sources := $(wildcard $(modules_dir)/*.js) \
 		$(wildcard $(modules_dir)/*.jsm) \
 		$(wildcard $(modules_dir)/ctypes/*.jsm) \
-		$(wildcard $(modules_dir)/gtk2/*.jsm)
+		$(wildcard $(modules_dir)/ctypes/linux/*.jsm) \
+		$(wildcard $(modules_dir)/linux/*.jsm)
 
 # The sources for the XPI file. Uses variables defined in the included
 # Makefiles.

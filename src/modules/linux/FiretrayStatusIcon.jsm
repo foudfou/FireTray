@@ -9,12 +9,12 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/ctypes/cairo.jsm");
-Cu.import("resource://firetray/ctypes/gobject.jsm");
-Cu.import("resource://firetray/ctypes/gdk.jsm");
-Cu.import("resource://firetray/ctypes/gtk.jsm");
-Cu.import("resource://firetray/ctypes/pango.jsm");
-Cu.import("resource://firetray/ctypes/pangocairo.jsm");
+Cu.import("resource://firetray/ctypes/linux/cairo.jsm");
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
+Cu.import("resource://firetray/ctypes/linux/pango.jsm");
+Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.Handler))
@@ -40,7 +40,7 @@ firetray.StatusIcon = {
 
     firetray.Handler.setIconTooltipDefault();
 
-    Cu.import("resource://firetray/gtk2/FiretrayPopupMenu.jsm");
+    Cu.import("resource://firetray/linux/FiretrayPopupMenu.jsm");
     if (!firetray.PopupMenu.init())
       return false;
 

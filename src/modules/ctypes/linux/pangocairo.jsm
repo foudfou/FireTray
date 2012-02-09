@@ -11,9 +11,9 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
-Cu.import("resource://firetray/ctypes/cairo.jsm");
-Cu.import("resource://firetray/ctypes/gobject.jsm");
-Cu.import("resource://firetray/ctypes/pango.jsm");
+Cu.import("resource://firetray/ctypes/linux/cairo.jsm");
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 
 function pangocairo_defines(lib) {
   lib.lazy_bind("pango_cairo_show_layout", ctypes.void_t, cairo.cairo_t.ptr, pango.PangoLayout.ptr);
