@@ -1,4 +1,4 @@
-var EXPORTED_SYMBOLS = [ "firetray" ];
+var EXPORTED_SYMBOLS = [ "VersionChange" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -13,7 +13,8 @@ Cu.import("resource://firetray/commons.js");
  * use setInstallHook(), setUpgradeHook(), setReinstallHook()
  * http://mike.kaply.com/2011/02/02/running-add-on-code-at-first-run-and-upgrade/
  */
-firetray.VersionChange = {
+var VersionChange = {
+
   curVersion: null,
 
   versionComparator: Cc["@mozilla.org/xpcom/version-comparator;1"]

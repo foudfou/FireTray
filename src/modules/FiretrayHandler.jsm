@@ -12,7 +12,7 @@ Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
 Cu.import("resource://firetray/PrefListener.jsm");
-Cu.import("resource://firetray/FiretrayVersionChange.jsm");
+Cu.import("resource://firetray/VersionChange.jsm");
 
 /**
  * firetray namespace.
@@ -100,18 +100,14 @@ firetray.Handler = {
     Services.obs.addObserver(this, this.getAppStartupTopic(this.appId), false);
     Services.obs.addObserver(this, "xpcom-will-shutdown", false);
 
-    firetray.VersionChange.setInstallHook(function(ver) {
+    let welcome = function(ver) {
       firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
       firetray.Handler.tryEraseOldOptions();
-    });
-    firetray.VersionChange.setUpgradeHook(function(ver) {
-      firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
-      firetray.Handler.tryEraseOldOptions();
-    });
-    firetray.VersionChange.setReinstallHook(function(ver) {
-      firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
-    });
-    firetray.VersionChange.watch();
+    };
+    VersionChange.setInstallHook(welcome);
+    VersionChange.setUpgradeHook(welcome);
+    VersionChange.setReinstallHook(welcome);
+    VersionChange.watch();
 
     this.initialized = true;
     return true;
