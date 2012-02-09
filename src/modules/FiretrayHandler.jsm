@@ -87,10 +87,9 @@ firetray.Handler = {
     if (this.inMailApp) {
       try {
         Cu.import("resource://firetray/FiretrayMessaging.jsm");
-        let prefMailNotification = firetray.Utils.prefService.getIntPref("mail_notification");
-        if (prefMailNotification !== FT_NOTIFICATION_DISABLED) {
+        if (firetray.Utils.prefService.getBoolPref("mail_notification_enabled")) {
           firetray.Messaging.init();
-          firetray.Messaging.updateUnreadMsgCount();
+          firetray.Messaging.updateMsgCount();
         }
       } catch (x) {
         ERROR(x);
@@ -103,11 +102,11 @@ firetray.Handler = {
 
     firetray.VersionChange.setInstallHook(function(ver) {
       firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
-      firetray.Handler.tryEraseV03Options();
+      firetray.Handler.tryEraseOldOptions();
     });
     firetray.VersionChange.setUpgradeHook(function(ver) {
       firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
-      firetray.Handler.tryEraseV03Options(); // FIXME: should check versions here
+      firetray.Handler.tryEraseOldOptions();
     });
     firetray.VersionChange.setReinstallHook(function(ver) {
       firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
@@ -317,8 +316,8 @@ firetray.Handler = {
     }
   },
 
-  tryEraseV03Options: function() {
-    let v03options = [
+  tryEraseOldOptions: function() {
+    let v03Options = [
       "close_to_tray", "minimize_to_tray", "start_minimized", "confirm_exit",
       "restore_to_next_unread", "mail_count_type", "show_mail_count",
       "dont_count_spam", "dont_count_archive", "dont_count_drafts",
@@ -327,8 +326,10 @@ firetray.Handler = {
       "use_custom_special_icon", "custom_normal_icon", "custom_special_icon",
       "text_color", "scroll_to_hide", "scroll_action", "grab_multimedia_keys",
       "hide_show_mm_key", "accounts_to_exclude" ];
+    let v040b2Options = [ 'mail_notification' ];
+    let oldOptions = v03Options.concat(v040b2Options);
 
-    for (let i = 0, length = v03options.length; i<length; ++i) {
+    for (let i = 0, length = oldOptions.length; i<length; ++i) {
       try {
         firetray.Utils.prefService.clearUserPref(v03options[i]);
       } catch (x) {}
@@ -358,6 +359,9 @@ firetray.PrefListener = new PrefListener(
       break;
     case 'show_icon_on_hide':
       firetray.Handler.showHideIcon();
+      break;
+    case 'message_count_type':
+      firetray.Messaging.updateMsgCount();
       break;
     default:
     }

@@ -1,4 +1,4 @@
-<!ENTITY prefwindow.title "y preferences">
+<!ENTITY prefwindow.title "FireTray preferences">
 <!ENTITY pane1.title "FireTray preferences">
 
 <!ENTITY NOT_IMPLEMENTED_YET "NOT IMPLEMENTED YET">
@@ -31,10 +31,11 @@
 <!ENTITY hide "hide" >
 <!ENTITY restore "restore" >
 
-<!ENTITY mail_notification.label "Mail notification">
-<!ENTITY mail_notification_disabled.label "disabled">
-<!ENTITY mail_notification_disabled.accesskey "D">
-<!ENTITY mail_notification_unread_count.label "display unread messages count">
+<!ENTITY mail_notification_enabled.label "Enable mail notification">
+<!ENTITY mail_notification_enabled.accesskey "a">
+<!ENTITY mail_notification_type.label "Mail notification type">
+<!ENTITY mail_notification_type.tooltip "aka. Biff">
+<!ENTITY mail_notification_unread_count.label "display new message count">
 <!ENTITY mail_notification_unread_count.accesskey "U">
 <!ENTITY mail_notification_newmail_icon.label "display newmail icon">
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
@@ -44,6 +45,10 @@
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Choose">
 <!ENTITY choose.accesskey "O">
+<!ENTITY message_count_type "message count type :">
+<!ENTITY message_count_type_unread "unread messages">
+<!ENTITY message_count_type_new "new messages">
+<!ENTITY message_count_type_new.tooltip "new messages since a folder was last visited">
 
 <!ENTITY unread_count_folder_exceptions.label "Included special folders">
 <!ENTITY unread_count_folder_exceptions.tooltip "Included special folders for unread message count">

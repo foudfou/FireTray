@@ -17,7 +17,9 @@ pref("extensions.firetray.show_icon_on_hide", false);
 pref("extensions.firetray.scroll_hides", true);
 pref("extensions.firetray.scroll_mode", "down_hides");
 
-pref("extensions.firetray.mail_notification", 1);
+pref("extensions.firetray.message_count_type", 0);
+pref("extensions.firetray.mail_notification_enabled", true);
+pref("extensions.firetray.mail_notification_type", 0);
 pref("extensions.firetray.icon_text_color", "#000000");
 pref("extensions.firetray.custom_mail_icon", "");
 // Ci.nsMsgFolderFlags.Archive|Drafts|Junk|Queue|SentMail|Trash
