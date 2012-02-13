@@ -188,7 +188,80 @@ firetray.Window = {
     return true;
   },
 
-  saveWindowPositionAndSize: function(xid) {
+  showSingleStateful: function(xid) {
+    LOG("show xid="+xid);
+
+    // try to restore previous state. TODO: z-order respected ?
+    firetray.Window.restorePositionAndSize(xid);
+    firetray.Window.restoreStates(xid);
+    firetray.Handler.windows[xid].baseWin.visibility = true; // show
+    firetray.Window.restoreDesktop(xid);               // after show
+    firetray.Window.activate(xid);
+
+    firetray.Handler.windows[xid].visibility = true;
+    firetray.Handler.visibleWindowsCount += 1;
+
+    if (firetray.Handler.popupMenuWindowItemsHandled())
+      firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
+    firetray.Handler.showHideIcon();
+  },
+
+  showSingleStatelessOnce: function(xid) {
+    LOG("showSingleStateless");
+
+    firetray.Handler.windows[xid].baseWin.visibility = true; // show
+
+    firetray.Handler.windows[xid].visibility = true;
+    firetray.Handler.visibleWindowsCount += 1;
+
+    if (firetray.Handler.popupMenuWindowItemsHandled())
+      firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
+    firetray.Handler.showHideIcon();
+
+    firetray.Handler.showSingleWindow = firetray.Window.showSingleStateful;
+  },
+
+  // NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
+  // gdk_window_show_unraised)
+  /* FIXME: hiding windows should also hide child windows */
+  hideSingleStateful: function(xid) {
+    LOG("hideSingleStateful");
+
+    firetray.Window.savePositionAndSize(xid);
+    firetray.Window.saveStates(xid);
+    firetray.Window.saveDesktop(xid);
+
+    firetray.Handler.windows[xid].baseWin.visibility = false; // hide
+
+    firetray.Handler.windows[xid].visibility = false;
+    firetray.Handler.visibleWindowsCount -= 1;
+
+    if (firetray.Handler.popupMenuWindowItemsHandled())
+      firetray.PopupMenu.showSingleWindowItem(xid);
+    firetray.Handler.showHideIcon();
+  },
+
+  /**
+   * hides without saving window states (position, size, ...) This is needed when
+   * application starts hidden: as windows are not realized, their state is not
+   * accurate.
+   */
+  hideSingleStatelessOnce: function(xid) {
+    LOG("hideSingleStateless");
+
+    firetray.Handler.windows[xid].baseWin.visibility = false; // hide
+
+    firetray.Handler.windows[xid].visibility = false;
+    firetray.Handler.visibleWindowsCount -= 1;
+
+    if (firetray.Handler.popupMenuWindowItemsHandled())
+      firetray.PopupMenu.showSingleWindowItem(xid);
+    firetray.Handler.showHideIcon();
+
+    firetray.Handler.hideSingleWindow = firetray.Window.hideSingleStateful;
+  },
+
+  savePositionAndSize: function(xid) {
     let gx = {}, gy = {}, gwidth = {}, gheight = {};
     firetray.Handler.windows[xid].baseWin.getPositionAndSize(gx, gy, gwidth, gheight);
     firetray.Handler.windows[xid].savedX = gx.value;
@@ -198,7 +271,7 @@ firetray.Window = {
     LOG("save: gx="+gx.value+", gy="+gy.value+", gwidth="+gwidth.value+", gheight="+gheight.value);
   },
 
-  restoreWindowPositionAndSize: function(xid) {
+  restorePositionAndSize: function(xid) {
     if ("undefined" === typeof(firetray.Handler.windows[xid].savedX))
       return; // windows[xid].saved* may not be initialized
 
@@ -215,13 +288,13 @@ firetray.Window = {
     });
   },
 
-  saveWindowStates: function(xid) {
+  saveStates: function(xid) {
     let winStates = firetray.Window.getXWindowStates(x11.Window(xid));
     firetray.Handler.windows[xid].savedStates = winStates;
     LOG("save: windowStates="+winStates);
   },
 
-  restoreWindowStates: function(xid) {
+  restoreStates: function(xid) {
     let winStates = firetray.Handler.windows[xid].savedStates;
     LOG("restored WindowStates: " + winStates);
     if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
@@ -235,15 +308,15 @@ firetray.Window = {
     delete firetray.Handler.windows[xid].savedStates;
   },
 
-  saveWindowDesktop: function(xid) {
+  saveDesktop: function(xid) {
     let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
     firetray.Handler.windows[xid].savedDesktop = winDesktop;
     LOG("save: windowDesktop="+winDesktop);
   },
 
-  restoreWindowDesktop: function(xid) {
+  restoreDesktop: function(xid) {
     let desktopDest = firetray.Handler.windows[xid].savedDesktop;
-    if (desktopDest === null) return;
+    if (desktopDest === null || "undefined" === typeof(desktopDest)) return;
 
     let dataSize = 1;
     let data = ctypes.long(dataSize);
@@ -496,44 +569,6 @@ firetray.Handler.unregisterWindow = function(win) {
   LOG("unregister window");
   let xid = firetray.Window.getXIDFromChromeWindow(win);
   return firetray.Window.unregisterWindowByXID(xid);
-};
-
-firetray.Handler.showSingleWindow = function(xid) {
-  LOG("show xid="+xid);
-
-  // try to restore previous state. TODO: z-order respected ?
-  firetray.Window.restoreWindowPositionAndSize(xid);
-  firetray.Window.restoreWindowStates(xid);
-  firetray.Handler.windows[xid].baseWin.visibility = true; // show
-  firetray.Window.restoreWindowDesktop(xid);               // after show
-  firetray.Window.activate(xid);
-  // TODO: we need want to restore to the original monitor (screen)
-
-  firetray.Handler.windows[xid].visibility = true;
-  firetray.Handler.visibleWindowsCount += 1;
-
-  if (firetray.Handler.popupMenuWindowItemsHandled())
-    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
-  firetray.Handler.showHideIcon();
-};
-
-// NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
-// gdk_window_show_unraised)
-/* FIXME: hiding windows should also hide child windows */
-firetray.Handler.hideSingleWindow = function(xid) {
-  LOG("hideSingleWindow");
-
-  firetray.Window.saveWindowPositionAndSize(xid);
-  firetray.Window.saveWindowStates(xid);
-  firetray.Window.saveWindowDesktop(xid);
-  firetray.Handler.windows[xid].baseWin.visibility = false; // hide
-
-  firetray.Handler.windows[xid].visibility = false;
-  firetray.Handler.visibleWindowsCount -= 1;
-
-  if (firetray.Handler.popupMenuWindowItemsHandled())
-    firetray.PopupMenu.showSingleWindowItem(xid);
-  firetray.Handler.showHideIcon();
 };
 
 firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {

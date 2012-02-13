@@ -19,11 +19,9 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     LOG("ONLOAD"); firetray.Handler.dumpWindows();
     firetray.Handler.registerWindow(win);
 
-    // update unread messages count
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
       firetray.Messaging.updateMsgCount();
 
-    // prevent window closing.
     win.addEventListener('close', firetrayChrome.onClose, true);
 
     if (!firetray.Handler.appStarted
@@ -63,7 +61,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
         firetray.Handler.hideSingleWindow(winId);
       } else
         firetray.Handler.hideAllWindows();
-      event && event.preventDefault(); // no event when called directly (xul)
+      event && event.preventDefault();
     }
   }
 };

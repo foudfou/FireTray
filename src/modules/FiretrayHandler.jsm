@@ -109,6 +109,14 @@ firetray.Handler = {
     VersionChange.setReinstallHook(welcome);
     VersionChange.watch();
 
+    if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
+      firetray.Handler.showSingleWindow = firetray.Window.showSingleStatelessOnce;
+      firetray.Handler.hideSingleWindow = firetray.Window.hideSingleStatelessOnce;
+    } else {
+      firetray.Handler.showSingleWindow = firetray.Window.showSingleStateful;
+      firetray.Handler.hideSingleWindow = firetray.Window.hideSingleStateful;
+    }
+
     this.initialized = true;
     return true;
   },
@@ -139,11 +147,10 @@ firetray.Handler = {
       LOG("RECEIVED: "+topic+", launching timer");
       // sessionstore-windows-restored does not come after the realization of
       // all windows... so we wait a little
-      var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-      timer.initWithCallback({ notify: function() {
+      firetray.Utils.timer(function() {
         firetray.Handler.appStarted = true;
         LOG("*** appStarted ***");
-      }}, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
       break;
     case "xpcom-will-shutdown":
       LOG("xpcom-will-shutdown");
