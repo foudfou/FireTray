@@ -54,20 +54,23 @@ firetray.Messaging = {
    */
   mailSessionListener: {
     notificationFlags:
+      // Ci.nsIFolderListener.propertyChanged |
+      // Ci.nsIFolderListener.propertyFlagChanged |
+      // Ci.nsIFolderListener.event |
       Ci.nsIFolderListener.intPropertyChanged |
-      Ci.nsIFolderListener.boolPropertyChanged, // all
+      Ci.nsIFolderListener.boolPropertyChanged,
 
     OnItemPropertyChanged: function(item, property, oldValue, newValue) { // NumNewBiffMessages
-      LOG("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue);
+      LOG("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
     },
 
     OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { // TotalUnreadMessages, BiffState
-      LOG("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue);
+      LOG("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
       this.updateMsgCount(item, property, oldValue, newValue);
     },
 
     OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) { // NewMessages
-      LOG("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue);
+      LOG("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
       this.updateMsgCount(item, property, oldValue, newValue);
     },
 
@@ -90,7 +93,9 @@ firetray.Messaging = {
             prop === "TotalUnreadMessages" ||
             msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW &&
             prop === "NewMessages") {
-            firetray.Messaging.updateMsgCount();
+          if (oldValue === true && newValue === false)
+            item.setNumNewMessages(0);
+          firetray.Messaging.updateMsgCount();
         }
       }
     }
