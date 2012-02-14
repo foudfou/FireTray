@@ -32,9 +32,8 @@ firetray.Messaging = {
     LOG("Enabling Messaging");
 
     let that = this;
-    let mailSessionNotificationFlags = Ci.nsIFolderListener.intPropertyChanged;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
-                                               mailSessionNotificationFlags);
+                                               that.mailSessionListener.notificationFlags);
 
     this.initialized = true;
   },
@@ -50,25 +49,50 @@ firetray.Messaging = {
     this.initialized = false;
   },
 
+  /**
+   * http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsIFolderListener.idl
+   */
   mailSessionListener: {
-    /**
-     * @param folder: nsIMsgFolder
-     * @param property: nsIAtom
-     * @param oldFlag: Old header flag (long).
-     * @param newFlag: New header flag (long).
-     */
-    OnItemIntPropertyChanged: function(folder, property, oldValue, newValue) {
+    notificationFlags:
+      Ci.nsIFolderListener.intPropertyChanged |
+      Ci.nsIFolderListener.boolPropertyChanged, // all
+
+    OnItemPropertyChanged: function(item, property, oldValue, newValue) { // NumNewBiffMessages
+      LOG("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue);
+    },
+
+    OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { // TotalUnreadMessages, BiffState
+      LOG("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue);
+      this.updateMsgCount(item, property, oldValue, newValue);
+    },
+
+    OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) { // NewMessages
+      LOG("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue);
+      this.updateMsgCount(item, property, oldValue, newValue);
+    },
+
+    OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {
+      LOG("OnItemPropertyFlagChanged"+property+" for "+item+" was "+oldFlag+" became "+newFlag);
+    },
+
+    OnItemEvent: function(item, event) {
+      LOG("OnItemEvent"+event+" for folder "+item.prettyName);
+    },
+
+    updateMsgCount: function(item, property, oldValue, newValue) {
       let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
       let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
+      LOG("msgCountType="+msgCountType);
 
-      if (!(folder.flags & excludedFoldersFlags)) {
+      if (!(item.flags & excludedFoldersFlags)) {
         let prop = property.toString();
-        LOG("intProperty "+prop+" for folder "+folder.prettyName+" was "+oldValue+" became "+newValue);
-        if (prop === "TotalUnreadMessages" && msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD ||
-            prop === "BiffState" && msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW)
-          firetray.Messaging.updateMsgCount();
+        if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD &&
+            prop === "TotalUnreadMessages" ||
+            msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW &&
+            prop === "NewMessages") {
+            firetray.Messaging.updateMsgCount();
+        }
       }
-
     }
   },
 
