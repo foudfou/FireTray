@@ -64,12 +64,12 @@ firetray.Messaging = {
       LOG("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
     },
 
-    OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { // TotalUnreadMessages, BiffState
+    OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { // TotalUnreadMessages, BiffState (per server)
       LOG("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
       this.updateMsgCount(item, property, oldValue, newValue);
     },
 
-    OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) { // NewMessages
+    OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) { // NewMessages (per folder)
       LOG("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
       this.updateMsgCount(item, property, oldValue, newValue);
     },

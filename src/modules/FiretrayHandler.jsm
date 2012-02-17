@@ -206,14 +206,23 @@ firetray.Handler = {
   getWindowInterface: function(win, iface) {
     let winInterface, winOut;
     try {                       // thx Neil Deakin !!
-      winOut =  win.QueryInterface(Ci.nsIInterfaceRequestor)
+      winInterface =  win.QueryInterface(Ci.nsIInterfaceRequestor)
         .getInterface(Ci.nsIWebNavigation)
         .QueryInterface(Ci.nsIDocShellTreeItem)
         .treeOwner
-        .QueryInterface(Ci.nsIInterfaceRequestor)[iface];
+        .QueryInterface(Ci.nsIInterfaceRequestor);
     } catch (ex) {
       // ignore no-interface exception
       ERROR(ex);
+      return null;
+    }
+
+    if (iface == "nsIBaseWindow")
+      winOut = winInterface[iface];
+    else if (iface == "nsIXULWindow")
+      winOut = winInterface.getInterface(Ci.nsIXULWindow);
+    else {
+      ERROR("unknown iface '" + iface + "'");
       return null;
     }
 
