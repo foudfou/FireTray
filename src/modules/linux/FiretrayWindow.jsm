@@ -194,25 +194,21 @@ firetray.Window = {
     // try to restore previous state. TODO: z-order respected ?
     firetray.Window.restorePositionAndSize(xid);
     firetray.Window.restoreStates(xid);
+    // better visual effect if visibility set here instead of before
     firetray.Handler.windows[xid].baseWin.visibility = true; // show
     firetray.Window.restoreDesktop(xid);               // after show
     firetray.Window.activate(xid);
 
-    firetray.Handler.windows[xid].visibility = true;
-    firetray.Handler.visibleWindowsCount += 1;
+    firetray.Window.setVisibility(xid, true);
 
     if (firetray.Handler.popupMenuWindowItemsHandled())
       firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
     firetray.Handler.showHideIcon();
   },
-
   showSingleStatelessOnce: function(xid) {
     LOG("showSingleStateless");
 
-    firetray.Handler.windows[xid].baseWin.visibility = true; // show
-
-    firetray.Handler.windows[xid].visibility = true;
-    firetray.Handler.visibleWindowsCount += 1;
+    firetray.Window.setVisibility(xid, true);
 
     if (firetray.Handler.popupMenuWindowItemsHandled())
       firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
@@ -231,28 +227,21 @@ firetray.Window = {
     firetray.Window.saveStates(xid);
     firetray.Window.saveDesktop(xid);
 
-    firetray.Handler.windows[xid].baseWin.visibility = false; // hide
-
-    firetray.Handler.windows[xid].visibility = false;
-    firetray.Handler.visibleWindowsCount -= 1;
+    firetray.Window.setVisibility(xid, false);
 
     if (firetray.Handler.popupMenuWindowItemsHandled())
       firetray.PopupMenu.showSingleWindowItem(xid);
     firetray.Handler.showHideIcon();
   },
-
   /**
-   * hides without saving window states (position, size, ...) This is needed when
-   * application starts hidden: as windows are not realized, their state is not
-   * accurate.
+   * hides without saving window states (position, size, ...) This is needed
+   * when application starts hidden: as windows are not realized, their state
+   * is not accurate.
    */
   hideSingleStatelessOnce: function(xid) {
     LOG("hideSingleStateless");
 
-    firetray.Handler.windows[xid].baseWin.visibility = false; // hide
-
-    firetray.Handler.windows[xid].visibility = false;
-    firetray.Handler.visibleWindowsCount -= 1;
+    firetray.Window.setVisibility(xid, false);
 
     if (firetray.Handler.popupMenuWindowItemsHandled())
       firetray.PopupMenu.showSingleWindowItem(xid);
@@ -325,6 +314,14 @@ firetray.Window = {
 
     LOG("restored to desktop: "+desktopDest);
     delete firetray.Handler.windows[xid].savedDesktop;
+  },
+
+  setVisibility: function(xid, visibility) {
+    firetray.Handler.windows[xid].baseWin.visibility = visibility;
+    firetray.Handler.windows[xid].visibility = visibility;
+    firetray.Handler.visibleWindowsCount = visibility ?
+      firetray.Handler.visibleWindowsCount + 1 :
+      firetray.Handler.visibleWindowsCount - 1 ;
   },
 
   xSendClientMessgeEvent: function(xid, atom, data, dataSize) {
