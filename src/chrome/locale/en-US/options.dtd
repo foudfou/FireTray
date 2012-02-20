@@ -1,3 +1,4 @@
+<!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray preferences">
 <!ENTITY pane1.title "FireTray preferences">
 

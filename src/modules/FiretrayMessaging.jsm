@@ -57,8 +57,8 @@ firetray.Messaging = {
       // Ci.nsIFolderListener.propertyChanged |
       // Ci.nsIFolderListener.propertyFlagChanged |
       // Ci.nsIFolderListener.event |
-      Ci.nsIFolderListener.intPropertyChanged |
-      Ci.nsIFolderListener.boolPropertyChanged,
+      Ci.nsIFolderListener.boolPropertyChanged |
+      Ci.nsIFolderListener.intPropertyChanged,
 
     OnItemPropertyChanged: function(item, property, oldValue, newValue) { // NumNewBiffMessages
       LOG("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
@@ -90,11 +90,12 @@ firetray.Messaging = {
       if (!(item.flags & excludedFoldersFlags)) {
         let prop = property.toString();
         if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD &&
-            prop === "TotalUnreadMessages" ||
-            msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW &&
-            prop === "NewMessages") {
+            prop === "TotalUnreadMessages") {
+          firetray.Messaging.updateMsgCount();
+        } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW &&
+                   prop === "NewMessages") {
           if (oldValue === true && newValue === false)
-            item.setNumNewMessages(0);
+            item.setNumNewMessages(0); // https://bugzilla.mozilla.org/show_bug.cgi?id=727460
           firetray.Messaging.updateMsgCount();
         }
       }
@@ -102,59 +103,14 @@ firetray.Messaging = {
   },
 
   /**
-   * computes total unread message count.
-   * NOTE: new messages can(?) be filtered and mark read, but still be
-   * considered new, so we may have to use nsMsgFolderFlagType.GotNew on all
-   * folders
+   * computes and display new msg count
    */
   updateMsgCount: function() {
     LOG("updateMsgCount");
     if (!this.initialized)
       return;
 
-    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
-    LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
-    let serverTypes = mailAccounts["serverTypes"];
-    let excludedAccounts = mailAccounts["excludedAccounts"];
-    let excludedFoldersFlags = firetray.Utils.prefService
-      .getIntPref("excluded_folders_flags");
-
-    let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type"),
-        getNewMessageCount   = '';
-    LOG("msgCountType="+msgCountType);
-    if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD)
-      getNewMessageCount = 'getNumUnread';
-    else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW)
-      getNewMessageCount = 'getNumNewMessages';
-    else
-      ERROR('unknown message count type');
-
-    let newMsgCount = 0;
-    try {
-      let accounts = new this.Accounts();
-      for (let accountServer in accounts) {
-        LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
-        if ( (serverTypes[accountServer.type].excluded)
-          || (excludedAccounts.indexOf(accountServer.key) >= 0) )
-          continue;
-
-        let rootFolder = accountServer.rootFolder; // nsIMsgFolder
-        if (rootFolder.hasSubFolders) {
-          let subFolders = rootFolder.subFolders; // nsIMsgFolder
-          while(subFolders.hasMoreElements()) {
-            let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-            if (!(folder.flags & excludedFoldersFlags)) {
-              folderNewMsgCount = folder[getNewMessageCount](true); // includes subfolders
-              LOG(folder.prettyName+" "+getNewMessageCount+"="+folderNewMsgCount);
-              newMsgCount += folderNewMsgCount;
-            }
-          }
-        }
-      }
-    } catch (x) {
-      ERROR(x);
-    }
-    LOG("Total Unread="+newMsgCount);
+    let newMsgCount = this.countMessages();
 
     // update icon
     if (newMsgCount == 0) {
@@ -189,6 +145,58 @@ firetray.Messaging = {
       throw "negative message count"; // should never happen
     }
 
+  },
+
+  /**
+   * computes total unread message count.
+   * NOTE: new messages can(?) be filtered and mark read, but still be
+   * considered new, so we may have to use nsMsgFolderFlagType.GotNew on all
+   * folders
+   */
+  countMessages: function() {
+    let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
+    LOG("msgCountType="+msgCountType);
+    if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
+      folderCountFunctionName = 'getNumUnread';
+    } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
+      folderCountFunctionName = 'getNumNewMessages'; // perfectly bogus if > 0
+    } else
+      ERROR('unknown message count type');
+
+    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+    LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
+    let serverTypes = mailAccounts["serverTypes"];
+    let excludedAccounts = mailAccounts["excludedAccounts"];
+    let excludedFoldersFlags = firetray.Utils.prefService
+      .getIntPref("excluded_folders_flags");
+
+    let newMsgCount = 0;
+    try {
+      let accounts = new this.Accounts();
+      for (let accountServer in accounts) {
+        LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
+        if ( (serverTypes[accountServer.type].excluded)
+          || (excludedAccounts.indexOf(accountServer.key) >= 0) )
+          continue;
+
+        let rootFolder = accountServer.rootFolder; // nsIMsgFolder
+        if (rootFolder.hasSubFolders) {
+          let subFolders = rootFolder.subFolders; // nsIMsgFolder
+          while(subFolders.hasMoreElements()) {
+            let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
+            if (!(folder.flags & excludedFoldersFlags)) {
+              let folderNewMsgCount = folder[folderCountFunctionName](true); // includes subfolders
+              LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderNewMsgCount);
+              newMsgCount += folderNewMsgCount;
+            }
+          }
+        }
+      }
+    } catch (x) {
+      ERROR(x);
+    }
+    LOG("Total Unread="+newMsgCount);
+    return newMsgCount;
   }
 
 };

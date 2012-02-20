@@ -58,6 +58,11 @@ KNOWN BUGS
 * child windows (compose message, preferences, ...)  are not handled by
   Firetray. For ex., they are not hidden along with there top-level window.
 
+* because of `getNumNewMessages()`'s
+  [strange behaviour](https://bugzilla.mozilla.org/show_bug.cgi?id=727460),
+  it's impossible to display an accurate count of *new messages*. The best we
+  can do is display a biff icon.
+
 Acknowledgment
 --------------
 

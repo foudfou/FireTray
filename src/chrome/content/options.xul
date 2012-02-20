@@ -95,7 +95,8 @@
                     preference="pref_mail_notification_enabled"
                     oncommand="firetrayUIOptions.toggleNotifications(this.checked)"/>
 
-          <radiogroup id="ui_message_count_type" preference="pref_message_count_type">
+          <radiogroup id="ui_message_count_type" preference="pref_message_count_type"
+                      oncommand="firetrayUIOptions.updateMessageCountSettings()">
             <hbox align="center" flex="1">
               <label observes="broadcaster-notification-disabled">&message_count_type;</label>
               <radio id="ui_message_count_type_unread" label="&message_count_type_unread;"
