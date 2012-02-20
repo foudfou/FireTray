@@ -188,7 +188,65 @@ firetray.Window = {
     return true;
   },
 
-  saveWindowPositionAndSize: function(xid) {
+  showSingleStateful: function(xid) {
+    LOG("showSingleStateful xid="+xid);
+
+    // try to restore previous state. TODO: z-order respected ?
+    firetray.Window.restorePositionAndSize(xid);
+    firetray.Window.restoreStates(xid);
+
+    // better visual effect if visibility set here instead of before
+    firetray.Window.setVisibility(xid, true);
+
+    firetray.Window.restoreDesktop(xid);               // after show
+    firetray.Window.activate(xid);
+
+    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
+    firetray.Handler.showHideIcon();
+  },
+  showSingleStatelessOnce: function(xid) {
+    LOG("showSingleStateless");
+
+    firetray.Window.setVisibility(xid, true);
+
+    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
+    firetray.Handler.showHideIcon();
+
+    firetray.Handler.windows[xid].show = firetray.Window.showSingleStateful; // reset
+  },
+
+  // NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
+  // gdk_window_show_unraised)
+  /* FIXME: hiding windows should also hide child windows */
+  hideSingleStateful: function(xid) {
+    LOG("hideSingleStateful");
+
+    firetray.Window.savePositionAndSize(xid);
+    firetray.Window.saveStates(xid);
+    firetray.Window.saveDesktop(xid);
+
+    firetray.Window.setVisibility(xid, false);
+
+    firetray.PopupMenu.showSingleWindowItem(xid);
+    firetray.Handler.showHideIcon();
+  },
+  /**
+   * hides without saving window states (position, size, ...) This is needed
+   * when application starts hidden: as windows are not realized, their state
+   * is not accurate.
+   */
+  hideSingleStatelessOnce: function(xid) {
+    LOG("hideSingleStateless");
+
+    firetray.Window.setVisibility(xid, false);
+
+    firetray.PopupMenu.showSingleWindowItem(xid);
+    firetray.Handler.showHideIcon();
+
+    firetray.Handler.windows[xid].hide = firetray.Window.hideSingleStateful; // reset
+  },
+
+  savePositionAndSize: function(xid) {
     let gx = {}, gy = {}, gwidth = {}, gheight = {};
     firetray.Handler.windows[xid].baseWin.getPositionAndSize(gx, gy, gwidth, gheight);
     firetray.Handler.windows[xid].savedX = gx.value;
@@ -198,7 +256,7 @@ firetray.Window = {
     LOG("save: gx="+gx.value+", gy="+gy.value+", gwidth="+gwidth.value+", gheight="+gheight.value);
   },
 
-  restoreWindowPositionAndSize: function(xid) {
+  restorePositionAndSize: function(xid) {
     if ("undefined" === typeof(firetray.Handler.windows[xid].savedX))
       return; // windows[xid].saved* may not be initialized
 
@@ -215,13 +273,13 @@ firetray.Window = {
     });
   },
 
-  saveWindowStates: function(xid) {
+  saveStates: function(xid) {
     let winStates = firetray.Window.getXWindowStates(x11.Window(xid));
     firetray.Handler.windows[xid].savedStates = winStates;
     LOG("save: windowStates="+winStates);
   },
 
-  restoreWindowStates: function(xid) {
+  restoreStates: function(xid) {
     let winStates = firetray.Handler.windows[xid].savedStates;
     LOG("restored WindowStates: " + winStates);
     if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
@@ -235,15 +293,15 @@ firetray.Window = {
     delete firetray.Handler.windows[xid].savedStates;
   },
 
-  saveWindowDesktop: function(xid) {
+  saveDesktop: function(xid) {
     let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
     firetray.Handler.windows[xid].savedDesktop = winDesktop;
     LOG("save: windowDesktop="+winDesktop);
   },
 
-  restoreWindowDesktop: function(xid) {
+  restoreDesktop: function(xid) {
     let desktopDest = firetray.Handler.windows[xid].savedDesktop;
-    if (desktopDest === null) return;
+    if (desktopDest === null || "undefined" === typeof(desktopDest)) return;
 
     let dataSize = 1;
     let data = ctypes.long(dataSize);
@@ -252,6 +310,14 @@ firetray.Window = {
 
     LOG("restored to desktop: "+desktopDest);
     delete firetray.Handler.windows[xid].savedDesktop;
+  },
+
+  setVisibility: function(xid, visibility) {
+    firetray.Handler.windows[xid].baseWin.visibility = visibility;
+    firetray.Handler.windows[xid].visibility = visibility;
+    firetray.Handler.visibleWindowsCount = visibility ?
+      firetray.Handler.visibleWindowsCount + 1 :
+      firetray.Handler.visibleWindowsCount - 1 ;
   },
 
   xSendClientMessgeEvent: function(xid, atom, data, dataSize) {
@@ -389,9 +455,12 @@ firetray.Window = {
 
   getWindowTitle: function(xid) {
     let title = firetray.Handler.windows[xid].baseWin.title;
+    LOG("baseWin.title="+title);
     let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appNameOriginal);
     if (tailIndex !== -1)
-      return title.substring(0, tailIndex)
+      return title.substring(0, tailIndex);
+    else if (title === "Mozilla "+firetray.Handler.appNameOriginal)
+      return title;
     else
       return null;
   },
@@ -484,12 +553,22 @@ firetray.Handler.registerWindow = function(win) {
   } catch (x) {
     firetray.Window.unregisterWindowByXID(xid);
     ERROR(x);
-    return false;
+    return null;
+  }
+
+  if (!firetray.Handler.appStarted &&
+      firetray.Utils.prefService.getBoolPref('start_hidden')) {
+    this.windows[xid].startHidden = true;
+    this.windows[xid].hide = firetray.Window.hideSingleStatelessOnce;
+    this.windows[xid].show = firetray.Window.showSingleStatelessOnce;
+  } else {
+    this.windows[xid].startHidden = false;
+    this.windows[xid].hide = firetray.Window.hideSingleStateful;
+    this.windows[xid].show = firetray.Window.showSingleStateful;
   }
 
   LOG("AFTER"); firetray.Handler.dumpWindows();
-
-  return true;
+  return xid;
 };
 
 firetray.Handler.unregisterWindow = function(win) {
@@ -499,41 +578,13 @@ firetray.Handler.unregisterWindow = function(win) {
 };
 
 firetray.Handler.showSingleWindow = function(xid) {
-  LOG("show xid="+xid);
-
-  // try to restore previous state. TODO: z-order respected ?
-  firetray.Window.restoreWindowPositionAndSize(xid);
-  firetray.Window.restoreWindowStates(xid);
-  firetray.Handler.windows[xid].baseWin.visibility = true; // show
-  firetray.Window.restoreWindowDesktop(xid);               // after show
-  firetray.Window.activate(xid);
-  // TODO: we need want to restore to the original monitor (screen)
-
-  firetray.Handler.windows[xid].visibility = true;
-  firetray.Handler.visibleWindowsCount += 1;
-
-  if (firetray.Handler.popupMenuWindowItemsHandled())
-    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
-  firetray.Handler.showHideIcon();
+  LOG("showSingleWindow xid="+xid);
+  this.windows[xid].show(xid);
 };
 
-// NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
-// gdk_window_show_unraised)
-/* FIXME: hiding windows should also hide child windows */
 firetray.Handler.hideSingleWindow = function(xid) {
-  LOG("hideSingleWindow");
-
-  firetray.Window.saveWindowPositionAndSize(xid);
-  firetray.Window.saveWindowStates(xid);
-  firetray.Window.saveWindowDesktop(xid);
-  firetray.Handler.windows[xid].baseWin.visibility = false; // hide
-
-  firetray.Handler.windows[xid].visibility = false;
-  firetray.Handler.visibleWindowsCount -= 1;
-
-  if (firetray.Handler.popupMenuWindowItemsHandled())
-    firetray.PopupMenu.showSingleWindowItem(xid);
-  firetray.Handler.showHideIcon();
+  LOG("hideSingleWindow xid="+xid);
+  this.windows[xid].hide(xid);
 };
 
 firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {

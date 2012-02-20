@@ -17,20 +17,15 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     let init = firetray.Handler.initialized || firetray.Handler.init();
 
     LOG("ONLOAD"); firetray.Handler.dumpWindows();
-    firetray.Handler.registerWindow(win);
+    let winId = firetray.Handler.registerWindow(win);
 
-    // update unread messages count
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
       firetray.Messaging.updateMsgCount();
 
-    // prevent window closing.
     win.addEventListener('close', firetrayChrome.onClose, true);
 
-    if (!firetray.Handler.appStarted
-        && firetray.Utils.prefService.getBoolPref('start_hidden')) {
+    if (firetray.Handler.windows[winId].startHidden) {
       LOG('start_hidden');
-      let winId = firetray.Handler.getWindowIdFromChromeWindow(win);
-      LOG('winId='+winId);
       firetray.Handler.hideSingleWindow(winId);
     }
 
@@ -63,7 +58,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
         firetray.Handler.hideSingleWindow(winId);
       } else
         firetray.Handler.hideAllWindows();
-      event && event.preventDefault(); // no event when called directly (xul)
+      event && event.preventDefault();
     }
   }
 };

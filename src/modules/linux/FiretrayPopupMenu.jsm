@@ -151,6 +151,9 @@ firetray.PopupMenu = {
   },
 
   showSingleWindowItem: function(xid) {
+    if (!this.windowItemsHandled())
+      return;
+
     LOG("showSingleWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     this.showItem(menuItemWindow);
@@ -173,13 +176,15 @@ firetray.PopupMenu = {
       this.hideSingleWindowItemAndSeparator(xid);
   },
 
-  // PopupMenu.hideItem(firetray.Handler.gtkPopupMenuWindowItems.get(xid))
   hideSingleWindowItemAndSeparator: function(xid) {
     this.hideSingleWindowItem(xid);
     this.hideWindowSeparator();
   },
 
   hideSingleWindowItemAndSeparatorMaybe: function(xid) {
+    if (!this.windowItemsHandled())
+      return;
+
     this.hideSingleWindowItem(xid);
     if (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)
       this.hideWindowSeparator();
@@ -202,19 +207,20 @@ firetray.PopupMenu = {
   hideWindowSeparator: function() {
     LOG("hiding menuSeparatorWindows");
     gtk.gtk_widget_hide(ctypes.cast(this.menuSeparatorWindows, gtk.GtkWidget.ptr));
+  },
+
+  showHideWindowItems: function() {
+    if (this.windowItemsHandled())
+      this.showAllWindowItemsOnlyVisibleWindows();
+    else
+      this.hideAllWindowItems();
+  },
+
+  windowItemsHandled: function() {
+    return (firetray.Handler.inBrowserApp &&
+            firetray.Utils.prefService.getBoolPref('hides_single_window'));
   }
 
 }; // firetray.PopupMenu
 
-
-firetray.Handler.popupMenuWindowItemsHandled = function() {
-  return (firetray.Handler.inBrowserApp &&
-          firetray.Utils.prefService.getBoolPref('hides_single_window'));
-};
-
-firetray.Handler.updatePopupMenu = function() {
-  if (firetray.Handler.popupMenuWindowItemsHandled())
-    firetray.PopupMenu.showAllWindowItemsOnlyVisibleWindows();
-  else
-    firetray.PopupMenu.hideAllWindowItems();
-};
+firetray.Handler.showHidePopupMenuItems = firetray.PopupMenu.showHideWindowItems;

@@ -139,11 +139,10 @@ firetray.Handler = {
       LOG("RECEIVED: "+topic+", launching timer");
       // sessionstore-windows-restored does not come after the realization of
       // all windows... so we wait a little
-      var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-      timer.initWithCallback({ notify: function() {
+      firetray.Utils.timer(function() {
         firetray.Handler.appStarted = true;
         LOG("*** appStarted ***");
-      }}, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
       break;
     case "xpcom-will-shutdown":
       LOG("xpcom-will-shutdown");
@@ -360,7 +359,7 @@ firetray.PrefListener = new PrefListener(
     LOG('Pref changed: '+name);
     switch (name) {
     case 'hides_single_window':
-      firetray.Handler.updatePopupMenu();
+      firetray.Handler.showHidePopupMenuItems();
       break;
     case 'show_icon_on_hide':
       firetray.Handler.showHideIcon();
