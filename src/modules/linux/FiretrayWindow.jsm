@@ -189,20 +189,19 @@ firetray.Window = {
   },
 
   showSingleStateful: function(xid) {
-    LOG("show xid="+xid);
+    LOG("showSingleStateful xid="+xid);
 
     // try to restore previous state. TODO: z-order respected ?
     firetray.Window.restorePositionAndSize(xid);
     firetray.Window.restoreStates(xid);
+
     // better visual effect if visibility set here instead of before
-    firetray.Handler.windows[xid].baseWin.visibility = true; // show
+    firetray.Window.setVisibility(xid, true);
+
     firetray.Window.restoreDesktop(xid);               // after show
     firetray.Window.activate(xid);
 
-    firetray.Window.setVisibility(xid, true);
-
-    if (firetray.Handler.popupMenuWindowItemsHandled())
-      firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
+    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
     firetray.Handler.showHideIcon();
   },
   showSingleStatelessOnce: function(xid) {
@@ -210,11 +209,10 @@ firetray.Window = {
 
     firetray.Window.setVisibility(xid, true);
 
-    if (firetray.Handler.popupMenuWindowItemsHandled())
-      firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
+    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
     firetray.Handler.showHideIcon();
 
-    firetray.Handler.showSingleWindow = firetray.Window.showSingleStateful;
+    firetray.Handler.windows[xid].show = firetray.Window.showSingleStateful; // reset
   },
 
   // NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
@@ -229,8 +227,7 @@ firetray.Window = {
 
     firetray.Window.setVisibility(xid, false);
 
-    if (firetray.Handler.popupMenuWindowItemsHandled())
-      firetray.PopupMenu.showSingleWindowItem(xid);
+    firetray.PopupMenu.showSingleWindowItem(xid);
     firetray.Handler.showHideIcon();
   },
   /**
@@ -243,11 +240,10 @@ firetray.Window = {
 
     firetray.Window.setVisibility(xid, false);
 
-    if (firetray.Handler.popupMenuWindowItemsHandled())
-      firetray.PopupMenu.showSingleWindowItem(xid);
+    firetray.PopupMenu.showSingleWindowItem(xid);
     firetray.Handler.showHideIcon();
 
-    firetray.Handler.hideSingleWindow = firetray.Window.hideSingleStateful;
+    firetray.Handler.windows[xid].hide = firetray.Window.hideSingleStateful; // reset
   },
 
   savePositionAndSize: function(xid) {
@@ -459,9 +455,12 @@ firetray.Window = {
 
   getWindowTitle: function(xid) {
     let title = firetray.Handler.windows[xid].baseWin.title;
+    LOG("baseWin.title="+title);
     let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appNameOriginal);
     if (tailIndex !== -1)
-      return title.substring(0, tailIndex)
+      return title.substring(0, tailIndex);
+    else if (title === "Mozilla "+firetray.Handler.appNameOriginal)
+      return title;
     else
       return null;
   },
@@ -554,18 +553,38 @@ firetray.Handler.registerWindow = function(win) {
   } catch (x) {
     firetray.Window.unregisterWindowByXID(xid);
     ERROR(x);
-    return false;
+    return null;
+  }
+
+  if (!firetray.Handler.appStarted &&
+      firetray.Utils.prefService.getBoolPref('start_hidden')) {
+    this.windows[xid].startHidden = true;
+    this.windows[xid].hide = firetray.Window.hideSingleStatelessOnce;
+    this.windows[xid].show = firetray.Window.showSingleStatelessOnce;
+  } else {
+    this.windows[xid].startHidden = false;
+    this.windows[xid].hide = firetray.Window.hideSingleStateful;
+    this.windows[xid].show = firetray.Window.showSingleStateful;
   }
 
   LOG("AFTER"); firetray.Handler.dumpWindows();
-
-  return true;
+  return xid;
 };
 
 firetray.Handler.unregisterWindow = function(win) {
   LOG("unregister window");
   let xid = firetray.Window.getXIDFromChromeWindow(win);
   return firetray.Window.unregisterWindowByXID(xid);
+};
+
+firetray.Handler.showSingleWindow = function(xid) {
+  LOG("showSingleWindow xid="+xid);
+  this.windows[xid].show(xid);
+};
+
+firetray.Handler.hideSingleWindow = function(xid) {
+  LOG("hideSingleWindow xid="+xid);
+  this.windows[xid].hide(xid);
 };
 
 firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {

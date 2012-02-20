@@ -109,14 +109,6 @@ firetray.Handler = {
     VersionChange.setReinstallHook(welcome);
     VersionChange.watch();
 
-    if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
-      firetray.Handler.showSingleWindow = firetray.Window.showSingleStatelessOnce;
-      firetray.Handler.hideSingleWindow = firetray.Window.hideSingleStatelessOnce;
-    } else {
-      firetray.Handler.showSingleWindow = firetray.Window.showSingleStateful;
-      firetray.Handler.hideSingleWindow = firetray.Window.hideSingleStateful;
-    }
-
     this.initialized = true;
     return true;
   },
@@ -358,7 +350,7 @@ firetray.PrefListener = new PrefListener(
     LOG('Pref changed: '+name);
     switch (name) {
     case 'hides_single_window':
-      firetray.Handler.updatePopupMenu();
+      firetray.Handler.showHidePopupMenuItems();
       break;
     case 'show_icon_on_hide':
       firetray.Handler.showHideIcon();
