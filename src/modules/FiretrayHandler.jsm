@@ -103,6 +103,7 @@ firetray.Handler = {
     let welcome = function(ver) {
       firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
       firetray.Handler.tryEraseOldOptions();
+      firetray.Handler.correctMailNotificationType();
     };
     VersionChange.setInstallHook(welcome);
     VersionChange.setUpgradeHook(welcome);
@@ -338,6 +339,13 @@ firetray.Handler = {
         firetray.Utils.prefService.clearUserPref(oldOptions[i]);
       } catch (x) {}
     }
+  },
+
+  correctMailNotificationType: function() {
+    if (firetray.Utils.prefService.getIntPref('message_count_type') ===
+        FIRETRAY_MESSAGE_COUNT_TYPE_NEW)
+      firetray.Utils.prefService.setIntPref('mail_notification_type',
+        FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
   },
 
   quitApplication: function() {
