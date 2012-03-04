@@ -56,10 +56,18 @@ var firetrayUIOptions = {
     targetNode.hidden = hiddenval;
   },
 
-  disableGroup: function(group, disableval) {
+  disableChildren: function(group, disableval) {
     try {
       for (let i=0, len=group.childNodes.length; i<len ; ++i)
         group.childNodes[i].disabled = disableval;
+    } catch(e) {}
+  },
+
+  disableElementsRecursive: function(group, disableval) {
+    let descendants = firetray.Utils.XPath(group, 'descendant::*');
+    try {
+      for (let i=0, len=descendants.length; i<len ; ++i)
+        descendants[i].disabled = disableval;
     } catch(e) {}
   },
 
@@ -73,14 +81,14 @@ var firetrayUIOptions = {
 
   updateScrollOptions: function() {
     let scroll_hides = document.getElementById("ui_scroll_hides").checked;
-    this.disableGroup(document.getElementById("ui_radiogroup_scroll"), !scroll_hides);
+    this.disableChildren(document.getElementById("ui_radiogroup_scroll"), !scroll_hides);
   },
 
   initMailControls: function() {
     this.populateExcludedFoldersList();
     this.populateTreeAccountsOrServerTypes();
-    this.initNotificationSettings();
     this.initMessageCountSettings();
+    this.initNotificationSettings();
   },
 
   initNotificationSettings: function() {
@@ -111,7 +119,7 @@ var firetrayUIOptions = {
     let radioMessageCountType = document.getElementById("ui_message_count_type");
     let prefMsgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     radioMessageCountType.selectedIndex = this.radioGetIndexByValue(radioMessageCountType, prefMsgCountType);
-    this.disableMessageCountMaybe(prefMsgCountType);
+    // this.disableMessageCountMaybe(prefMsgCountType); // done in toggleNotifications()
   },
 
   radioGetIndexByValue: function(radio, value) {
@@ -121,6 +129,7 @@ var firetrayUIOptions = {
   },
 
   updateNotificationSettings: function() {
+    LOG("updateNotificationSettings");
     let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
     let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
     firetray.Utils.prefService.setIntPref("mail_notification_type", mailNotificationType);
@@ -137,37 +146,27 @@ var firetrayUIOptions = {
 
   disableNotificationMaybe: function(notificationSetting) {
     let iconTextColor = document.getElementById("icon_text_color");
-    this.disableGroup(iconTextColor,
+    this.disableChildren(iconTextColor,
                       (notificationSetting !== FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT));
 
     let customIconGroup = document.getElementById("custom_mail_icon");
-    this.disableGroup(customIconGroup,
+    this.disableChildren(customIconGroup,
                       (notificationSetting !== FIRETRAY_NOTIFICATION_CUSTOM_ICON));
   },
 
   disableMessageCountMaybe: function(msgCountType) {
     LOG("disableMessageCountMaybe: "+msgCountType);
-    let doDisable = (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW);
+    let msgCountTypeIsNewMessages = (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW);
 
-    let radioNotificationUnreadCount = document.getElementById("ui_radio_mail_notification_unread_count");
-    radioNotificationUnreadCount.disabled = doDisable;
+    let notificationUnreadCount = document.getElementById("ui_mail_notification_unread_count");
+    this.disableElementsRecursive(notificationUnreadCount, msgCountTypeIsNewMessages);
 
-    let iconTextColor = document.getElementById("icon_text_color");
-    this.disableGroup(iconTextColor, doDisable);
-
-    if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
-      let radioNotificationNewmailIcon = document.getElementById("ui_radio_mail_notification_newmail_icon");
-      this.simulateClick(radioNotificationNewmailIcon);
+    let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
+    let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
+    if (msgCountTypeIsNewMessages && (mailNotificationType === FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT)) {
+      radioMailNotify.selectedIndex = this.radioGetIndexByValue(radioMailNotify, FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
+      firetray.Utils.prefService.setIntPref("mail_notification_type", FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
     }
-  },
-
-  simulateClick: function(target) {
-    var evt = document.createEvent("MouseEvents");
-    evt.initMouseEvent("click", true, true, window,
-                       0, 0, 0, 0, 0, false, false, false, false, 0, null);
-    var canceled = !target.dispatchEvent(evt);
-    if(canceled)
-      ERROR("could not fire click on "+target);
   },
 
   toggleNotifications: function(enabled) {
@@ -304,7 +303,7 @@ var firetrayUIOptions = {
       }
 
     } else if (event.attrName == "label") { // text
-      // TODO: move row to new rank
+      WARN("NOT IMPLEMENTED YET: move row to new rank"); // TODO
     }
 
     this._userChangeValueTree(event);

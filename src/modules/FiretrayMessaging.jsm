@@ -85,7 +85,6 @@ firetray.Messaging = {
     updateMsgCount: function(item, property, oldValue, newValue) {
       let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
       let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
-      LOG("msgCountType="+msgCountType);
 
       if (!(item.flags & excludedFoldersFlags)) {
         let prop = property.toString();
@@ -180,11 +179,11 @@ firetray.Messaging = {
 
         let rootFolder = accountServer.rootFolder; // nsIMsgFolder
         if (rootFolder.hasSubFolders) {
-          let subFolders = rootFolder.subFolders; // nsIMsgFolder
+          let subFolders = rootFolder.subFolders;
           while(subFolders.hasMoreElements()) {
             let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
             if (!(folder.flags & excludedFoldersFlags)) {
-              newMsgCount = folderCountFunction(folder, newMsgCount);
+              newMsgCount = this.folderCount(folderCountFunction,folder, newMsgCount);
             }
           }
         }
@@ -196,9 +195,22 @@ firetray.Messaging = {
     return newMsgCount;
   },
 
+  folderCount: function(folderCountFunction, folder, newMsgCount) {
+    if (folder.hasSubFolders && firetray.Utils.prefService.getBoolPref("folder_count_recursive")) {
+      LOG("hasSubFolders");
+      let subFolders = folder.subFolders;
+      while(subFolders.hasMoreElements()) {
+        let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
+        newMsgCount = this.folderCount(folderCountFunction, subFolder, newMsgCount);
+      }
+    }
+    newMsgCount = folderCountFunction(folder, newMsgCount);
+    return newMsgCount;
+  },
+
   unreadMsgCountIterate: function(folder, accumulator) {
     let folderCountFunctionName = 'getNumUnread';
-    let folderUnreadMsgCount = folder[folderCountFunctionName](true); // includes subfolders
+    let folderUnreadMsgCount = folder[folderCountFunctionName](false); // do not include subfolders
     LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
     return accumulator + folderUnreadMsgCount;
   },

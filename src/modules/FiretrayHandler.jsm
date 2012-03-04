@@ -373,6 +373,7 @@ firetray.PrefListener = new PrefListener(
       firetray.Handler.showHideIcon();
       break;
     case 'message_count_type':
+    case 'folder_count_recursive':
       firetray.Messaging.updateMsgCount();
       break;
     default:

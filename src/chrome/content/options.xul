@@ -30,6 +30,7 @@
       <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_mail_notification_enabled" name="extensions.firetray.mail_notification_enabled" type="bool" />
       <preference id="pref_message_count_type" name="extensions.firetray.message_count_type" type="int" />
+      <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
       <preference id="pref_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
       <preference id="pref_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
     </preferences>
@@ -116,7 +117,7 @@
             </caption>
 
             <radiogroup id="ui_radiogroup_mail_notification">
-              <hbox>
+              <hbox id="ui_mail_notification_unread_count">
                 <radio id="ui_radio_mail_notification_unread_count" label="&mail_notification_unread_count.label;"
                        accesskey="&mail_notification_unread_count.accesskey;"
                        oncommand="firetrayUIOptions.updateNotificationSettings()"
@@ -137,7 +138,7 @@
               <hbox>
                 <radio id="ui_radio_mail_notification_custom_mail_icon" label="&mail_notification_custom_mail_icon.label;"
                        accesskey="&mail_notification_custom_mail_icon.accesskey;"
-                       oncommand="firetrayUIOptions.updateNotificationSettings()" 
+                       oncommand="firetrayUIOptions.updateNotificationSettings()"
                        observes="broadcaster-notification-disabled" />
                 <hbox id="custom_mail_icon" align="center" flex="1" >
                   <textbox id="custom_mail_icon_filename" preference="pref_custom_mail_icon"
@@ -151,6 +152,12 @@
             </radiogroup>
 
           </groupbox>
+
+          <checkbox id="ui_folder_count_recursive"
+                    label="&folder_count_recursive.label;"
+                    accesskey="&folder_count_recursive.accesskey;"
+                    preference="pref_folder_count_recursive"
+                    observes="broadcaster-notification-disabled"/>
 
           <!-- NOTE: groupbox and caption don't have a 'disabled' attribute !! -->
           <groupbox id="unread_count_folder_exceptions" flex="1">
@@ -204,7 +211,7 @@
 
           </vbox>
         </tabpanel>
-        
+
       </tabpanels>
     </tabbox>
 

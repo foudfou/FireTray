@@ -18,6 +18,7 @@ pref("extensions.firetray.scroll_hides", true);
 pref("extensions.firetray.scroll_mode", "down_hides");
 
 pref("extensions.firetray.message_count_type", 0);
+pref("extensions.firetray.folder_count_recursive", true);
 pref("extensions.firetray.mail_notification_enabled", true);
 pref("extensions.firetray.mail_notification_type", 0);
 pref("extensions.firetray.icon_text_color", "#000000");
