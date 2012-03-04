@@ -183,7 +183,7 @@ firetray.Messaging = {
           while(subFolders.hasMoreElements()) {
             let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
             if (!(folder.flags & excludedFoldersFlags)) {
-              newMsgCount = this.folderCount(folderCountFunction,folder, newMsgCount);
+              newMsgCount = folderCountFunction(folder, newMsgCount);
             }
           }
         }
@@ -195,30 +195,31 @@ firetray.Messaging = {
     return newMsgCount;
   },
 
-  folderCount: function(folderCountFunction, folder, newMsgCount) {
-    if (folder.hasSubFolders && firetray.Utils.prefService.getBoolPref("folder_count_recursive")) {
-      LOG("hasSubFolders");
-      let subFolders = folder.subFolders;
-      while(subFolders.hasMoreElements()) {
-        let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-        newMsgCount = this.folderCount(folderCountFunction, subFolder, newMsgCount);
-      }
-    }
-    newMsgCount = folderCountFunction(folder, newMsgCount);
-    return newMsgCount;
-  },
-
   unreadMsgCountIterate: function(folder, accumulator) {
     let folderCountFunctionName = 'getNumUnread';
-    let folderUnreadMsgCount = folder[folderCountFunctionName](false); // do not include subfolders
+    let folderUnreadMsgCount = folder[folderCountFunctionName](
+      firetray.Utils.prefService.getBoolPref("folder_count_recursive"));
     LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
     return accumulator + folderUnreadMsgCount;
   },
 
   newMsgCountIterate: function(folder, accumulator) {
-    let folderNewMsgCount = folder.hasNewMessages;
-    LOG(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
-    return accumulator || folderNewMsgCount;
+    if (folder.hasSubFolders && firetray.Utils.prefService.getBoolPref("folder_count_recursive")) {
+      LOG("hasSubFolders");
+      let subFolders = folder.subFolders;
+      while(subFolders.hasMoreElements()) {
+        let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
+        accumulator = firetray.Messaging.newMsgCountIterate(subFolder, accumulator);
+      }
+    }
+    accumulator = firetray.Messaging.addHasNewMessages(folder, accumulator);
+    return accumulator;
+  },
+
+  addHasNewMessages: function(folder, accumulator) {
+      let folderNewMsgCount = folder.hasNewMessages;
+      LOG(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
+      return accumulator || folderNewMsgCount;
   }
 
 };
