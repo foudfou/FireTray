@@ -12,6 +12,7 @@ pref("extensions.firetray.hides_on_minimize", true);
 pref("extensions.firetray.hides_single_window", false);
 pref("extensions.firetray.start_hidden", false);
 pref("extensions.firetray.show_activates", false);
+pref("extensions.firetray.remember_desktop", true);
 
 pref("extensions.firetray.show_icon_on_hide", false);
 pref("extensions.firetray.scroll_hides", true);

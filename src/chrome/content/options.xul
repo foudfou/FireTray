@@ -24,6 +24,7 @@
       <preference id="pref_hides_single_window" name="extensions.firetray.hides_single_window" type="bool"/>
       <preference id="pref_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
       <preference id="pref_show_activates" name="extensions.firetray.show_activates" type="bool"/>
+      <preference id="pref_remember_desktop" name="extensions.firetray.remember_desktop" type="bool"/>
       <preference id="pref_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
       <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
@@ -66,6 +67,9 @@
                       label="&bool_show_activates.label;"
                       accesskey="&bool_show_activates.accesskey;"
                       tooltiptext="&bool_show_activates.tooltip;"/>
+            <checkbox id="ui_remember_desktop" preference="pref_remember_desktop"
+                      label="&bool_remember_desktop.label;"
+                      accesskey="&bool_remember_desktop.accesskey;"/>
           </groupbox>
 
           <groupbox>

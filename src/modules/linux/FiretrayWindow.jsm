@@ -198,7 +198,7 @@ firetray.Window = {
     // better visual effect if visibility set here instead of before
     firetray.Window.setVisibility(xid, true);
 
-    firetray.Window.restoreDesktop(xid);               // after show
+    firetray.Window.restoreDesktop(xid); // after show
     firetray.Window.activate(xid);
 
     firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
@@ -294,12 +294,18 @@ firetray.Window = {
   },
 
   saveDesktop: function(xid) {
+    if (!firetray.Utils.prefService.getBoolPref('remember_desktop'))
+      return;
+
     let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
     firetray.Handler.windows[xid].savedDesktop = winDesktop;
     LOG("save: windowDesktop="+winDesktop);
   },
 
   restoreDesktop: function(xid) {
+    if (!firetray.Utils.prefService.getBoolPref('remember_desktop'))
+      return;
+
     let desktopDest = firetray.Handler.windows[xid].savedDesktop;
     if (desktopDest === null || "undefined" === typeof(desktopDest)) return;
 
