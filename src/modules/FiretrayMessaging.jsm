@@ -156,6 +156,7 @@ firetray.Messaging = {
   countMessages: function() {
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     LOG("msgCountType="+msgCountType);
+    let folderCountFunctionName;
     if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
       folderCountFunctionName = 'getNumUnread';
     } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
