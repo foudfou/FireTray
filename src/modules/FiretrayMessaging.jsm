@@ -198,9 +198,9 @@ firetray.Messaging = {
 
   unreadMsgCountIterate: function(folder, accumulator) {
     let folderCountFunctionName = 'getNumUnread';
-    let folderNewMsgCount = folder[folderCountFunctionName](true); // includes subfolders
-    LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderNewMsgCount);
-    return accumulator + folderNewMsgCount;
+    let folderUnreadMsgCount = folder[folderCountFunctionName](true); // includes subfolders
+    LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
+    return accumulator + folderUnreadMsgCount;
   },
 
   newMsgCountIterate: function(folder, accumulator) {
