@@ -148,19 +148,17 @@ firetray.Messaging = {
   },
 
   /**
-   * computes total unread message count.
-   * NOTE: new messages can(?) be filtered and mark read, but still be
-   * considered new, so we may have to use nsMsgFolderFlagType.GotNew on all
-   * folders
+   * computes total unread or new message count.
    */
   countMessages: function() {
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     LOG("msgCountType="+msgCountType);
-    let folderCountFunctionName;
+
+    let folderCountFunction;
     if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
-      folderCountFunctionName = 'getNumUnread';
+      folderCountFunction = this.unreadMsgCountIterate;
     } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
-      folderCountFunctionName = 'getNumNewMessages'; // perfectly bogus if > 0
+      folderCountFunction = this.newMsgCountIterate;
     } else
       ERROR('unknown message count type');
 
@@ -186,9 +184,7 @@ firetray.Messaging = {
           while(subFolders.hasMoreElements()) {
             let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
             if (!(folder.flags & excludedFoldersFlags)) {
-              let folderNewMsgCount = folder[folderCountFunctionName](true); // includes subfolders
-              LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderNewMsgCount);
-              newMsgCount += folderNewMsgCount;
+              newMsgCount = folderCountFunction(folder, newMsgCount);
             }
           }
         }
@@ -196,8 +192,21 @@ firetray.Messaging = {
     } catch (x) {
       ERROR(x);
     }
-    LOG("Total Unread="+newMsgCount);
+    LOG("Total New="+newMsgCount);
     return newMsgCount;
+  },
+
+  unreadMsgCountIterate: function(folder, accumulator) {
+    let folderCountFunctionName = 'getNumUnread';
+    let folderNewMsgCount = folder[folderCountFunctionName](true); // includes subfolders
+    LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderNewMsgCount);
+    return accumulator + folderNewMsgCount;
+  },
+
+  newMsgCountIterate: function(folder, accumulator) {
+    let folderNewMsgCount = folder.hasNewMessages;
+    LOG(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
+    return accumulator || folderNewMsgCount;
   }
 
 };
