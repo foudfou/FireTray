@@ -29,6 +29,13 @@ firetray.StatusIcon = {
 
   init: function() {
     try {
+      this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath(
+        "chrome://firetray/skin/linux/icons");
+      LOG(this.GTK_THEME_ICON_PATH);
+      let gtkIconTheme = gtk.gtk_icon_theme_get_default();
+      LOG("gtkIconTheme="+gtkIconTheme);
+      gtk.gtk_icon_theme_append_search_path(gtkIconTheme, this.GTK_THEME_ICON_PATH);
+
       // init tray icon, some variables
       this.trayIcon  = gtk.gtk_status_icon_new();
     } catch (x) {
@@ -101,30 +108,46 @@ firetray.StatusIcon = {
     default:
 	    ERROR("SCROLL UNKNOWN");
     }
+  },
+
+  setIconImageFromFile: function(filename) {
+    if (!firetray.StatusIcon.trayIcon)
+      return false;
+    LOG(filename);
+
+    try {
+      gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
+                                        filename);
+    } catch (x) {
+      ERROR(x);
+      return false;
+    }
+    return true;
+  },
+
+  setIconImageFromName: function(iconName) {
+    if (!firetray.StatusIcon.trayIcon)
+      return false;
+    LOG(iconName);
+
+    try {
+      gtk.gtk_status_icon_set_from_icon_name(firetray.StatusIcon.trayIcon, iconName); // "mail-message-new", "thunderbird");
+    } catch (x) {
+      ERROR(x);
+      return false;
+    }
+    return true;
   }
 
 }; // firetray.StatusIcon
 
 
-firetray.Handler.setIconImage = function(filename) {
-  if (!firetray.StatusIcon.trayIcon)
-    return false;
-  LOG(filename);
-
-  try {
-    gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
-                                      filename);
-  } catch (x) {
-    ERROR(x);
-    return false;
-  }
-  return true;
-};
+firetray.Handler.setIconImage = firetray.StatusIcon.setIconImageFromFile;
 
 firetray.Handler.setIconImageDefault = function() {
-  if (!this.FILENAME_DEFAULT)
-    throw "Default application icon filename not set";
-  this.setIconImage(this.FILENAME_DEFAULT);
+  if (!this.appNameOriginal)
+    throw "Default application name not set";
+  firetray.StatusIcon.setIconImageFromName(this.appNameOriginal.toLowerCase());
 };
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
