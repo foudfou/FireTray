@@ -29,10 +29,9 @@ if ("undefined" == typeof(firetray)) {
 // other global functions
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 firetray.Handler = {
-  FILENAME_DEFAULT: null,
-  FILENAME_SUFFIX: "32.png",
-  FILENAME_BLANK: null,
-  FILENAME_NEWMAIL: null,
+  ICON_FILENAME_SUFFIX: "22.png",
+  ICON_FILENAME_BLANK: null,
+  ICON_FILENAME_NEWMAIL: null,
 
   initialized: false,
   appNameOriginal: null,
@@ -49,11 +48,9 @@ firetray.Handler = {
     firetray.PrefListener.register(false);
 
     this.appNameOriginal = Services.appinfo.name;
-    this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/" +  this.appNameOriginal.toLowerCase() + this.FILENAME_SUFFIX);
-    this.FILENAME_BLANK = firetray.Utils.chromeToPath(
+    this.ICON_FILENAME_BLANK = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/blank-icon.png");
-    this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
+    this.ICON_FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/message-mail-new.png");
 
     this.runtimeABI = Services.appinfo.XPCOMABI;
@@ -305,7 +302,7 @@ firetray.Handler = {
 
   openBrowserTab: function(url) {
     let win = Services.wm.getMostRecentWindow("navigator:browser");
-    WARN("WIN="+win);
+    LOG("WIN="+win);
     if (win) {
       var mainWindow = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
             .getInterface(Components.interfaces.nsIWebNavigation)

@@ -125,7 +125,7 @@ firetray.Messaging = {
         firetray.Handler.setIconText(newMsgCount.toString(), prefIconTextColor);
         break;
       case FIRETRAY_NOTIFICATION_NEWMAIL_ICON:
-        firetray.Handler.setIconImage(firetray.Handler.FILENAME_NEWMAIL);
+        firetray.Handler.setIconImage(firetray.Handler.ICON_FILENAME_NEWMAIL);
         break;
       case FIRETRAY_NOTIFICATION_CUSTOM_ICON:
         let prefCustomIconPath = firetray.Utils.prefService.getCharPref("custom_mail_icon");

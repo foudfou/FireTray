@@ -178,7 +178,7 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
 
   try {
     // build background from image
-    let specialIcon = gdk.gdk_pixbuf_new_from_file(this.FILENAME_BLANK, null); // GError **error);
+    let specialIcon = gdk.gdk_pixbuf_new_from_file(this.ICON_FILENAME_BLANK, null); // GError **error);
     let dest = gdk.gdk_pixbuf_copy(specialIcon);
     let w = gdk.gdk_pixbuf_get_width(specialIcon);
     let h = gdk.gdk_pixbuf_get_height(specialIcon);
