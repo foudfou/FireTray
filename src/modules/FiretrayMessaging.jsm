@@ -109,7 +109,22 @@ firetray.Messaging = {
     if (!this.initialized)
       return;
 
-    let newMsgCount = this.countMessages();
+    let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
+    LOG("msgCountType="+msgCountType);
+    let folderCountFunction, localizedTooltip;
+    if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
+      folderCountFunction = this.unreadMsgCountIterate;
+      localizedTooltip = PluralForm.get(
+        newMsgCount,
+        firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
+        .replace("#1", newMsgCount);;
+    } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
+      folderCountFunction = this.newMsgCountIterate;
+      localizedTooltip = firetray.Utils.strings.GetStringFromName("tooltip.new_messages");
+    } else
+      ERROR('unknown message count type');
+
+    let newMsgCount = this.countMessages(folderCountFunction);
 
     // update icon
     if (newMsgCount == 0) {
@@ -134,11 +149,14 @@ firetray.Messaging = {
         ERROR("Unknown notification mode: "+prefMailNotification);
       }
 
-      let localizedMessage = PluralForm.get(
-        newMsgCount,
-        firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
-        .replace("#1", newMsgCount);;
-      firetray.Handler.setIconTooltip(localizedMessage);
+      if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
+        folderCountFunction = this.unreadMsgCountIterate;
+      } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
+        folderCountFunction = this.newMsgCountIterate;
+      } else
+      ERROR('unknown message count type');
+
+      firetray.Handler.setIconTooltip(localizedTooltip);
 
     } else {
       throw "negative message count"; // should never happen
@@ -149,18 +167,7 @@ firetray.Messaging = {
   /**
    * computes total unread or new message count.
    */
-  countMessages: function() {
-    let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
-    LOG("msgCountType="+msgCountType);
-
-    let folderCountFunction;
-    if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
-      folderCountFunction = this.unreadMsgCountIterate;
-    } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
-      folderCountFunction = this.newMsgCountIterate;
-    } else
-      ERROR('unknown message count type');
-
+  countMessages: function(folderCountFunction) {
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
     LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
     let serverTypes = mailAccounts["serverTypes"];

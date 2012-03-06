@@ -198,7 +198,8 @@ firetray.Window = {
     // better visual effect if visibility set here instead of before
     firetray.Window.setVisibility(xid, true);
 
-    firetray.Window.restoreDesktop(xid); // after show
+    // after show
+    firetray.Window.restoreDesktop(xid);
     firetray.Window.activate(xid);
 
     firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
