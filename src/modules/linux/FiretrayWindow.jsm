@@ -344,21 +344,13 @@ firetray.Window = {
     // always returns 1 (BadRequest as a coincidence)
   },
 
-
   /**
    * raises window on top and give focus.
    */
   activate: function(xid) {
     if (!firetray.Utils.prefService.getBoolPref('show_activates'))
       return;
-
-    let dataSize = 3;
-    let data = ctypes.long(dataSize);
-    data[0] = 1; // source indication (0=none, 1=app, 2=pager)
-    data[1] = 0; // timestamp
-    data[2] = 0; // requestor's currently active window, 0 if none
-    this.xSendClientMessgeEvent(xid, x11.current.Atoms._NET_ACTIVE_WINDOW, data, dataSize);
-
+    gtk.gtk_window_present(firetray.Handler.gtkWindows.get(xid));
     LOG("window raised");
   },
 

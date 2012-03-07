@@ -116,6 +116,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_window_stick", gobject.gint, this.GtkWindow.ptr);
   lib.lazy_bind("gtk_window_maximize", gobject.gint, this.GtkWindow.ptr);
   lib.lazy_bind("gtk_window_fullscreen", gobject.gint, this.GtkWindow.ptr);
+  lib.lazy_bind("gtk_window_present", ctypes.void_t, this.GtkWindow.ptr);
 
 }
 
