@@ -20,7 +20,7 @@
 <!ENTITY bool_show_activates.label "Activate restored windows">
 <!ENTITY bool_show_activates.accesskey "e">
 <!ENTITY bool_show_activates.tooltip "restored windows raise on top and get focus">
-<!ENTITY bool_remember_desktop.label "Remember desktop">
+<!ENTITY bool_remember_desktop.label "Remember desktop (per-window)">
 <!ENTITY bool_remember_desktop.accesskey "R">
 
 <!ENTITY icon_settings "Icon settings">
