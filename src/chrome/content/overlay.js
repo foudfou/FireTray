@@ -42,7 +42,11 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     firetray.LOG('Firetray UNLOADED !');
   },
 
-  // TODO: prevent preceding warning about closing multiple tabs (browser.tabs.warnOnClose)
+  /* until we find a fix (TODO), we need to set browser.tabs.warnOnClose=false
+   to prevent the popup when closing a window with multiple tabs and when
+   hides_on_close is set (we are not actually closing the tabs!). There is no
+   use trying to set warnOnClose=false temporarily in onClose, since onClose is
+   called *after* the popup */
   onClose: function(event) {
     firetray.LOG('Firetray CLOSE');
     let win = event.originalTarget;
