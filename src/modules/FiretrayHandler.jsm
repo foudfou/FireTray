@@ -281,7 +281,7 @@ firetray.Handler = {
   openTab: function(url) {
     if (this.appName === "Thunderbird")
       this.openMailTab(url);
-    else if (appName === "Firefox" || appName === "SeaMonkey")
+    else if (this.appName === "Firefox" || this.appName === "SeaMonkey")
       this.openBrowserTab(url);
     else
       firetray.ERROR("unsupported application");
