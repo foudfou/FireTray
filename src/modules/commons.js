@@ -3,7 +3,7 @@
 /* for now, logging facilities (imported from logging.jsm) are automatically
    provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "LOG", "WARN", "ERROR", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
+  [ "firetray", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
     "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
@@ -74,7 +74,7 @@ firetray.Utils = {
   QueryInterfaces: function(obj) {
     for each (i in Components.interfaces)
       try {
-        if (obj instanceof i) LOG (i);
+        if (obj instanceof i) firetray.LOG (i);
       } catch(x) {}
   },
 
