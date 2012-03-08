@@ -26,10 +26,10 @@ firetray.Messaging = {
 
   init: function() {
     if (this.initialized) {
-      WARN("Messaging already initialized");
+      firetray.WARN("Messaging already initialized");
       return;
     }
-    LOG("Enabling Messaging");
+    firetray.LOG("Enabling Messaging");
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
@@ -41,7 +41,7 @@ firetray.Messaging = {
   shutdown: function() {
     if (!this.initialized)
       return;
-    LOG("Disabling Messaging");
+    firetray.LOG("Disabling Messaging");
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
     firetray.Handler.setIconImageDefault();
@@ -61,25 +61,25 @@ firetray.Messaging = {
       Ci.nsIFolderListener.intPropertyChanged,
 
     OnItemPropertyChanged: function(item, property, oldValue, newValue) { // NumNewBiffMessages
-      LOG("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
+      firetray.LOG("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
     },
 
     OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { // TotalUnreadMessages, BiffState (per server)
-      LOG("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
+      firetray.LOG("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
       this.updateMsgCount(item, property, oldValue, newValue);
     },
 
     OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) { // NewMessages (per folder)
-      LOG("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
+      firetray.LOG("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
       this.updateMsgCount(item, property, oldValue, newValue);
     },
 
     OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {
-      LOG("OnItemPropertyFlagChanged"+property+" for "+item+" was "+oldFlag+" became "+newFlag);
+      firetray.LOG("OnItemPropertyFlagChanged"+property+" for "+item+" was "+oldFlag+" became "+newFlag);
     },
 
     OnItemEvent: function(item, event) {
-      LOG("OnItemEvent"+event+" for folder "+item.prettyName);
+      firetray.LOG("OnItemEvent"+event+" for folder "+item.prettyName);
     },
 
     updateMsgCount: function(item, property, oldValue, newValue) {
@@ -105,12 +105,12 @@ firetray.Messaging = {
    * computes and display new msg count
    */
   updateMsgCount: function() {
-    LOG("updateMsgCount");
+    firetray.LOG("updateMsgCount");
     if (!this.initialized)
       return;
 
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
-    LOG("msgCountType="+msgCountType);
+    firetray.LOG("msgCountType="+msgCountType);
     let folderCountFunction, localizedTooltip;
     if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
       folderCountFunction = this.unreadMsgCountIterate;
@@ -122,7 +122,7 @@ firetray.Messaging = {
       folderCountFunction = this.newMsgCountIterate;
       localizedTooltip = firetray.Utils.strings.GetStringFromName("tooltip.new_messages");
     } else
-      ERROR('unknown message count type');
+      firetray.ERROR('unknown message count type');
 
     let newMsgCount = this.countMessages(folderCountFunction);
 
@@ -146,7 +146,7 @@ firetray.Messaging = {
         firetray.Handler.setIconImage(prefCustomIconPath);
         break;
       default:
-        ERROR("Unknown notification mode: "+prefMailNotification);
+        firetray.ERROR("Unknown notification mode: "+prefMailNotification);
       }
 
       if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
@@ -154,7 +154,7 @@ firetray.Messaging = {
       } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
         folderCountFunction = this.newMsgCountIterate;
       } else
-      ERROR('unknown message count type');
+      firetray.ERROR('unknown message count type');
 
       firetray.Handler.setIconTooltip(localizedTooltip);
 
@@ -169,7 +169,7 @@ firetray.Messaging = {
    */
   countMessages: function(folderCountFunction) {
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
-    LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
+    firetray.LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
     let serverTypes = mailAccounts["serverTypes"];
     let excludedAccounts = mailAccounts["excludedAccounts"];
     let excludedFoldersFlags = firetray.Utils.prefService
@@ -179,7 +179,7 @@ firetray.Messaging = {
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
-        LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
+        firetray.LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
         if ( (serverTypes[accountServer.type].excluded)
           || (excludedAccounts.indexOf(accountServer.key) >= 0) )
           continue;
@@ -196,9 +196,9 @@ firetray.Messaging = {
         }
       }
     } catch (x) {
-      ERROR(x);
+      firetray.ERROR(x);
     }
-    LOG("Total New="+newMsgCount);
+    firetray.LOG("Total New="+newMsgCount);
     return newMsgCount;
   },
 
@@ -206,13 +206,13 @@ firetray.Messaging = {
     let folderCountFunctionName = 'getNumUnread';
     let folderUnreadMsgCount = folder[folderCountFunctionName](
       firetray.Utils.prefService.getBoolPref("folder_count_recursive"));
-    LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
+    firetray.LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
     return accumulator + folderUnreadMsgCount;
   },
 
   newMsgCountIterate: function(folder, accumulator) {
     if (folder.hasSubFolders && firetray.Utils.prefService.getBoolPref("folder_count_recursive")) {
-      LOG("hasSubFolders");
+      firetray.LOG("hasSubFolders");
       let subFolders = folder.subFolders;
       while(subFolders.hasMoreElements()) {
         let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
@@ -225,7 +225,7 @@ firetray.Messaging = {
 
   addHasNewMessages: function(folder, accumulator) {
       let folderNewMsgCount = folder.hasNewMessages;
-      LOG(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
+      firetray.LOG(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
       return accumulator || folderNewMsgCount;
   }
 
@@ -248,7 +248,7 @@ firetray.Messaging.Accounts = function(sortByTypeAndName) {
 };
 firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   let accounts = MailServices.accounts.accounts;
-  LOG("sortByTypeAndName="+this.sortByTypeAndName);
+  firetray.LOG("sortByTypeAndName="+this.sortByTypeAndName);
 
   /* NOTE: sort() not provided by nsIMsgAccountManager.accounts
    (nsISupportsArray, nsICollection). Should be OK to re-build a JS-Array for
@@ -279,7 +279,7 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   }
 
   for (let i=0, len=accountServers.length; i<len; ++i) {
-    LOG("ACCOUNT: "+accountServers[i].prettyName+" type: "+accountServers[i].type);
+    firetray.LOG("ACCOUNT: "+accountServers[i].prettyName+" type: "+accountServers[i].type);
     yield accountServers[i];
   }
 };

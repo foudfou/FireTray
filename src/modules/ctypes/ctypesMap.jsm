@@ -1,6 +1,6 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "ctypesMap", "FIRETRAY_WINDOW_COUNT_MAX" ];
+var EXPORTED_SYMBOLS = [ "ctypesMap", "FIRETRAY_WINDOW_COUNT_MAX", "DeleteError" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -32,11 +32,11 @@ ctypesMap.prototype.get = function(key) {
 
 ctypesMap.prototype.insert = function(key, item) {
   if (this.map.hasOwnProperty(key)) {
-    LOG("REPLACE");
+    firetray.LOG("REPLACE");
     this.array[this.map[key]] = item;
 
   } else if (this.freedCells.length) {
-    LOG("USE FREE CELL");
+    firetray.LOG("USE FREE CELL");
     let idx = this.freedCells.shift();
     this.array[idx] = item;
     this.map[key] = idx;
@@ -57,7 +57,7 @@ ctypesMap.prototype.insert = function(key, item) {
 ctypesMap.prototype.remove = function(key) {
   if (!this.map.hasOwnProperty(key))
       throw new RangeError('Unknown key: '+key);
-  LOG("FREE CELL");
+  firetray.LOG("FREE CELL");
 
   let idx = this.map[key];
   if (!delete this.map[key])
@@ -66,3 +66,11 @@ ctypesMap.prototype.remove = function(key) {
   this.count -= 1;
 };
 
+
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
+function DeleteError(message) {
+  this.name = "DeleteError";
+  this.message = message || "Could not delete object memeber";
+}
+DeleteError.prototype = new Error();
+DeleteError.prototype.constructor = DeleteError;

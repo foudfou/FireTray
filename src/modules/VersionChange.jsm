@@ -23,7 +23,7 @@ var VersionChange = {
   watch: function() {
     AddonManager.addAddonListener(this.uninstallListener);
     AddonManager.getAddonByID(FIRETRAY_ID, this.onVersionChange.bind(this));
-    LOG("version change watching enabled");
+    firetray.LOG("version change watching enabled");
   },
 
   // we need to remove pref 'installedVersion' on uninstalling to be able to
@@ -42,13 +42,13 @@ var VersionChange = {
   },
 
   onVersionChange: function(addon) {
-    LOG("VERSION: "+addon.version);
+    firetray.LOG("VERSION: "+addon.version);
 
     this.curVersion = addon.version;
     var firstrun = firetray.Utils.prefService.getBoolPref("firstrun");
 
     if (firstrun) {
-      WARN("FIRST RUN");
+      firetray.WARN("FIRST RUN");
       this.initPrefs();
       this.installHook(this.curVersion);
 
@@ -58,12 +58,12 @@ var VersionChange = {
         var versionDelta = this.versionComparator.compare(this.curVersion, installedVersion);
         if (versionDelta > 0) {
           firetray.Utils.prefService.setCharPref("installedVersion", this.curVersion);
-          WARN("UPGRADE");
+          firetray.WARN("UPGRADE");
           this.upgradeHook(this.curVersion);
         }
 
       } catch (ex) {
-        WARN("REINSTALL");
+        firetray.WARN("REINSTALL");
         this.initPrefs();
         this.reinstallHook(this.curVersion);
       }

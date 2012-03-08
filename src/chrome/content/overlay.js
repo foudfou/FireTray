@@ -13,10 +13,10 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   onLoad: function(win) {
     this.strings = document.getElementById("firetray-strings"); // chrome-specific
 
-    LOG("Handler initialized: "+firetray.Handler.initialized);
+    firetray.LOG("Handler initialized: "+firetray.Handler.initialized);
     let init = firetray.Handler.initialized || firetray.Handler.init();
 
-    LOG("ONLOAD"); firetray.Handler.dumpWindows();
+    firetray.LOG("ONLOAD"); firetray.Handler.dumpWindows();
     let winId = firetray.Handler.registerWindow(win);
 
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
@@ -25,11 +25,11 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     win.addEventListener('close', firetrayChrome.onClose, true);
 
     if (firetray.Handler.windows[winId].startHidden) {
-      LOG('start_hidden');
+      firetray.LOG('start_hidden');
       firetray.Handler.hideSingleWindow(winId);
     }
 
-    LOG('Firetray LOADED: ' + init);
+    firetray.LOG('Firetray LOADED: ' + init);
     return true;
   },
 
@@ -39,19 +39,19 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     /* NOTE: don't do firetray.Handler.initialized=false here, otherwise after
      a window close, a new window will create a new handler (and hence, a new
      tray icon) */
-    LOG('Firetray UNLOADED !');
+    firetray.LOG('Firetray UNLOADED !');
   },
 
   // TODO: prevent preceding warning about closing multiple tabs (browser.tabs.warnOnClose)
   onClose: function(event) {
-    LOG('Firetray CLOSE');
+    firetray.LOG('Firetray CLOSE');
     let win = event.originalTarget;
     if (!win instanceof ChromeWindow)
       throw new TypeError('originalTarget not a ChromeWindow');
 
     let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
     let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-    LOG('hides_on_close: '+hides_on_close+', hides_single_window='+hides_single_window);
+    firetray.LOG('hides_on_close: '+hides_on_close+', hides_single_window='+hides_single_window);
     if (hides_on_close) {
       if (hides_single_window) {
         let winId = firetray.Handler.getWindowIdFromChromeWindow(win);

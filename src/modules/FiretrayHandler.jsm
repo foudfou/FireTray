@@ -37,7 +37,7 @@ firetray.Handler = {
   initialized: false,
   appNameOriginal: null,
   appStarted: false,
-  appId: null,
+  appName: null,
   runtimeOS: null,
   inMailApp: false,
   inBrowserApp: false,
@@ -60,29 +60,29 @@ firetray.Handler = {
     this.runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
     // version checked during install, so we shouldn't need to care
     let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
-    LOG("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
+    firetray.LOG("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
     switch (this.runtimeOS) {
     case "Linux":
       Cu.import("resource://firetray/linux/FiretrayStatusIcon.jsm");
-      LOG('FiretrayStatusIcon imported');
+      firetray.LOG('FiretrayStatusIcon imported');
       Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
-      LOG('FiretrayWindow imported');
+      firetray.LOG('FiretrayWindow imported');
       break;
     default:
-      ERROR("FIRETRAY: only Linux platform supported at this time. Firetray not loaded");
+      firetray.ERROR("FIRETRAY: only Linux platform supported at this time. Firetray not loaded");
       return false;
     }
 
-    this.appId = Services.appinfo.ID;
-    if (this.appId === THUNDERBIRD_ID || this.appId === SEAMONKEY_ID)
+    this.appName = Services.appinfo.name;
+    if (this.appName === "Thunderbird" || this.appName === "SeaMonkey")
       this.inMailApp = true;
-    if (this.appId === FIREFOX_ID || this.appId === SEAMONKEY_ID)
+    if (this.appName === "Firefox" || this.appName === "SeaMonkey")
       this.inBrowserApp = true;
-    LOG('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
+    firetray.LOG('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
 
     firetray.StatusIcon.init();
     firetray.Handler.showHideIcon();
-    LOG('StatusIcon initialized');
+    firetray.LOG('StatusIcon initialized');
 
     if (this.inMailApp) {
       try {
@@ -92,12 +92,12 @@ firetray.Handler = {
           firetray.Messaging.updateMsgCount();
         }
       } catch (x) {
-        ERROR(x);
+        firetray.ERROR(x);
         return false;
       }
     }
 
-    Services.obs.addObserver(this, this.getAppStartupTopic(this.appId), false);
+    Services.obs.addObserver(this, this.getAppStartupTopic(this.appName), false);
     Services.obs.addObserver(this, "xpcom-will-shutdown", false);
 
     let welcome = function(ver) {
@@ -124,7 +124,7 @@ firetray.Handler = {
 
     firetray.Utils.tryCloseLibs([gobject, glib, gtk]);
 
-    Services.obs.removeObserver(this, this.getAppStartupTopic(this.appId), false);
+    Services.obs.removeObserver(this, this.getAppStartupTopic(this.appName), false);
     Services.obs.removeObserver(this, "xpcom-will-shutdown", false);
 
     this.appStarted = false;
@@ -137,16 +137,16 @@ firetray.Handler = {
     case "sessionstore-windows-restored":
     case "mail-startup-done":
     case "final-ui-startup":
-      LOG("RECEIVED: "+topic+", launching timer");
+      firetray.LOG("RECEIVED: "+topic+", launching timer");
       // sessionstore-windows-restored does not come after the realization of
       // all windows... so we wait a little
       firetray.Utils.timer(function() {
         firetray.Handler.appStarted = true;
-        LOG("*** appStarted ***");
+        firetray.LOG("*** appStarted ***");
       }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
       break;
     case "xpcom-will-shutdown":
-      LOG("xpcom-will-shutdown");
+      firetray.LOG("xpcom-will-shutdown");
       this.shutdown();
       break;
     default:
@@ -155,10 +155,10 @@ firetray.Handler = {
 
   getAppStartupTopic: function(id) {
     switch (id) {
-    case FIREFOX_ID:
-    case SEAMONKEY_ID:
+    case "Firefox":
+    case "SeaMonkey":
       return 'sessionstore-windows-restored';
-    case THUNDERBIRD_ID:
+    case "Thunderbird":
       return 'mail-startup-done';
     default:
       return 'final-ui-startup';
@@ -180,14 +180,14 @@ firetray.Handler = {
   showHideAllWindows: function() {},
 
   showAllWindows: function() {
-    LOG("showAllWindows");
+    firetray.LOG("showAllWindows");
     for (let winId in firetray.Handler.windows) {
       if (!firetray.Handler.windows[winId].visibility)
         firetray.Handler.showSingleWindow(winId);
     }
   },
   hideAllWindows: function() {
-    LOG("hideAllWindows");
+    firetray.LOG("hideAllWindows");
     for (let winId in firetray.Handler.windows) {
       if (firetray.Handler.windows[winId].visibility)
         firetray.Handler.hideSingleWindow(winId);
@@ -213,7 +213,7 @@ firetray.Handler = {
         .QueryInterface(Ci.nsIInterfaceRequestor);
     } catch (ex) {
       // ignore no-interface exception
-      ERROR(ex);
+      firetray.ERROR(ex);
       return null;
     }
 
@@ -222,7 +222,7 @@ firetray.Handler = {
     else if (iface == "nsIXULWindow")
       winOut = winInterface.getInterface(Ci.nsIXULWindow);
     else {
-      ERROR("unknown iface '" + iface + "'");
+      firetray.ERROR("unknown iface '" + iface + "'");
       return null;
     }
 
@@ -230,9 +230,9 @@ firetray.Handler = {
   },
 
   _getBrowserProperties: function() {
-    if (firetray.Handler.appId === FIREFOX_ID)
+    if (firetray.Handler.appName === "Firefox")
       return "chrome://branding/locale/browserconfig.properties";
-    else if (firetray.Handler.appId === SEAMONKEY_ID)
+    else if (firetray.Handler.appName === "SeaMonkey")
       return "chrome://navigator-region/locale/region.properties";
     else return null;
   },
@@ -258,7 +258,7 @@ firetray.Handler = {
   openBrowserWindow: function() {
     try {
       var home = firetray.Handler._getHomePage();
-      LOG("home="+home);
+      firetray.LOG("home="+home);
 
       // FIXME: obviously we need to wait to avoid seg fault on jsapi.cpp:827
       // 827         if (t->data.requestDepth) {
@@ -266,7 +266,7 @@ firetray.Handler = {
         for(var key in firetray.Handler.windows) break;
         firetray.Handler.windows[key].chromeWin.open(home);
       }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
-    } catch (x) { ERROR(x); }
+    } catch (x) { firetray.ERROR(x); }
   },
 
   openMailMessage: function() {
@@ -275,17 +275,16 @@ firetray.Handler = {
       var msgComposeService = Cc["@mozilla.org/messengercompose;1"]
         .getService(Ci.nsIMsgComposeService);
       msgComposeService.OpenComposeWindowWithURI(null, aURI);
-    } catch (x) { ERROR(x); }
+    } catch (x) { firetray.ERROR(x); }
   },
 
   openTab: function(url) {
-    let appId = Services.appinfo.ID;
-    if (appId === THUNDERBIRD_ID)
+    if (this.appName === "Thunderbird")
       this.openMailTab(url);
-    else if (appId === FIREFOX_ID || appId === SEAMONKEY_ID)
+    else if (appName === "Firefox" || appName === "SeaMonkey")
       this.openBrowserTab(url);
     else
-      ERROR("unsupported application");
+      firetray.ERROR("unsupported application");
   },
 
   openMailTab: function(url) {
@@ -297,7 +296,7 @@ firetray.Handler = {
 
     if (tabmail) {
       firetray.Utils.timer(function() {
-        LOG("openMailTab");
+        firetray.LOG("openMailTab");
         tabmail.openTab("contentTab", {contentPage: url});
       }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
     }
@@ -305,7 +304,7 @@ firetray.Handler = {
 
   openBrowserTab: function(url) {
     let win = Services.wm.getMostRecentWindow("navigator:browser");
-    WARN("WIN="+win);
+    firetray.LOG("WIN="+win);
     if (win) {
       var mainWindow = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
             .getInterface(Components.interfaces.nsIWebNavigation)
@@ -315,7 +314,7 @@ firetray.Handler = {
             .getInterface(Components.interfaces.nsIDOMWindow);
 
       mainWindow.setTimeout(function(win){
-        LOG("openBrowser");
+        firetray.LOG("openBrowser");
         mainWindow.gBrowser.selectedTab = mainWindow.gBrowser.addTab(url);
       }, 1000);
     }
@@ -355,7 +354,7 @@ firetray.Handler = {
           .getService(Ci.nsIAppStartup);
         appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
       }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
-    } catch (x) { ERROR(x); }
+    } catch (x) { firetray.ERROR(x); }
   }
 
 }; // firetray.Handler
@@ -364,7 +363,7 @@ firetray.Handler = {
 firetray.PrefListener = new PrefListener(
   "extensions.firetray.",
   function(branch, name) {
-    LOG('Pref changed: '+name);
+    firetray.LOG('Pref changed: '+name);
     switch (name) {
     case 'hides_single_window':
       firetray.Handler.showHidePopupMenuItems();

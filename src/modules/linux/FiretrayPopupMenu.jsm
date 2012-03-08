@@ -14,7 +14,7 @@ Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.StatusIcon))
-  ERROR("This module MUST be imported from/after StatusIcon !");
+  firetray.ERROR("This module MUST be imported from/after StatusIcon !");
 
 
 firetray.PopupMenu = {
@@ -99,8 +99,8 @@ firetray.PopupMenu = {
   },
 
   popup: function(icon, button, activateTime, menu) {
-    LOG("menu-popup");
-    LOG("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
+    firetray.LOG("menu-popup");
+    firetray.LOG("ARGS="+icon+", "+button+", "+activateTime+", "+menu);
 
     try {
       var gtkMenuPtr = ctypes.cast(menu, gtk.GtkMenu.ptr);
@@ -108,7 +108,7 @@ firetray.PopupMenu = {
       gtk.gtk_menu_popup(
         gtkMenuPtr, null, null, gtk.gtk_status_icon_position_menu,
         iconGpointer, button, activateTime);
-    } catch (x) { ERROR(x); }
+    } catch (x) { firetray.ERROR(x); }
   },
 
   // we'll be creating menuItems for windows (and not showing them) even if
@@ -124,7 +124,7 @@ firetray.PopupMenu = {
       firetray.PopupMenu.callbacks.menuItemWindowActivate[xid], null);
     this.setWindowItemLabel(menuItemWindow, xid); // default to xid
 
-    LOG("add gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
+    firetray.LOG("add gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
   },
 
   addItem: function() {
@@ -138,7 +138,7 @@ firetray.PopupMenu = {
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     firetray.Handler.gtkPopupMenuWindowItems.remove(xid);
     this.removeItem(menuItemWindow);
-    LOG("remove gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
+    firetray.LOG("remove gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
   },
   removeItem: function(item) {
     gtk.gtk_widget_destroy(ctypes.cast(item, gtk.GtkWidget.ptr));
@@ -154,7 +154,7 @@ firetray.PopupMenu = {
     if (!this.windowItemsHandled())
       return;
 
-    LOG("showSingleWindowItem");
+    firetray.LOG("showSingleWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     this.showItem(menuItemWindow);
     this.setWindowItemLabel(menuItemWindow, firetray.Window.getWindowTitle(xid));
@@ -166,7 +166,7 @@ firetray.PopupMenu = {
   },
 
   setWindowItemLabel: function(menuItem, label) {
-    LOG("about to set title: "+label);
+    firetray.LOG("about to set title: "+label);
     if (label)
       gtk.gtk_menu_item_set_label(ctypes.cast(menuItem, gtk.GtkMenuItem.ptr), label);
   },
@@ -191,7 +191,7 @@ firetray.PopupMenu = {
   },
 
   hideSingleWindowItem: function(xid) {
-    LOG("hideSingleWindowItem");
+    firetray.LOG("hideSingleWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     this.hideItem(menuItemWindow);
   },
@@ -201,11 +201,11 @@ firetray.PopupMenu = {
   },
 
   showWindowSeparator: function() {
-    LOG("showing menuSeparatorWindows");
+    firetray.LOG("showing menuSeparatorWindows");
     gtk.gtk_widget_show(ctypes.cast(this.menuSeparatorWindows, gtk.GtkWidget.ptr));
   },
   hideWindowSeparator: function() {
-    LOG("hiding menuSeparatorWindows");
+    firetray.LOG("hiding menuSeparatorWindows");
     gtk.gtk_widget_hide(ctypes.cast(this.menuSeparatorWindows, gtk.GtkWidget.ptr));
   },
 

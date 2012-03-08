@@ -3,9 +3,7 @@
 /* for now, logging facilities (imported from logging.jsm) are automatically
    provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "LOG", "WARN", "ERROR", "FIREFOX_ID", "THUNDERBIRD_ID",
-    "SEAMONKEY_ID", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE", "getType",
-    "isArray", "isEmpty", "strEquals",
+  [ "firetray", "LOG", "WARN", "ERROR", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
     "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
@@ -18,13 +16,6 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
-
-const FIREFOX_ID     = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
-const THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
-const SONGBIRD_ID    = "songbird@songbirdnest.com";
-const SUNBIRD_ID     = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-const SEAMONKEY_ID   = "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}";
-const CHATZILLA_ID   = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
 
 const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
 const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
@@ -43,6 +34,7 @@ const FIRETRAY_MESSAGE_COUNT_TYPE_NEW    = 1;
  * firetray namespace.
  */
 if ("undefined" == typeof(firetray)) {
+  firetray.firetray.ERROR("### HI ###");
   var firetray = {};
 };
 
@@ -56,26 +48,26 @@ firetray.Utils = {
       var objPref = JSON.parse(
         firetray.Utils.prefService.getCharPref(prefStr));
     } catch (x) {
-      ERROR(x);
+      firetray.ERROR(x);
     }
     return objPref;
   },
   setObjPref: function(prefStr, obj) {
-    LOG(obj);
+    firetray.LOG(obj);
     try {
       firetray.Utils.prefService.setCharPref(prefStr, JSON.stringify(obj));
     } catch (x) {
-      ERROR(x);
+      firetray.ERROR(x);
     }
   },
 
   getArrayPref: function(prefStr) {
     let arrayPref = this.getObjPref(prefStr);
-    if (!isArray(arrayPref)) throw new TypeError();
+    if (!firetray.js.isArray(arrayPref)) throw new TypeError();
     return arrayPref;
   },
   setArrayPref: function(prefStr, aArray) {
-    if (!isArray(aArray)) throw new TypeError();
+    if (!firetray.js.isArray(aArray)) throw new TypeError();
     this.setObjPref(prefStr, aArray);
   },
 
@@ -95,7 +87,7 @@ firetray.Utils = {
     let registeryValue = Cc['@mozilla.org/chrome/chrome-registry;1']
       .getService(Ci.nsIChromeRegistry)
       .convertChromeURL(uri).spec;
-    LOG(registeryValue);
+    firetray.LOG(registeryValue);
 
     if (/^file:/.test(registeryValue))
       registeryValue = this._urlToPath(registeryValue);
@@ -123,7 +115,7 @@ firetray.Utils = {
         str += "obj["+i+"]: Unavailable\n";
       }
     }
-    LOG(str);
+    firetray.LOG(str);
   },
 
   _nsResolver: function(prefix) {
@@ -143,9 +135,9 @@ firetray.Utils = {
       var result = doc.evaluate(xpath, ref, that._nsResolver,
                                 XPathResult.ANY_TYPE, null);
     } catch (x) {
-      ERROR(x);
+      firetray.ERROR(x);
     }
-    LOG("XPathResult="+result.resultType);
+    firetray.LOG("XPathResult="+result.resultType);
 
     switch (result.resultType) {
     case XPathResult.NUMBER_TYPE:
@@ -159,7 +151,7 @@ firetray.Utils = {
     var list = [];
     try {
       for (let node = result.iterateNext(); node; node = result.iterateNext()) {
-        LOG("node="+node.nodeName);
+        firetray.LOG("node="+node.nodeName);
         switch (node.nodeType) {
         case node.ATTRIBUTE_NODE:
           list.push(node.value);
@@ -172,7 +164,7 @@ firetray.Utils = {
         }
       }
     } catch (x) {
-      ERROR(x);
+      firetray.ERROR(x);
     }
 
     return list;
@@ -190,21 +182,38 @@ firetray.Utils = {
         if (lib.available())
           lib.close();
       });
-    } catch(x) { ERROR(x); }
+    } catch(x) { firetray.ERROR(x); }
   }
 
 };
 
 ////////////////////////// more fundamental helpers //////////////////////////
 
-// http://stackoverflow.com/questions/767486/how-do-you-check-if-a-variable-is-an-array-in-javascript
-function isArray(o) {
-  return getType(o) === '[object Array]';
-}
-function getType(thing){
+firetray.js = {
+  // http://stackoverflow.com/questions/767486/how-do-you-check-if-a-variable-is-an-array-in-javascript
+  isArray: function(o) {
+    return this.getType(o) === '[object Array]';
+  },
+  getType: function(thing) {
     if(thing === null) return "[object Null]"; // special case
     return Object.prototype.toString.call(thing);
-}
+  },
+
+  // http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object-from-json
+  isEmpty: function(obj) {
+    for(var prop in obj) {
+      if(obj.hasOwnProperty(prop))
+        return false;
+    }
+    return true;
+  },
+
+  // values of different ctypes objects can never be compared. See:
+  // https://developer.mozilla.org/en/js-ctypes/Using_js-ctypes/Working_with_data#Quirks_in_equality
+  strEquals: function(obj1, obj2) {
+    return obj1.toString() === obj2.toString();
+  }
+};
 
 // http://stackoverflow.com/questions/18912/how-to-find-keys-of-a-hash
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
@@ -215,26 +224,3 @@ if(!Object.keys) Object.keys = function(o){
   for(p in o) if(Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
   return ret;
 };
-
-// http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object-from-json
-function isEmpty(obj) {
-  for(var prop in obj) {
-    if(obj.hasOwnProperty(prop))
-      return false;
-  }
-  return true;
-}
-
-// values of different ctypes objects can never be compared. See:
-// https://developer.mozilla.org/en/js-ctypes/Using_js-ctypes/Working_with_data#Quirks_in_equality
-function strEquals(obj1, obj2) {
-  return obj1.toString() === obj2.toString();
-}
-
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
-function DeleteError(message) {
-    this.name = "DeleteError";
-    this.message = message || "Could not delete object memeber";
-}
-DeleteError.prototype = new Error();
-DeleteError.prototype.constructor = DeleteError;
