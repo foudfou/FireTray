@@ -72,7 +72,7 @@ var VersionChange = {
 
   initPrefs: function() {
     firetray.Utils.prefService.setBoolPref("firstrun", false);
-    firetray.Utils.prefService.setCharPref("installedVersion", firetray.VersionChange.curVersion);
+    firetray.Utils.prefService.setCharPref("installedVersion", VersionChange.curVersion);
   },
 
   installHook: function(ver){},
