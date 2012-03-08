@@ -48,7 +48,7 @@ var VersionChange = {
     var firstrun = firetray.Utils.prefService.getBoolPref("firstrun");
 
     if (firstrun) {
-      firetray.WARN("FIRST RUN");
+      firetray.LOG("FIRST RUN");
       this.initPrefs();
       this.installHook(this.curVersion);
 
@@ -58,12 +58,12 @@ var VersionChange = {
         var versionDelta = this.versionComparator.compare(this.curVersion, installedVersion);
         if (versionDelta > 0) {
           firetray.Utils.prefService.setCharPref("installedVersion", this.curVersion);
-          firetray.WARN("UPGRADE");
+          firetray.LOG("UPGRADE");
           this.upgradeHook(this.curVersion);
         }
 
       } catch (ex) {
-        firetray.WARN("REINSTALL");
+        firetray.LOG("REINSTALL");
         this.initPrefs();
         this.reinstallHook(this.curVersion);
       }
