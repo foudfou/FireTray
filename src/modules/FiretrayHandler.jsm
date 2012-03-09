@@ -35,12 +35,12 @@ firetray.Handler = {
   FILENAME_NEWMAIL: null,
 
   initialized: false,
-  appNameOriginal: null,
-  appStarted: false,
-  appName: null,
-  runtimeOS: null,
+  appName:    (function(){return Services.appinfo.name;})(),
+  runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
+  runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
   inMailApp: false,
   inBrowserApp: false,
+  appStarted: false,
   windows: {},
   windowsCount: 0,
   visibleWindowsCount: 0,
@@ -48,16 +48,6 @@ firetray.Handler = {
   init: function() {            // does creates icon
     firetray.PrefListener.register(false);
 
-    this.appNameOriginal = Services.appinfo.name;
-    this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/" +  this.appNameOriginal.toLowerCase() + this.FILENAME_SUFFIX);
-    this.FILENAME_BLANK = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/blank-icon.png");
-    this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/message-mail-new.png");
-
-    this.runtimeABI = Services.appinfo.XPCOMABI;
-    this.runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
     // version checked during install, so we shouldn't need to care
     let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
     firetray.LOG("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
@@ -73,12 +63,18 @@ firetray.Handler = {
       return false;
     }
 
-    this.appName = Services.appinfo.name;
     if (this.appName === "Thunderbird" || this.appName === "SeaMonkey")
       this.inMailApp = true;
     if (this.appName === "Firefox" || this.appName === "SeaMonkey")
       this.inBrowserApp = true;
     firetray.LOG('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
+
+    this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
+      "chrome://firetray/skin/" +  this.appName.toLowerCase() + this.FILENAME_SUFFIX);
+    this.FILENAME_BLANK = firetray.Utils.chromeToPath(
+      "chrome://firetray/skin/blank-icon.png");
+    this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
+      "chrome://firetray/skin/message-mail-new.png");
 
     firetray.StatusIcon.init();
     firetray.Handler.showHideIcon();

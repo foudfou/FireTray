@@ -455,10 +455,10 @@ firetray.Window = {
   getWindowTitle: function(xid) {
     let title = firetray.Handler.windows[xid].baseWin.title;
     firetray.LOG("baseWin.title="+title);
-    let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appNameOriginal);
+    let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
     if (tailIndex !== -1)
       return title.substring(0, tailIndex);
-    else if (title === "Mozilla "+firetray.Handler.appNameOriginal)
+    else if (title === "Mozilla "+firetray.Handler.appName)
       return title;
     else
       return null;
@@ -531,7 +531,7 @@ firetray.Handler.registerWindow = function(win) {
     if (x.name === "RangeError") // instanceof not working :-(
       win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
                 +" windows open. This breaks FireTray and most probably "
-                +firetray.Handler.appNameOriginal+".");
+                +firetray.Handler.appName+".");
   }
   this.windowsCount += 1;
   // NOTE: no need to check for window state to set visibility because all

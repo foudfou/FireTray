@@ -143,9 +143,9 @@ firetray.Handler.setIconTooltip = function(toolTipStr) {
 };
 
 firetray.Handler.setIconTooltipDefault = function() {
-  if (!this.appNameOriginal)
+  if (!this.appName)
     throw "application name not initialized";
-  this.setIconTooltip(this.appNameOriginal);
+  this.setIconTooltip(this.appName);
 };
 
 firetray.Handler.setIconText = function(text, color) { // FIXME: function too long

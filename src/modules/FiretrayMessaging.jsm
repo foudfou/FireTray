@@ -109,22 +109,22 @@ firetray.Messaging = {
     if (!this.initialized)
       return;
 
+    // initialize
+    let newMsgCount, localizedTooltip;
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     firetray.LOG("msgCountType="+msgCountType);
-    let folderCountFunction, localizedTooltip;
     if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
-      folderCountFunction = this.unreadMsgCountIterate;
+      newMsgCount = this.countMessages(this.unreadMsgCountIterate);
       localizedTooltip = PluralForm.get(
         newMsgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
-        .replace("#1", newMsgCount);;
+        .replace("#1", newMsgCount);
+      firetray.WARN(localizedTooltip);
     } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
-      folderCountFunction = this.newMsgCountIterate;
+      newMsgCount = this.countMessages(this.newMsgCountIterate);
       localizedTooltip = firetray.Utils.strings.GetStringFromName("tooltip.new_messages");
     } else
       firetray.ERROR('unknown message count type');
-
-    let newMsgCount = this.countMessages(folderCountFunction);
 
     // update icon
     if (newMsgCount == 0) {
@@ -148,13 +148,6 @@ firetray.Messaging = {
       default:
         firetray.ERROR("Unknown notification mode: "+prefMailNotification);
       }
-
-      if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
-        folderCountFunction = this.unreadMsgCountIterate;
-      } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
-        folderCountFunction = this.newMsgCountIterate;
-      } else
-      firetray.ERROR('unknown message count type');
 
       firetray.Handler.setIconTooltip(localizedTooltip);
 
