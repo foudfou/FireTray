@@ -99,6 +99,7 @@ firetray.Handler = {
 
     Services.obs.addObserver(this, this.getAppStartupTopic(this.appName), false);
     Services.obs.addObserver(this, "xpcom-will-shutdown", false);
+    Services.obs.addObserver(this, "profile-change-teardown", false);
 
     let welcome = function(ver) {
       firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#"+ver);
@@ -109,6 +110,8 @@ firetray.Handler = {
     VersionChange.setUpgradeHook(welcome);
     VersionChange.setReinstallHook(welcome);
     VersionChange.watch();
+
+    this.preventWarnOnClose();
 
     this.initialized = true;
     return true;
@@ -126,6 +129,7 @@ firetray.Handler = {
 
     Services.obs.removeObserver(this, this.getAppStartupTopic(this.appName), false);
     Services.obs.removeObserver(this, "xpcom-will-shutdown", false);
+    Services.obs.removeObserver(this, "profile-change-teardown", false);
 
     this.appStarted = false;
     this.initialized = false;
@@ -148,6 +152,10 @@ firetray.Handler = {
     case "xpcom-will-shutdown":
       firetray.LOG("xpcom-will-shutdown");
       this.shutdown();
+      break;
+    case "profile-change-teardown":
+      if (data === 'shutdown-persist')
+        this.restoreWarnOnClose();
       break;
     default:
     }
@@ -355,6 +363,20 @@ firetray.Handler = {
         appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
       }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
     } catch (x) { firetray.ERROR(x); }
+  },
+
+  preventWarnOnClose: function() {
+    if (!this.inBrowserApp) return;
+    let generalTabsPrefs = Services.prefs.getBranch("browser.tabs.");
+    this.warnOnCloseTmp = generalTabsPrefs.getBoolPref('warnOnClose');
+    firetray.LOG("warnOnClose saved. was: "+this.warnOnCloseTmp);
+    generalTabsPrefs.setBoolPref('warnOnClose', false);
+  },
+  restoreWarnOnClose: function() {
+    if (!this.inBrowserApp && !this.warnOnCloseTmp) return;
+    let generalTabsPrefs = Services.prefs.getBranch("browser.tabs.");
+    generalTabsPrefs.setBoolPref('warnOnClose', this.warnOnCloseTmp);
+    firetray.LOG("warnOnClose restored to: "+this.warnOnCloseTmp);
   }
 
 }; // firetray.Handler
