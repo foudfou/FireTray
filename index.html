@@ -89,13 +89,23 @@
       <section id="release-notes">
         <h2>Release Notes</h2>
 
-        <article id="v0.4.0">
-          <h3>v0.4.0 &mdash; 2012-03-10</h3>
+        <article id="v0.4.1">
+          <h3>v0.4.1 &mdash; 2012-03-13</h3>
           <p><strong>After a long wait, the js-ctypes re-write of FireTray is
           released !</strong></p>
 
-          <p>It covers all functionalities of the XPCOM version, and brings
-          some enhancements (see below). We hope you'll enjoy it !</p>
+          <p><ul>
+              <li>internal cleaning (avoid polluting global namespace,
+              <tt>browser.tabs.warnOnClose</tt> set session-wide)</li>
+              <li>change defaults for hides_single_window (true),
+              remember_desktop (false)</li>
+              <li>bug fixes</li>
+            </ul></p>
+        </article>
+
+        <article id="v0.4.0">
+          <h3>v0.4.0 &mdash; 2012-03-05</h3>
+          <p>This version was sumitted to AMO, but didn't pass full review.</p>
 
           <p><ul>
               <li>fix start_hidden</li>
