@@ -41,7 +41,6 @@ firetray.StatusIcon = {
 
       // TODO: make related options
       this.themedIconApp     = this.initThemedIcon(["indicator-messages", "applications-email-panel", firetray.Handler.appNameOriginal.toLowerCase()]);
-      // TODO: check that embedded mail-message-new.png is found !
       this.themedIconNewMail = this.initThemedIcon(["indicator-messages-new", "mail-message-new"]);
 
       this.trayIcon  = gtk.gtk_status_icon_new();
