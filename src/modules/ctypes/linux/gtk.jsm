@@ -12,6 +12,7 @@ const Ci = Components.interfaces;
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
 Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 
@@ -81,6 +82,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_status_icon_new", this.GtkStatusIcon.ptr);
   lib.lazy_bind("gtk_status_icon_set_from_file", ctypes.void_t, this.GtkStatusIcon.ptr, ctypes.char.ptr);
   lib.lazy_bind("gtk_status_icon_set_from_icon_name", ctypes.void_t, this.GtkStatusIcon.ptr, gobject.gchar.ptr);
+  lib.lazy_bind("gtk_status_icon_set_from_gicon", ctypes.void_t, this.GtkStatusIcon.ptr, gio.GIcon.ptr);
   lib.lazy_bind("gtk_status_icon_set_tooltip_text", ctypes.void_t, this.GtkStatusIcon.ptr, ctypes.char.ptr);
   lib.lazy_bind("gtk_status_icon_set_visible", ctypes.void_t, this.GtkStatusIcon.ptr, gobject.gboolean);
   lib.lazy_bind("gtk_menu_new", this.GtkMenu.ptr);

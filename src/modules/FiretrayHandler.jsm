@@ -31,7 +31,6 @@ if ("undefined" == typeof(firetray)) {
 firetray.Handler = {
   ICON_FILENAME_SUFFIX: "22.png",
   ICON_FILENAME_BLANK: null,
-  ICON_FILENAME_NEWMAIL: null,
 
   initialized: false,
   appNameOriginal: null,
@@ -50,8 +49,6 @@ firetray.Handler = {
     this.appNameOriginal = Services.appinfo.name;
     this.ICON_FILENAME_BLANK = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/blank-icon.png");
-    this.ICON_FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/message-mail-new.png");
 
     this.runtimeABI = Services.appinfo.XPCOMABI;
     this.runtimeOS = Services.appinfo.OS; // "WINNT", "Linux", "Darwin"
@@ -163,7 +160,8 @@ firetray.Handler = {
   },
 
   // these get overridden in OS-specific Icon/Window handlers
-  setIconImage: function(filename) {},
+  setIconImage: function(icon) {},
+  setIconImageFromFile: function(filename) {},
   setIconImageDefault: function() {},
   setIconText: function(text, color) {},
   setIconTooltip: function(localizedMessage) {},

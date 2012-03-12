@@ -12,6 +12,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/linux/cairo.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
@@ -22,22 +23,29 @@ if ("undefined" == typeof(firetray.Handler))
 
 
 firetray.StatusIcon = {
+  GTK_THEME_ICON_PATH: null,
+
   initialized: false,
-  // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
-  callbacks: {},
+  callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
   trayIcon: null,
+  themedIconApp: null,
+  themedIconNewMail: null,
 
   init: function() {
     try {
-      this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath(
-        "chrome://firetray/skin/linux/icons");
+      this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath("chrome://firetray/skin/linux/icons");
       LOG(this.GTK_THEME_ICON_PATH);
       let gtkIconTheme = gtk.gtk_icon_theme_get_default();
       LOG("gtkIconTheme="+gtkIconTheme);
       gtk.gtk_icon_theme_append_search_path(gtkIconTheme, this.GTK_THEME_ICON_PATH);
 
-      // init tray icon, some variables
+      // TODO: make related options
+      this.themedIconApp     = this.initThemedIcon(["indicator-messages", "applications-email-panel", firetray.Handler.appNameOriginal.toLowerCase()]);
+      // TODO: check that embedded mail-message-new.png is found !
+      this.themedIconNewMail = this.initThemedIcon(["indicator-messages-new", "mail-message-new"]);
+
       this.trayIcon  = gtk.gtk_status_icon_new();
+
     } catch (x) {
       ERROR(x);
       return false;
@@ -60,6 +68,19 @@ firetray.StatusIcon = {
   shutdown: function() {
     firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gtk, pango, pangocairo]);
     this.initialized = false;
+  },
+
+  initThemedIcon: function(names) {
+    if (!isArray(names)) throw new TypeError();
+    let namesLen = names.length;
+    LOG("themedIconNamesLen="+namesLen);
+    let themedIconNames = ctypes.char.ptr.array(namesLen)();
+    for (let i=0; i<namesLen; ++i)
+      themedIconNames[i] = ctypes.char.array()(names[i]);
+    LOG("themedIconNames="+themedIconNames);
+    let themedIcon = gio.g_themed_icon_new_from_names(themedIconNames, namesLen);
+    LOG("themedIcon="+themedIcon);
+    return themedIcon;
   },
 
   addCallbacks: function() {
@@ -112,42 +133,37 @@ firetray.StatusIcon = {
 
   setIconImageFromFile: function(filename) {
     if (!firetray.StatusIcon.trayIcon)
-      return false;
+      ERROR("Icon missing");
     LOG(filename);
-
-    try {
-      gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
+    gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
                                         filename);
-    } catch (x) {
-      ERROR(x);
-      return false;
-    }
-    return true;
   },
 
   setIconImageFromName: function(iconName) {
     if (!firetray.StatusIcon.trayIcon)
-      return false;
+      ERROR("Icon missing");
     LOG(iconName);
+    gtk.gtk_status_icon_set_from_icon_name(firetray.StatusIcon.trayIcon, iconName);
+  },
 
-    try {
-      gtk.gtk_status_icon_set_from_icon_name(firetray.StatusIcon.trayIcon, iconName); // "mail-message-new", "thunderbird");
-    } catch (x) {
-      ERROR(x);
-      return false;
-    }
-    return true;
+  setIconImageFromGIcon: function(gicon) {
+    if (!firetray.StatusIcon.trayIcon || !gicon)
+      ERROR("Icon missing");
+    LOG(gicon);
+    gtk.gtk_status_icon_set_from_gicon(firetray.StatusIcon.trayIcon, gicon);
   }
 
 }; // firetray.StatusIcon
 
 
-firetray.Handler.setIconImage = firetray.StatusIcon.setIconImageFromFile;
+firetray.Handler.setIconImage = firetray.StatusIcon.setIconImageFromGIcon;
+
+firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;
 
 firetray.Handler.setIconImageDefault = function() {
-  if (!this.appNameOriginal)
-    throw "Default application name not set";
-  firetray.StatusIcon.setIconImageFromName(this.appNameOriginal.toLowerCase());
+  if (!firetray.StatusIcon.themedIconApp)
+    throw "Default application themed icon not set";
+  firetray.Handler.setIconImage(firetray.StatusIcon.themedIconApp);
 };
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
