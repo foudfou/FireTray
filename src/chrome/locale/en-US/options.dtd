@@ -23,7 +23,7 @@
 
 <!ENTITY bool_show_icon_on_hide.label "Show tray icon only if a window is hidden">
 <!ENTITY bool_show_icon_on_hide.accesskey "w">
-<!ENTITY app_icon_type "Application icon">
+<!ENTITY app_icon_type "Application icon type">
 <!ENTITY app_icon_themed.label "Default themed">
 <!ENTITY app_icon_themed.accesskey "D">
 <!ENTITY app_icon_themed_name "icon-name">

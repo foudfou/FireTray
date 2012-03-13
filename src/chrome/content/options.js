@@ -30,7 +30,8 @@ var firetrayUIOptions = {
     this.updateWindowAndIconOptions();
     this.updateScrollOptions();
     this.initAppIconType();
-    this.initIconNames();
+    this.initAppIconNames();
+    this.initNewMailIconNames();
   },
 
   onQuit: function(e) {
@@ -60,8 +61,9 @@ var firetrayUIOptions = {
 
   disableGroup: function(group, disableval) {
     try {
-      for (let i=0, len=group.childNodes.length; i<len ; ++i)
-        group.childNodes[i].disabled = disableval;
+      let children = group.childNodes;
+      for (let i=0, len=children.length; i<len ; ++i)
+        children[i].disabled = disableval;
     } catch(e) {}
   },
 
@@ -85,33 +87,49 @@ var firetrayUIOptions = {
       FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM;
     document.getElementById("ui_app_icon_type").selectedIndex =
       firetray.Utils.prefService.getIntPref("app_icon_type");
-   },
+  },
 
-  initIconNames: function() {
-    let appIconNames = firetray.Utils.getArrayPref(firetray.StatusIcon.prefAppIconNames);
+  initAppIconNames: function() {
+    this.initIconNames(firetray.StatusIcon.prefAppIconNames,
+      "app_icon_type_themed_name", firetray.Handler.appNameOriginal.toLowerCase());
+  },
+  initNewMailIconNames: function() {
+    this.initIconNames("new_mail_icon_names",
+      "radio_mail_notification_newmail_icon_name", "mail-unread");
+  },
+
+  initIconNames: function(prefIconNames, uiIconNameId, defaultIconName) {
+    let appIconNames = firetray.Utils.getArrayPref(prefIconNames);
     LOG("appIconNames="+appIconNames);
     let len = appIconNames.length;
     if (len>2)
       throw new RangeError("Too many icon names");
     for (let i=0; i<len; ++i) {
-      let textbox = document.getElementById("app_icon_type_themed_name"+(i+1));
+      let textbox = document.getElementById(uiIconNameId+(i+1));
       textbox.value = appIconNames[i];
     }
-    let textbox = document.getElementById("app_icon_type_themed_name3");
-    textbox.value = firetray.Handler.appNameOriginal.toLowerCase();
+    let textbox = document.getElementById(uiIconNameId+3);
+    textbox.value = defaultIconName;
   },
 
-  updateIconNames: function(textbox) {
-    let appIconNames = [];
+  updateAppIconNames: function(textbox) {
+    this.updateIconNames(firetray.StatusIcon.prefAppIconNames, "app_icon_type_themed_name");
+  },
+  updateNewMailIconNames: function(textbox) {
+    this.updateIconNames("new_mail_icon_names", "radio_mail_notification_newmail_icon_name");
+  },
+
+  updateIconNames: function(prefIconNames, uiIconNameId) {
+    let iconNames = [];
     for (let i=1; i<3; ++i) {
-      let tb = document.getElementById("app_icon_type_themed_name"+i);
-      let val = tb.value.trim();
+      let textbox = document.getElementById(uiIconNameId+i);
+      let val = textbox.value.trim();
       LOG("val="+val);
       if (val)
-        appIconNames.push(val);
+        iconNames.push(val);
     }
-    LOG("appIconNames="+appIconNames);
-    firetray.Utils.setArrayPref(firetray.StatusIcon.prefAppIconNames, appIconNames);
+    LOG("iconNames="+iconNames);
+    firetray.Utils.setArrayPref(prefIconNames, iconNames);
   },
 
   initMailControls: function() {

@@ -367,6 +367,8 @@ firetray.PrefListener = new PrefListener(
     case 'show_icon_on_hide':
       firetray.Handler.showHideIcon();
       break;
+    case 'new_mail_icon_names':
+      firetray.StatusIcon.loadThemedIcons();
     case 'message_count_type':
       firetray.Messaging.updateMsgCount();
       break;

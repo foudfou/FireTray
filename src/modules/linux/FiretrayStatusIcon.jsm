@@ -70,8 +70,11 @@ firetray.StatusIcon = {
 
   loadThemedIcons: function() {
     if (firetray.Handler.inMailApp) {
+      let newMailIconNames = firetray.Utils.getArrayPref("new_mail_icon_names");
+      newMailIconNames.push("mail-unread"); // SMELL
+      this.themedIconNewMail = this.initThemedIcon(newMailIconNames);
+
       this.prefAppIconNames = "app_mail_icon_names";
-      this.themedIconNewMail = this.initThemedIcon(["indicator-messages-new", "mail-message-new"]); // TODO
     } else if (firetray.Handler.inBrowserApp) {
       this.prefAppIconNames = "app_browser_icon_names";
     } else {
@@ -84,6 +87,7 @@ firetray.StatusIcon = {
 
   initThemedIcon: function(names) {
     if (!isArray(names)) throw new TypeError();
+    LOG("themedIconNames="+names);
     let namesLen = names.length;
     LOG("themedIconNamesLen="+namesLen);
     let themedIconNames = ctypes.char.ptr.array(namesLen)();
