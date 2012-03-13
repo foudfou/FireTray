@@ -3,7 +3,7 @@
 var EXPORTED_SYMBOLS = [ "gio" ];
 
 const GIO_LIBNAME = "gio-2.0";
-const GIO_ABIS    = [ "0.3000.2" ];
+const GIO_ABIS    = [ "0" ];
 
 const Cu = Components.utils;
 const Cc = Components.classes;
