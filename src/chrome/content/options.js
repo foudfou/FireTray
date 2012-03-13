@@ -19,16 +19,18 @@ var firetrayUIOptions = {
   onLoad: function(e) {
     this.strings = document.getElementById("firetray-options-strings");
 
-    this.updateWindowAndIconOptions();
-    this.updateScrollOptions();
-
-    if(firetray.Handler.inMailApp) {
+    if (firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.initMailControls();
     } else {
       let mailTab = document.getElementById("mail_tab");
       this.hideElement(mailTab, true);
     }
+
+    this.updateWindowAndIconOptions();
+    this.updateScrollOptions();
+    this.initAppIconType();
+    this.initIconNames();
   },
 
   onQuit: function(e) {
@@ -74,6 +76,42 @@ var firetrayUIOptions = {
   updateScrollOptions: function() {
     let scroll_hides = document.getElementById("ui_scroll_hides").checked;
     this.disableGroup(document.getElementById("ui_radiogroup_scroll"), !scroll_hides);
+  },
+
+  initAppIconType: function() {
+    document.getElementById("ui_app_icon_type_themed").value =
+      FIRETRAY_APPLICATION_ICON_TYPE_THEMED;
+    document.getElementById("ui_app_icon_type_custom").value =
+      FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM;
+    document.getElementById("ui_app_icon_type").selectedIndex =
+      firetray.Utils.prefService.getIntPref("app_icon_type");
+   },
+
+  initIconNames: function() {
+    let appIconNames = firetray.Utils.getArrayPref(firetray.StatusIcon.prefAppIconNames);
+    LOG("appIconNames="+appIconNames);
+    let len = appIconNames.length;
+    if (len>2)
+      throw new RangeError("Too many icon names");
+    for (let i=0; i<len; ++i) {
+      let textbox = document.getElementById("app_icon_type_themed_name"+(i+1));
+      textbox.value = appIconNames[i];
+    }
+    let textbox = document.getElementById("app_icon_type_themed_name3");
+    textbox.value = firetray.Handler.appNameOriginal.toLowerCase();
+  },
+
+  updateIconNames: function(textbox) {
+    let appIconNames = [];
+    for (let i=1; i<3; ++i) {
+      let tb = document.getElementById("app_icon_type_themed_name"+i);
+      let val = tb.value.trim();
+      LOG("val="+val);
+      if (val)
+        appIconNames.push(val);
+    }
+    LOG("appIconNames="+appIconNames);
+    firetray.Utils.setArrayPref(firetray.StatusIcon.prefAppIconNames, appIconNames);
   },
 
   initMailControls: function() {
@@ -187,6 +225,12 @@ var firetrayUIOptions = {
     this.disableMessageCountMaybe(messageCountType);
   },
 
+  chooseAppIconFile: function() {
+    var filepath = document.getElementById("app_icon_custom_filename");
+    this._chooseIconFile(filepath);
+    firetray.Handler.setIconImageDefault();
+  },
+
   chooseMailIconFile: function() {
     var filepath = document.getElementById("custom_mail_icon_filename");
     this._chooseIconFile(filepath);
@@ -252,7 +296,7 @@ var firetrayUIOptions = {
   _disableTreeRow: function(row, disable) {
     let that = this;
     try {
-      let cells = row.childNodes; // .getElementsByTagName('treecell');
+      let cells = row.childNodes;
       LOG("CELLS: "+cells);
       for (let i=0, len=cells.length; i<len; ++i) {
         LOG("i: "+i+", cell:"+cells[i]);

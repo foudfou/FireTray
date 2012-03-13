@@ -13,6 +13,11 @@ pref("extensions.firetray.hides_single_window", false);
 pref("extensions.firetray.start_hidden", false);
 pref("extensions.firetray.show_activates", false);
 
+pref("extensions.firetray.app_icon_type", 0);
+pref("extensions.firetray.app_browser_icon_names", '[]');
+pref("extensions.firetray.app_mail_icon_names", '["indicator-messages", "applications-email-panel"]');
+pref("extensions.firetray.app_default_icon_names", '[]');
+pref("extensions.firetray.app_icon_filename", "");
 pref("extensions.firetray.show_icon_on_hide", false);
 pref("extensions.firetray.scroll_hides", true);
 pref("extensions.firetray.scroll_mode", "down_hides");

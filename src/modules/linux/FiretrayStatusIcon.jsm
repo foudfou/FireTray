@@ -30,6 +30,7 @@ firetray.StatusIcon = {
   trayIcon: null,
   themedIconApp: null,
   themedIconNewMail: null,
+  prefAppIconNames: null,
 
   init: function() {
     try {
@@ -39,9 +40,7 @@ firetray.StatusIcon = {
       LOG("gtkIconTheme="+gtkIconTheme);
       gtk.gtk_icon_theme_append_search_path(gtkIconTheme, this.GTK_THEME_ICON_PATH);
 
-      // TODO: make related options
-      this.themedIconApp     = this.initThemedIcon(["indicator-messages", "applications-email-panel", firetray.Handler.appNameOriginal.toLowerCase()]);
-      this.themedIconNewMail = this.initThemedIcon(["indicator-messages-new", "mail-message-new"]);
+      this.loadThemedIcons();
 
       this.trayIcon  = gtk.gtk_status_icon_new();
 
@@ -67,6 +66,20 @@ firetray.StatusIcon = {
   shutdown: function() {
     firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gtk, pango, pangocairo]);
     this.initialized = false;
+  },
+
+  loadThemedIcons: function() {
+    if (firetray.Handler.inMailApp) {
+      this.prefAppIconNames = "app_mail_icon_names";
+      this.themedIconNewMail = this.initThemedIcon(["indicator-messages-new", "mail-message-new"]); // TODO
+    } else if (firetray.Handler.inBrowserApp) {
+      this.prefAppIconNames = "app_browser_icon_names";
+    } else {
+      this.prefAppIconNames = "app_default_icon_names";
+    }
+    let appIconNames = firetray.Utils.getArrayPref(this.prefAppIconNames);
+    appIconNames.push(firetray.Handler.appNameOriginal.toLowerCase());
+    this.themedIconApp = this.initThemedIcon(appIconNames);
   },
 
   initThemedIcon: function(names) {
@@ -162,7 +175,13 @@ firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile
 firetray.Handler.setIconImageDefault = function() {
   if (!firetray.StatusIcon.themedIconApp)
     throw "Default application themed icon not set";
-  firetray.Handler.setIconImage(firetray.StatusIcon.themedIconApp);
+  let appIconType = firetray.Utils.prefService.getIntPref("app_icon_type");
+  if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_THEMED)
+    firetray.Handler.setIconImage(firetray.StatusIcon.themedIconApp);
+  else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM) {
+    let appIconFilename = firetray.Utils.prefService.getCharPref("app_icon_filename");
+    firetray.Handler.setIconImageFromFile(appIconFilename);
+  }
 };
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed

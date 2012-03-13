@@ -370,6 +370,16 @@ firetray.PrefListener = new PrefListener(
     case 'message_count_type':
       firetray.Messaging.updateMsgCount();
       break;
+    case 'app_mail_icon_names':
+    case 'app_browser_icon_names':
+    case 'app_default_icon_names':
+      firetray.StatusIcon.loadThemedIcons();
+    case 'app_icon_type':
+      if (firetray.Handler.inMailApp)
+        firetray.Messaging.updateMsgCount();
+      else
+        firetray.Handler.setIconImageDefault();
+      break;
     default:
     }
   });

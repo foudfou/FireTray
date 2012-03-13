@@ -25,6 +25,8 @@
       <preference id="pref_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
       <preference id="pref_show_activates" name="extensions.firetray.show_activates" type="bool"/>
       <preference id="pref_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
+      <preference id="pref_app_icon_type" name="extensions.firetray.app_icon_type" type="int"/>
+      <preference id="pref_app_icon_filename" name="extensions.firetray.app_icon_filename" type="string"/>
       <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
       <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
@@ -36,7 +38,8 @@
 
     <tabbox>
       <tabs>
-        <tab label="&windows_icon_options;"/>
+        <tab label="&windows_options;"/>
+        <tab label="&icon_options;"/>
         <tab label="&mail_options;" id="mail_tab" />
       </tabs>
       <tabpanels flex="1">
@@ -44,8 +47,6 @@
         <tabpanel id="general_tabpanel" flex="1">
           <vbox pack="start" align="left" flex="1">
 
-          <groupbox>
-            <caption label="&windows_behaviour;" />
             <checkbox id="ui_hides_on_close" preference="pref_hides_on_close"
                       label="&bool_hides_on_close.label;"
                       accesskey="&bool_hides_on_close.accesskey;"
@@ -65,13 +66,45 @@
                       label="&bool_show_activates.label;"
                       accesskey="&bool_show_activates.accesskey;"
                       tooltiptext="&bool_show_activates.tooltip;"/>
-          </groupbox>
 
-          <groupbox>
-            <caption label="&icon_settings;" />
+          </vbox>
+        </tabpanel>
+
+
+        <tabpanel id="icon_tabpanel" flex="1">
+          <vbox pack="start" align="left" flex="1">
+
+            <radiogroup id="ui_app_icon_type" preference="pref_app_icon_type">
+              <vbox align="left" flex="1">
+                <label class="header">&app_icon_type;</label>
+
+                <hbox>
+                  <radio id="ui_app_icon_type_themed" label="&app_icon_themed.label;"
+                         accesskey="&app_icon_themed.accesskey;" tooltiptext="&app_icon_themed.tooltip;" />
+                  <textbox id="app_icon_type_themed_name1" size="12" placeholder="&app_icon_themed_name;"
+                           onchange="firetrayUIOptions.updateIconNames(this);" flex="1" />
+                  <textbox id="app_icon_type_themed_name2" size="12" placeholder="&app_icon_themed_name;"
+                           onchange="firetrayUIOptions.updateIconNames(this);" flex="1" />
+                  <textbox id="app_icon_type_themed_name3" size="12" placeholder="&app_icon_themed_name;"
+                           onchange="firetrayUIOptions.updateIconNames(this);" flex="1"
+                           disabled="true"/>
+                </hbox>
+                <hbox>
+                  <radio id="ui_app_icon_type_custom" label="&app_icon_custom.label;"
+                         accesskey="&app_icon_custom.accesskey;" />
+                  <textbox id="app_icon_custom_filename" preference="pref_app_icon_filename" flex="1" />
+                  <button id="app_icon_custom_select" label="&choose;"
+                          accesskey="&choose.accesskey;"
+                          oncommand="firetrayUIOptions.chooseAppIconFile()" />
+                </hbox>
+
+              </vbox>
+            </radiogroup>
+
             <checkbox id="ui_show_icon_on_hide" preference="pref_show_icon_on_hide"
                       label="&bool_show_icon_on_hide.label;"
                       accesskey="&bool_show_icon_on_hide.accesskey;"/>
+
             <checkbox id="ui_scroll_hides" preference="pref_scroll_hides"
                       label="&enable_mouse_scroll.label;"
                       accesskey="&enable_mouse_scroll.accesskey;"
@@ -80,7 +113,6 @@
               <radio id="ui_radio_scroll_down_hides" label="&down;=&hide;, &up;=&restore;" value="down_hides" />
               <radio id="ui_radio_scroll_up_hides" label="&up;=&hide;, &down;=&restore;" value="up_hides" />
             </radiogroup>
-          </groupbox>
 
           </vbox>
         </tabpanel>
@@ -130,18 +162,30 @@
                                observes="broadcaster-notification-disabled"/>
                 </hbox>
               </hbox>
-              <radio id="ui_radio_mail_notification_newmail_icon" label="&mail_notification_newmail_icon.label;"
-                     accesskey="&mail_notification_newmail_icon.accesskey;"
-                     oncommand="firetrayUIOptions.updateNotificationSettings()"
-                     observes="broadcaster-notification-disabled" />
+              <hbox>
+                <radio id="ui_radio_mail_notification_newmail_icon" label="&mail_notification_newmail_icon.label;"
+                       accesskey="&mail_notification_newmail_icon.accesskey;"
+                       oncommand="firetrayUIOptions.updateNotificationSettings()"
+                       observes="broadcaster-notification-disabled" />
+                <!-- TODO -->
+                <textbox id="radio_mail_notification_newmail_icon_name1" size="12"
+                         placeholder="&app_icon_themed_name;" onchange="" flex="1"
+                         observes="broadcaster-notification-disabled" />
+                <textbox id="radio_mail_notification_newmail_icon_name2" size="12"
+                         placeholder="&app_icon_themed_name;" onchange="" flex="1"
+                         observes="broadcaster-notification-disabled" />
+                <textbox id="radio_mail_notification_newmail_icon_name3" size="12"
+                         placeholder="&app_icon_themed_name;" onchange="" flex="1"
+                         observes="broadcaster-notification-disabled" />
+              </hbox>
               <hbox>
                 <radio id="ui_radio_mail_notification_custom_mail_icon" label="&mail_notification_custom_mail_icon.label;"
                        accesskey="&mail_notification_custom_mail_icon.accesskey;"
-                       oncommand="firetrayUIOptions.updateNotificationSettings()" 
+                       oncommand="firetrayUIOptions.updateNotificationSettings()"
                        observes="broadcaster-notification-disabled" />
                 <hbox id="custom_mail_icon" align="center" flex="1" >
                   <textbox id="custom_mail_icon_filename" preference="pref_custom_mail_icon"
-                           onblur="firetray.Messaging.updateMsgCount();" flex="1" />
+                           onchange="firetray.Messaging.updateMsgCount();" flex="1" />
                   <button id="custom_mail_icon_select" label="&choose;"
                           accesskey="&choose.accesskey;"
                           oncommand="firetrayUIOptions.chooseMailIconFile()" />
@@ -204,7 +248,7 @@
 
           </vbox>
         </tabpanel>
-        
+
       </tabpanels>
     </tabbox>
 

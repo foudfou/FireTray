@@ -4,9 +4,10 @@
    provided by this module */
 var EXPORTED_SYMBOLS =
   [ "firetray", "LOG", "WARN", "ERROR", "FIREFOX_ID", "THUNDERBIRD_ID",
-    "SEAMONKEY_ID", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE", "getType",
-    "isArray", "isEmpty", "strEquals",
-    "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
+    "SEAMONKEY_ID", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
+    "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
+    "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM", "getType", "isArray", "isEmpty",
+    "strEquals", "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS", "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD",
@@ -28,6 +29,9 @@ const CHATZILLA_ID   = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
 
 const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
 const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
+
+const FIRETRAY_APPLICATION_ICON_TYPE_THEMED      = 0;
+const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM      = 1;
 
 const FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT = 0;
 const FIRETRAY_NOTIFICATION_NEWMAIL_ICON         = 1;
@@ -215,6 +219,13 @@ if(!Object.keys) Object.keys = function(o){
   for(p in o) if(Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
   return ret;
 };
+
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/String/Trim
+if(!String.prototype.trim) {
+  String.prototype.trim = function () {
+    return this.replace(/^\s+|\s+$/g,'');
+  };
+}
 
 // http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object-from-json
 function isEmpty(obj) {
