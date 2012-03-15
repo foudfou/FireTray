@@ -27,7 +27,7 @@
 <!ENTITY app_icon_themed.label "Default themed">
 <!ENTITY app_icon_themed.accesskey "D">
 <!ENTITY app_icon_themed_name "icon-name">
-<!ENTITY app_icon_themed.tooltip "Icon names provided by graphical environment">
+<!ENTITY icon_themed.tooltip "Icon names provided by graphical environment">
 <!ENTITY app_icon_custom.label "Custom">
 <!ENTITY app_icon_custom.accesskey "u">
 

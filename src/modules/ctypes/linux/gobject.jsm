@@ -6,7 +6,7 @@
  * 1.1 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  * http://www.mozilla.org/MPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS IS" basis,
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
@@ -34,7 +34,7 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 
 var EXPORTED_SYMBOLS = [ "gobject", "glib" ];
@@ -140,6 +140,7 @@ function gobject_defines(lib) {
     return this.g_signal_connect_data(instance, detailed_signal, handler, data, null, this.G_CONNECT_AFTER);
   };
 
+  lib.lazy_bind("g_free", ctypes.void_t, this.gpointer);
   lib.lazy_bind("g_object_unref", ctypes.void_t, this.gpointer);
   lib.lazy_bind("g_list_free", ctypes.void_t, this.GList.ptr);
   lib.lazy_bind("g_list_length", this.guint, this.GList.ptr);

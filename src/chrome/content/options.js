@@ -31,7 +31,8 @@ var firetrayUIOptions = {
     this.updateScrollOptions();
     this.initAppIconType();
     this.initAppIconNames();
-    this.initNewMailIconNames();
+    if (firetray.Handler.inMailApp)
+      this.initNewMailIconNames();
   },
 
   onQuit: function(e) {
@@ -85,17 +86,20 @@ var firetrayUIOptions = {
       FIRETRAY_APPLICATION_ICON_TYPE_THEMED;
     document.getElementById("ui_app_icon_type_custom").value =
       FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM;
-    document.getElementById("ui_app_icon_type").selectedIndex =
-      firetray.Utils.prefService.getIntPref("app_icon_type");
+
+    let prefAppIconType = firetray.Utils.prefService.getIntPref("app_icon_type");
+    document.getElementById("ui_app_icon_type").selectedIndex = prefAppIconType;
+
+    this.disableIconTypeMaybe(prefAppIconType);
   },
 
   initAppIconNames: function() {
     this.initIconNames(firetray.StatusIcon.prefAppIconNames,
-      "app_icon_type_themed_name", firetray.Handler.appNameOriginal.toLowerCase());
+      "app_icon_type_themed_name", firetray.StatusIcon.defaultAppIconName);
   },
   initNewMailIconNames: function() {
     this.initIconNames("new_mail_icon_names",
-      "radio_mail_notification_newmail_icon_name", "mail-unread");
+      "radio_mail_notification_newmail_icon_name", firetray.StatusIcon.defaultNewMailIconName);
   },
 
   initIconNames: function(prefIconNames, uiIconNameId, defaultIconName) {
@@ -125,11 +129,16 @@ var firetrayUIOptions = {
       let textbox = document.getElementById(uiIconNameId+i);
       let val = textbox.value.trim();
       LOG("val="+val);
-      if (val)
-        iconNames.push(val);
+      if (val) iconNames.push(val);
     }
     LOG("iconNames="+iconNames);
     firetray.Utils.setArrayPref(prefIconNames, iconNames);
+  },
+
+  disableIconTypeMaybe: function(appIconType) {
+    let customIconGroup = document.getElementById("custom_app_icon");
+    this.disableGroup(customIconGroup,
+                      (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM));
   },
 
   initMailControls: function() {

@@ -31,8 +31,13 @@ firetray.StatusIcon = {
   themedIconApp: null,
   themedIconNewMail: null,
   prefAppIconNames: null,
+  prefNewMailIconNames: null,
+  defaultAppIconName: null,
+  defaultNewMailIconName: null,
 
   init: function() {
+    this.defineIconNames();
+
     try {
       this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath("chrome://firetray/skin/linux/icons");
       LOG(this.GTK_THEME_ICON_PATH);
@@ -68,21 +73,42 @@ firetray.StatusIcon = {
     this.initialized = false;
   },
 
+  defineIconNames: function() {
+    this.prefAppIconNames = (function() {
+      if (firetray.Handler.inMailApp) {
+        return "app_mail_icon_names";
+      } else if (firetray.Handler.inBrowserApp) {
+        return "app_browser_icon_names";
+      } else {
+        return "app_default_icon_names";
+      }
+    })();
+    this.defaultAppIconName = firetray.Handler.appNameOriginal.toLowerCase();
+
+    this.prefNewMailIconNames = "new_mail_icon_names";
+    this.defaultNewMailIconName = "mail-unread";
+  },
+
   loadThemedIcons: function() {
     if (firetray.Handler.inMailApp) {
-      let newMailIconNames = firetray.Utils.getArrayPref("new_mail_icon_names");
-      newMailIconNames.push("mail-unread"); // SMELL
+      let newMailIconNames = this.getNewMailIconNames();
+      if (this.themedIconNewMail) gobject.g_object_unref(this.themedIconNewMail);
       this.themedIconNewMail = this.initThemedIcon(newMailIconNames);
-
-      this.prefAppIconNames = "app_mail_icon_names";
-    } else if (firetray.Handler.inBrowserApp) {
-      this.prefAppIconNames = "app_browser_icon_names";
-    } else {
-      this.prefAppIconNames = "app_default_icon_names";
     }
-    let appIconNames = firetray.Utils.getArrayPref(this.prefAppIconNames);
-    appIconNames.push(firetray.Handler.appNameOriginal.toLowerCase());
+    let appIconNames = this.getAppIconNames();
+    if (this.themedIconApp) gobject.g_object_unref(this.themedIconApp);
     this.themedIconApp = this.initThemedIcon(appIconNames);
+  },
+
+  getAppIconNames: function() {
+    let appIconNames = firetray.Utils.getArrayPref(this.prefAppIconNames);
+    appIconNames.push(this.defaultAppIconName);
+    return appIconNames;
+  },
+  getNewMailIconNames: function() {
+    let newMailIconNames = firetray.Utils.getArrayPref(this.prefNewMailIconNames);
+    newMailIconNames.push(this.defaultNewMailIconName);
+    return newMailIconNames;
   },
 
   initThemedIcon: function(names) {
