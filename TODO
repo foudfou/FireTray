@@ -1,11 +1,6 @@
 TODO
 ----
 
-* when updating from 0.3 to 0.4, since prefs names have changed, will we need
-  to unsinstall addon ?
-
-* add entry to popup menu when registering
-
 WONTFIX
 -------
 
@@ -30,8 +25,24 @@ NEXT FEATURES
 -------------
 
 * z-order/stack: gdk_window_raise(), XQueryTree(), XConfigureWindow/XConfigureRequestEvent
-* when restoring, if the window is iconified, deiconify it
 * keyboard shortcut hide/show
 * fetch mail from popup menu
 
 [Vote](https://docs.google.com/spreadsheet/viewform?hl=fr&formkey=dFJqUC1pLTQzNkJYQldFdzdSV1BaSkE6MQ#gid=0)
+
+HISTORY
+-------
+
+<strong>*** Check out the upcoming version ***</strong>
+<ul>
+<li>Mozilla products have entered a
+<a href="http://blog.mozilla.com/blog/2011/04/13/new-channels-for-firefox-rapid-releases/
+" title="Mozilla Blog">rapid release cycle</a> which implies frequent rebuilds of XPCOM-based addons (such as Firetray)</li>
+<li>authors are encouraged to <a href="https://groups.google.com/group/mozilla.dev.extensions/browse_thread/thread/2d6942c44f303b62/b98debfbccef11ed">port their XPCOM binary-based addons to js-ctypes</a></li>
+<li>Francesco doesn't have enough time to maintain the Firetray project in this situation</li>
+<li>Foudil has come up with a prototype js-ctypes version of the project, which is functional, but does not yet cover all features currently supported by the XPCOM version.</li>
+<li>the js-ctypes version will endeavor to support uncovered features in the
+future (see support page)</li>
+<li>the Firetray project plans to replace the XPCOM version with the js-types version when enough features are covered</li>
+<li>meanwhile, Firetray users are invited to switch to the preview release of the js-ctypes version (see beta channel below) and  <a href="https://github.com/foudfou/FireTray/issues">provide feedback</a> as to what important features are missing</li>
+</ul>

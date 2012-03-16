@@ -11,15 +11,24 @@ Features
 
 * for all applications:
   * show/hide a single or all windows
-  * a window gets restored to its previous state, position, size, virtual desktop
-  * optional hide to tray on minimize
-  * optional start minimized to tray
-  * optional show icon only when hidden to tray
+  * restore windows to their previous state, position, size
+  * restore each window to its original virtual desktop/workspace
+  * activate restored windows
+  * hide to tray on close
+  * hide to tray on minimize
+  * start minimized to tray
+  * show icon only when hidden to tray
+  * mouse scroll on tray icon shows/hides
+  * themable icons *(forthcoming)*
+  * popup menu (show/hide indivisual windows, open new windows, quit)
+  * keyboard shortcuts *(forthcoming)*
 
 * for mail applications:
   * display unread messages count in tray icon
+  * display biff in tray icon when new messages
   * customizable tray icon for mail biff
-  * include/exclude mail accounts and folders types to/from unread messages count
+  * include/exclude mail accounts to/from messages count
+  * include/exclude folders types to/from messages count
 
 Notes
 -----
