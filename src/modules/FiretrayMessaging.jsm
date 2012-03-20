@@ -23,13 +23,19 @@ const FLDRS_UNINTERESTING = {
 
 firetray.Messaging = {
   initialized: false,
+  cleaningTimer: null,
 
   init: function() {
     if (this.initialized) {
-      firetray.WARN("Messaging already initialized");
+      firetray.LOG("Messaging already initialized");
       return;
     }
     firetray.LOG("Enabling Messaging");
+
+    // there is no means to detect account-removed event
+    this.cleaningTimer = firetray.Utils.timer(firetray.Messaging.cleanExcludedAccounts,
+      FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS, Ci.nsITimer.TYPE_REPEATING_SLACK);
+    firetray.WARN(this.cleaningTimer+"="+FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS);
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
@@ -43,15 +49,48 @@ firetray.Messaging = {
       return;
     firetray.LOG("Disabling Messaging");
 
+    this.cleaningTimer.cancel();
+
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
     firetray.Handler.setIconImageDefault();
 
     this.initialized = false;
   },
 
-  /**
-   * http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsIFolderListener.idl
-   */
+  /* removes removed accounts from excludedAccounts pref. NOTE: Can't be called
+    at shutdown because MailServices.accounts no longer available */
+  cleanExcludedAccounts: function() {
+    try {
+    firetray.LOG("* cleaning *");
+    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+    let excludedAccounts = mailAccounts["excludedAccounts"];
+
+    // build current list of account server keys
+    let accounts = MailServices.accounts.accounts;
+    let accountServerKeys = [];
+    for (let i=0, len=accounts.Count(); i<len; ++i) {
+      let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
+      let accountServer = account.incomingServer;
+      accountServerKeys[i] = accountServer;
+    }
+
+    let newExcludedAccounts = [], cleaningNeeded = 0;
+    for (let excludedAccount in excludedAccounts) {
+      if (accountServerKeys.indexOf(excludedAccount) >= 0)
+        newExcludedAccounts.push(excludedAccount);
+      else
+        cleaningNeeded += 1;
+    }
+
+    if (cleaningNeeded) {
+      firetray.LOG("cleaning excluded accounts");
+      let prefObj = {"serverTypes":mailAccounts["serverTypes"], "excludedAccounts":newExcludedAccounts};
+      firetray.Utils.setObjPref('mail_accounts', prefObj);
+    }
+    } catch(x) { firetray.ERROR(x); }
+  },
+
+  /* http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsIFolderListener.idl */
   mailSessionListener: {
     notificationFlags:
       // Ci.nsIFolderListener.propertyChanged |

@@ -8,6 +8,7 @@ var EXPORTED_SYMBOLS =
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS", "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD",
+    "FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS",
     "FIRETRAY_MESSAGE_COUNT_TYPE_NEW" ];
 
 const Cc = Components.classes;
@@ -26,6 +27,7 @@ const FIRETRAY_NOTIFICATION_CUSTOM_ICON          = 3;
 
 const FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS = 500;
 const FIRETRAY_DELAY_NOWAIT_MILLISECONDS          = 0;
+const FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS   = 15*60*1000;
 
 const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD = 0;
 const FIRETRAY_MESSAGE_COUNT_TYPE_NEW    = 1;
@@ -174,6 +176,7 @@ firetray.Utils = {
     var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     timer.initWithCallback({ notify: callback },
       delay, timerType);
+    return timer;
   },
 
   tryCloseLibs: function(libs) {
