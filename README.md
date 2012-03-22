@@ -72,12 +72,17 @@ KNOWN BUGS
   it's impossible to display an accurate count of *new messages*. The best we
   can do is display a biff icon.
 
+* POP users should set
+  [http://kb.mozillazine.org/Thunderbird_:_FAQs_:_Automatically_Download_Messages](Automatically
+  download new messages) to see new message. See
+  [this discussion](https://github.com/foudfou/FireTray/issues/20).
+
 Acknowledgment
 --------------
 
 * Some code borrowed from [Mike Conley](http://mzl.la/messagingmenu "Thanks Mike").
 * Some code borrowed from
-  [Nils Mayer](https://addons.mozilla.org/fr/firefox/addon/minimizetotray-revived/
+  [Nils Maier](https://addons.mozilla.org/fr/firefox/addon/minimizetotray-revived/
   "MinToTrayR addon page").
 * kind support from Neil Deaking, Bobby Holley
 
