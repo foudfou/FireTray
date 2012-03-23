@@ -351,23 +351,30 @@ firetray.Window = {
     if (!firetray.Utils.prefService.getBoolPref('show_activates'))
       return;
 try {
+    // TODO: need to do a recursive timer that waits for winDesktop to be set.
+    // TODO: might also be time to implement, if inMailApp, a "if not hidden
+    // then switch to win and activate" option
       firetray.Utils.timer(function() {
     let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
-    let rootWin = x11.XDefaultRootWindow(x11.current.Display);
-    firetray.WARN("winDesktop="+winDesktop+" rootWin="+rootWin+" xid="+xid);
-    if (winDesktop && rootWin) {
-      let dataSize = 3;
-      let data = ctypes.long(dataSize);
-      data[0] = winDesktop;
-      data[1] = 0;
-      data[2] = 0;
-      firetray.Window.xSendClientMessgeEvent(rootWin, x11.current.Atoms._NET_CURRENT_DESKTOP, data, dataSize);
-    }
+    firetray.Window.switchDesktop(winDesktop);
 
     gtk.gtk_window_present(firetray.Handler.gtkWindows.get(xid));
     firetray.LOG("window raised");
       }, 1000, Ci.nsITimer.TYPE_ONE_SHOT);
 } catch(x) {firetray.ERROR(x);}
+  },
+
+  switchDesktop: function(desktop) {
+    let rootWin = x11.XDefaultRootWindow(x11.current.Display);
+    firetray.LOG("switching desktop="+desktop+" rootWin="+rootWin);
+    if (desktop && rootWin) {
+      let dataSize = 3;
+      let data = ctypes.long(dataSize);
+      data[0] = desktop;
+      data[1] = 0;
+      data[2] = 0;
+      firetray.Window.xSendClientMessgeEvent(rootWin, x11.current.Atoms._NET_CURRENT_DESKTOP, data, dataSize);
+    }
   },
 
   /**
