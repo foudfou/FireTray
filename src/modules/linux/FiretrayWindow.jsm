@@ -350,8 +350,24 @@ firetray.Window = {
   activate: function(xid) {
     if (!firetray.Utils.prefService.getBoolPref('show_activates'))
       return;
+try {
+      firetray.Utils.timer(function() {
+    let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
+    let rootWin = x11.XDefaultRootWindow(x11.current.Display);
+    firetray.WARN("winDesktop="+winDesktop+" rootWin="+rootWin+" xid="+xid);
+    if (winDesktop && rootWin) {
+      let dataSize = 3;
+      let data = ctypes.long(dataSize);
+      data[0] = winDesktop;
+      data[1] = 0;
+      data[2] = 0;
+      firetray.Window.xSendClientMessgeEvent(rootWin, x11.current.Atoms._NET_CURRENT_DESKTOP, data, dataSize);
+    }
+
     gtk.gtk_window_present(firetray.Handler.gtkWindows.get(xid));
     firetray.LOG("window raised");
+      }, 1000, Ci.nsITimer.TYPE_ONE_SHOT);
+} catch(x) {firetray.ERROR(x);}
   },
 
   /**
