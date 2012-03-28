@@ -158,7 +158,7 @@ firetray.Messaging = {
         newMsgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
         .replace("#1", newMsgCount);
-      firetray.WARN(localizedTooltip);
+      firetray.LOG(localizedTooltip);
     } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
       newMsgCount = this.countMessages(this.newMsgCountIterate);
       localizedTooltip = firetray.Utils.strings.GetStringFromName("tooltip.new_messages");
