@@ -115,19 +115,19 @@ firetray.PopupMenu = {
   // hides_single_window is false, because if hides_single_window becomes true,
   // we'll just have to show the menuItems
   addWindowItem: function(xid) { // on registerWindow
-    var menuItemWindow = this.addItem();
+    var menuItemWindow = this.createAndAddItemToMenu();
     firetray.Handler.gtkPopupMenuWindowItems.insert(xid, menuItemWindow);
+    this.setWindowItemLabel(menuItemWindow, xid.toString()); // default to xid
 
     this.callbacks.menuItemWindowActivate[xid] = gobject.GCallback_t(
       function(){firetray.Handler.showSingleWindow(xid);});
     gobject.g_signal_connect(menuItemWindow, "activate",
       firetray.PopupMenu.callbacks.menuItemWindowActivate[xid], null);
-    this.setWindowItemLabel(menuItemWindow, xid); // default to xid
 
-    firetray.LOG("add gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
+    firetray.LOG("added gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
   },
 
-  addItem: function() {
+  createAndAddItemToMenu: function() {
     var menuItem = gtk.gtk_image_menu_item_new();
     var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
     gtk.gtk_menu_shell_prepend(menuShell, ctypes.cast(menuItem, gtk.GtkWidget.ptr));
