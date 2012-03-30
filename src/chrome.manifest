@@ -9,3 +9,7 @@ overlay	chrome://songbird/content/xul/mainScriptsOverlay.xul	chrome://firetray/c
 overlay	chrome://sunbird/content/calendar.xul	chrome://firetray/content/overlay.xul
 overlay	chrome://navigator/content/navigator.xul	chrome://firetray/content/overlay.xul
 overlay	chrome://chatzilla/content/chatzilla.xul	chrome://firetray/content/overlay.xul
+
+component {a9c9cc52-4d6c-45c2-a73f-0be1bd60aaa6} components/firetray-clhandler.js
+contract @mozilla.org/commandlinehandler/general-startup;1?type=firetray {a9c9cc52-4d6c-45c2-a73f-0be1bd60aaa6}
+category command-line-handler m-firetray @mozilla.org/commandlinehandler/general-startup;1?type=firetray
