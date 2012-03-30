@@ -25,7 +25,7 @@ Cu.import("resource://firetray/ctypes/linux/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.Handler))
-  firetray.ERROR("This module MUST be imported from/after FiretrayHandler !");
+  F.ERROR("This module MUST be imported from/after FiretrayHandler !");
 
 const Services2 = {};
 XPCOMUtils.defineLazyServiceGetter(
@@ -81,7 +81,7 @@ firetray.Window = {
 
     // Tag the base window
     let oldTitle = baseWindow.title;
-    firetray.LOG("oldTitle="+oldTitle);
+    F.LOG("oldTitle="+oldTitle);
     baseWindow.title = Services2.uuid.generateUUID().toString();
 
     try {
@@ -93,16 +93,16 @@ firetray.Window = {
         ctypes.char.array()(baseWindow.title),
         null
       ).address();
-      firetray.LOG("userData="+userData);
+      F.LOG("userData="+userData);
       gobject.g_list_foreach(widgets, findGtkWindowByTitleCb, userData);
       gobject.g_list_free(widgets);
 
       if (userData.contents.outWindow.isNull()) {
         throw new Error("Window not found!");
       }
-      firetray.LOG("found window: "+userData.contents.outWindow);
+      F.LOG("found window: "+userData.contents.outWindow);
     } catch (x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
     } finally {
       // Restore
       baseWindow.title = oldTitle;
@@ -124,7 +124,7 @@ firetray.Window = {
     let winTitle = gtk.gtk_window_get_title(gtkWin);
 
     if (!winTitle.isNull()) {
-      firetray.LOG(inTitle+" = "+winTitle);
+      F.LOG(inTitle+" = "+winTitle);
       if (libc.strcmp(inTitle, winTitle) == 0)
         data.contents.outWindow = gtkWin;
     }
@@ -135,7 +135,7 @@ firetray.Window = {
       let gtkWid = ctypes.cast(gtkWin, gtk.GtkWidget.ptr);
       return gtk.gtk_widget_get_window(gtkWid);
     } catch (x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
     }
     return null;
   },
@@ -149,7 +149,7 @@ firetray.Window = {
       let gdkWin = gtk.gtk_widget_get_window(gtkWid);
       return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
     } catch (x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
     }
     return null;
   },
@@ -159,7 +159,7 @@ firetray.Window = {
     let gtkWin = firetray.Window.getGtkWindowHandle(win);
     let gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWin);
     let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
-    firetray.LOG("XID="+xid);
+    F.LOG("XID="+xid);
     return [gtkWin, gdkWin, xid];
   },
 
@@ -167,7 +167,7 @@ firetray.Window = {
     for (let xid in firetray.Handler.windows)
       if (firetray.Handler.windows[xid].chromeWin === win)
         return xid;
-    firetray.ERROR("unknown window while lookup");
+    F.ERROR("unknown window while lookup");
     return null;
   },
 
@@ -181,15 +181,15 @@ firetray.Window = {
       firetray.Handler.gdkWindows.remove(xid);
       firetray.PopupMenu.removeWindowItem(xid);
     } else {
-      firetray.ERROR("can't unregister unknown window "+xid);
+      F.ERROR("can't unregister unknown window "+xid);
       return false;
     }
-    firetray.LOG("window "+xid+" unregistered");
+    F.LOG("window "+xid+" unregistered");
     return true;
   },
 
   showSingleStateful: function(xid) {
-    firetray.LOG("showSingleStateful xid="+xid);
+    F.LOG("showSingleStateful xid="+xid);
 
     // try to restore previous state. TODO: z-order respected ?
     firetray.Window.restorePositionAndSize(xid);
@@ -206,7 +206,7 @@ firetray.Window = {
     firetray.Handler.showHideIcon();
   },
   showSingleStatelessOnce: function(xid) {
-    firetray.LOG("showSingleStateless");
+    F.LOG("showSingleStateless");
 
     firetray.Window.setVisibility(xid, true);
 
@@ -220,7 +220,7 @@ firetray.Window = {
   // gdk_window_show_unraised)
   /* FIXME: hiding windows should also hide child windows */
   hideSingleStateful: function(xid) {
-    firetray.LOG("hideSingleStateful");
+    F.LOG("hideSingleStateful");
 
     firetray.Window.savePositionAndSize(xid);
     firetray.Window.saveStates(xid);
@@ -237,7 +237,7 @@ firetray.Window = {
    * is not accurate.
    */
   hideSingleStatelessOnce: function(xid) {
-    firetray.LOG("hideSingleStateless");
+    F.LOG("hideSingleStateless");
 
     firetray.Window.setVisibility(xid, false);
 
@@ -254,14 +254,14 @@ firetray.Window = {
     firetray.Handler.windows[xid].savedY = gy.value;
     firetray.Handler.windows[xid].savedWidth = gwidth.value;
     firetray.Handler.windows[xid].savedHeight = gheight.value;
-    firetray.LOG("save: gx="+gx.value+", gy="+gy.value+", gwidth="+gwidth.value+", gheight="+gheight.value);
+    F.LOG("save: gx="+gx.value+", gy="+gy.value+", gwidth="+gwidth.value+", gheight="+gheight.value);
   },
 
   restorePositionAndSize: function(xid) {
     if ("undefined" === typeof(firetray.Handler.windows[xid].savedX))
       return; // windows[xid].saved* may not be initialized
 
-    firetray.LOG("restore: x="+firetray.Handler.windows[xid].savedX+", y="+firetray.Handler.windows[xid].savedY+", w="+firetray.Handler.windows[xid].savedWidth+", h="+firetray.Handler.windows[xid].savedHeight);
+    F.LOG("restore: x="+firetray.Handler.windows[xid].savedX+", y="+firetray.Handler.windows[xid].savedY+", w="+firetray.Handler.windows[xid].savedWidth+", h="+firetray.Handler.windows[xid].savedHeight);
     firetray.Handler.windows[xid].baseWin.setPositionAndSize(
       firetray.Handler.windows[xid].savedX,
       firetray.Handler.windows[xid].savedY,
@@ -277,12 +277,12 @@ firetray.Window = {
   saveStates: function(xid) {
     let winStates = firetray.Window.getXWindowStates(x11.Window(xid));
     firetray.Handler.windows[xid].savedStates = winStates;
-    firetray.LOG("save: windowStates="+winStates);
+    F.LOG("save: windowStates="+winStates);
   },
 
   restoreStates: function(xid) {
     let winStates = firetray.Handler.windows[xid].savedStates;
-    firetray.LOG("restored WindowStates: " + winStates);
+    F.LOG("restored WindowStates: " + winStates);
     if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
       firetray.Handler.windows[xid].chromeWin.maximize();
     }
@@ -300,7 +300,7 @@ firetray.Window = {
 
     let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
     firetray.Handler.windows[xid].savedDesktop = winDesktop;
-    firetray.LOG("save: windowDesktop="+winDesktop);
+    F.LOG("save: windowDesktop="+winDesktop);
   },
 
   restoreDesktop: function(xid) {
@@ -315,7 +315,7 @@ firetray.Window = {
     data[0] = desktopDest;
     this.xSendClientMessgeEvent(xid, x11.current.Atoms._NET_WM_DESKTOP, data, dataSize);
 
-    firetray.LOG("restored to desktop: "+desktopDest);
+    F.LOG("restored to desktop: "+desktopDest);
     delete firetray.Handler.windows[xid].savedDesktop;
   },
 
@@ -351,7 +351,7 @@ firetray.Window = {
     if (!firetray.Utils.prefService.getBoolPref('show_activates'))
       return;
     gtk.gtk_window_present(firetray.Handler.gtkWindows.get(xid));
-    firetray.LOG("window raised");
+    F.LOG("window raised");
   },
 
   /**
@@ -373,27 +373,27 @@ firetray.Window = {
       x11.current.Display, xwin, prop, offset, bufSize, 0, x11.AnyPropertyType,
       actual_type.address(), actual_format.address(), nitems.address(),
       bytes_after.address(), prop_value.address());
-    firetray.LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
+    F.LOG("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
 
     if (!firetray.js.strEquals(res, x11.Success)) {
-      firetray.ERROR("XGetWindowProperty failed");
+      F.ERROR("XGetWindowProperty failed");
       return [null, null];
     }
     if (firetray.js.strEquals(actual_type.value, x11.None)) {
-      firetray.LOG("property not found");
+      F.LOG("property not found");
       return [null, null];
     }
 
-    firetray.LOG("prop_value="+prop_value+", size="+prop_value.constructor.size);
+    F.LOG("prop_value="+prop_value+", size="+prop_value.constructor.size);
     /* If the returned format is 32, the property data will be stored as an
      array of longs (which in a 64-bit application will be 64-bit values
      that are padded in the upper 4 bytes). [man XGetWindowProperty] */
     if (actual_format.value !== 32) {
-      firetray.ERROR("unsupported format: "+actual_format.value);
+      F.ERROR("unsupported format: "+actual_format.value);
     }
-    firetray.LOG("format OK");
+    F.LOG("format OK");
     var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
-    firetray.LOG("props="+props+", size="+props.constructor.size);
+    F.LOG("props="+props+", size="+props.constructor.size);
 
     return [props, nitems];
   },
@@ -409,12 +409,12 @@ firetray.Window = {
 
     let [propsFound, nitems] =
       firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_STATE);
-    firetray.LOG("propsFound, nitems="+propsFound+", "+nitems);
+    F.LOG("propsFound, nitems="+propsFound+", "+nitems);
     if (!propsFound) return 0;
 
     let maximizedHorz = maximizedVert = false;
     for (let i=0, len=nitems.value; i<len; ++i) {
-      firetray.LOG("i: "+propsFound.contents[i]);
+      F.LOG("i: "+propsFound.contents[i]);
       let currentProp = propsFound.contents[i];
       if (firetray.js.strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_HIDDEN']))
         winStates |= FIRETRAY_XWINDOW_HIDDEN;
@@ -437,11 +437,11 @@ firetray.Window = {
 
     let [propsFound, nitems] =
       firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_DESKTOP);
-    firetray.LOG("DESKTOP propsFound, nitems="+propsFound+", "+nitems);
+    F.LOG("DESKTOP propsFound, nitems="+propsFound+", "+nitems);
     if (!propsFound) return null;
 
     if (firetray.js.strEquals(nitems.value, 0))
-      firetray.WARN("desktop number not found");
+      F.WARN("desktop number not found");
     else if (firetray.js.strEquals(nitems.value, 1))
       desktop = propsFound.contents[0];
     else
@@ -454,7 +454,7 @@ firetray.Window = {
 
   getWindowTitle: function(xid) {
     let title = firetray.Handler.windows[xid].baseWin.title;
-    firetray.LOG("baseWin.title="+title);
+    F.LOG("baseWin.title="+title);
     let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
     if (tailIndex !== -1)
       return title.substring(0, tailIndex);
@@ -475,10 +475,10 @@ firetray.Window = {
       switch (xany.contents.type) {
 
       case x11.UnmapNotify:
-        firetray.LOG("UnmapNotify");
+        F.LOG("UnmapNotify");
         let winStates = firetray.Window.getXWindowStates(xwin);
         let isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
-        firetray.LOG("winStates="+winStates+", isHidden="+isHidden);
+        F.LOG("winStates="+winStates+", isHidden="+isHidden);
         if (isHidden) {
           let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
           let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
@@ -492,11 +492,11 @@ firetray.Window = {
         break;
 
       default:
-        // firetray.LOG("xany.type="+xany.contents.type);
+        // F.LOG("xany.type="+xany.contents.type);
         break;
       }
     } catch(x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
     }
 
     return gdk.GDK_FILTER_CONTINUE;
@@ -509,14 +509,14 @@ firetray.Window = {
 
 /** debug facility */
 firetray.Handler.dumpWindows = function() {
-  firetray.LOG(firetray.Handler.windowsCount);
-  for (let winId in firetray.Handler.windows) firetray.LOG(winId+"="+firetray.Handler.gtkWindows.get(winId));
+  F.LOG(firetray.Handler.windowsCount);
+  for (let winId in firetray.Handler.windows) F.LOG(winId+"="+firetray.Handler.gtkWindows.get(winId));
 };
 
 firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeWindow;
 
 firetray.Handler.registerWindow = function(win) {
-  firetray.LOG("register window");
+  F.LOG("register window");
 
   // register
   let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
@@ -538,7 +538,7 @@ firetray.Handler.registerWindow = function(win) {
   // windows *are* shown at startup
   this.windows[xid].visibility = true; // this.windows[xid].baseWin.visibility always true :-(
   this.visibleWindowsCount += 1;
-  firetray.LOG("window "+xid+" registered");
+  F.LOG("window "+xid+" registered");
   // NOTE: shouldn't be necessary to gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK);
 
   try {
@@ -551,7 +551,7 @@ firetray.Handler.registerWindow = function(win) {
 
   } catch (x) {
     firetray.Window.unregisterWindowByXID(xid);
-    firetray.ERROR(x);
+    F.ERROR(x);
     return null;
   }
 
@@ -566,35 +566,35 @@ firetray.Handler.registerWindow = function(win) {
     this.windows[xid].show = firetray.Window.showSingleStateful;
   }
 
-  firetray.LOG("AFTER"); firetray.Handler.dumpWindows();
+  F.LOG("AFTER"); firetray.Handler.dumpWindows();
   return xid;
 };
 
 firetray.Handler.unregisterWindow = function(win) {
-  firetray.LOG("unregister window");
+  F.LOG("unregister window");
   let xid = firetray.Window.getXIDFromChromeWindow(win);
   return firetray.Window.unregisterWindowByXID(xid);
 };
 
 firetray.Handler.showSingleWindow = function(xid) {
-  firetray.LOG("showSingleWindow xid="+xid);
+  F.LOG("showSingleWindow xid="+xid);
   this.windows[xid].show(xid);
 };
 
 firetray.Handler.hideSingleWindow = function(xid) {
-  firetray.LOG("hideSingleWindow xid="+xid);
+  F.LOG("hideSingleWindow xid="+xid);
   this.windows[xid].hide(xid);
 };
 
 firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
-  firetray.LOG("showHideAllWindows: "+userData);
+  F.LOG("showHideAllWindows: "+userData);
   // NOTE: showHideAllWindows being a callback, we need to use
   // 'firetray.Handler' explicitely instead of 'this'
 
-  firetray.LOG("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
-  firetray.LOG("windowsCount="+firetray.Handler.windowsCount);
+  F.LOG("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
+  F.LOG("windowsCount="+firetray.Handler.windowsCount);
   let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
-  firetray.LOG("visibilityRate="+visibilityRate);
+  F.LOG("visibilityRate="+visibilityRate);
   if ((0.5 < visibilityRate) && (visibilityRate < 1)
       || visibilityRate === 0) // TODO: should be configurable
     firetray.Handler.showAllWindows();
@@ -623,11 +623,11 @@ x11.init = function() {
     this.current.Atoms = {};
     XATOMS.forEach(function(atomName, index, array) {
       this.current.Atoms[atomName] = x11.XInternAtom(this.current.Display, atomName, 0);
-      firetray.LOG("x11.current.Atoms."+atomName+"="+this.current.Atoms[atomName]);
+      F.LOG("x11.current.Atoms."+atomName+"="+this.current.Atoms[atomName]);
     }, this);
     return true;
   } catch (x) {
-    firetray.ERROR(x);
+    F.ERROR(x);
     return false;
   }
 };

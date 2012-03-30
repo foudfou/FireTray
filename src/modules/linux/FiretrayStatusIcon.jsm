@@ -18,7 +18,7 @@ Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
 Cu.import("resource://firetray/commons.js");
 
 if ("undefined" == typeof(firetray.Handler))
-  firetray.ERROR("This module MUST be imported from/after FiretrayHandler !");
+  F.ERROR("This module MUST be imported from/after FiretrayHandler !");
 
 
 firetray.StatusIcon = {
@@ -32,7 +32,7 @@ firetray.StatusIcon = {
       // init tray icon, some variables
       this.trayIcon  = gtk.gtk_status_icon_new();
     } catch (x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
       return false;
     }
 
@@ -66,12 +66,12 @@ firetray.StatusIcon = {
     gobject.g_signal_connect(this.trayIcon, "scroll-event",
                              firetray.StatusIcon.callbacks.onScroll, null);
 
-    firetray.LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
+    F.LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
     this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
       firetray.Handler.showHideAllWindows);
     let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
                                              "activate", firetray.StatusIcon.callbacks.iconActivate, null);
-    firetray.LOG("g_connect activate="+handlerId);
+    F.LOG("g_connect activate="+handlerId);
   },
 
   onScroll: function(icon, event, data) {
@@ -85,21 +85,21 @@ firetray.StatusIcon = {
     let direction = gdkEventScroll.contents.direction;
     switch(direction) {
     case gdk.GDK_SCROLL_UP:
-	    firetray.LOG("SCROLL UP");
+	    F.LOG("SCROLL UP");
       if (scroll_mode === "down_hides")
         firetray.Handler.showAllWindows();
       else if (scroll_mode === "up_hides")
         firetray.Handler.hideAllWindows();
 	    break;
     case gdk.GDK_SCROLL_DOWN:
-	    firetray.LOG("SCROLL DOWN");
+	    F.LOG("SCROLL DOWN");
       if (scroll_mode === "down_hides")
         firetray.Handler.hideAllWindows();
       else if (scroll_mode === "up_hides")
         firetray.Handler.showAllWindows();
 	    break;
     default:
-	    firetray.ERROR("SCROLL UNKNOWN");
+	    F.ERROR("SCROLL UNKNOWN");
     }
   }
 
@@ -109,13 +109,13 @@ firetray.StatusIcon = {
 firetray.Handler.setIconImage = function(filename) {
   if (!firetray.StatusIcon.trayIcon)
     return false;
-  firetray.LOG(filename);
+  F.LOG(filename);
 
   try {
     gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
                                       filename);
   } catch (x) {
-    firetray.ERROR(x);
+    F.ERROR(x);
     return false;
   }
   return true;
@@ -136,7 +136,7 @@ firetray.Handler.setIconTooltip = function(toolTipStr) {
     gtk.gtk_status_icon_set_tooltip_text(firetray.StatusIcon.trayIcon,
                                          toolTipStr);
   } catch (x) {
-    firetray.ERROR(x);
+    F.ERROR(x);
     return false;
   }
   return true;
@@ -149,7 +149,7 @@ firetray.Handler.setIconTooltipDefault = function() {
 };
 
 firetray.Handler.setIconText = function(text, color) { // FIXME: function too long
-  firetray.LOG("setIconText, color="+color);
+  F.LOG("setIconText, color="+color);
   if (typeof(text) != "string")
     throw new TypeError();
 
@@ -164,13 +164,13 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
     let colorMap = gdk.gdk_screen_get_system_colormap(gdk.gdk_screen_get_default());
     let visual = gdk.gdk_colormap_get_visual(colorMap);
     let visualDepth = visual.contents.depth;
-    firetray.LOG("colorMap="+colorMap+" visual="+visual+" visualDepth="+visualDepth);
+    F.LOG("colorMap="+colorMap+" visual="+visual+" visualDepth="+visualDepth);
     let fore = new gdk.GdkColor;
     fore.pixel = fore.red = fore.green = fore.blue = 0;
     let alpha  = new gdk.GdkColor;
     alpha.pixel = alpha.red = alpha.green = alpha.blue = 0xFFFF;
     if (!fore || !alpha)
-      firetray.WARN("Undefined GdkColor fore or alpha");
+      F.WARN("Undefined GdkColor fore or alpha");
     gdk.gdk_color_parse(color, fore.address());
     if(fore.red == alpha.red && fore.green == alpha.green && fore.blue == alpha.blue) {
       alpha.red=0; // make sure alpha is different from fore
@@ -195,15 +195,15 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
     pango.pango_font_description_set_weight(fnt,pango.PANGO_WEIGHT_SEMIBOLD);
     pango.pango_layout_set_spacing(layout,0);
     pango.pango_layout_set_font_description(layout, fnt);
-    firetray.LOG("layout="+layout);
-    firetray.LOG("text="+text);
+    F.LOG("layout="+layout);
+    F.LOG("text="+text);
     pango.pango_layout_set_text(layout, text,-1);
     let tw = new ctypes.int;
     let th = new ctypes.int;
     let sz;
     let border = 4;
     pango.pango_layout_get_pixel_size(layout, tw.address(), th.address());
-    firetray.LOG("tw="+tw.value+" th="+th.value);
+    F.LOG("tw="+tw.value+" th="+th.value);
     // fit text to the icon by decreasing font size
     while ( tw.value > (w - border) || th.value > (h - border) ) {
       sz = pango.pango_font_description_get_size(fnt);
@@ -216,7 +216,7 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
       pango.pango_layout_set_font_description(layout, fnt);
       pango.pango_layout_get_pixel_size(layout, tw.address(), th.address());
     }
-    firetray.LOG("tw="+tw.value+" th="+th.value);
+    F.LOG("tw="+tw.value+" th="+th.value);
     pango.pango_font_description_free(fnt);
     // center text
     let px = (w-tw.value)/2;
@@ -231,7 +231,7 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
 
     let buf = gdk.gdk_pixbuf_get_from_drawable(null, pmDrawable, null, 0, 0, 0, 0, w, h);
     gobject.g_object_unref(pm);
-    firetray.LOG("alpha="+alpha);
+    F.LOG("alpha="+alpha);
     let alphaRed = gobject.guint16(alpha.red);
     let alphaRed_guchar = ctypes.cast(alphaRed, gobject.guchar);
     let alphaGreen = gobject.guint16(alpha.green);
@@ -247,7 +247,7 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
 
     gtk.gtk_status_icon_set_from_pixbuf(firetray.StatusIcon.trayIcon, dest);
   } catch (x) {
-    firetray.ERROR(x);
+    F.ERROR(x);
     return false;
   }
 

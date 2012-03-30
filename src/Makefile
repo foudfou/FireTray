@@ -137,7 +137,7 @@ $(build_dir)/$(chrome_source_root)/%.js: $(chrome_source_root)/%.js
     cp -f $< $@; \
   else \
     echo "Stripping debug calls from JS file $<"; \
-    sed '/firetray.LOG(/d' $< > $@; \
+    sed '/F.LOG(/d' $< > $@; \
   fi
 
 $(build_dir)/$(modules_dir)/%: $(modules_dir)/%
@@ -147,7 +147,7 @@ $(build_dir)/$(modules_dir)/%: $(modules_dir)/%
     cp -f $< $@; \
   else \
     echo "Stripping debug calls from module $<"; \
-    sed '/firetray.LOG(/d' $< > $@; \
+    sed '/F.LOG(/d' $< > $@; \
   fi
 
 $(build_dir):

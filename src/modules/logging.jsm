@@ -1,9 +1,9 @@
 /* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "firetray" ];
+var EXPORTED_SYMBOLS = [ "F" ];
 
-if ("undefined" == typeof(firetray)) {
-  var firetray = {};
+if ("undefined" == typeof(F)) {
+  var F = {};                  // helper wrapper
 };
 
 // about:config extensions.logging.enabled
@@ -13,4 +13,4 @@ if ("undefined" == typeof(firetray)) {
     LogManager.getLogger("firetray", this);
     return this[aName];
   });
-}, firetray);
+}, F);

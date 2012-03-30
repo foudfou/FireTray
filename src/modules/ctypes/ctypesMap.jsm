@@ -32,11 +32,11 @@ ctypesMap.prototype.get = function(key) {
 
 ctypesMap.prototype.insert = function(key, item) {
   if (this.map.hasOwnProperty(key)) {
-    firetray.LOG("REPLACE");
+    F.LOG("REPLACE");
     this.array[this.map[key]] = item;
 
   } else if (this.freedCells.length) {
-    firetray.LOG("USE FREE CELL");
+    F.LOG("USE FREE CELL");
     let idx = this.freedCells.shift();
     this.array[idx] = item;
     this.map[key] = idx;
@@ -57,7 +57,7 @@ ctypesMap.prototype.insert = function(key, item) {
 ctypesMap.prototype.remove = function(key) {
   if (!this.map.hasOwnProperty(key))
       throw new RangeError('Unknown key: '+key);
-  firetray.LOG("FREE CELL");
+  F.LOG("FREE CELL");
 
   let idx = this.map[key];
   if (!delete this.map[key])

@@ -3,7 +3,7 @@
 /* for now, logging facilities (imported from logging.jsm) are automatically
    provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
+  [ "firetray", "F", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
     "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
@@ -32,14 +32,24 @@ const FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS   = 15*60*1000;
 const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD = 0;
 const FIRETRAY_MESSAGE_COUNT_TYPE_NEW    = 1;
 
+if ("undefined" == typeof(F)) {
+  var F = {};                   // helper wrapper
+};
+
+F.FIREFOX_ID     = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+F.THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
+F.SONGBIRD_ID    = "songbird@songbirdnest.com";
+F.SUNBIRD_ID     = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
+F.SEAMONKEY_ID   = "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}";
+F.CHATZILLA_ID   = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
+
+
 /**
  * firetray namespace.
  */
 if ("undefined" == typeof(firetray)) {
-  firetray.firetray.ERROR("### HI ###");
   var firetray = {};
 };
-
 
 firetray.Utils = {
   prefService: Services.prefs.getBranch("extensions.firetray."),
@@ -50,16 +60,16 @@ firetray.Utils = {
       var objPref = JSON.parse(
         firetray.Utils.prefService.getCharPref(prefStr));
     } catch (x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
     }
     return objPref;
   },
   setObjPref: function(prefStr, obj) {
-    firetray.LOG(obj);
+    F.LOG(obj);
     try {
       firetray.Utils.prefService.setCharPref(prefStr, JSON.stringify(obj));
     } catch (x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
     }
   },
 
@@ -76,7 +86,7 @@ firetray.Utils = {
   QueryInterfaces: function(obj) {
     for each (i in Components.interfaces)
       try {
-        if (obj instanceof i) firetray.LOG (i);
+        if (obj instanceof i) F.LOG (i);
       } catch(x) {}
   },
 
@@ -89,7 +99,7 @@ firetray.Utils = {
     let registeryValue = Cc['@mozilla.org/chrome/chrome-registry;1']
       .getService(Ci.nsIChromeRegistry)
       .convertChromeURL(uri).spec;
-    firetray.LOG(registeryValue);
+    F.LOG(registeryValue);
 
     if (/^file:/.test(registeryValue))
       registeryValue = this._urlToPath(registeryValue);
@@ -117,7 +127,7 @@ firetray.Utils = {
         str += "obj["+i+"]: Unavailable\n";
       }
     }
-    firetray.LOG(str);
+    F.LOG(str);
   },
 
   _nsResolver: function(prefix) {
@@ -137,9 +147,9 @@ firetray.Utils = {
       var result = doc.evaluate(xpath, ref, that._nsResolver,
                                 XPathResult.ANY_TYPE, null);
     } catch (x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
     }
-    firetray.LOG("XPathResult="+result.resultType);
+    F.LOG("XPathResult="+result.resultType);
 
     switch (result.resultType) {
     case XPathResult.NUMBER_TYPE:
@@ -153,7 +163,7 @@ firetray.Utils = {
     var list = [];
     try {
       for (let node = result.iterateNext(); node; node = result.iterateNext()) {
-        firetray.LOG("node="+node.nodeName);
+        F.LOG("node="+node.nodeName);
         switch (node.nodeType) {
         case node.ATTRIBUTE_NODE:
           list.push(node.value);
@@ -166,7 +176,7 @@ firetray.Utils = {
         }
       }
     } catch (x) {
-      firetray.ERROR(x);
+      F.ERROR(x);
     }
 
     return list;
@@ -185,7 +195,7 @@ firetray.Utils = {
         if (lib.available())
           lib.close();
       });
-    } catch(x) { firetray.ERROR(x); }
+    } catch(x) { F.ERROR(x); }
   }
 
 };

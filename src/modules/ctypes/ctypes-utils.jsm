@@ -80,7 +80,7 @@ var EXPORTED_SYMBOLS  = [ "ctypes_library" ];
  */
 function ctypes_library(aName, aABIs, aDefines, aGlobal) {
   try {
-    firetray.LOG("Trying to load library: " + aName);
+    F.LOG("Trying to load library: " + aName);
 
     if (typeof(aName) != "string") {
       throw Error("Invalid library name");
@@ -110,19 +110,19 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     var library;
     for each (let abi in aABIs) {
       let soname = "lib" + aName + ".so." + abi.toString();
-      firetray.LOG("Trying " + soname);
+      F.LOG("Trying " + soname);
       try {
         library = ctypes.open(soname);
         this.ABI = abi;
-        firetray.LOG("Successfully loaded " + soname);
+        F.LOG("Successfully loaded " + soname);
         break;
       } catch(e) {
-          firetray.ERROR(soname+" unfound.");
+          F.ERROR(soname+" unfound.");
       }
     }
 
     this.close = function() {
-      firetray.LOG("Closing library " + aName);
+      F.LOG("Closing library " + aName);
       library.close();
       this.ABI = -1;
 
@@ -131,7 +131,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
         return;
       }
 
-      firetray.LOG("Unloading JS module " + aGlobal.__URI__);
+      F.LOG("Unloading JS module " + aGlobal.__URI__);
       Cu.unload(aGlobal.__URI__);
     };
 
@@ -140,7 +140,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     };
 
     if (!library) {
-      firetray.LOG("Failed to load library: " + aName);
+      F.LOG("Failed to load library: " + aName);
       this.ABI = -1;
       return;
     }
@@ -159,7 +159,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
           return library.declare.apply(library, args);
         } catch (ex) {
           Cu.reportError(ex);
-          firetray.ERROR("Missing symbol " + arguments[0] + " in library " + aName);
+          F.ERROR("Missing symbol " + arguments[0] + " in library " + aName);
           self.ABI = -1;
           return null;
         }
@@ -182,7 +182,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     aGlobal[aGlobal.EXPORTED_SYMBOLS[0]] = this;
   } catch(e) {
     Cu.reportError(e);
-    firetray.ERROR(aName+" definition error: "+e);
+    F.ERROR(aName+" definition error: "+e);
     this.ABI = -1;
   }
 }
