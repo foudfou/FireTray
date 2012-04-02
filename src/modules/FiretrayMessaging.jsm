@@ -35,7 +35,7 @@ firetray.Messaging = {
     // there is no means to detect account-removed event
     this.cleaningTimer = firetray.Utils.timer(firetray.Messaging.cleanExcludedAccounts,
       FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS, Ci.nsITimer.TYPE_REPEATING_SLACK);
-    F.WARN(this.cleaningTimer+"="+FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS);
+    F.LOG(this.cleaningTimer+"="+FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS);
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
