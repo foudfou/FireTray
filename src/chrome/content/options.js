@@ -220,8 +220,10 @@ var firetrayUIOptions = {
       let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
       item.setAttribute("observes", "broadcaster-notification-disabled");
       F.LOG("folder: "+folderType);
-      if (!(FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags))
+      if (!(FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags)) {
+        excludedFoldersList.ensureElementIsVisible(item); // bug 326445
         excludedFoldersList.addItemToSelection(item); // doesn't trigger onselect
+      }
     }
   },
 

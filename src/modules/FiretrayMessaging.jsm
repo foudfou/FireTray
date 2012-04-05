@@ -17,7 +17,8 @@ const FLDRS_UNINTERESTING = {
   Queue:     Ci.nsMsgFolderFlags.Queue,
   SentMail:  Ci.nsMsgFolderFlags.SentMail,
   Templates: Ci.nsMsgFolderFlags.Templates,
-  Trash:     Ci.nsMsgFolderFlags.Trash
+  Trash:     Ci.nsMsgFolderFlags.Trash,
+  Virtual:   Ci.nsMsgFolderFlags.Virtual
 };
 
 
