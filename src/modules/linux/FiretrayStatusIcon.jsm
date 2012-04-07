@@ -12,6 +12,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/linux/cairo.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
@@ -22,15 +23,32 @@ if ("undefined" == typeof(firetray.Handler))
 
 
 firetray.StatusIcon = {
+  GTK_THEME_ICON_PATH: null,
+
   initialized: false,
-  // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
-  callbacks: {},
+  callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
   trayIcon: null,
+  themedIconApp: null,
+  themedIconNewMail: null,
+  prefAppIconNames: null,
+  prefNewMailIconNames: null,
+  defaultAppIconName: null,
+  defaultNewMailIconName: null,
 
   init: function() {
+    this.defineIconNames();
+
     try {
-      // init tray icon, some variables
+      this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath("chrome://firetray/skin/linux/icons");
+      F.LOG(this.GTK_THEME_ICON_PATH);
+      let gtkIconTheme = gtk.gtk_icon_theme_get_default();
+      F.LOG("gtkIconTheme="+gtkIconTheme);
+      gtk.gtk_icon_theme_append_search_path(gtkIconTheme, this.GTK_THEME_ICON_PATH);
+
+      this.loadThemedIcons();
+
       this.trayIcon  = gtk.gtk_status_icon_new();
+
     } catch (x) {
       F.ERROR(x);
       return false;
@@ -53,6 +71,58 @@ firetray.StatusIcon = {
   shutdown: function() {
     firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gtk, pango, pangocairo]);
     this.initialized = false;
+  },
+
+  defineIconNames: function() {
+    this.prefAppIconNames = (function() {
+      if (firetray.Handler.inMailApp) {
+        return "app_mail_icon_names";
+      } else if (firetray.Handler.inBrowserApp) {
+        return "app_browser_icon_names";
+      } else {
+        return "app_default_icon_names";
+      }
+    })();
+    this.defaultAppIconName = firetray.Handler.appName.toLowerCase();
+
+    this.prefNewMailIconNames = "new_mail_icon_names";
+    this.defaultNewMailIconName = "mail-unread";
+  },
+
+  loadThemedIcons: function() {
+    if (firetray.Handler.inMailApp) {
+      let newMailIconNames = this.getNewMailIconNames();
+      if (this.themedIconNewMail) gobject.g_object_unref(this.themedIconNewMail);
+      this.themedIconNewMail = this.initThemedIcon(newMailIconNames);
+    }
+    let appIconNames = this.getAppIconNames();
+    if (this.themedIconApp) gobject.g_object_unref(this.themedIconApp);
+    this.themedIconApp = this.initThemedIcon(appIconNames);
+  },
+
+  getAppIconNames: function() {
+    let appIconNames = firetray.Utils.getArrayPref(this.prefAppIconNames);
+    appIconNames.push(this.defaultAppIconName);
+    return appIconNames;
+  },
+  getNewMailIconNames: function() {
+    let newMailIconNames = firetray.Utils.getArrayPref(this.prefNewMailIconNames);
+    newMailIconNames.push(this.defaultNewMailIconName);
+    return newMailIconNames;
+  },
+
+  initThemedIcon: function(names) {
+    if (!firetray.js.isArray(names)) throw new TypeError();
+    F.LOG("themedIconNames="+names);
+    let namesLen = names.length;
+    F.LOG("themedIconNamesLen="+namesLen);
+    let themedIconNames = ctypes.char.ptr.array(namesLen)();
+    for (let i=0; i<namesLen; ++i)
+      themedIconNames[i] = ctypes.char.array()(names[i]);
+    F.LOG("themedIconNames="+themedIconNames);
+    let themedIcon = gio.g_themed_icon_new_from_names(themedIconNames, namesLen);
+    F.LOG("themedIcon="+themedIcon);
+    return themedIcon;
   },
 
   addCallbacks: function() {
@@ -101,30 +171,47 @@ firetray.StatusIcon = {
     default:
 	    F.ERROR("SCROLL UNKNOWN");
     }
+  },
+
+  setIconImageFromFile: function(filename) {
+    if (!firetray.StatusIcon.trayIcon)
+      F.ERROR("Icon missing");
+    F.LOG(filename);
+    gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
+                                        filename);
+  },
+
+  setIconImageFromName: function(iconName) {
+    if (!firetray.StatusIcon.trayIcon)
+      F.ERROR("Icon missing");
+    F.LOG(iconName);
+    gtk.gtk_status_icon_set_from_icon_name(firetray.StatusIcon.trayIcon, iconName);
+  },
+
+  setIconImageFromGIcon: function(gicon) {
+    if (!firetray.StatusIcon.trayIcon || !gicon)
+      F.ERROR("Icon missing");
+    F.LOG(gicon);
+    gtk.gtk_status_icon_set_from_gicon(firetray.StatusIcon.trayIcon, gicon);
   }
 
 }; // firetray.StatusIcon
 
 
-firetray.Handler.setIconImage = function(filename) {
-  if (!firetray.StatusIcon.trayIcon)
-    return false;
-  F.LOG(filename);
+firetray.Handler.setIconImage = firetray.StatusIcon.setIconImageFromGIcon;
 
-  try {
-    gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
-                                      filename);
-  } catch (x) {
-    F.ERROR(x);
-    return false;
-  }
-  return true;
-};
+firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;
 
 firetray.Handler.setIconImageDefault = function() {
-  if (!this.FILENAME_DEFAULT)
-    throw "Default application icon filename not set";
-  this.setIconImage(this.FILENAME_DEFAULT);
+  if (!firetray.StatusIcon.themedIconApp)
+    throw "Default application themed icon not set";
+  let appIconType = firetray.Utils.prefService.getIntPref("app_icon_type");
+  if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_THEMED)
+    firetray.Handler.setIconImage(firetray.StatusIcon.themedIconApp);
+  else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM) {
+    let appIconFilename = firetray.Utils.prefService.getCharPref("app_icon_filename");
+    firetray.Handler.setIconImageFromFile(appIconFilename);
+  }
 };
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed

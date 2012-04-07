@@ -171,7 +171,8 @@ firetray.Handler = {
   },
 
   // these get overridden in OS-specific Icon/Window handlers
-  setIconImage: function(filename) {},
+  setIconImage: function(icon) {},
+  setIconImageFromFile: function(filename) {},
   setIconImageDefault: function() {},
   setIconText: function(text, color) {},
   setIconTooltip: function(localizedMessage) {},
@@ -390,9 +391,21 @@ firetray.PrefListener = new PrefListener(
     case 'show_icon_on_hide':
       firetray.Handler.showHideIcon();
       break;
+    case 'new_mail_icon_names':
+      firetray.StatusIcon.loadThemedIcons();
     case 'message_count_type':
     case 'folder_count_recursive':
       firetray.Messaging.updateMsgCount();
+      break;
+    case 'app_mail_icon_names':
+    case 'app_browser_icon_names':
+    case 'app_default_icon_names':
+      firetray.StatusIcon.loadThemedIcons();
+    case 'app_icon_type':
+      if (firetray.Handler.inMailApp)
+        firetray.Messaging.updateMsgCount();
+      else
+        firetray.Handler.setIconImageDefault();
       break;
     default:
     }

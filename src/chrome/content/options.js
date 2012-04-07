@@ -19,16 +19,20 @@ var firetrayUIOptions = {
   onLoad: function(e) {
     this.strings = document.getElementById("firetray-options-strings");
 
-    this.updateWindowAndIconOptions();
-    this.updateScrollOptions();
-
-    if(firetray.Handler.inMailApp) {
+    if (firetray.Handler.inMailApp) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.initMailControls();
     } else {
       let mailTab = document.getElementById("mail_tab");
       this.hideElement(mailTab, true);
     }
+
+    this.updateWindowAndIconOptions();
+    this.updateScrollOptions();
+    this.initAppIconType();
+    this.initAppIconNames();
+    if (firetray.Handler.inMailApp)
+      this.initNewMailIconNames();
   },
 
   onQuit: function(e) {
@@ -58,8 +62,9 @@ var firetrayUIOptions = {
 
   disableChildren: function(group, disableval) {
     try {
-      for (let i=0, len=group.childNodes.length; i<len ; ++i)
-        group.childNodes[i].disabled = disableval;
+      let children = group.childNodes;
+      for (let i=0, len=children.length; i<len ; ++i)
+        children[i].disabled = disableval;
     } catch(e) {}
   },
 
@@ -82,6 +87,66 @@ var firetrayUIOptions = {
   updateScrollOptions: function() {
     let scroll_hides = document.getElementById("ui_scroll_hides").checked;
     this.disableChildren(document.getElementById("ui_radiogroup_scroll"), !scroll_hides);
+  },
+
+  initAppIconType: function() {
+    document.getElementById("ui_app_icon_type_themed").value =
+      FIRETRAY_APPLICATION_ICON_TYPE_THEMED;
+    document.getElementById("ui_app_icon_type_custom").value =
+      FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM;
+
+    let prefAppIconType = firetray.Utils.prefService.getIntPref("app_icon_type");
+    document.getElementById("ui_app_icon_type").selectedIndex = prefAppIconType;
+
+    this.disableIconTypeMaybe(prefAppIconType);
+  },
+
+  initAppIconNames: function() {
+    this.initIconNames(firetray.StatusIcon.prefAppIconNames,
+      "app_icon_type_themed_name", firetray.StatusIcon.defaultAppIconName);
+  },
+  initNewMailIconNames: function() {
+    this.initIconNames("new_mail_icon_names",
+      "radio_mail_notification_newmail_icon_name", firetray.StatusIcon.defaultNewMailIconName);
+  },
+
+  initIconNames: function(prefIconNames, uiIconNameId, defaultIconName) {
+    let appIconNames = firetray.Utils.getArrayPref(prefIconNames);
+    F.LOG("appIconNames="+appIconNames);
+    let len = appIconNames.length;
+    if (len>2)
+      throw new RangeError("Too many icon names");
+    for (let i=0; i<len; ++i) {
+      let textbox = document.getElementById(uiIconNameId+(i+1));
+      textbox.value = appIconNames[i];
+    }
+    let textbox = document.getElementById(uiIconNameId+3);
+    textbox.value = defaultIconName;
+  },
+
+  updateAppIconNames: function(textbox) {
+    this.updateIconNames(firetray.StatusIcon.prefAppIconNames, "app_icon_type_themed_name");
+  },
+  updateNewMailIconNames: function(textbox) {
+    this.updateIconNames("new_mail_icon_names", "radio_mail_notification_newmail_icon_name");
+  },
+
+  updateIconNames: function(prefIconNames, uiIconNameId) {
+    let iconNames = [];
+    for (let i=1; i<3; ++i) {
+      let textbox = document.getElementById(uiIconNameId+i);
+      let val = textbox.value.trim();
+      F.LOG("val="+val);
+      if (val) iconNames.push(val);
+    }
+    F.LOG("iconNames="+iconNames);
+    firetray.Utils.setArrayPref(prefIconNames, iconNames);
+  },
+
+  disableIconTypeMaybe: function(appIconType) {
+    let customIconGroup = document.getElementById("custom_app_icon");
+    this.disableChildren(customIconGroup,
+      (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM));
   },
 
   initMailControls: function() {
@@ -184,6 +249,12 @@ var firetrayUIOptions = {
     let radioMessageCountType = document.getElementById("ui_message_count_type");
     let messageCountType = +radioMessageCountType.getItemAtIndex(radioMessageCountType.selectedIndex).value;
     this.disableMessageCountMaybe(messageCountType);
+  },
+
+  chooseAppIconFile: function() {
+    var filepath = document.getElementById("app_icon_custom_filename");
+    this._chooseIconFile(filepath);
+    firetray.Handler.setIconImageDefault();
   },
 
   chooseMailIconFile: function() {

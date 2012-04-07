@@ -4,10 +4,10 @@
 
 <!ENTITY NOT_IMPLEMENTED_YET "NOT IMPLEMENTED YET">
 
-<!ENTITY windows_icon_options "Windows and Icon">
+<!ENTITY windows_options "Windows">
+<!ENTITY icon_options "Icon">
 <!ENTITY mail_options "Mail">
 
-<!ENTITY windows_behaviour "Windows behaviour">
 <!ENTITY bool_hides_on_close.label "Closing window hides to tray">
 <!ENTITY bool_hides_on_close.accesskey "C">
 <!ENTITY bool_hides_on_minimize.label "Minimizing window hides to tray">
@@ -23,9 +23,16 @@
 <!ENTITY bool_remember_desktop.label "Remember desktop (per-window)">
 <!ENTITY bool_remember_desktop.accesskey "R">
 
-<!ENTITY icon_settings "Icon settings">
 <!ENTITY bool_show_icon_on_hide.label "Show tray icon only if a window is hidden">
 <!ENTITY bool_show_icon_on_hide.accesskey "w">
+<!ENTITY app_icon_type "Application icon type">
+<!ENTITY app_icon_themed.label "Default themed">
+<!ENTITY app_icon_themed.accesskey "D">
+<!ENTITY app_icon_themed_name "icon-name">
+<!ENTITY icon_themed.tooltip "Icon names provided by graphical environment">
+<!ENTITY app_icon_custom.label "Custom">
+<!ENTITY app_icon_custom.accesskey "u">
+
 <!ENTITY mouse_wheel_options "Mouse wheel options" >
 <!ENTITY enable_mouse_scroll.label "Handle mouse scroll on tray icon" >
 <!ENTITY enable_mouse_scroll.accesskey "l">

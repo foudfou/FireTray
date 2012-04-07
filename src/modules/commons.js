@@ -4,12 +4,14 @@
    provided by this module */
 var EXPORTED_SYMBOLS =
   [ "firetray", "F", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
+    "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
+    "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
     "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
-    "FIRETRAY_DELAY_NOWAIT_MILLISECONDS", "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD",
+    "FIRETRAY_DELAY_NOWAIT_MILLISECONDS",
     "FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS",
-    "FIRETRAY_MESSAGE_COUNT_TYPE_NEW" ];
+    "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD", "FIRETRAY_MESSAGE_COUNT_TYPE_NEW" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -20,6 +22,9 @@ Cu.import("resource://firetray/logging.jsm");
 
 const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
 const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
+
+const FIRETRAY_APPLICATION_ICON_TYPE_THEMED      = 0;
+const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM      = 1;
 
 const FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT = 0;
 const FIRETRAY_NOTIFICATION_NEWMAIL_ICON         = 1;
@@ -237,3 +242,10 @@ if(!Object.keys) Object.keys = function(o){
   for(p in o) if(Object.prototype.hasOwnProperty.call(o,p)) ret.push(p);
   return ret;
 };
+
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/String/Trim
+if(!String.prototype.trim) {
+  String.prototype.trim = function () {
+    return this.replace(/^\s+|\s+$/g,'');
+  };
+}

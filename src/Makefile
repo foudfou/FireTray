@@ -31,8 +31,9 @@ extension_name := firetray
 # The name of the profile dir where the extension can be installed.
 profile_id := mozilla-dev
 
-# The zip application to be used.
-ZIP := zip
+# The zip application to be used. NOTE: symlinks seem not supported in XPI
+# ("could not be installed because Firefox cannot modify the needed file")
+ZIP := zip # --symlinks
 
 # The target location of the build and build files.
 build_dir := ../build
@@ -77,6 +78,8 @@ chrome_sources := $(chrome_sources_js) \
                $(wildcard $(chrome_source_root)/skin/*.css) \
                $(wildcard $(chrome_source_root)/skin/*.png) \
                $(wildcard $(chrome_source_root)/skin/*.gif) \
+               $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/22x22/apps/*.png) \
+               $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/32x32/apps/*.png) \
                $(wildcard $(chrome_source_root)/locale/*/*.dtd) \
                $(wildcard $(chrome_source_root)/locale/*/*.properties)
 
@@ -126,7 +129,7 @@ YES_RE := yes|y|Y|true|on
 # called via $(build_includes)
 $(build_dir)/%: %
 	@mkdir -p $(dir $@)
-	@cp -f $< $@
+	@cp -f $< $@ # -d for symlinks
 
 # Debug calls are removed for performance.
 # NOTE: we could also use m4 for filtering source files...
