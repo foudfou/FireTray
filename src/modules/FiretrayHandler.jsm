@@ -171,9 +171,9 @@ firetray.Handler = {
   },
 
   // these get overridden in OS-specific Icon/Window handlers
-  setIconImage: function(icon) {},
-  setIconImageFromFile: function(filename) {},
   setIconImageDefault: function() {},
+  setIconImageNewMail: function() {},
+  setIconImageFromFile: function(filename) {},
   setIconText: function(text, color) {},
   setIconTooltip: function(localizedMessage) {},
   setIconTooltipDefault: function() {},

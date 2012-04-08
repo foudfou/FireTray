@@ -181,13 +181,6 @@ firetray.StatusIcon = {
                                         filename);
   },
 
-  setIconImageFromName: function(iconName) {
-    if (!firetray.StatusIcon.trayIcon)
-      F.ERROR("Icon missing");
-    F.LOG(iconName);
-    gtk.gtk_status_icon_set_from_icon_name(firetray.StatusIcon.trayIcon, iconName);
-  },
-
   setIconImageFromGIcon: function(gicon) {
     if (!firetray.StatusIcon.trayIcon || !gicon)
       F.ERROR("Icon missing");
@@ -197,22 +190,23 @@ firetray.StatusIcon = {
 
 }; // firetray.StatusIcon
 
-
-firetray.Handler.setIconImage = firetray.StatusIcon.setIconImageFromGIcon;
-
-firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;
-
 firetray.Handler.setIconImageDefault = function() {
   if (!firetray.StatusIcon.themedIconApp)
     throw "Default application themed icon not set";
   let appIconType = firetray.Utils.prefService.getIntPref("app_icon_type");
   if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_THEMED)
-    firetray.Handler.setIconImage(firetray.StatusIcon.themedIconApp);
+    firetray.StatusIcon.setIconImageFromGIcon(firetray.StatusIcon.themedIconApp);
   else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM) {
     let appIconFilename = firetray.Utils.prefService.getCharPref("app_icon_filename");
-    firetray.Handler.setIconImageFromFile(appIconFilename);
+    firetray.StatusIcon.setIconImageFromFile(appIconFilename);
   }
 };
+
+firetray.Handler.setIconImageNewMail = function() {
+  firetray.StatusIcon.setIconImageFromGIcon(firetray.StatusIcon.themedIconNewMail);
+};
+
+firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
 firetray.Handler.setIconTooltip = function(toolTipStr) {

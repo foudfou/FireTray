@@ -28,7 +28,7 @@ firetray.Messaging = {
 
   init: function() {
     if (this.initialized) {
-      F.LOG("Messaging already initialized");
+      F.WARN("Messaging already initialized");
       return;
     }
     F.LOG("Enabling Messaging");
@@ -179,7 +179,7 @@ firetray.Messaging = {
         firetray.Handler.setIconText(newMsgCount.toString(), prefIconTextColor);
         break;
       case FIRETRAY_NOTIFICATION_NEWMAIL_ICON:
-        firetray.Handler.setIconImage(firetray.StatusIcon.themedIconNewMail);
+        firetray.Handler.setIconImageNewMail();
         break;
       case FIRETRAY_NOTIFICATION_CUSTOM_ICON:
         let prefCustomIconPath = firetray.Utils.prefService.getCharPref("custom_mail_icon");
