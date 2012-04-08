@@ -19,7 +19,7 @@ Features
   * start minimized to tray
   * show icon only when hidden to tray
   * mouse scroll on tray icon shows/hides
-  * themable icons *(forthcoming)*
+  * Gtk themable icons
   * popup menu (show/hide indivisual windows, open new windows, quit)
   * keyboard shortcuts *(forthcoming)*
 
@@ -29,6 +29,7 @@ Features
   * customizable tray icon for mail biff
   * include/exclude mail accounts to/from messages count
   * include/exclude folders types to/from messages count
+  * count in sub-folders recursively
 
 Notes
 -----
