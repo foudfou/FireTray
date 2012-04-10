@@ -472,12 +472,13 @@ firetray.Window = {
       let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
       let xwin = xany.contents.window;
 
+      let winStates, isHidden;
       switch (xany.contents.type) {
 
       case x11.UnmapNotify:
         F.LOG("UnmapNotify");
-        let winStates = firetray.Window.getXWindowStates(xwin);
-        let isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
+        winStates = firetray.Window.getXWindowStates(xwin);
+        isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
         F.LOG("winStates="+winStates+", isHidden="+isHidden);
         if (isHidden) {
           let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
@@ -486,15 +487,27 @@ firetray.Window = {
             if (hides_single_window) {
               firetray.Handler.hideSingleWindow(xwin);
             } else
-              firetray.Handler.hideAllWindows();
+            firetray.Handler.hideAllWindows();
           }
         }
         break;
 
-      default:
-        // F.LOG("xany.type="+xany.contents.type);
+      case x11.PropertyNotify:
+        let xprop = ctypes.cast(xev, x11.XPropertyEvent.ptr);
+        if (firetray.js.strEquals(xprop.contents.atom, x11.current.Atoms.WM_STATE) &&
+            firetray.js.strEquals(xprop.contents.state, x11.PropertyNewValue)) {
+          F.LOG("PropertyNotify: "+xprop.contents.atom+" send_event: "+xprop.contents.send_event+" state: "+xprop.contents.state);
+          winStates = firetray.Window.getXWindowStates(xwin);
+          isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
+          if (isHidden) F.WARN("*** HIDDEN ***");
+        }
         break;
+
+      // default:
+      //   F.LOG("xany.type="+xany.contents.type);
+      //   break;
       }
+
     } catch(x) {
       F.ERROR(x);
     }
