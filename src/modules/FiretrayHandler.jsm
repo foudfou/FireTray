@@ -188,14 +188,14 @@ firetray.Handler = {
   showAllWindows: function() {
     F.LOG("showAllWindows");
     for (let winId in firetray.Handler.windows) {
-      if (!firetray.Handler.windows[winId].visibility)
+      if (!firetray.Handler.windows[winId].visible)
         firetray.Handler.showSingleWindow(winId);
     }
   },
   hideAllWindows: function() {
     F.LOG("hideAllWindows");
     for (let winId in firetray.Handler.windows) {
-      if (firetray.Handler.windows[winId].visibility)
+      if (firetray.Handler.windows[winId].visible)
         firetray.Handler.hideSingleWindow(winId);
     }
   },

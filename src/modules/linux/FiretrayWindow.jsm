@@ -173,7 +173,7 @@ firetray.Window = {
 
   unregisterWindowByXID: function(xid) {
     firetray.Handler.windowsCount -= 1;
-    if (firetray.Handler.windows[xid].visibility) firetray.Handler.visibleWindowsCount -= 1;
+    if (firetray.Handler.windows[xid].visible) firetray.Handler.visibleWindowsCount -= 1;
     if (firetray.Handler.windows.hasOwnProperty(xid)) {
       if (!delete firetray.Handler.windows[xid])
         throw new DeleteError();
@@ -321,7 +321,7 @@ firetray.Window = {
 
   setVisibility: function(xid, visibility) {
     firetray.Handler.windows[xid].baseWin.visibility = visibility;
-    firetray.Handler.windows[xid].visibility = visibility;
+    firetray.Handler.windows[xid].visible = visibility;
     firetray.Handler.visibleWindowsCount = visibility ?
       firetray.Handler.visibleWindowsCount + 1 :
       firetray.Handler.visibleWindowsCount - 1 ;
@@ -464,6 +464,8 @@ firetray.Window = {
       return null;
   },
 
+  // TODO: maybe we should subscribe to StructureNotifyMask (UnmapNotify),
+  // VisibilityChangeMask, PropertyChangeMask
   filterWindow: function(xev, gdkEv, data) {
     if (!xev)
       return gdk.GDK_FILTER_CONTINUE;
@@ -477,35 +479,38 @@ firetray.Window = {
 
       case x11.UnmapNotify:
         F.LOG("UnmapNotify");
-        winStates = firetray.Window.getXWindowStates(xwin);
-        isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
-        F.LOG("winStates="+winStates+", isHidden="+isHidden);
-        if (isHidden) {
-          let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-          let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-          if (hides_on_minimize) {
-            if (hides_single_window) {
-              firetray.Handler.hideSingleWindow(xwin);
-            } else
-            firetray.Handler.hideAllWindows();
-          }
+        if (firetray.Handler.windows[xwin].visible) {
+          winStates = firetray.Window.getXWindowStates(xwin);
+          isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
         }
         break;
 
       case x11.PropertyNotify:
         let xprop = ctypes.cast(xev, x11.XPropertyEvent.ptr);
-        if (firetray.js.strEquals(xprop.contents.atom, x11.current.Atoms.WM_STATE) &&
+        if (firetray.Handler.windows[xwin].visible &&
+            firetray.js.strEquals(xprop.contents.atom, x11.current.Atoms.WM_STATE) &&
             firetray.js.strEquals(xprop.contents.state, x11.PropertyNewValue)) {
-          F.LOG("PropertyNotify: "+xprop.contents.atom+" send_event: "+xprop.contents.send_event+" state: "+xprop.contents.state);
+          F.LOG("PropertyNotify: WM_STATE, send_event: "+xprop.contents.send_event+", state: "+xprop.contents.state);
           winStates = firetray.Window.getXWindowStates(xwin);
           isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
-          if (isHidden) F.WARN("*** HIDDEN ***");
         }
         break;
 
       // default:
       //   F.LOG("xany.type="+xany.contents.type);
       //   break;
+      }
+
+      if (isHidden) { // minimized
+        F.LOG("winStates="+winStates+", isHidden="+isHidden);
+        let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+        let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+        if (hides_on_minimize) {
+          if (hides_single_window) {
+            firetray.Handler.hideSingleWindow(xwin);
+          } else
+          firetray.Handler.hideAllWindows();
+        }
       }
 
     } catch(x) {
@@ -549,7 +554,7 @@ firetray.Handler.registerWindow = function(win) {
   this.windowsCount += 1;
   // NOTE: no need to check for window state to set visibility because all
   // windows *are* shown at startup
-  this.windows[xid].visibility = true; // this.windows[xid].baseWin.visibility always true :-(
+  this.windows[xid].visible = true; // this.windows[xid].baseWin.visibility always true :-(
   this.visibleWindowsCount += 1;
   F.LOG("window "+xid+" registered");
   // NOTE: shouldn't be necessary to gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK);
