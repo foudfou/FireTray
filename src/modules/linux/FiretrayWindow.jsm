@@ -285,10 +285,12 @@ firetray.Window = {
     F.LOG("restored WindowStates: " + winStates);
     if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
       firetray.Handler.windows[xid].chromeWin.maximize();
+      F.LOG("restored maximized");
     }
     let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
     if (!hides_on_minimize && (winStates & FIRETRAY_XWINDOW_HIDDEN)) {
       firetray.Handler.windows[xid].chromeWin.minimize();
+      F.LOG("restored minimized");
     }
 
     delete firetray.Handler.windows[xid].savedStates;
@@ -464,8 +466,6 @@ firetray.Window = {
       return null;
   },
 
-  // TODO: maybe we should subscribe to StructureNotifyMask (UnmapNotify),
-  // VisibilityChangeMask, PropertyChangeMask
   filterWindow: function(xev, gdkEv, data) {
     if (!xev)
       return gdk.GDK_FILTER_CONTINUE;
@@ -538,6 +538,14 @@ firetray.Handler.registerWindow = function(win) {
 
   // register
   let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
+  let eventMask = gdk.gdk_window_get_events(gdkWin);
+  F.LOG(eventMask);
+  let eventMaskNeeded = gdk.GDK_STRUCTURE_MASK|gdk.GDK_PROPERTY_CHANGE_MASK|gdk.GDK_VISIBILITY_NOTIFY_MASK;
+  F.LOG(eventMaskNeeded);
+  if ((eventMask & eventMaskNeeded) !== eventMaskNeeded) {
+    F.WARN("subscribing window to missing mandatory event-masks");
+    gdk.gdk_window_set_events(gdkWin, eventMask|eventMaskNeeded);
+  }
   this.windows[xid] = {};
   this.windows[xid].chromeWin = win;
   this.windows[xid].baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");

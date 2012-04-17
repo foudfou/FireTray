@@ -117,8 +117,11 @@ function x11_defines(lib) {
   this.XA_ATOM     = 4;
   this.XA_CARDINAL = 6;
   // Input Event Masks
+  this.VisibilityChangeMask     = 1<<16
+  this.StructureNotifyMask      = 1<<17
   this.SubstructureNotifyMask   = 1<<19;
   this.SubstructureRedirectMask = 1<<20;
+  this.PropertyChangeMask       = 1<<22
 
   this.Bool = ctypes.int;
   this.Status = ctypes.int;
@@ -154,29 +157,6 @@ function x11_defines(lib) {
     { "time": this.Time },
     { "state": ctypes.int }     /* NewValue or Deleted */
   ]);
-  // typedef struct {
-  //      int x, y;                /* location of window */
-  //      int width, height;       /* width and height of window */
-  //      int border_width;        /* border width of window */
-  //      int depth;               /* depth of window */
-  //      Visual *visual;          /* the associated visual structure */
-  //      Window root;             /* root of screen containing window */
-  //      int class;               /* InputOutput, InputOnly*/
-  //      int bit_gravity;         /* one of the bit gravity values */
-  //      int win_gravity;         /* one of the window gravity values */
-  //      int backing_store;       /* NotUseful, WhenMapped, Always */
-  //      unsigned long backing_planes;/* planes to be preserved if possible */
-  //      unsigned long backing_pixel;/* value to be used when restoring planes */
-  //      Bool save_under;         /* boolean, should bits under be saved? */
-  //      Colormap colormap;       /* color map to be associated with window */
-  //      Bool map_installed;      /* boolean, is color map currently installed*/
-  //      int map_state;           /* IsUnmapped, IsUnviewable, IsViewable */
-  //      long all_event_masks;    /* set of events all people have interest in*/
-  //      long your_event_mask;    /* my event mask */
-  //      long do_not_propagate_mask;/* set of events that should not propagate */
-  //      Bool override_redirect;  /* boolean value for override-redirect */
-  //      Screen *screen;          /* back pointer to correct screen */
-  // } XWindowAttributes;
 
   lib.lazy_bind("XFree", ctypes.int, ctypes.void_t.ptr);
   lib.lazy_bind("XInternAtom", this.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool); // only_if_exsits
@@ -185,9 +165,6 @@ function x11_defines(lib) {
   lib.lazy_bind("XDefaultRootWindow", this.Window, this.Display.ptr);
   lib.lazy_bind("XSendEvent", this.Status, this.Display.ptr, this.Window, this.Bool, ctypes.long, this.XEvent.ptr);
   lib.lazy_bind("XRaiseWindow", ctypes.int, this.Display.ptr, this.Window);
-  // Status XGetWindowAttributes(Display *display, Window w, XWindowAttributes *window_attributes_return);
-  // int XChangeWindowAttributes(Display *display, Window w, unsigned long valuemask, XSetWindowAttributes *attributes);
-
 }
 
 new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines, this);

@@ -117,6 +117,29 @@ function gdk_defines(lib) {
   this.GDK_SCROLL_DOWN  = 1;
   this.GDK_SCROLL_LEFT  = 2;
   this.GDK_SCROLL_RIGHT = 3;
+  this.GdkEventMask = ctypes.int; // enum
+  this.GDK_EXPOSURE_MASK            = 1 << 1,
+  this.GDK_POINTER_MOTION_MASK      = 1 << 2,
+  this.GDK_POINTER_MOTION_HINT_MASK = 1 << 3,
+  this.GDK_BUTTON_MOTION_MASK       = 1 << 4,
+  this.GDK_BUTTON1_MOTION_MASK      = 1 << 5,
+  this.GDK_BUTTON2_MOTION_MASK      = 1 << 6,
+  this.GDK_BUTTON3_MOTION_MASK      = 1 << 7,
+  this.GDK_BUTTON_PRESS_MASK        = 1 << 8,
+  this.GDK_BUTTON_RELEASE_MASK      = 1 << 9,
+  this.GDK_KEY_PRESS_MASK           = 1 << 10,
+  this.GDK_KEY_RELEASE_MASK         = 1 << 11,
+  this.GDK_ENTER_NOTIFY_MASK        = 1 << 12,
+  this.GDK_LEAVE_NOTIFY_MASK        = 1 << 13,
+  this.GDK_FOCUS_CHANGE_MASK        = 1 << 14,
+  this.GDK_STRUCTURE_MASK           = 1 << 15,
+  this.GDK_PROPERTY_CHANGE_MASK     = 1 << 16,
+  this.GDK_VISIBILITY_NOTIFY_MASK   = 1 << 17,
+  this.GDK_PROXIMITY_IN_MASK        = 1 << 18,
+  this.GDK_PROXIMITY_OUT_MASK       = 1 << 19,
+  this.GDK_SUBSTRUCTURE_MASK        = 1 << 20,
+  this.GDK_SCROLL_MASK              = 1 << 21,
+  this.GDK_ALL_EVENTS_MASK          = 0x3FFFFE
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -240,6 +263,8 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_beep", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_window_get_width", ctypes.int, this.GdkWindow.ptr);
 
+  lib.lazy_bind("gdk_window_get_events", this.GdkEventMask, this.GdkWindow.ptr);
+  lib.lazy_bind("gdk_window_set_events", ctypes.void_t, this.GdkWindow.ptr, this.GdkEventMask);
   lib.lazy_bind("gdk_window_add_filter", ctypes.void_t, this.GdkWindow.ptr, this.GdkFilterFunc, gobject.gpointer);
   lib.lazy_bind("gdk_display_get_default", this.GdkDisplay.ptr);
   lib.lazy_bind("gdk_x11_display_get_xdisplay", x11.Display.ptr, this.GdkDisplay.ptr);
@@ -253,7 +278,6 @@ function gdk_defines(lib) {
 
   lib.lazy_bind("gdk_display_get_n_screens", gobject.gint, this.GdkDisplay.ptr);
   lib.lazy_bind("gdk_display_get_screen", this.GdkScreen.ptr, this.GdkDisplay.ptr, gobject.gint);
-
 }
 
 new ctypes_library(GDK_LIBNAME, GDK_ABIS, gdk_defines, this);
