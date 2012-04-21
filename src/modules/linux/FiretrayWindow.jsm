@@ -466,6 +466,19 @@ firetray.Window = {
       return null;
   },
 
+  checkSubscribedEventMasks: function(xid) {
+    let xWindowAttributes = new x11.XWindowAttributes;
+    let status = x11.XGetWindowAttributes(x11.current.Display, xid, xWindowAttributes.address());
+    F.LOG("xWindowAttributes: "+xWindowAttributes);
+    let xEventMask = xWindowAttributes.your_event_mask;
+    let xEventMaskNeeded = x11.VisibilityChangeMask|x11.StructureNotifyMask|x11.PropertyChangeMask;
+    F.LOG("xEventMask="+xEventMask+" xEventMaskNeeded="+xEventMaskNeeded);
+    if ((xEventMask & xEventMaskNeeded) !== xEventMaskNeeded) {
+      F.WARN("missing mandatory event-masks");
+      // could try to subscribe here with XChangeWindowAttributes()
+    }
+  },
+
   filterWindow: function(xev, gdkEv, data) {
     if (!xev)
       return gdk.GDK_FILTER_CONTINUE;
@@ -538,14 +551,7 @@ firetray.Handler.registerWindow = function(win) {
 
   // register
   let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
-  let eventMask = gdk.gdk_window_get_events(gdkWin);
-  F.LOG(eventMask);
-  let eventMaskNeeded = gdk.GDK_STRUCTURE_MASK|gdk.GDK_PROPERTY_CHANGE_MASK|gdk.GDK_VISIBILITY_NOTIFY_MASK;
-  F.LOG(eventMaskNeeded);
-  if ((eventMask & eventMaskNeeded) !== eventMaskNeeded) {
-    F.WARN("subscribing window to missing mandatory event-masks");
-    gdk.gdk_window_set_events(gdkWin, eventMask|eventMaskNeeded);
-  }
+  firetray.Window.checkSubscribedEventMasks(xid);
   this.windows[xid] = {};
   this.windows[xid].chromeWin = win;
   this.windows[xid].baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");

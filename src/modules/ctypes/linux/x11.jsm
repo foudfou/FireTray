@@ -125,6 +125,13 @@ function x11_defines(lib) {
 
   this.Bool = ctypes.int;
   this.Status = ctypes.int;
+  this.Pixmap = this.XID;
+  this.Cursor = this.XID;
+  this.Colormap = this.XID;
+  this.GContext = this.XID;
+  this.KeySym = this.XID;
+  this.Visual = ctypes.StructType("Visual");
+  this.Screen = ctypes.StructType("Screen");
   this.Display = ctypes.StructType("Display");
   // union not supported by js-ctypes
   // https://bugzilla.mozilla.org/show_bug.cgi?id=535378 "You can always
@@ -158,6 +165,50 @@ function x11_defines(lib) {
     { "state": ctypes.int }     /* NewValue or Deleted */
   ]);
 
+  this.XWindowAttributes = ctypes.StructType("XWindowAttributes", [
+    { "x": ctypes.int },
+    { "y": ctypes.int },                        /* location of window */
+    { "width": ctypes.int },
+    { "height": ctypes.int },                   /* width and height of window */
+    { "border_width": ctypes.int },             /* border width of window */
+    { "depth": ctypes.int },                    /* depth of window */
+    { "visual": this.Visual.ptr },              /* the associated visual structure */
+    { "root": this.Window },                    /* root of screen containing window */
+    { "class": ctypes.int },                    /* InputOutput, InputOnly*/
+    { "bit_gravity": ctypes.int },              /* one of bit gravity values */
+    { "win_gravity": ctypes.int },              /* one of the window gravity values */
+    { "backing_store": ctypes.int },            /* NotUseful, WhenMapped, Always */
+    { "backing_planes": ctypes.unsigned_long }, /* planes to be preserved if possible */
+    { "backing_pixel": ctypes.unsigned_long },  /* value to be used when restoring planes */
+    { "save_under": this.Bool },                /* boolean, should bits under be saved? */
+    { "colormap": this.Colormap },              /* color map to be associated with window */
+    { "map_installed": this.Bool },             /* boolean, is color map currently installed*/
+    { "map_state": ctypes.int },                /* IsUnmapped, IsUnviewable, IsViewable */
+    { "all_event_masks": ctypes.long },         /* set of events all people have interest in*/
+    { "your_event_mask": ctypes.long },         /* my event mask */
+    { "do_not_propagate_mask": ctypes.long },   /* set of events that should not propagate */
+    { "override_redirect": this.Bool },         /* boolean value for override-redirect */
+    { "screen": this.Screen.ptr }               /* back pointer to correct screen */
+  ]);
+
+  this.XSetWindowAttributes = ctypes.StructType("XSetWindowAttributes", [
+    { "background_pixmap": this.Pixmap },         /* background or None or ParentRelative */
+    { "background_pixel": ctypes.unsigned_long },	/* background pixel */
+    { "border_pixmap": this.Pixmap },             /* border of the window */
+    { "border_pixel": ctypes.unsigned_long },     /* border pixel value */
+    { "bit_gravity": ctypes.int },                /* one of bit gravity values */
+    { "win_gravity": ctypes.int },                /* one of the window gravity values */
+    { "backing_store": ctypes.int },              /* NotUseful, WhenMapped, Always */
+    { "backing_planes": ctypes.unsigned_long },   /* planes to be preseved if possible */
+    { "backing_pixel": ctypes.unsigned_long },    /* value to use in restoring planes */
+    { "save_under": this.Bool },                  /* should bits under be saved? (popups) */
+    { "event_mask": ctypes.long },                /* set of events that should be saved */
+    { "do_not_propagate_mask": ctypes.long },     /* set of events that should not propagate */
+    { "override_redirect": this.Bool },           /* boolean value for override-redirect */
+    { "colormap": this.Colormap },                /* color map to be associated with window */
+    { "cursor": this.Cursor }                     /* cursor to be displayed (or None) */
+  ]);
+
   lib.lazy_bind("XFree", ctypes.int, ctypes.void_t.ptr);
   lib.lazy_bind("XInternAtom", this.Atom, this.Display.ptr, ctypes.char.ptr, this.Bool); // only_if_exsits
   lib.lazy_bind("XGetWindowProperty", ctypes.int, this.Display.ptr, this.Window, this.Atom, ctypes.long, ctypes.long, this.Bool, this.Atom, this.Atom.ptr, ctypes.int.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_long.ptr, ctypes.unsigned_char.ptr.ptr);
@@ -165,6 +216,8 @@ function x11_defines(lib) {
   lib.lazy_bind("XDefaultRootWindow", this.Window, this.Display.ptr);
   lib.lazy_bind("XSendEvent", this.Status, this.Display.ptr, this.Window, this.Bool, ctypes.long, this.XEvent.ptr);
   lib.lazy_bind("XRaiseWindow", ctypes.int, this.Display.ptr, this.Window);
+  lib.lazy_bind("XGetWindowAttributes", this.Status, this.Display.ptr, this.Window, this.XWindowAttributes.ptr);
+  lib.lazy_bind("XChangeWindowAttributes", ctypes.int, this.Display.ptr, this.Window, ctypes.unsigned_long, this.XSetWindowAttributes.ptr);
 }
 
 new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines, this);
