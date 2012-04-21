@@ -61,7 +61,6 @@ firetray.Messaging = {
   /* removes removed accounts from excludedAccounts pref. NOTE: Can't be called
     at shutdown because MailServices.accounts no longer available */
   cleanExcludedAccounts: function() {
-    try {
     F.LOG("* cleaning *");
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
     let excludedAccounts = mailAccounts["excludedAccounts"];
@@ -71,12 +70,12 @@ firetray.Messaging = {
     let accountServerKeys = [];
     for (let i=0, len=accounts.Count(); i<len; ++i) {
       let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
-      let accountServer = account.incomingServer;
-      accountServerKeys[i] = accountServer;
+      accountServerKeys[i] = account.incomingServer.key;
     }
 
     let newExcludedAccounts = [], cleaningNeeded = 0;
-    for (let excludedAccount in excludedAccounts) {
+    for (let i=0, len=excludedAccounts.length; i<len; ++i) {
+      let excludedAccount = excludedAccounts[i];
       if (accountServerKeys.indexOf(excludedAccount) >= 0)
         newExcludedAccounts.push(excludedAccount);
       else
@@ -88,7 +87,6 @@ firetray.Messaging = {
       let prefObj = {"serverTypes":mailAccounts["serverTypes"], "excludedAccounts":newExcludedAccounts};
       firetray.Utils.setObjPref('mail_accounts', prefObj);
     }
-    } catch(x) { F.ERROR(x); }
   },
 
   /* http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsIFolderListener.idl */
