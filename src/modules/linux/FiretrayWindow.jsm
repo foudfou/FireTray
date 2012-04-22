@@ -320,7 +320,12 @@ firetray.Window = {
   },
 
   setVisibility: function(xid, visibility) {
-    firetray.Handler.windows[xid].baseWin.visibility = visibility;
+    let gtkWidget = ctypes.cast(firetray.Handler.gtkWindows.get(xid), gtk.GtkWidget.ptr);
+    if (visibility)
+      gtk.gtk_widget_show_all(gtkWidget);
+    else
+      gtk.gtk_widget_hide(gtkWidget);
+
     firetray.Handler.windows[xid].visibility = visibility;
     firetray.Handler.visibleWindowsCount = visibility ?
       firetray.Handler.visibleWindowsCount + 1 :
