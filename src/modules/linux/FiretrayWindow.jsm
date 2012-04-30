@@ -322,7 +322,13 @@ firetray.Window = {
   },
 
   setVisibility: function(xid, visibility) {
-    firetray.Handler.windows[xid].baseWin.visibility = visibility;
+    F.WARN("setVisibility="+visibility);
+    let gtkWidget = ctypes.cast(firetray.Handler.gtkWindows.get(xid), gtk.GtkWidget.ptr);
+    if (visibility)
+      gtk.gtk_widget_show_all(gtkWidget);
+    else
+      gtk.gtk_widget_hide(gtkWidget);
+
     firetray.Handler.windows[xid].visible = visibility;
     firetray.Handler.visibleWindowsCount = visibility ?
       firetray.Handler.visibleWindowsCount + 1 :
@@ -489,14 +495,6 @@ firetray.Window = {
 
       let winStates, isHidden;
       switch (xany.contents.type) {
-
-      case x11.UnmapNotify:
-        F.LOG("UnmapNotify");
-        if (firetray.Handler.windows[xwin].visible) {
-          winStates = firetray.Window.getXWindowStates(xwin);
-          isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
-        }
-        break;
 
       case x11.PropertyNotify:
         let xprop = ctypes.cast(xev, x11.XPropertyEvent.ptr);

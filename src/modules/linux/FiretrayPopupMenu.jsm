@@ -146,7 +146,7 @@ firetray.PopupMenu = {
 
   showAllWindowItemsOnlyVisibleWindows: function() {
     for (let xid in firetray.Handler.windows)
-      if (!firetray.Handler.windows[xid].visibility)
+      if (!firetray.Handler.windows[xid].visible)
         this.showSingleWindowItem(xid);
   },
 

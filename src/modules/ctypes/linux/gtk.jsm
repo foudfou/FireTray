@@ -93,7 +93,6 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_image_menu_item_set_image", ctypes.void_t, this.GtkImageMenuItem.ptr, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_menu_shell_append", ctypes.void_t, this.GtkMenuShell.ptr, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_menu_shell_prepend", ctypes.void_t, this.GtkMenuShell.ptr, this.GtkWidget.ptr);
-  lib.lazy_bind("gtk_widget_show_all", ctypes.void_t, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_menu_popup", ctypes.void_t, this.GtkMenu.ptr, this.GtkWidget.ptr, this.GtkWidget.ptr, this.GtkMenuPositionFunc_t, gobject.gpointer, gobject.guint, gobject.guint);
   lib.lazy_bind("gtk_status_icon_position_menu", ctypes.void_t, this.GtkMenu.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gboolean.ptr, gobject.gpointer);
   lib.lazy_bind("gtk_separator_menu_item_new", this.GtkWidget.ptr);
@@ -113,6 +112,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_widget_hide_on_delete", gobject.gboolean, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_hide", ctypes.void_t, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_show", ctypes.void_t, this.GtkWidget.ptr);
+  lib.lazy_bind("gtk_widget_show_all", ctypes.void_t, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_get_events", gobject.gint, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_get_events", gobject.gint, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_add_events", ctypes.void_t, this.GtkWidget.ptr, gobject.gint);
