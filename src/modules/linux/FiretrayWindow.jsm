@@ -585,10 +585,11 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
     for(var key in firetray.Handler.windows);
     firetray.Window.activate(key);
   } else if ((0.5 < visibilityRate) && (visibilityRate < 1)
-      || visibilityRate === 0) // TODO: should be configurable
+             || visibilityRate === 0) { // TODO: should be configurable
     firetray.Handler.showAllWindows();
-  else
+  } else {
     firetray.Handler.hideAllWindows();
+  }
 
   let stopPropagation = true;
   return stopPropagation;
