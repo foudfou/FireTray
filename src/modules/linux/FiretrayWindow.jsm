@@ -195,7 +195,8 @@ firetray.Window = {
     firetray.Window.restorePositionAndSize(xid);
     firetray.Window.restoreStates(xid);
 
-    // better visual effect if visibility set here instead of before
+    // better visual effect if visibility set after restorePosition, but some
+    // WMs like compiz seem not to honor position setting if window not visible
     firetray.Window.setVisibility(xid, true);
 
     // after show

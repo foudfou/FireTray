@@ -78,6 +78,8 @@ KNOWN BUGS
   download new messages) to see new message. See
   [this discussion](https://github.com/foudfou/FireTray/issues/20).
 
+* some features [do not work well under Unity/Compiz](https://github.com/foudfou/FireTray/issues/22).
+
 Acknowledgment
 --------------
 
