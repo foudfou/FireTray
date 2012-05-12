@@ -188,8 +188,8 @@ firetray.Window = {
     return true;
   },
 
-  showSingleStateful: function(xid) {
-    F.LOG("showSingleStateful xid="+xid);
+  show: function(xid) {
+    F.LOG("show xid="+xid);
 
     // try to restore previous state. TODO: z-order respected ?
     firetray.Window.restorePositionAndSize(xid);
@@ -205,22 +205,10 @@ firetray.Window = {
     firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
     firetray.Handler.showHideIcon();
   },
-  showSingleStatelessOnce: function(xid) {
-    F.LOG("showSingleStateless");
 
-    firetray.Window.setVisibility(xid, true);
-
-    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
-    firetray.Handler.showHideIcon();
-
-    firetray.Handler.windows[xid].show = firetray.Window.showSingleStateful; // reset
-  },
-
-  // NOTE: we keep using high-level cross-plat BaseWindow.visibility (instead of
-  // gdk_window_show_unraised)
   /* FIXME: hiding windows should also hide child windows */
-  hideSingleStateful: function(xid) {
-    F.LOG("hideSingleStateful");
+  hide: function(xid) {
+    F.LOG("hide");
 
     firetray.Window.savePositionAndSize(xid);
     firetray.Window.saveStates(xid);
@@ -230,21 +218,6 @@ firetray.Window = {
 
     firetray.PopupMenu.showSingleWindowItem(xid);
     firetray.Handler.showHideIcon();
-  },
-  /**
-   * hides without saving window states (position, size, ...) This is needed
-   * when application starts hidden: as windows are not realized, their state
-   * is not accurate.
-   */
-  hideSingleStatelessOnce: function(xid) {
-    F.LOG("hideSingleStateless");
-
-    firetray.Window.setVisibility(xid, false);
-
-    firetray.PopupMenu.showSingleWindowItem(xid);
-    firetray.Handler.showHideIcon();
-
-    firetray.Handler.windows[xid].hide = firetray.Window.hideSingleStateful; // reset
   },
 
   savePositionAndSize: function(xid) {
@@ -322,7 +295,7 @@ firetray.Window = {
   },
 
   setVisibility: function(xid, visibility) {
-    F.WARN("setVisibility="+visibility);
+    F.LOG("setVisibility="+visibility);
     let gtkWidget = ctypes.cast(firetray.Handler.gtkWindows.get(xid), gtk.GtkWidget.ptr);
     if (visibility)
       gtk.gtk_widget_show_all(gtkWidget);
@@ -512,6 +485,7 @@ firetray.Window = {
       //   break;
       }
 
+      // NOTE: Gecko 8.0 provides the 'sizemodechange' event
       if (isHidden) { // minimized
         F.LOG("winStates="+winStates+", isHidden="+isHidden);
         let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
@@ -585,17 +559,6 @@ firetray.Handler.registerWindow = function(win) {
     return null;
   }
 
-  if (!firetray.Handler.appStarted &&
-      firetray.Utils.prefService.getBoolPref('start_hidden')) {
-    this.windows[xid].startHidden = true;
-    this.windows[xid].hide = firetray.Window.hideSingleStatelessOnce;
-    this.windows[xid].show = firetray.Window.showSingleStatelessOnce;
-  } else {
-    this.windows[xid].startHidden = false;
-    this.windows[xid].hide = firetray.Window.hideSingleStateful;
-    this.windows[xid].show = firetray.Window.showSingleStateful;
-  }
-
   F.LOG("AFTER"); firetray.Handler.dumpWindows();
   return xid;
 };
@@ -606,15 +569,8 @@ firetray.Handler.unregisterWindow = function(win) {
   return firetray.Window.unregisterWindowByXID(xid);
 };
 
-firetray.Handler.showSingleWindow = function(xid) {
-  F.LOG("showSingleWindow xid="+xid);
-  this.windows[xid].show(xid);
-};
-
-firetray.Handler.hideSingleWindow = function(xid) {
-  F.LOG("hideSingleWindow xid="+xid);
-  this.windows[xid].hide(xid);
-};
+firetray.Handler.showSingleWindow = firetray.Window.show;
+firetray.Handler.hideSingleWindow = firetray.Window.hide;
 
 firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   F.LOG("showHideAllWindows: "+userData);

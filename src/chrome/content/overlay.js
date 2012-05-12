@@ -10,6 +10,10 @@ if ("undefined" == typeof(Cu)) var Cu = Components.utils;
 // https://groups.google.com/group/mozilla.dev.extensions/browse_thread/thread/e89e9c2a834ff2b6#
 var firetrayChrome = { // each new window gets a new firetrayChrome !
 
+  strings: null,
+  winId: null,
+  startedHidden: false,
+
   onLoad: function(win) {
     this.strings = document.getElementById("firetray-strings"); // chrome-specific
 
@@ -17,17 +21,13 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     let init = firetray.Handler.initialized || firetray.Handler.init();
 
     F.LOG("ONLOAD"); firetray.Handler.dumpWindows();
-    let winId = firetray.Handler.registerWindow(win);
+    this.winId = firetray.Handler.registerWindow(win);
 
     if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
       firetray.Messaging.updateMsgCount();
 
     win.addEventListener('close', firetrayChrome.onClose, true);
-
-    if (firetray.Handler.windows[winId].startHidden) {
-      F.LOG('start_hidden');
-      firetray.Handler.hideSingleWindow(winId);
-    }
+    win.addEventListener('resize', firetrayChrome.onResize, true);
 
     F.LOG('Firetray LOADED: ' + init);
     return true;
@@ -58,13 +58,37 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     F.LOG('hides_on_close: '+hides_on_close+', hides_single_window='+hides_single_window);
     if (hides_on_close) {
       if (hides_single_window) {
-        let winId = firetray.Handler.getWindowIdFromChromeWindow(win);
-        firetray.Handler.hideSingleWindow(winId);
+        firetray.Handler.hideSingleWindow(firetrayChrome.winId);
       } else
         firetray.Handler.hideAllWindows();
       event && event.preventDefault();
     }
+  },
+
+  /**
+   * at startup windows are displayed/shown/resized multiple times. We can't
+   * just set baseWin.visibility=false on 'load' because the window is not
+   * fully realized (position, size incorrect), neither when appStarted because
+   * windows would be displayed in between
+   */
+  onResize: function(event) {
+    F.LOG('onResize'+'. appStarted='+firetray.Handler.appStarted);
+    let win = event.originalTarget;
+    win.removeEventListener('resize', firetrayChrome.onResize, true);
+
+    if(!firetray.Handler.appStarted &&
+       firetray.Utils.prefService.getBoolPref('start_hidden')) {
+      F.LOG('start_hidden: '+firetrayChrome.winId);
+      let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
+      baseWin.visibility = false;
+      if (!firetrayChrome.startedHidden) {
+        firetray.Handler.windows[firetrayChrome.winId].visible = false;
+        firetray.Handler.visibleWindowsCount -= 1;
+        firetrayChrome.startedHidden = true;
+      }
+    }
   }
+
 };
 
 // should be sufficient for a delayed Startup (no need for window.setTimeout())
