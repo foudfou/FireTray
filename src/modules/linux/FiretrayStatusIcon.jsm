@@ -131,16 +131,16 @@ firetray.StatusIcon = {
      need to abandon 'this' in PopupMenu.popup() */
     this.callbacks.menuPopup = gtk.GCallbackMenuPopup_t(firetray.PopupMenu.popup);
     gobject.g_signal_connect(this.trayIcon, "popup-menu",
-                             firetray.StatusIcon.callbacks.menuPopup, firetray.PopupMenu.menu);
+      firetray.StatusIcon.callbacks.menuPopup, firetray.PopupMenu.menu);
     this.callbacks.onScroll = gtk.GCallbackOnScroll_t(firetray.StatusIcon.onScroll);
     gobject.g_signal_connect(this.trayIcon, "scroll-event",
-                             firetray.StatusIcon.callbacks.onScroll, null);
+      firetray.StatusIcon.callbacks.onScroll, null);
 
     F.LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
     this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
       firetray.Handler.showHideAllWindows);
     let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
-                                             "activate", firetray.StatusIcon.callbacks.iconActivate, null);
+      "activate", firetray.StatusIcon.callbacks.iconActivate, null);
     F.LOG("g_connect activate="+handlerId);
   },
 

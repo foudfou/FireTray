@@ -201,7 +201,8 @@ firetray.Window = {
 
     // after show
     firetray.Window.restoreDesktop(xid);
-    firetray.Window.activate(xid);
+    if (firetray.Utils.prefService.getBoolPref('show_activates'))
+      firetray.Window.activate(xid);
 
     firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
     firetray.Handler.showHideIcon();
@@ -330,8 +331,6 @@ firetray.Window = {
    * raises window on top and give focus.
    */
   activate: function(xid) {
-    if (!firetray.Utils.prefService.getBoolPref('show_activates'))
-      return;
     gtk.gtk_window_present(firetray.Handler.gtkWindows.get(xid));
     F.LOG("window raised");
   },
@@ -582,7 +581,10 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   F.LOG("windowsCount="+firetray.Handler.windowsCount);
   let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
   F.LOG("visibilityRate="+visibilityRate);
-  if ((0.5 < visibilityRate) && (visibilityRate < 1)
+  if (visibilityRate === 1) {
+    for(var key in firetray.Handler.windows);
+    firetray.Window.activate(key);
+  } else if ((0.5 < visibilityRate) && (visibilityRate < 1)
       || visibilityRate === 0) // TODO: should be configurable
     firetray.Handler.showAllWindows();
   else
