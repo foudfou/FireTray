@@ -19,14 +19,15 @@ Features
   * start minimized to tray
   * show icon only when hidden to tray
   * mouse scroll on tray icon shows/hides
-  * themable icons *(forthcoming)*
+  * GTK-themable icons
+  * customizable tray icon
   * popup menu (show/hide indivisual windows, open new windows, quit)
-  * keyboard shortcuts *(forthcoming)*
+  * adds `-showHide` option (useful for window manager's keyboard shortcuts)
+  * middle click on the tray icon activates last registered window
 
 * for mail applications:
-  * display unread messages count in tray icon
+  * display unread message count in tray icon
   * display biff in tray icon when new messages
-  * customizable tray icon for mail biff
   * include/exclude mail accounts to/from messages count
   * include/exclude folders types to/from messages count
 
