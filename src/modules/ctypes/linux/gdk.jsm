@@ -219,9 +219,24 @@ function gdk_defines(lib) {
     { "state": gobject.guint },
     { "direction": this.GdkScrollDirection },
     { "device": this.GdkDevice.ptr },
-    { "x_root": gobject.gdouble }, { "y_root": gobject.gdouble }
+    { "x_root": gobject.gdouble },
+    { "y_root": gobject.gdouble }
   ]);
   this.GdkAtom = ctypes.StructType("GdkAtom");
+  this.GdkEventButton = ctypes.StructType("GdkEventButton", [
+    { "type": this.GdkEventType },
+    { "window": this.GdkWindow.ptr },
+    { "send_event": gobject.gint8 },
+    { "time": gobject.guint32 },
+    { "x": gobject.gdouble },
+    { "y": gobject.gdouble },
+    { "axes": gobject.gdouble.ptr },
+    { "state": gobject.guint },
+    { "button": gobject.guint },
+    { "device": this.GdkDevice.ptr },
+    { "x_root": gobject.gdouble },
+    { "y_root": gobject.gdouble }
+  ]);
 
   this.GdkFilterFunc_t = ctypes.FunctionType(
     ctypes.default_abi, this.GdkFilterReturn,

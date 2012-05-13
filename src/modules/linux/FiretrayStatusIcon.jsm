@@ -142,6 +142,12 @@ firetray.StatusIcon = {
     let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
       "activate", firetray.StatusIcon.callbacks.iconActivate, null);
     F.LOG("g_connect activate="+handlerId);
+
+    this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
+      firetray.Handler.activateLastWindow);
+    handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
+      "button-press-event", firetray.StatusIcon.callbacks.iconMiddleClick, null);
+    F.LOG("g_connect middleClick="+handlerId);
   },
 
   onScroll: function(icon, event, data) {

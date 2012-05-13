@@ -67,6 +67,7 @@ function gtk_defines(lib) {
   this.GCallbackOnScroll_t = ctypes.FunctionType(
     ctypes.default_abi, gobject.gboolean,
     [this.GtkStatusIcon.ptr, gdk.GdkEvent.ptr, gobject.gpointer]).ptr;
+  this.GCallbackStatusIconMiddleClick_t = this.GCallbackOnScroll_t;
   this.GCallbackGenericEvent_t = ctypes.FunctionType(
     ctypes.default_abi, gobject.gboolean,
     [this.GtkWidget.ptr, gdk.GdkEvent.ptr, gobject.gpointer]).ptr;

@@ -581,17 +581,35 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   F.LOG("windowsCount="+firetray.Handler.windowsCount);
   let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
   F.LOG("visibilityRate="+visibilityRate);
-  if (visibilityRate === 1) {
-    for(var key in firetray.Handler.windows);
-    firetray.Window.activate(key);
-  } else if ((0.5 < visibilityRate) && (visibilityRate < 1)
-             || visibilityRate === 0) { // TODO: should be configurable
+  if ((0.5 < visibilityRate) && (visibilityRate < 1)
+      || visibilityRate === 0) { // TODO: should be configurable
     firetray.Handler.showAllWindows();
   } else {
     firetray.Handler.hideAllWindows();
   }
 
   let stopPropagation = true;
+  return stopPropagation;
+};
+
+firetray.Handler.activateLastWindow = function(gtkStatusIcon, gdkEvent, userData) {
+  F.LOG("activateLastWindow");
+
+  let gdkEventButton = ctypes.cast(gdkEvent, gdk.GdkEventButton.ptr);
+  if (gdkEventButton.contents.button === 2 && gdkEventButton.contents.type === gdk.GDK_BUTTON_PRESS) {
+    F.LOG("MIDDLE CLICK");
+
+    let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
+    F.LOG("visibilityRate="+visibilityRate);
+    if (visibilityRate === 1) {
+      for(var key in firetray.Handler.windows);
+      firetray.Window.activate(key);
+    } else {
+      firetray.Handler.showAllWindows();
+    }
+  }
+
+  let stopPropagation = false;
   return stopPropagation;
 };
 
