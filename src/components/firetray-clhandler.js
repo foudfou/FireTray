@@ -26,7 +26,7 @@ firetayCommandLineHandler.prototype = {
   handle: function clh_handle(cmdLine)
   {
     if (cmdLine.handleFlag("showHide", false)) {
-      firetray.LOG("*** CmdLine call ***");
+      F.LOG("*** CmdLine call ***");
       firetray.Handler.showHideAllWindows();
       cmdLine.preventDefault = true;
     }
@@ -34,9 +34,9 @@ firetayCommandLineHandler.prototype = {
 
   // NOTE: change the help info as appropriate, but follow the guidelines in
   // nsICommandLineHandler.idl specifically, flag descriptions should start at
-  // character 24, and lines should be wrapped at 72 characters with embedded
+  // character 24, and lines should be wrapped at 76 characters with embedded
   // newlines, and finally, the string should end with a newline
-  helpInfo: "  -showHide            Minimize to or restore from system tray\n"
+  helpInfo: "  -showHide            Minimize to or restore from system tray\n" // https://bugzilla.mozilla.org/show_bug.cgi?id=510882
 };
 
 var NSGetFactory = XPCOMUtils.generateNSGetFactory([firetayCommandLineHandler]);
