@@ -6,6 +6,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://firetray/logging.jsm");
+Cu.import("resource://firetray/FiretrayHandler.jsm");
 
 function firetayCommandLineHandler() {}
 firetayCommandLineHandler.prototype = {
@@ -24,8 +25,9 @@ firetayCommandLineHandler.prototype = {
   /* nsICommandLineHandler */
   handle: function clh_handle(cmdLine)
   {
-    if (cmdLine.handleFlag("firetray", false)) {
-      firetray.WARN("*** CALL ***");
+    if (cmdLine.handleFlag("showHide", false)) {
+      firetray.LOG("*** CmdLine call ***");
+      firetray.Handler.showHideAllWindows();
       cmdLine.preventDefault = true;
     }
   },
@@ -34,7 +36,7 @@ firetayCommandLineHandler.prototype = {
   // nsICommandLineHandler.idl specifically, flag descriptions should start at
   // character 24, and lines should be wrapped at 72 characters with embedded
   // newlines, and finally, the string should end with a newline
-  helpInfo: "  -firetray            FOUDIL WAS HERE\n"
+  helpInfo: "  -showHide            Minimize to or restore from system tray\n"
 };
 
 var NSGetFactory = XPCOMUtils.generateNSGetFactory([firetayCommandLineHandler]);
