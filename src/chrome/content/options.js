@@ -206,6 +206,14 @@ var firetrayUIOptions = {
       if (+radio.getItemAtIndex(i).value == value) return i;
     return -1;
   },
+  
+  updateNewMailScript : function() {
+    
+  },
+  
+  updateNoNewMailScript : function() {
+    
+  },
 
   updateNotificationSettings: function() {
     F.LOG("updateNotificationSettings");
