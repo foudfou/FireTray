@@ -93,6 +93,12 @@ modules_sources := $(wildcard $(modules_dir)/*.js) \
 		$(wildcard $(modules_dir)/ctypes/linux/*.jsm) \
 		$(wildcard $(modules_dir)/linux/*.jsm)
 
+# The components (JSM) dir.
+components_dir := components
+
+# The JS component source files
+components_sources := $(wildcard $(components_dir)/*.js)
+
 # The sources for the XPI file. Uses variables defined in the included
 # Makefiles.
 xpi_includes := $(license) \
@@ -100,7 +106,8 @@ xpi_includes := $(license) \
              $(chrome_manifest) \
              $(preferences_dir)/prefs.js \
              $(chrome_sources) \
-             $(modules_sources)
+             $(modules_sources) \
+             $(components_sources)
 
 # Destination files
 build_includes := $(foreach f,$(xpi_includes),$(build_dir)/$(f))
@@ -131,27 +138,25 @@ $(build_dir)/%: %
 	@mkdir -p $(dir $@)
 	@cp -f $< $@ # -d for symlinks
 
+copy_and_strip_maybe = \
+	@mkdir -p $(dir $(1)); \
+	if [[ "$(DEBUG)" =~ $(YES_RE) ]]; then \
+	  cp -f $(2) $(1); \
+	else \
+	  echo "Stripping debug calls from JS file $<"; \
+	  sed '/F.LOG(/d' $(2) > $(1); \
+	fi
+
 # Debug calls are removed for performance.
 # NOTE: we could also use m4 for filtering source files...
 $(build_dir)/$(chrome_source_root)/%.js: $(chrome_source_root)/%.js
-	@mkdir -p $(dir $@)
-	@if [[ "$(DEBUG)" =~ $(YES_RE) ]]; \
-  then \
-    cp -f $< $@; \
-  else \
-    echo "Stripping debug calls from JS file $<"; \
-    sed '/F.LOG(/d' $< > $@; \
-  fi
+	$(call copy_and_strip_maybe,$@,$<)
 
 $(build_dir)/$(modules_dir)/%: $(modules_dir)/%
-	@mkdir -p $(dir $@)
-	@if [[ "$(DEBUG)" =~ $(YES_RE) ]]; \
-  then \
-    cp -f $< $@; \
-  else \
-    echo "Stripping debug calls from module $<"; \
-    sed '/F.LOG(/d' $< > $@; \
-  fi
+	$(call copy_and_strip_maybe,$@,$<)
+
+$(build_dir)/$(components_dir)/%.js: $(components_dir)/%.js
+	$(call copy_and_strip_maybe,$@,$<)
 
 $(build_dir):
 	@if [ ! -x $(build_dir) ]; \
