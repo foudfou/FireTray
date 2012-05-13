@@ -8,10 +8,4 @@
     <stringbundle id="firetray-strings" src="chrome://firetray/locale/overlay.properties"/>
   </stringbundleset>
 
-  <keyset>
-    <!-- otherwise window.addEventListener("keypress", firetrayChrome.onKeyPress, true);
-         see https://addons.mozilla.org/en-US/firefox/addon/move-tabs/ -->
-    <key id="key_close" key="W" modifiers="shift meta" oncommand="firetray.Handler.showHideAllWindows();" /> <!-- firetrayChrome.onKeyClose(); -->
-  </keyset>
-
 </overlay>
