@@ -21,7 +21,7 @@ function PrefListener(branch_name, callback) {
   var prefService = Components.classes["@mozilla.org/preferences-service;1"]
         .getService(Components.interfaces.nsIPrefService);
   this._branch = prefService.getBranch(branch_name);
-  this._branch.QueryInterface(Components.interfaces.nsIPrefBranch2);
+  this._branch.QueryInterface(Components.interfaces.nsIPrefBranch2); // FIXME: deprecated in Gecko 13.0
   this._callback = callback;
 }
 
