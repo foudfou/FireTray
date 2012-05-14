@@ -25,6 +25,7 @@ const FLDRS_UNINTERESTING = {
 firetray.Messaging = {
   initialized: false,
   cleaningTimer: null,
+  oldMsgCount: 0,
 
   init: function() {
     if (this.initialized) {
@@ -198,7 +199,9 @@ firetray.Messaging = {
     if (newMsgCount == 0) {
       firetray.Handler.setIconImageDefault();
       firetray.Handler.setIconTooltipDefault();
-      this.runNoNewMailScript();
+      if (this.oldMsgCount > 0) {
+        this.runNoNewMailScript();
+      }
 
     } else if (newMsgCount > 0) {
       this.runNewMailScript();
@@ -224,6 +227,7 @@ firetray.Messaging = {
     } else {
       throw "negative message count"; // should never happen
     }
+    this.oldMsgCount = newMsgCount;
 
   },
 
