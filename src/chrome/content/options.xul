@@ -36,6 +36,8 @@
       <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
       <preference id="pref_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
       <preference id="pref_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
+      <preference id="pref_new_mail_script" name="extensions.firetray.new_mail_script" type="string"/>
+      <preference id="pref_no_new_mail_script" name="extensions.firetray.no_new_mail_script" type="string"/>
     </preferences>
 
     <tabbox>
@@ -218,6 +220,33 @@
                     accesskey="&folder_count_recursive.accesskey;"
                     preference="pref_folder_count_recursive"
                     observes="broadcaster-notification-disabled"/>
+                    
+          <groupbox id="mail_scripts" flex="1">
+          
+            <caption>
+              <label id="ui_mail_scripts_label"
+                     value="&mail_scripts.label;"
+                     observes="broadcaster-notification-disabled" />
+            </caption>
+            
+            <vbox>
+              <label id="ui_new_mail_script_label"
+                     value="&new_mail_script.label;"
+                     observes="broadcaster-notification-disabled" />
+              <textbox id="ui_new_mail_script" size="18"
+                               onchange="firetrayUIOptions.updateNewMailScript();" flex="1" />
+            </vbox>
+                             
+            <vbox>
+              <label id="ui_no_new_mail_script_label"
+                     value="&no_new_mail_script.label;"
+                     observes="broadcaster-notification-disabled" />
+              <textbox id="ui_no_new_mail_script" size="18"
+                               onchange="firetrayUIOptions.updateNoNewMailScript();" flex="1"
+                               label="&no_new_mail_script.label;" />
+            </vbox>
+                             
+          </groupbox>
 
           <!-- NOTE: groupbox and caption don't have a 'disabled' attribute !! -->
           <groupbox id="unread_count_folder_exceptions" flex="1">
