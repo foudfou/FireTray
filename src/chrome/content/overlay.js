@@ -23,9 +23,6 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     F.LOG("ONLOAD"); firetray.Handler.dumpWindows();
     this.winId = firetray.Handler.registerWindow(win);
 
-    if (firetray.Handler.inMailApp && firetray.Messaging.initialized)
-      firetray.Messaging.updateMsgCount();
-
     win.addEventListener('close', firetrayChrome.onClose, true);
     win.addEventListener('resize', firetrayChrome.onResize, true);
 

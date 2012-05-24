@@ -31,8 +31,6 @@ var firetrayUIOptions = {
     this.updateScrollOptions();
     this.initAppIconType();
     this.initAppIconNames();
-    this.initNewMailScript();
-    this.initNoNewMailScript();
     if (firetray.Handler.inMailApp)
       this.initNewMailIconNames();
   },
@@ -170,6 +168,7 @@ var firetrayUIOptions = {
 
     this.initMessageCountSettings();
     this.initNotificationSettings();
+    this.initMailTrigger();
 
     this.toggleNotifications(firetray.Utils.prefService.getBoolPref("mail_notification_enabled"));
   },
@@ -208,25 +207,15 @@ var firetrayUIOptions = {
       if (+radio.getItemAtIndex(i).value == value) return i;
     return -1;
   },
-  
-  initNewMailScript : function() {
-    document.getElementById("ui_new_mail_script").value =
-    firetray.Utils.prefService.getCharPref("new_mail_script");
+
+  initMailTrigger: function() {
+    document.getElementById("ui_mail_change_trigger").value =
+      firetray.Utils.prefService.getCharPref("mail_change_trigger");
   },
-  
-  initNoNewMailScript : function() {
-    document.getElementById("ui_no_new_mail_script").value =
-    firetray.Utils.prefService.getCharPref("no_new_mail_script");
-  },
-  
-  updateNewMailScript : function() {
-    let newMailScript = document.getElementById("ui_new_mail_script").value;
-    firetray.Utils.prefService.setCharPref("new_mail_script", newMailScript);
-  },
-  
-  updateNoNewMailScript : function() {
-    let noNewMailScript = document.getElementById("ui_no_new_mail_script").value;
-    firetray.Utils.prefService.setCharPref("no_new_mail_script", noNewMailScript);
+
+  updateMailTrigger: function() {
+    let mailTrigger = document.getElementById("ui_mail_change_trigger").value.trim();
+    firetray.Utils.prefService.setCharPref("mail_change_trigger", mailTrigger);
   },
 
   updateNotificationSettings: function() {
@@ -236,7 +225,7 @@ var firetrayUIOptions = {
     firetray.Utils.prefService.setIntPref("mail_notification_type", mailNotificationType);
     this.disableNotificationMaybe(mailNotificationType);
 
-    firetray.Messaging.updateMsgCount();
+    firetray.Messaging.updateIcon();
   },
 
   updateMessageCountSettings: function() {
@@ -283,7 +272,7 @@ var firetrayUIOptions = {
       document.getElementById("broadcaster-notification-disabled")
         .removeAttribute("disabled"); // UI update (enables!)
       if (!firetray.Messaging.initialized) firetray.Messaging.init();
-      firetray.Messaging.updateMsgCount();
+      firetray.Messaging.updateIcon();
 
       let prefMailNotificationType = firetray.Utils.prefService.getIntPref("mail_notification_type");
       this.disableNotificationMaybe(prefMailNotificationType);
@@ -308,7 +297,7 @@ var firetrayUIOptions = {
   chooseMailIconFile: function() {
     var filepath = document.getElementById("custom_mail_icon_filename");
     this._chooseIconFile(filepath);
-    firetray.Messaging.updateMsgCount();
+    firetray.Messaging.updateIcon();
   },
 
   _chooseIconFile: function(iconFilename) {

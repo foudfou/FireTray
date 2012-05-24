@@ -41,16 +41,15 @@
 <!ENTITY hide "hide" >
 <!ENTITY restore "restore" >
 
-<!ENTITY mail_scripts.label "Scripts run on new mail / no new mail event" >
-<!ENTITY new_mail_script.label "Script for new mail event:" >
-<!ENTITY no_new_mail_script.label "Script for no new mail event:" >
+<!ENTITY mail_change_trigger.placeholder "mail change trigger">
+<!ENTITY mail_change_trigger.tooltip "Absolute path of the program to run when the message count changes. The first argument is the new message count.">
 
 <!ENTITY mail_notification_enabled.label "Enable mail notification">
 <!ENTITY mail_notification_enabled.accesskey "a">
-<!ENTITY mail_notification_type.label "Mail notification type">
-<!ENTITY mail_notification_type.tooltip "aka. Biff">
 <!ENTITY folder_count_recursive.label "Include subfolders">
 <!ENTITY folder_count_recursive.accesskey "f">
+<!ENTITY mail_notification_type.label "Mail notification type">
+<!ENTITY mail_notification_type.tooltip "aka. Biff">
 <!ENTITY mail_notification_unread_count.label "display new message count">
 <!ENTITY mail_notification_unread_count.accesskey "U">
 <!ENTITY mail_notification_newmail_icon.label "display newmail icon">

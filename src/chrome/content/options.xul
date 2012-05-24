@@ -30,14 +30,13 @@
       <preference id="pref_app_icon_filename" name="extensions.firetray.app_icon_filename" type="string"/>
       <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
-      <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_mail_notification_enabled" name="extensions.firetray.mail_notification_enabled" type="bool" />
-      <preference id="pref_message_count_type" name="extensions.firetray.message_count_type" type="int" />
       <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
+      <preference id="pref_message_count_type" name="extensions.firetray.message_count_type" type="int" />
+      <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
+      <preference id="pref_mail_change_trigger" name="extensions.firetray.mail_change_trigger" type="string"/>
       <preference id="pref_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
-      <preference id="pref_new_mail_script" name="extensions.firetray.new_mail_script" type="string"/>
-      <preference id="pref_no_new_mail_script" name="extensions.firetray.no_new_mail_script" type="string"/>
     </preferences>
 
     <tabbox>
@@ -151,6 +150,12 @@
             </hbox>
           </radiogroup>
 
+          <checkbox id="ui_folder_count_recursive"
+                    label="&folder_count_recursive.label;"
+                    accesskey="&folder_count_recursive.accesskey;"
+                    preference="pref_folder_count_recursive"
+                    observes="broadcaster-notification-disabled"/>
+
           <groupbox id="ui_mail_notification" flex="1">
             <caption>
               <label id="ui_mail_notification_type_label"
@@ -170,7 +175,7 @@
                          observes="broadcaster-notification-disabled"/>
                   <colorpicker id="btn_icon_text_color" type="button"
                                preference="pref_icon_text_color"
-                               onchange="firetray.Messaging.updateMsgCount();"
+                               onchange="firetray.Messaging.updateIcon();"
                                observes="broadcaster-notification-disabled"/>
                 </hbox>
               </hbox>
@@ -203,7 +208,7 @@
                 <hbox id="custom_mail_icon" align="center" flex="1" >
                   <textbox id="custom_mail_icon_filename" preference="pref_custom_mail_icon"
                            observes="broadcaster-notification-disabled"
-                           onchange="firetray.Messaging.updateMsgCount();" flex="1" />
+                           onchange="firetray.Messaging.updateIcon();" flex="1" />
                   <button id="custom_mail_icon_select" label="&choose;"
                           accesskey="&choose.accesskey;"
                           observes="broadcaster-notification-disabled"
@@ -215,38 +220,10 @@
 
           </groupbox>
 
-          <checkbox id="ui_folder_count_recursive"
-                    label="&folder_count_recursive.label;"
-                    accesskey="&folder_count_recursive.accesskey;"
-                    preference="pref_folder_count_recursive"
-                    observes="broadcaster-notification-disabled"/>
-                    
-          <groupbox id="mail_scripts" flex="1">
-          
-            <caption>
-              <label id="ui_mail_scripts_label"
-                     value="&mail_scripts.label;"
-                     observes="broadcaster-notification-disabled" />
-            </caption>
-            
-            <vbox>
-              <label id="ui_new_mail_script_label"
-                     value="&new_mail_script.label;"
-                     observes="broadcaster-notification-disabled" />
-              <textbox id="ui_new_mail_script" size="18"
-                               onchange="firetrayUIOptions.updateNewMailScript();" flex="1" />
-            </vbox>
-                             
-            <vbox>
-              <label id="ui_no_new_mail_script_label"
-                     value="&no_new_mail_script.label;"
-                     observes="broadcaster-notification-disabled" />
-              <textbox id="ui_no_new_mail_script" size="18"
-                               onchange="firetrayUIOptions.updateNoNewMailScript();" flex="1"
-                               label="&no_new_mail_script.label;" />
-            </vbox>
-                             
-          </groupbox>
+          <textbox id="ui_mail_change_trigger" size="18" placeholder="&mail_change_trigger.placeholder;"
+                   onchange="firetrayUIOptions.updateMailTrigger();" flex="1"
+                   tooltiptext="&mail_change_trigger.tooltip;"
+                   observes="broadcaster-notification-disabled" />
 
           <!-- NOTE: groupbox and caption don't have a 'disabled' attribute !! -->
           <groupbox id="unread_count_folder_exceptions" flex="1">

@@ -25,7 +25,7 @@ const FLDRS_UNINTERESTING = {
 firetray.Messaging = {
   initialized: false,
   cleaningTimer: null,
-  oldMsgCount: 0,
+  currentMsgCount: null,
 
   init: function() {
     if (this.initialized) {
@@ -139,77 +139,69 @@ firetray.Messaging = {
       }
     }
   },
-  
-  runNewMailScript: function() {
-    // create a file for the process
-    var file = Components.classes["@mozilla.org/file/local;1"]  
-                     .createInstance(Components.interfaces.nsILocalFile);  
-    file.initWithPath(firetray.Utils.prefService.getCharPref("new_mail_script"));
-    
-    // create the process
-    var process = Components.classes["@mozilla.org/process/util;1"]  
-                        .createInstance(Components.interfaces.nsIProcess);  
-    process.init(file);
-    
-    var args = [ ];  
-    process.run(false, args, args.length);
-  },
-  
-  runNoNewMailScript: function() {
-    // create a file for the process
-    var file = Components.classes["@mozilla.org/file/local;1"]  
-                     .createInstance(Components.interfaces.nsILocalFile);  
-    file.initWithPath(firetray.Utils.prefService.getCharPref("no_new_mail_script"));
-    
-    // create the process
-    var process = Components.classes["@mozilla.org/process/util;1"]  
-                        .createInstance(Components.interfaces.nsIProcess);  
-    process.init(file);
-    
-    var args = [ ];  
-    process.run(false, args, args.length);
-  },
 
   /**
    * computes and display new msg count
    */
   updateMsgCount: function() {
     F.LOG("updateMsgCount");
+
     if (!this.initialized)
       return;
 
     // initialize
-    let newMsgCount, localizedTooltip;
+    let msgCount;
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     F.LOG("msgCountType="+msgCountType);
     if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
-      newMsgCount = this.countMessages(this.unreadMsgCountIterate);
+      msgCount = this.countMessages(this.unreadMsgCountIterate);
+    } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
+      msgCount = this.countMessages(this.newMsgCountIterate);
+    } else
+      F.ERROR('unknown message count type');
+
+    if (msgCount !== this.currentMsgCount) {
+
+      this.updateIcon(msgCount);
+
+      let mailChangeTriggerFile = firetray.Utils.prefService.getCharPref("mail_change_trigger");
+      if (mailChangeTriggerFile)
+        this.runProcess(mailChangeTriggerFile, [msgCount.toString()]);
+
+      this.currentMsgCount = msgCount;
+
+    } else {
+      F.LOG("message count unchanged");
+    }
+
+  },
+
+  updateIcon: function(msgCount) {
+    if ("undefined" === typeof(msgCount)) msgCount = this.currentMsgCount;
+
+    let localizedTooltip;
+    let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
+    if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
       localizedTooltip = PluralForm.get(
-        newMsgCount,
+        msgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
-        .replace("#1", newMsgCount);
+        .replace("#1", msgCount);
       F.LOG(localizedTooltip);
     } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
-      newMsgCount = this.countMessages(this.newMsgCountIterate);
       localizedTooltip = firetray.Utils.strings.GetStringFromName("tooltip.new_messages");
     } else
       F.ERROR('unknown message count type');
 
-    // update icon
-    if (newMsgCount == 0) {
+    if (msgCount == 0) {
       firetray.Handler.setIconImageDefault();
       firetray.Handler.setIconTooltipDefault();
-      if (this.oldMsgCount > 0) {
-        this.runNoNewMailScript();
-      }
 
-    } else if (newMsgCount > 0) {
-      this.runNewMailScript();
+    } else if (msgCount > 0) {
       let prefMailNotification = firetray.Utils.prefService.getIntPref('mail_notification_type');
       switch (prefMailNotification) {
       case FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT:
         let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
-        firetray.Handler.setIconText(newMsgCount.toString(), prefIconTextColor);
+        firetray.Handler.setIconText(msgCount.toString(), prefIconTextColor);
         break;
       case FIRETRAY_NOTIFICATION_NEWMAIL_ICON:
         firetray.Handler.setIconImageNewMail();
@@ -227,8 +219,6 @@ firetray.Messaging = {
     } else {
       throw "negative message count"; // should never happen
     }
-    this.oldMsgCount = newMsgCount;
-
   },
 
   /**
@@ -242,7 +232,7 @@ firetray.Messaging = {
     let excludedFoldersFlags = firetray.Utils.prefService
       .getIntPref("excluded_folders_flags");
 
-    let newMsgCount = 0;
+    let msgCount = 0;
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
@@ -257,7 +247,7 @@ firetray.Messaging = {
           while(subFolders.hasMoreElements()) {
             let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
             if (!(folder.flags & excludedFoldersFlags)) {
-              newMsgCount = folderCountFunction(folder, newMsgCount);
+              msgCount = folderCountFunction(folder, msgCount);
             }
           }
         }
@@ -265,8 +255,8 @@ firetray.Messaging = {
     } catch (x) {
       F.ERROR(x);
     }
-    F.LOG("Total New="+newMsgCount);
-    return newMsgCount;
+    F.LOG("Total New="+msgCount);
+    return msgCount;
   },
 
   unreadMsgCountIterate: function(folder, accumulator) {
@@ -294,6 +284,21 @@ firetray.Messaging = {
       let folderNewMsgCount = folder.hasNewMessages;
       F.LOG(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
       return accumulator || folderNewMsgCount;
+  },
+
+  runProcess: function(filepath, args) {
+    F.LOG("runProcess="+filepath+" args="+args);
+    try {
+      // create a file for the process
+      var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile); // TODO: nsILocalFile merged into the nsIFile in Gecko 14
+      file.initWithPath(filepath);
+
+      // create the process
+      var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+      process.init(file);
+
+      process.run(false, args, args.length);
+    } catch(x) {F.ERROR(x);}
   }
 
 };
