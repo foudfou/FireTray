@@ -352,7 +352,7 @@ var firetrayUIOptions = {
     firetray.Utils.prefService.setIntPref("excluded_folders_flags",
                                           excludedFoldersFlags);
 
-    firetray.Messaging.updateMsgCount();
+    firetray.Messaging.updateMsgCountWithCb();
   },
 
   /**
@@ -395,7 +395,7 @@ var firetrayUIOptions = {
     document.getElementById("pane1")
       .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
 
-    firetray.Messaging.updateMsgCount();
+    firetray.Messaging.updateMsgCountWithCb();
   },
 
   _userChangeValueTreeServerTypes: function(event) {

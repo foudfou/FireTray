@@ -47,8 +47,7 @@ firetray.Messaging = {
   },
 
   shutdown: function() {
-    if (!this.initialized)
-      return;
+    if (!this.initialized) return;
     F.LOG("Disabling Messaging");
 
     this.cleaningTimer.cancel();
@@ -105,12 +104,12 @@ firetray.Messaging = {
 
     OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { // TotalUnreadMessages, BiffState (per server)
       F.LOG("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
-      this.updateMsgCount(item, property, oldValue, newValue);
+      this.onMsgCountChange(item, property, oldValue, newValue);
     },
 
     OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) { // NewMessages (per folder)
       F.LOG("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
-      this.updateMsgCount(item, property, oldValue, newValue);
+      this.onMsgCountChange(item, property, oldValue, newValue);
     },
 
     OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {
@@ -121,7 +120,7 @@ firetray.Messaging = {
       F.LOG("OnItemEvent"+event+" for folder "+item.prettyName);
     },
 
-    updateMsgCount: function(item, property, oldValue, newValue) {
+    onMsgCountChange: function(item, property, oldValue, newValue) {
       let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
       let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
 
@@ -129,27 +128,32 @@ firetray.Messaging = {
         let prop = property.toString();
         if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD &&
             prop === "TotalUnreadMessages") {
-          firetray.Messaging.updateMsgCount();
+          firetray.Messaging.updateMsgCountWithCb();
         } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW &&
                    prop === "NewMessages") {
           if (oldValue === true && newValue === false)
             item.setNumNewMessages(0); // https://bugzilla.mozilla.org/show_bug.cgi?id=727460
-          firetray.Messaging.updateMsgCount();
+          firetray.Messaging.updateMsgCountWithCb();
         }
       }
     }
   },
 
   /**
-   * computes and display new msg count
+   * @param callback: optional callback to call when msgCount changed.
    */
-  updateMsgCount: function() {
-    F.LOG("updateMsgCount");
+  updateMsgCountWithCb: function(callback) {
+    F.LOG("updateMsgCountWithCb");
+    if (!this.initialized) return;
 
-    if (!this.initialized)
-      return;
+    if ("undefined" === typeof(callback) || !callback) callback = function() { // default
+      firetray.Messaging.updateIcon(msgCount);
 
-    // initialize
+      let mailChangeTriggerFile = firetray.Utils.prefService.getCharPref("mail_change_trigger");
+      if (mailChangeTriggerFile)
+        firetray.Messaging.runProcess(mailChangeTriggerFile, [msgCount.toString()]);
+    };
+
     let msgCount;
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     F.LOG("msgCountType="+msgCountType);
@@ -161,15 +165,8 @@ firetray.Messaging = {
       F.ERROR('unknown message count type');
 
     if (msgCount !== this.currentMsgCount) {
-
-      this.updateIcon(msgCount);
-
-      let mailChangeTriggerFile = firetray.Utils.prefService.getCharPref("mail_change_trigger");
-      if (mailChangeTriggerFile)
-        this.runProcess(mailChangeTriggerFile, [msgCount.toString()]);
-
+      callback.call(this);
       this.currentMsgCount = msgCount;
-
     } else {
       F.LOG("message count unchanged");
     }

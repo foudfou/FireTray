@@ -86,7 +86,7 @@ firetray.Handler = {
         Cu.import("resource://firetray/FiretrayMessaging.jsm");
         if (firetray.Utils.prefService.getBoolPref("mail_notification_enabled")) {
           firetray.Messaging.init();
-          firetray.Messaging.updateMsgCount();
+          firetray.Messaging.updateMsgCountWithCb();
         }
       } catch (x) {
         F.ERROR(x);
@@ -396,7 +396,7 @@ firetray.PrefListener = new PrefListener(
       firetray.StatusIcon.loadThemedIcons();
     case 'message_count_type':
     case 'folder_count_recursive':
-      firetray.Messaging.updateMsgCount();
+      firetray.Messaging.updateMsgCountWithCb();
       break;
     case 'app_mail_icon_names':
     case 'app_browser_icon_names':
@@ -404,7 +404,7 @@ firetray.PrefListener = new PrefListener(
       firetray.StatusIcon.loadThemedIcons();
     case 'app_icon_type':
       if (firetray.Handler.inMailApp)
-        firetray.Messaging.updateMsgCount();
+        firetray.Messaging.updateMsgCountWithCb();
       else
         firetray.Handler.setIconImageDefault();
       break;
