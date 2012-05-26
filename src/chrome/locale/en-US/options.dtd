@@ -41,6 +41,10 @@
 <!ENTITY hide "hide" >
 <!ENTITY restore "restore" >
 
+<!ENTITY mail_scripts.label "Scripts run on new mail / no new mail event" >
+<!ENTITY new_mail_script.label "Script for new mail event:" >
+<!ENTITY no_new_mail_script.label "Script for no new mail event:" >
+
 <!ENTITY mail_notification_enabled.label "Enable mail notification">
 <!ENTITY mail_notification_enabled.accesskey "a">
 <!ENTITY mail_notification_type.label "Mail notification type">

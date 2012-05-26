@@ -25,6 +25,7 @@ const FLDRS_UNINTERESTING = {
 firetray.Messaging = {
   initialized: false,
   cleaningTimer: null,
+  oldMsgCount: 0,
 
   init: function() {
     if (this.initialized) {
@@ -138,6 +139,36 @@ firetray.Messaging = {
       }
     }
   },
+  
+  runNewMailScript: function() {
+    // create a file for the process
+    var file = Components.classes["@mozilla.org/file/local;1"]  
+                     .createInstance(Components.interfaces.nsILocalFile);  
+    file.initWithPath(firetray.Utils.prefService.getCharPref("new_mail_script"));
+    
+    // create the process
+    var process = Components.classes["@mozilla.org/process/util;1"]  
+                        .createInstance(Components.interfaces.nsIProcess);  
+    process.init(file);
+    
+    var args = [ ];  
+    process.run(false, args, args.length);
+  },
+  
+  runNoNewMailScript: function() {
+    // create a file for the process
+    var file = Components.classes["@mozilla.org/file/local;1"]  
+                     .createInstance(Components.interfaces.nsILocalFile);  
+    file.initWithPath(firetray.Utils.prefService.getCharPref("no_new_mail_script"));
+    
+    // create the process
+    var process = Components.classes["@mozilla.org/process/util;1"]  
+                        .createInstance(Components.interfaces.nsIProcess);  
+    process.init(file);
+    
+    var args = [ ];  
+    process.run(false, args, args.length);
+  },
 
   /**
    * computes and display new msg count
@@ -168,8 +199,12 @@ firetray.Messaging = {
     if (newMsgCount == 0) {
       firetray.Handler.setIconImageDefault();
       firetray.Handler.setIconTooltipDefault();
+      if (this.oldMsgCount > 0) {
+        this.runNoNewMailScript();
+      }
 
     } else if (newMsgCount > 0) {
+      this.runNewMailScript();
       let prefMailNotification = firetray.Utils.prefService.getIntPref('mail_notification_type');
       switch (prefMailNotification) {
       case FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT:
@@ -192,6 +227,7 @@ firetray.Messaging = {
     } else {
       throw "negative message count"; // should never happen
     }
+    this.oldMsgCount = newMsgCount;
 
   },
 
