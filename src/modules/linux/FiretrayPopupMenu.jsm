@@ -21,72 +21,37 @@ firetray.PopupMenu = {
   initialized: false,
   callbacks: {menuItemWindowActivate: {}}, // FIXME: try to store them into a ctypes array/struct.
   menu: null,
+  menuShell: null,
   menuSeparatorWindows: null,
   MIN_FONT_SIZE: 4,
 
-  init: function() { // FIXME: function too long
+  init: function() {
     this.menu = gtk.gtk_menu_new();
-    var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
+    this.menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
     var addMenuSeparator = false;
 
     if (firetray.Handler.inBrowserApp) {
-		  var menuItemNewWindowLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewWindow");
-      var menuItemNewWindow = gtk.gtk_image_menu_item_new_with_label(
-        menuItemNewWindowLabel);
-      var menuItemNewWindowIcon = gtk.gtk_image_new_from_stock(
-        "gtk-new", gtk.GTK_ICON_SIZE_MENU);
-      gtk.gtk_image_menu_item_set_image(menuItemNewWindow, menuItemNewWindowIcon);
-      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewWindow, gtk.GtkWidget.ptr));
-
-      this.callbacks.menuItemNewWindowActivate = gobject.GCallback_t(
-        firetray.Handler.openBrowserWindow);
-      gobject.g_signal_connect(menuItemNewWindow, "activate",
-        firetray.PopupMenu.callbacks.menuItemNewWindowActivate, null);
-
+      this.addItem("NewWindow", "gtk-new", "activate", firetray.Handler.openBrowserWindow);
       addMenuSeparator = true;
     }
 
     if (firetray.Handler.inMailApp) {
-		  var menuItemNewMessageLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.NewMessage");
-      var menuItemNewMessage = gtk.gtk_image_menu_item_new_with_label(
-        menuItemNewMessageLabel);
-      var menuItemNewMessageIcon = gtk.gtk_image_new_from_stock(
-        "gtk-edit", gtk.GTK_ICON_SIZE_MENU);
-      gtk.gtk_image_menu_item_set_image(menuItemNewMessage, menuItemNewMessageIcon);
-      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemNewMessage, gtk.GtkWidget.ptr));
-
-      this.callbacks.menuItemNewMessageActivate = gobject.GCallback_t(
-        firetray.Handler.openMailMessage);
-      gobject.g_signal_connect(menuItemNewMessage, "activate",
-        firetray.PopupMenu.callbacks.menuItemNewMessageActivate, null);
-
+      this.addItem("NewMessage", "gtk-edit", "activate", firetray.Handler.openMailMessage);
       addMenuSeparator = true;
     }
 
     if (addMenuSeparator) {
       var menuSeparator = gtk.gtk_separator_menu_item_new();
-      gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuSeparator, gtk.GtkWidget.ptr));
+      gtk.gtk_menu_shell_append(this.menuShell, ctypes.cast(menuSeparator, gtk.GtkWidget.ptr));
     }
 
-    // shouldn't need to convert to utf8 thank to js-ctypes
-		var menuItemQuitLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel.Quit");
-    var menuItemQuit = gtk.gtk_image_menu_item_new_with_label(
-      menuItemQuitLabel);
-    var menuItemQuitIcon = gtk.gtk_image_new_from_stock(
-      "gtk-quit", gtk.GTK_ICON_SIZE_MENU);
-    gtk.gtk_image_menu_item_set_image(menuItemQuit, menuItemQuitIcon);
-    gtk.gtk_menu_shell_append(menuShell, ctypes.cast(menuItemQuit, gtk.GtkWidget.ptr));
-
-    this.callbacks.menuItemQuitActivate = gobject.GCallback_t(
-      firetray.Handler.quitApplication);
-     gobject.g_signal_connect(menuItemQuit, "activate",
-      firetray.PopupMenu.callbacks.menuItemQuitActivate, null);
+    this.addItem("Quit", "gtk-quit", "activate", firetray.Handler.quitApplication);
 
     var menuWidget = ctypes.cast(this.menu, gtk.GtkWidget.ptr);
     gtk.gtk_widget_show_all(menuWidget);
 
     var menuSeparatorWindows = gtk.gtk_separator_menu_item_new();
-    gtk.gtk_menu_shell_prepend(menuShell, ctypes.cast(menuSeparatorWindows, gtk.GtkWidget.ptr));
+    gtk.gtk_menu_shell_prepend(this.menuShell, ctypes.cast(menuSeparatorWindows, gtk.GtkWidget.ptr));
     this.menuSeparatorWindows = menuSeparatorWindows;
 
     this.initialized = true;
@@ -96,6 +61,24 @@ firetray.PopupMenu = {
   shutdown: function() {
     firetray.Utils.tryCloseLibs([gobject, gtk]);
     this.initialized = false;
+  },
+
+  addItem: function(itemName, iconName, action, callback) {
+		var menuItemLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel."+itemName); // shouldn't need to convert to utf8 later thank to js-ctypes
+    var menuItem = gtk.gtk_image_menu_item_new_with_label(menuItemLabel);
+    var menuItemIcon = gtk.gtk_image_new_from_stock(iconName, gtk.GTK_ICON_SIZE_MENU);
+    gtk.gtk_image_menu_item_set_image(menuItem, menuItemIcon);
+    gtk.gtk_menu_shell_append(this.menuShell, ctypes.cast(menuItem, gtk.GtkWidget.ptr));
+
+    function capitalizeFirst(str) {
+      return str.charAt(0).toUpperCase() + str.substring(1);
+    }
+
+    let cbName = "menuItem"+capitalizeFirst(itemName)+capitalizeFirst(action);
+    F.LOG("cbName="+cbName);
+    this.callbacks[cbName] = gobject.GCallback_t(callback);
+    gobject.g_signal_connect(menuItem, action,
+                             firetray.PopupMenu.callbacks[cbName], null);
   },
 
   popup: function(icon, button, activateTime, menu) {
@@ -129,8 +112,7 @@ firetray.PopupMenu = {
 
   createAndAddItemToMenu: function() {
     var menuItem = gtk.gtk_image_menu_item_new();
-    var menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
-    gtk.gtk_menu_shell_prepend(menuShell, ctypes.cast(menuItem, gtk.GtkWidget.ptr));
+    gtk.gtk_menu_shell_prepend(this.menuShell, ctypes.cast(menuItem, gtk.GtkWidget.ptr));
     return menuItem;
   },
 
