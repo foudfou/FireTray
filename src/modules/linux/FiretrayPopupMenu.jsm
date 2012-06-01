@@ -36,6 +36,7 @@ firetray.PopupMenu = {
     }
 
     if (firetray.Handler.inMailApp) {
+      this.addItem("ResetIcon", "gtk-apply", "activate", firetray.Handler.setIconImageDefault);
       this.addItem("NewMessage", "gtk-edit", "activate", firetray.Handler.openMailMessage);
       addMenuSeparator = true;
     }
