@@ -93,7 +93,7 @@ firetray.Messaging = {
   mailSessionListener: {
     notificationFlags:
       // Ci.nsIFolderListener.propertyChanged |
-      // Ci.nsIFolderListener.propertyFlagChanged |
+      Ci.nsIFolderListener.propertyFlagChanged |
       // Ci.nsIFolderListener.event |
       Ci.nsIFolderListener.boolPropertyChanged |
       Ci.nsIFolderListener.intPropertyChanged,
@@ -114,6 +114,7 @@ firetray.Messaging = {
 
     OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {
       F.LOG("OnItemPropertyFlagChanged"+property+" for "+item+" was "+oldFlag+" became "+newFlag);
+      this.onMsgCountChange(item, property, oldValue, newValue);
     },
 
     OnItemEvent: function(item, event) {
@@ -123,10 +124,15 @@ firetray.Messaging = {
     onMsgCountChange: function(item, property, oldValue, newValue) {
       let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
       let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
+      let onlyFavorites = firetray.Utils.prefService.getBoolPref("only_favorite_folders");
 
       if (!(item.flags & excludedFoldersFlags)) {
         let prop = property.toString();
-        if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD &&
+        if (prop === "FolderFlag") {
+          if (onlyFavorites && (oldValue ^ newValue) & Ci.nsMsgFolderFlags.Favorite) {
+            firetray.Messaging.updateMsgCountWithCb();
+          }
+        } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD &&
             prop === "TotalUnreadMessages") {
           firetray.Messaging.updateMsgCountWithCb();
         } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW &&
@@ -258,8 +264,25 @@ firetray.Messaging = {
 
   unreadMsgCountIterate: function(folder, accumulator) {
     let folderCountFunctionName = 'getNumUnread';
-    let folderUnreadMsgCount = folder[folderCountFunctionName](
-      firetray.Utils.prefService.getBoolPref("folder_count_recursive"));
+    let folderRecursive = firetray.Utils.prefService.getBoolPref("folder_count_recursive");
+    let onlyFavorites = firetray.Utils.prefService.getBoolPref("only_favorite_folders");
+
+    if (folderRecursive && onlyFavorites) {
+      // need to handle each folder on it's own due to respect favorite flag
+      folderRecursive = false;
+
+      let subFolders = folder.subFolders;
+      while(subFolders.hasMoreElements()) {
+        let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
+        accumulator = firetray.Messaging.unreadMsgCountIterate(subFolder, accumulator);
+      }
+    }
+
+    let folderUnreadMsgCount = 0;
+    if (!onlyFavorites || (folder.flags & Ci.nsMsgFolderFlags.Favorite)) {
+      folderUnreadMsgCount = folder[folderCountFunctionName](folderRecursive);
+    }
+
     F.LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
     return accumulator + folderUnreadMsgCount;
   },
@@ -273,7 +296,11 @@ firetray.Messaging = {
         accumulator = firetray.Messaging.newMsgCountIterate(subFolder, accumulator);
       }
     }
-    accumulator = firetray.Messaging.addHasNewMessages(folder, accumulator);
+
+    let onlyFavorites = firetray.Utils.prefService.getBoolPref("only_favorite_folders");
+    if (!onlyFavorites || (folder.flags & Ci.nsMsgFolderFlags.Favorite)) {
+      accumulator = firetray.Messaging.addHasNewMessages(folder, accumulator);
+    }
     return accumulator;
   },
 

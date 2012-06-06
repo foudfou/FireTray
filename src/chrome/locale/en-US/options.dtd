@@ -48,6 +48,8 @@
 <!ENTITY mail_notification_enabled.accesskey "a">
 <!ENTITY folder_count_recursive.label "Include subfolders">
 <!ENTITY folder_count_recursive.accesskey "f">
+<!ENTITY only_favorite_folders.label "Only favorite folders">
+<!ENTITY only_favorite_folders.accesskey "v">
 <!ENTITY mail_notification_type.label "Mail notification type">
 <!ENTITY mail_notification_type.tooltip "aka. Biff">
 <!ENTITY mail_notification_unread_count.label "display new message count">
