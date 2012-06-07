@@ -232,8 +232,6 @@ firetray.Messaging = {
     F.LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
     let serverTypes = mailAccounts["serverTypes"];
     let excludedAccounts = mailAccounts["excludedAccounts"];
-    let excludedFoldersFlags = firetray.Utils.prefService
-      .getIntPref("excluded_folders_flags");
 
     let msgCount = 0;
     try {
@@ -249,9 +247,7 @@ firetray.Messaging = {
           let subFolders = rootFolder.subFolders;
           while(subFolders.hasMoreElements()) {
             let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-            if (!(folder.flags & excludedFoldersFlags)) {
-              msgCount = folderCountFunction(folder, msgCount);
-            }
+            msgCount = folderCountFunction(folder, msgCount);
           }
         }
       }
@@ -264,13 +260,11 @@ firetray.Messaging = {
 
   unreadMsgCountIterate: function(folder, accumulator) {
     let folderCountFunctionName = 'getNumUnread';
-    let folderRecursive = firetray.Utils.prefService.getBoolPref("folder_count_recursive");
     let onlyFavorites = firetray.Utils.prefService.getBoolPref("only_favorite_folders");
+    let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
 
-    if (folderRecursive && onlyFavorites) {
-      // need to handle each folder on it's own due to respect favorite flag
-      folderRecursive = false;
-
+    if (folder.hasSubFolders && firetray.Utils.prefService.getBoolPref("folder_count_recursive")) {
+      // need to handle each folder on it's own to respect folder flags
       let subFolders = folder.subFolders;
       while(subFolders.hasMoreElements()) {
         let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
@@ -279,8 +273,10 @@ firetray.Messaging = {
     }
 
     let folderUnreadMsgCount = 0;
-    if (!onlyFavorites || (folder.flags & Ci.nsMsgFolderFlags.Favorite)) {
-      folderUnreadMsgCount = folder[folderCountFunctionName](folderRecursive);
+    if (!(folder.flags & excludedFoldersFlags)) {
+      if (!onlyFavorites || folder.flags & Ci.nsMsgFolderFlags.Favorite) {
+        folderUnreadMsgCount = folder[folderCountFunctionName](false);
+      }
     }
 
     F.LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
@@ -298,9 +294,13 @@ firetray.Messaging = {
     }
 
     let onlyFavorites = firetray.Utils.prefService.getBoolPref("only_favorite_folders");
-    if (!onlyFavorites || (folder.flags & Ci.nsMsgFolderFlags.Favorite)) {
-      accumulator = firetray.Messaging.addHasNewMessages(folder, accumulator);
+    let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
+    if (!(folder.flags & excludedFoldersFlags)) {
+      if (!onlyFavorites || folder.flags & Ci.nsMsgFolderFlags.Favorite) {
+        accumulator = firetray.Messaging.addHasNewMessages(folder, accumulator);
+      }
     }
+
     return accumulator;
   },
 
