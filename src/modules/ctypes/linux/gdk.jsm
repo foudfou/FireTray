@@ -288,6 +288,7 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_drawable_get_size", ctypes.void_t, this.GdkDrawable.ptr, gobject.gint.ptr, gobject.gint.ptr);
   // lib.lazy_bind("gdk_window_get_geometry", ctypes.void_t, this.GdkWindow.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr, gobject.gint.ptr);
   lib.lazy_bind("gdk_window_move_resize", ctypes.void_t, this.GdkWindow.ptr, gobject.gint, gobject.gint, gobject.gint, gobject.gint);
+  lib.lazy_bind("gdk_window_get_user_data", ctypes.void_t, this.GdkWindow.ptr, gobject.gpointer.ptr);
   lib.lazy_bind("gdk_atom_intern", this.GdkAtom, gobject.gchar.ptr, gobject.gboolean);
   lib.lazy_bind("gdk_property_change", ctypes.void_t, this.GdkWindow.ptr, this.GdkAtom, this.GdkAtom, gobject.gint, this.GdkPropMode, gobject.guchar.ptr, gobject.gint);
 

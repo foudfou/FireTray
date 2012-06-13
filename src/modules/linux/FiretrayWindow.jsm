@@ -527,6 +527,83 @@ firetray.Handler.registerWindow = function(win) {
   this.windows[xid] = {};
   this.windows[xid].chromeWin = win;
   this.windows[xid].baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
+
+  try { // TESTing nativeHandle
+    Cu.import("resource://firetray/ctypes/libfiretray.jsm");
+    libfiretray.init();
+    F.WARN("libfiretray available");
+
+    function addrPointedBy(ptr) {
+      return ctypes.cast(ptr, ctypes.uintptr_t.ptr).contents;
+    }
+
+    F.WARN("TEST gdkWin="+gdkWin+" gdkWin is actually a pointer to a GdkWindow");
+    F.WARN("TEST *gdkWin=0x"+addrPointedBy(gdkWin).toString(16));
+
+    let nativeHandle = this.windows[xid].baseWin.nativeHandle;
+    if ("undefined" === typeof(nativeHandle)) {
+      F.WARN("nativeHandle undefined");
+    } else {
+      F.WARN("TEST nativeHandle=0x"+nativeHandle.toString(16)+" this is the (address of the) actual GdkWindow !");
+
+      // actual check
+      if (firetray.js.strEquals(nativeHandle, addrPointedBy(gdkWin)))
+        F.WARN("OK: nativeHandle == *gdkWin");
+      else
+        F.WARN("NOT OK: nativeHandle != *gdkWin");
+
+      // construct GdkWindow.ptr from nativeHandle
+      // let gdkwPtr = ctypes.uintptr_t(nativeHandle).address();
+      // F.WARN(gdkwPtr);
+      // let gdkw = ctypes.cast(gdkwPtr, gdk.GdkWindow.ptr);
+      let gdkw = ctypes.cast(ctypes.uintptr_t(nativeHandle).address(), gdk.GdkWindow.ptr);
+      F.WARN("TEST gdkw="+gdkw+" a new pointer to a GdkWindow");
+      let isGdkWin = libfiretray.gdk_is_window(ctypes.cast(gdkw, ctypes.void_t.ptr));
+      F.WARN("gdkw isGdkWin="+isGdkWin);
+libfiretray.shutdown();
+
+      // re-check
+      if (firetray.js.strEquals(addrPointedBy(gdkWin), addrPointedBy(gdkw)))
+        F.WARN("OK: Re-check");
+      else
+        F.WARN("NOT OK: Re-check");
+      F.WARN("gdkWin="+gdkWin+" gdkw="+gdkw+" *gdkWin=0x"+addrPointedBy(gdkWin).toString(16)+" *gdkw=0x"+addrPointedBy(gdkw).toString(16));
+
+      // gdk.gdk_window_set_title(gdkw, "FOUDIL WAS HERE");
+
+      // getting the GtkWin from GdkWindow user_data
+      F.WARN("TEST *gtkWin=0x"+addrPointedBy(gtkWin).toString(16)); // reference
+
+      let gptr = new gobject.gpointer;
+      gdk.gdk_window_get_user_data(gdkWin, gptr.address());
+      F.WARN("TEST gptr-gdkWin="+gptr);
+      F.WARN("TEST *gptr-gdkWin=0x"+addrPointedBy(gptr).toString(16));
+
+      gdk.gdk_window_get_user_data(gdkw, gptr.address());
+      F.WARN("TEST gptr-gdkw="+gptr);
+      // F.WARN("TEST *gptr-gdkWin="+addrPointedBy(gptr).toString(16));
+
+      // let gtkw = ctypes.cast(gptr, gtk.GtkWidget.ptr);
+      // F.WARN("TEST gtkw="+gtkw);
+      // F.WARN("TEST *gtkw="+ctypes.cast(gtkw, ctypes.uintptr_t.ptr).contents.toString(16));
+      F.WARN("OK");
+    }
+  } catch (x) {F.ERROR(x);}
+// *** WARN firetray: libfiretray available
+// *** WARN firetray: TEST gdkWin=GdkWindow.ptr(ctypes.UInt64("0x9387830")) gdkWin is actually a pointer to a GdkWindow
+// *** WARN firetray: TEST *gdkWin=0x9113f00
+// *** WARN firetray: TEST nativeHandle=0x9113f00 this is the (address of the) actual GdkWindow !
+// *** WARN firetray: OK: nativeHandle == *gdkWin
+// *** WARN firetray: TEST gdkw=GdkWindow.ptr(ctypes.UInt64("0x95f73d0")) a new pointer to a GdkWindow
+// *** WARN firetray: gdkw isGdkWin=1
+// *** WARN firetray: OK: Re-check
+// *** WARN firetray: gdkWin=GdkWindow.ptr(ctypes.UInt64("0x9387830")) gdkw=GdkWindow.ptr(ctypes.UInt64("0x95f73d0")) *gdkWin=0x9113f00 *gdkw=0x9113f00
+// *** WARN firetray: TEST *gtkWin=0x932b600
+// *** WARN firetray: TEST gptr-gdkWin=ctypes.voidptr_t(ctypes.UInt64("0x93878e0"))
+// *** WARN firetray: TEST *gptr-gdkWin=0x932b600
+// *** WARN firetray: TEST gptr-gdkw=ctypes.voidptr_t(ctypes.UInt64("0x19"))
+// *** WARN firetray: OK
+
   try {
     this.gtkWindows.insert(xid, gtkWin);
     this.gdkWindows.insert(xid, gdkWin);

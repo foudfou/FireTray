@@ -1,0 +1,153 @@
+diff --git a/docshell/base/nsDocShell.cpp b/docshell/base/nsDocShell.cpp
+--- a/docshell/base/nsDocShell.cpp
++++ b/docshell/base/nsDocShell.cpp
+@@ -4860,6 +4860,13 @@
+ }
+ 
+ NS_IMETHODIMP
++nsDocShell::GetNativeHandle(JSContext *cx, jsval *ret)
++{
++    NS_ASSERTION(false, "Not Yet Implemented: nsDocShell");
++    return NS_ERROR_NOT_IMPLEMENTED;
++}
++
++NS_IMETHODIMP
+ nsDocShell::GetVisibility(bool * aVisibility)
+ {
+     NS_ENSURE_ARG_POINTER(aVisibility);
+diff --git a/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp b/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp
+--- a/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp
++++ b/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp
+@@ -584,6 +584,14 @@
+ }
+ 
+ NS_IMETHODIMP
++nsDocShellTreeOwner::GetNativeHandle(JSContext *cx, jsval *ret)
++{
++  //XXX First Check In
++  NS_ASSERTION(false, "You can't call this: nsDocShellTreeOwner");
++  return NS_ERROR_NULL_POINTER;
++}
++
++NS_IMETHODIMP
+ nsDocShellTreeOwner::GetVisibility(bool* aVisibility)
+ {
+   nsCOMPtr<nsIEmbeddingSiteWindow> ownerWin = GetOwnerWin();
+diff --git a/embedding/browser/webBrowser/nsWebBrowser.cpp b/embedding/browser/webBrowser/nsWebBrowser.cpp
+--- a/embedding/browser/webBrowser/nsWebBrowser.cpp
++++ b/embedding/browser/webBrowser/nsWebBrowser.cpp
+@@ -7,6 +7,7 @@
+ #include "nsWebBrowser.h"
+ 
+ // Helper Classes
++#include "nsDOMJSUtils.h" //XXX for jsval
+ #include "nsGfxCIID.h"
+ #include "nsWidgetsCID.h"
+ 
+@@ -1380,6 +1381,13 @@
+    return NS_OK;
+ }
+ 
++NS_IMETHODIMP nsWebBrowser::GetNativeHandle(JSContext *cx, jsval *ret)
++{
++  //XXX First Check In
++  NS_ASSERTION(false, "Not Yet Implemented");
++  return NS_OK;
++}
++
+ NS_IMETHODIMP nsWebBrowser::GetVisibility(bool* visibility)
+ {
+    NS_ENSURE_ARG_POINTER(visibility);
+diff --git a/widget/nsIBaseWindow.idl b/widget/nsIBaseWindow.idl
+--- a/widget/nsIBaseWindow.idl
++++ b/widget/nsIBaseWindow.idl
+@@ -153,6 +153,14 @@
+ 	attribute nativeWindow parentNativeWindow;
+ 
+ 	/*
++  TODO:
++  https://bugzilla.mozilla.org/show_bug.cgi?id=760802
++  https://groups.google.com/d/msg/mozilla.dev.extensions/JXgOCHSK0ZU/bR5A2ZCZV3sJ
++  */
++  // readonly attribute jsval nativeHandle;
++  [implicit_jscontext] readonly attribute jsval nativeHandle;
++
++  /*
+ 	Attribute controls the visibility of the object behind this interface.
+ 	Setting this attribute to false will hide the control.  Setting it to 
+ 	true will show it.
+diff --git a/xpfe/appshell/src/nsChromeTreeOwner.cpp b/xpfe/appshell/src/nsChromeTreeOwner.cpp
+--- a/xpfe/appshell/src/nsChromeTreeOwner.cpp
++++ b/xpfe/appshell/src/nsChromeTreeOwner.cpp
+@@ -9,6 +9,7 @@
+ #include "nsXULWindow.h"
+ 
+ // Helper Classes
++#include "nsDOMJSUtils.h" //XXX for jsval
+ #include "nsString.h"
+ #include "nsIEmbeddingSiteWindow.h"
+ #include "nsIEmbeddingSiteWindow2.h"
+@@ -423,6 +424,12 @@
+    return NS_ERROR_NOT_IMPLEMENTED;
+ }
+ 
++NS_IMETHODIMP nsChromeTreeOwner::GetNativeHandle(JSContext *cx, jsval *ret)
++{
++   NS_ENSURE_STATE(mXULWindow);
++   return mXULWindow->GetNativeHandle(cx, ret);
++}
++
+ NS_IMETHODIMP nsChromeTreeOwner::GetVisibility(bool* aVisibility)
+ {
+    NS_ENSURE_STATE(mXULWindow);
+diff --git a/xpfe/appshell/src/nsContentTreeOwner.cpp b/xpfe/appshell/src/nsContentTreeOwner.cpp
+--- a/xpfe/appshell/src/nsContentTreeOwner.cpp
++++ b/xpfe/appshell/src/nsContentTreeOwner.cpp
+@@ -10,6 +10,7 @@
+ #include "nsXULWindow.h"
+ 
+ // Helper Classes
++#include "nsDOMJSUtils.h" //XXX for jsval
+ #include "nsIServiceManager.h"
+ #include "nsAutoPtr.h"
+ 
+@@ -637,6 +638,12 @@
+    return NS_ERROR_NOT_IMPLEMENTED;
+ }
+ 
++NS_IMETHODIMP nsContentTreeOwner::GetNativeHandle(JSContext *cx, jsval *ret)
++{
++   NS_ENSURE_STATE(mXULWindow);
++   return mXULWindow->GetNativeHandle(cx, ret);
++}
++
+ NS_IMETHODIMP nsContentTreeOwner::GetVisibility(bool* aVisibility)
+ {
+    NS_ENSURE_STATE(mXULWindow);
+diff --git a/xpfe/appshell/src/nsXULWindow.cpp b/xpfe/appshell/src/nsXULWindow.cpp
+--- a/xpfe/appshell/src/nsXULWindow.cpp
++++ b/xpfe/appshell/src/nsXULWindow.cpp
+@@ -748,6 +748,23 @@
+   return NS_OK;
+ }
+ 
++NS_IMETHODIMP nsXULWindow::GetNativeHandle(JSContext *cx, jsval *ret)
++{
++  nsCOMPtr<nsIWidget> mainWidget;
++  NS_ENSURE_SUCCESS(GetMainWidget(getter_AddRefs(mainWidget)), NS_ERROR_FAILURE);
++
++  if (mainWidget) {
++    // this will return the actual address of the native window obj (not a
++    // pointer to it)
++    nativeWindow nativeWindowPtr = mainWidget->GetNativeData(NS_NATIVE_WINDOW);
++    uintptr_t ptr = *static_cast<uintptr_t*>(nativeWindowPtr);
++    if (!JS_NewNumberValue(cx, (double)ptr, ret)) // JSBool
++      return NS_ERROR_UNEXPECTED;
++  }
++
++  return NS_OK;
++}
++
+ NS_IMETHODIMP nsXULWindow::GetVisibility(bool* aVisibility)
+ {
+   NS_ENSURE_ARG_POINTER(aVisibility);
