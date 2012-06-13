@@ -61,7 +61,7 @@ firetray.Window = {
   },
 
   shutdown: function() {
-    firetray.Utils.tryCloseLibs([gobject, gdk, gtk, libc, x11]);
+    firetray.Utils.tryCloseLibs([gobject, gdk, gtk, libc, x11, glib]);
     this.initialized = false;
   },
 
@@ -97,9 +97,9 @@ firetray.Window = {
       gobject.g_list_foreach(widgets, findGtkWindowByTitleCb, userData);
       gobject.g_list_free(widgets);
 
-      if (userData.contents.outWindow.isNull()) {
+      if (userData.contents.outWindow.isNull())
         throw new Error("Window not found!");
-      }
+
       F.LOG("found window: "+userData.contents.outWindow);
     } catch (x) {
       F.ERROR(x);
@@ -154,7 +154,7 @@ firetray.Window = {
     return null;
   },
 
-  /** consider using getXIDFromChromeWindow() if you only need the XID */
+  /* consider using getXIDFromChromeWindow() if you only need the XID */
   getWindowsFromChromeWindow: function(win) {
     let gtkWin = firetray.Window.getGtkWindowHandle(win);
     let gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWin);

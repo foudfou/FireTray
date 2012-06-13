@@ -69,7 +69,8 @@ firetray.StatusIcon = {
   },
 
   shutdown: function() {
-    firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gtk, pango, pangocairo]);
+    firetray.PopupMenu.shutdown();
+    firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gio, gtk, pango, pangocairo]);
     this.initialized = false;
   },
 
