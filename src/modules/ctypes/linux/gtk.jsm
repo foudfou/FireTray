@@ -117,6 +117,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_widget_get_events", gobject.gint, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_get_events", gobject.gint, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_add_events", ctypes.void_t, this.GtkWidget.ptr, gobject.gint);
+  lib.lazy_bind("gtk_widget_get_toplevel", this.GtkWidget.ptr, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_window_get_type", gobject.GType);
   lib.lazy_bind("gtk_window_get_position", ctypes.void_t, this.GtkWindow.ptr, gobject.gint.ptr, gobject.gint.ptr);
   lib.lazy_bind("gtk_window_move", ctypes.void_t, this.GtkWindow.ptr, gobject.gint, gobject.gint);

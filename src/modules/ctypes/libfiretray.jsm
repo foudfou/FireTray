@@ -53,6 +53,8 @@ var libfiretray = {
 
   _declare: function() {
     this.gdk_is_window = this._lib.declare("gdk_is_window", ctypes.default_abi, ctypes.int, ctypes.void_t.ptr);
+    this.gtk_is_window = this._lib.declare("gtk_is_window", ctypes.default_abi, ctypes.int, ctypes.void_t.ptr);
+    this.gtk_is_widget = this._lib.declare("gtk_is_widget", ctypes.default_abi, ctypes.int, ctypes.void_t.ptr);
   }
 
 };
