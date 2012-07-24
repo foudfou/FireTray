@@ -104,7 +104,7 @@ firetray.PopupMenu = {
     this.setWindowItemLabel(menuItemWindow, xid.toString()); // default to xid
 
     this.callbacks.menuItemWindowActivate[xid] = gobject.GCallback_t(
-      function(){firetray.Handler.showSingleWindow(xid);});
+      function(){firetray.Handler.showWindow(xid);});
     gobject.g_signal_connect(menuItemWindow, "activate",
       firetray.PopupMenu.callbacks.menuItemWindowActivate[xid], null);
 
@@ -130,14 +130,14 @@ firetray.PopupMenu = {
   showAllWindowItemsOnlyVisibleWindows: function() {
     for (let xid in firetray.Handler.windows)
       if (!firetray.Handler.windows[xid].visible)
-        this.showSingleWindowItem(xid);
+        this.showWindowItem(xid);
   },
 
-  showSingleWindowItem: function(xid) {
+  showWindowItem: function(xid) {
     if (!this.windowItemsHandled())
       return;
 
-    F.LOG("showSingleWindowItem");
+    F.LOG("showWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     this.showItem(menuItemWindow);
     this.setWindowItemLabel(menuItemWindow, firetray.Window.getWindowTitle(xid));
@@ -156,25 +156,25 @@ firetray.PopupMenu = {
 
   hideAllWindowItems: function() {
     for (let xid in firetray.Handler.windows)
-      this.hideSingleWindowItemAndSeparator(xid);
+      this.hideWindowItemAndSeparator(xid);
   },
 
-  hideSingleWindowItemAndSeparator: function(xid) {
-    this.hideSingleWindowItem(xid);
+  hideWindowItemAndSeparator: function(xid) {
+    this.hideWindowItem(xid);
     this.hideWindowSeparator();
   },
 
-  hideSingleWindowItemAndSeparatorMaybe: function(xid) {
+  hideWindowItemAndSeparatorMaybe: function(xid) {
     if (!this.windowItemsHandled())
       return;
 
-    this.hideSingleWindowItem(xid);
+    this.hideWindowItem(xid);
     if (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)
       this.hideWindowSeparator();
   },
 
-  hideSingleWindowItem: function(xid) {
-    F.LOG("hideSingleWindowItem");
+  hideWindowItem: function(xid) {
+    F.LOG("hideWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     this.hideItem(menuItemWindow);
   },

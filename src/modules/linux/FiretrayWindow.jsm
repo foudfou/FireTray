@@ -204,7 +204,7 @@ firetray.Window = {
     if (firetray.Utils.prefService.getBoolPref('show_activates'))
       firetray.Window.activate(xid);
 
-    firetray.PopupMenu.hideSingleWindowItemAndSeparatorMaybe(xid);
+    firetray.PopupMenu.hideWindowItemAndSeparatorMaybe(xid);
     firetray.Handler.showHideIcon();
   },
 
@@ -218,7 +218,18 @@ firetray.Window = {
 
     firetray.Window.setVisibility(xid, false);
 
-    firetray.PopupMenu.showSingleWindowItem(xid);
+    firetray.PopupMenu.showWindowItem(xid);
+    firetray.Handler.showHideIcon();
+  },
+
+  startupHide: function(xid) {
+    F.LOG('startupHide: '+xid);
+
+    firetray.Handler.windows[xid].baseWin.visibility = false;
+    firetray.Handler.windows[xid].visible = false;
+    firetray.Handler.visibleWindowsCount -= 1;
+
+    firetray.PopupMenu.showWindowItem(xid);
     firetray.Handler.showHideIcon();
   },
 
@@ -492,7 +503,7 @@ firetray.Window = {
         let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
         if (hides_on_minimize) {
           if (hides_single_window) {
-            firetray.Handler.hideSingleWindow(xwin);
+            firetray.Handler.hideWindow(xwin);
           } else
           firetray.Handler.hideAllWindows();
         }
@@ -569,8 +580,9 @@ firetray.Handler.unregisterWindow = function(win) {
   return firetray.Window.unregisterWindowByXID(xid);
 };
 
-firetray.Handler.showSingleWindow = firetray.Window.show;
-firetray.Handler.hideSingleWindow = firetray.Window.hide;
+firetray.Handler.showWindow = firetray.Window.show;
+firetray.Handler.hideWindow = firetray.Window.hide;
+firetray.Handler.startupHideWindow = firetray.Window.startupHide;
 
 firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   F.LOG("showHideAllWindows: "+userData);

@@ -181,8 +181,9 @@ firetray.Handler = {
   registerWindow: function(win) {},
   unregisterWindow: function(win) {},
   getWindowIdFromChromeWindow: function(win) {},
-  hideSingleWindow: function(winId) {},
-  showSingleWindow: function(winId) {},
+  hideWindow: function(winId) {},
+  startupHideWindow: function(winId) {},
+  showWindow: function(winId) {},
   showHideAllWindows: function() {},
   activateLastWindow: function(gtkStatusIcon, gdkEvent, userData) {},
 
@@ -190,14 +191,14 @@ firetray.Handler = {
     F.LOG("showAllWindows");
     for (let winId in firetray.Handler.windows) {
       if (!firetray.Handler.windows[winId].visible)
-        firetray.Handler.showSingleWindow(winId);
+        firetray.Handler.showWindow(winId);
     }
   },
   hideAllWindows: function() {
     F.LOG("hideAllWindows");
     for (let winId in firetray.Handler.windows) {
       if (firetray.Handler.windows[winId].visible)
-        firetray.Handler.hideSingleWindow(winId);
+        firetray.Handler.hideWindow(winId);
     }
   },
 

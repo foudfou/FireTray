@@ -12,7 +12,6 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
 
   strings: null,
   winId: null,
-  startedHidden: false,
 
   onLoad: function(win) {
     this.strings = document.getElementById("firetray-strings"); // chrome-specific
@@ -22,9 +21,9 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
 
     F.LOG("ONLOAD"); firetray.Handler.dumpWindows();
     this.winId = firetray.Handler.registerWindow(win);
+    win.setTimeout(firetrayChrome.startHiddenMaybe, 0, this.winId);
 
     win.addEventListener('close', firetrayChrome.onClose, true);
-    win.addEventListener('resize', firetrayChrome.onResize, true);
 
     F.LOG('Firetray LOADED: ' + init);
     return true;
@@ -55,34 +54,19 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     F.LOG('hides_on_close: '+hides_on_close+', hides_single_window='+hides_single_window);
     if (hides_on_close) {
       if (hides_single_window) {
-        firetray.Handler.hideSingleWindow(firetrayChrome.winId);
+        firetray.Handler.hideWindow(firetrayChrome.winId);
       } else
         firetray.Handler.hideAllWindows();
       event && event.preventDefault();
     }
   },
 
-  /**
-   * at startup windows are displayed/shown/resized multiple times. We can't
-   * just set baseWin.visibility=false on 'load' because the window is not
-   * fully realized (position, size incorrect), neither when appStarted because
-   * windows would be displayed in between
-   */
-  onResize: function(event) {
-    F.LOG('onResize'+'. appStarted='+firetray.Handler.appStarted);
-    let win = event.originalTarget;
-    win.removeEventListener('resize', firetrayChrome.onResize, true);
+  startHiddenMaybe: function(winId) {
+    F.LOG('startHiddenMaybe'+'. appStarted='+firetray.Handler.appStarted);
 
-    if(!firetray.Handler.appStarted &&
-       firetray.Utils.prefService.getBoolPref('start_hidden')) {
-      F.LOG('start_hidden: '+firetrayChrome.winId);
-      let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
-      baseWin.visibility = false;
-      if (!firetrayChrome.startedHidden) {
-        firetray.Handler.windows[firetrayChrome.winId].visible = false;
-        firetray.Handler.visibleWindowsCount -= 1;
-        firetrayChrome.startedHidden = true;
-      }
+    if (firetray.Utils.prefService.getBoolPref('start_hidden') &&
+        !firetray.Handler.appStarted) { // !appStarted for new windows !
+      firetray.Handler.startupHideWindow(winId);
     }
   }
 
