@@ -12,6 +12,16 @@ LIBS += $(shell pkg-config --libs $(deps))
 libs = firetray_$(platform)-gcc$(GCCVERSION).so
 
 all: $(libs)
+	@echo
+	@echo add this line to chrome.manifest:
+	@echo -e "resource\tfiretray-lib\t\t\tlib/linux/$(libs)"
+	@echo
+	@echo and use
+	@echo 'Cu.import("resource://firetray/ctypes/libfiretray.jsm");'
+	@echo 'libfiretray.init();'
+	@echo '//...'
+	@echo 'libfiretray.shutdown();'
+	@echo
 
 $(libs): firetray.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
