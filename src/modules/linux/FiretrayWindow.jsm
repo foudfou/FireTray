@@ -61,7 +61,7 @@ firetray.Window = {
   },
 
   shutdown: function() {
-    firetray.Utils.tryCloseLibs([gobject, gdk, gtk, libc, x11]);
+    firetray.Utils.tryCloseLibs([gobject, gdk, gtk, libc, x11, glib]);
     this.initialized = false;
   },
 
@@ -73,7 +73,7 @@ firetray.Window = {
    * @param window nsIDOMWindow from Services.wm
    * @return a gtk.GtkWindow.ptr
    */
-  getGtkWindowHandle: function(window) {
+  getGtkWindowFromChromeWindow: function(window) {
     let baseWindow = window
           .QueryInterface(Ci.nsIInterfaceRequestor)
           .getInterface(Ci.nsIWebNavigation)
@@ -97,9 +97,9 @@ firetray.Window = {
       gobject.g_list_foreach(widgets, findGtkWindowByTitleCb, userData);
       gobject.g_list_free(widgets);
 
-      if (userData.contents.outWindow.isNull()) {
+      if (userData.contents.outWindow.isNull())
         throw new Error("Window not found!");
-      }
+
       F.LOG("found window: "+userData.contents.outWindow);
     } catch (x) {
       F.ERROR(x);
@@ -154,13 +154,44 @@ firetray.Window = {
     return null;
   },
 
-  /** consider using getXIDFromChromeWindow() if you only need the XID */
+  addrPointedByInHex: function(ptr) {
+    return "0x"+ctypes.cast(ptr, ctypes.uintptr_t.ptr).contents.toString(16);
+  },
+
+  getGdkWindowFromNativeHandle: function(nativeHandle) {
+    let gdkw = new gdk.GdkWindow.ptr(ctypes.UInt64(nativeHandle)); // a new pointer to the GdkWindow
+    F.LOG("gdkw="+gdkw+" *gdkw="+this.addrPointedByInHex(gdkw));
+    return gdkw;
+  },
+
+  getGtkWindowFromGdkWindow: function(gdkWin) {
+    let gptr = new gobject.gpointer;
+    gdk.gdk_window_get_user_data(gdkWin, gptr.address());
+    F.LOG("gptr="+gptr+" *gptr="+this.addrPointedByInHex(gptr));
+    let gtkw = ctypes.cast(gptr, gtk.GtkWindow.ptr);
+    let gtkw_voidp = ctypes.cast(gtkw, ctypes.void_t.ptr);
+    let gtkwid_top = gtk.gtk_widget_get_toplevel(ctypes.cast(gtkw, gtk.GtkWidget.ptr));
+    gtkw = ctypes.cast(gtkwid_top, gtk.GtkWindow.ptr);
+    F.LOG("gtkw="+gtkw+" *gtkw="+this.addrPointedByInHex(gtkw));
+    return gtkw;
+  },
+
+  /* consider using getXIDFromChromeWindow() if you only need the XID */
   getWindowsFromChromeWindow: function(win) {
-    let gtkWin = firetray.Window.getGtkWindowHandle(win);
-    let gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWin);
+    let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
+    let nativeHandle = baseWin.nativeHandle; // Moz' private pointer to the GdkWindow
+    F.LOG("nativeHandle="+nativeHandle);
+    let gtkWin, gdkWin;
+    if (nativeHandle) { // Gecko 17+
+      gdkWin = firetray.Window.getGdkWindowFromNativeHandle(nativeHandle);
+      gtkWin = firetray.Window.getGtkWindowFromGdkWindow(gdkWin);
+    } else {
+      gtkWin = firetray.Window.getGtkWindowFromChromeWindow(win);
+      gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWin);
+    }
     let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
     F.LOG("XID="+xid);
-    return [gtkWin, gdkWin, xid];
+    return [baseWin, gtkWin, gdkWin, xid];
   },
 
   getXIDFromChromeWindow: function(win) {
@@ -446,7 +477,7 @@ firetray.Window = {
 
   getWindowTitle: function(xid) {
     let title = firetray.Handler.windows[xid].baseWin.title;
-    F.LOG("baseWin.title="+title);
+    F.LOG("|baseWin.title="+title+"|");
     let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
     if (tailIndex !== -1)
       return title.substring(0, tailIndex);
@@ -533,11 +564,11 @@ firetray.Handler.registerWindow = function(win) {
   F.LOG("register window");
 
   // register
-  let [gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
-  firetray.Window.checkSubscribedEventMasks(xid);
+  let [baseWin, gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
   this.windows[xid] = {};
   this.windows[xid].chromeWin = win;
-  this.windows[xid].baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
+  this.windows[xid].baseWin = baseWin;
+  firetray.Window.checkSubscribedEventMasks(xid);
   try {
     this.gtkWindows.insert(xid, gtkWin);
     this.gdkWindows.insert(xid, gdkWin);

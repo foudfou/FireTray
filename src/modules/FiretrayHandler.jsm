@@ -8,8 +8,6 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
-Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
 Cu.import("resource://firetray/PrefListener.jsm");
 Cu.import("resource://firetray/VersionChange.jsm");
@@ -35,16 +33,25 @@ firetray.Handler = {
   FILENAME_NEWMAIL: null,
 
   initialized: false,
-  appId:      (function(){return Services.appinfo.ID;})(),
-  appName:    (function(){return Services.appinfo.name;})(),
-  runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
-  runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
   inMailApp: false,
   inBrowserApp: false,
   appStarted: false,
   windows: {},
   windowsCount: 0,
   visibleWindowsCount: 0,
+
+  appId:      (function(){return Services.appinfo.ID;})(),
+  appName:    (function(){return Services.appinfo.name;})(),
+  runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
+  runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
+  addonRootDir: (function(){
+    let uri = Services.io.newURI(Components.stack.filename, null, null);
+    if (uri instanceof Ci.nsIFileURL) {
+      F.LOG("_directory="+uri.file.parent.parent.path);
+      return uri.file.parent.parent;
+    }
+    throw new Error("not resolved");
+  })(),
 
   init: function() {            // does creates icon
     firetray.PrefListener.register(false);
@@ -121,8 +128,7 @@ firetray.Handler = {
       firetray.Messaging.shutdown();
     firetray.StatusIcon.shutdown();
     firetray.Window.shutdown();
-
-    firetray.Utils.tryCloseLibs([gobject, glib, gtk]);
+    // watchout order and sufficiency of lib closings (tryCloseLibs())
 
     Services.obs.removeObserver(this, this.getAppStartupTopic(this.appId), false);
     Services.obs.removeObserver(this, "xpcom-will-shutdown", false);
