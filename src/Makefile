@@ -3,14 +3,14 @@ help:
 	@echo "BUILD/INSTALL INSTRUCTIONS"
 	@echo
 	@echo "to build Firetray, just:"
-	@echo "  make all"
+	@echo "  make build"
 	@echo
 	@echo "by default, debug calls are stripped from js files and DEBUG_MODE"
 	@echo "is off (performance). If you want to keep debug calls:"
-	@echo "  DEBUG=on make all"
+	@echo "  DEBUG=on make build"
 	@echo
 	@echo "to create the dev profile:"
-	@echo "  firefox -no-remote -P	# then create '$(profile_id)'"
+	@echo "  firefox -no-remote -P		# then create '$(profile_id)'"
 	@echo "  thunderbird -no-remote -P	# then create '$(profile_id)'"
 	@echo
 	@echo "to test the extension with the dev profile:"
@@ -119,8 +119,8 @@ $(xpi_built): $(build_dir) $(build_includes)
 	@echo "Creating XPI file. Done!"
 
 # This builds the extension XPI file.
-.PHONY: all
-all: $(xpi_built)
+.PHONY: build
+build: $(xpi_built)
 	@echo
 	@echo "Build finished successfully."
 	@echo
