@@ -27,10 +27,7 @@ if ("undefined" == typeof(firetray)) {
 // other global functions
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 firetray.Handler = {
-  FILENAME_DEFAULT: null,
-  FILENAME_SUFFIX: "32.png",
   FILENAME_BLANK: null,
-  FILENAME_NEWMAIL: null,
 
   initialized: false,
   inMailApp: false,
@@ -77,12 +74,15 @@ firetray.Handler = {
       this.inBrowserApp = true;
     F.LOG('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
 
-    this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/" +  this.appName.toLowerCase() + this.FILENAME_SUFFIX);
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/blank-icon.png");
-    this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/message-mail-new.png");
+
+    VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
+    VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailNotificationType);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.addIMServerTypePrefMaybe);
+    VersionChange.applyHooksAndWatchUninstall();
 
     firetray.StatusIcon.init();
     firetray.Handler.showHideIcon();
@@ -104,11 +104,6 @@ firetray.Handler = {
     Services.obs.addObserver(this, this.getAppStartupTopic(this.appId), false);
     Services.obs.addObserver(this, "xpcom-will-shutdown", false);
     Services.obs.addObserver(this, "profile-change-teardown", false);
-
-    VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
-    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
-    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailNotificationType);
-    VersionChange.watch();
 
     this.preventWarnOnClose();
 
@@ -348,10 +343,10 @@ firetray.PrefListener = new PrefListener(
 
 firetray.VersionChangeHandler = {
 
-  showReleaseNotes: function(ver) {
-    firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#v"+ver);
-    firetray.Handler.tryEraseOldOptions();
-    firetray.Handler.correctMailNotificationType();
+  showReleaseNotes: function() {
+    firetray.VersionChangeHandler.openTab(FIRETRAY_SPLASH_PAGE+"#v"+FIRETRAY_VERSION);
+    firetray.VersionChangeHandler.tryEraseOldOptions();
+    firetray.VersionChangeHandler.correctMailNotificationType();
   },
 
   openTab: function(url) {
@@ -412,16 +407,32 @@ firetray.VersionChangeHandler = {
 
     for (let i = 0, length = oldOptions.length; i<length; ++i) {
       try {
-        firetray.Utils.prefService.clearUserPref(oldOptions[i]);
+        let option = oldOptions[i];
+        firetray.Utils.prefService.clearUserPref(option);
       } catch (x) {}
     }
   },
 
   correctMailNotificationType: function() {
     if (firetray.Utils.prefService.getIntPref('message_count_type') ===
-        FIRETRAY_MESSAGE_COUNT_TYPE_NEW)
+        FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
       firetray.Utils.prefService.setIntPref('mail_notification_type',
         FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
+      F.WARN("mail notification type set to newmail icon.");
+    }
+  },
+
+  addIMServerTypePrefMaybe: function() {
+    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+    let serverTypes = mailAccounts["serverTypes"];
+
+    if (!serverTypes["im"])
+      serverTypes["im"] = {"order":6,"excluded":true};
+
+    let prefObj = {"serverTypes":serverTypes, "excludedAccounts":mailAccounts["excludedAccounts"]};
+    firetray.Utils.setObjPref('mail_accounts', prefObj);
+
+    F.WARN("server type 'im' added to prefs.");
   }
 
 };

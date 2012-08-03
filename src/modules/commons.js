@@ -3,8 +3,8 @@
 /* for now, logging facilities (imported from logging.jsm) are automatically
    provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "F", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
-    "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
+  [ "firetray", "F", "FIRETRAY_ID", "FIRETRAY_VERSION", "FIRETRAY_PREF_BRANCH",
+    "FIRETRAY_SPLASH_PAGE", "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
     "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
     "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
@@ -20,11 +20,16 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
+const FIRETRAY_VERSION     = "0.4.2"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
 const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
 const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
 
-const FIRETRAY_APPLICATION_ICON_TYPE_THEMED      = 0;
-const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM      = 1;
+const FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
+const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM = 1;
+
+const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD         = 0;
+const FIRETRAY_MESSAGE_COUNT_TYPE_NEW            = 1;
 
 const FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT = 0;
 const FIRETRAY_NOTIFICATION_NEWMAIL_ICON         = 1;
@@ -33,9 +38,6 @@ const FIRETRAY_NOTIFICATION_CUSTOM_ICON          = 2;
 const FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS = 500;
 const FIRETRAY_DELAY_NOWAIT_MILLISECONDS          = 0;
 const FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS   = 15*60*1000;
-
-const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD = 0;
-const FIRETRAY_MESSAGE_COUNT_TYPE_NEW    = 1;
 
 if ("undefined" == typeof(F)) {
   var F = {};                   // helper wrapper
@@ -57,7 +59,7 @@ if ("undefined" == typeof(firetray)) {
 };
 
 firetray.Utils = {
-  prefService: Services.prefs.getBranch("extensions.firetray."),
+  prefService: Services.prefs.getBranch(FIRETRAY_PREF_BRANCH),
   strings: Services.strings.createBundle("chrome://firetray/locale/overlay.properties"),
 
   getObjPref: function(prefStr) {
@@ -70,7 +72,7 @@ firetray.Utils = {
     return objPref;
   },
   setObjPref: function(prefStr, obj) {
-    F.LOG(obj);
+    F.LOG("setObjPref: "+obj);
     try {
       firetray.Utils.prefService.setCharPref(prefStr, JSON.stringify(obj));
     } catch (x) {

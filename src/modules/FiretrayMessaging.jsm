@@ -234,8 +234,8 @@ firetray.Messaging = {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
         F.LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
-        if ( (serverTypes[accountServer.type].excluded)
-          || (excludedAccounts.indexOf(accountServer.key) >= 0) )
+        if (serverTypes[accountServer.type].excluded ||
+            (excludedAccounts.indexOf(accountServer.key) >= 0))
           continue;
 
         let rootFolder = accountServer.rootFolder; // nsIMsgFolder
