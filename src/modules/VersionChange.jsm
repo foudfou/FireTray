@@ -10,7 +10,6 @@ Cu.import("resource://firetray/commons.js");
 
 /**
  * handles version changes.
- * use setInstallHook(), setUpgradeHook(), setReinstallHook()
  * http://mike.kaply.com/2011/02/02/running-add-on-code-at-first-run-and-upgrade/
  */
 var VersionChange = {
@@ -50,7 +49,7 @@ var VersionChange = {
     if (firstrun) {
       F.LOG("FIRST RUN");
       this.initPrefs();
-      this.installHook(this.curVersion);
+      this._applyHooks("install");
 
     } else {
       try {
@@ -59,13 +58,13 @@ var VersionChange = {
         if (versionDelta > 0) {
           firetray.Utils.prefService.setCharPref("installedVersion", this.curVersion);
           F.LOG("UPGRADE");
-          this.upgradeHook(this.curVersion);
+          this._applyHooks("upgrade");
         }
 
       } catch (ex) {
         F.LOG("REINSTALL");
         this.initPrefs();
-        this.reinstallHook(this.curVersion);
+        this._applyHooks("reinstall");
       }
     }
   },
@@ -75,11 +74,25 @@ var VersionChange = {
     firetray.Utils.prefService.setCharPref("installedVersion", VersionChange.curVersion);
   },
 
-  installHook: function(ver){},
-  upgradeHook: function(ver){},
-  reinstallHook: function(ver){},
-  setInstallHook: function(fun) {this.installHook = fun;},
-  setUpgradeHook: function(fun) {this.upgradeHook = fun;},
-  setReinstallHook: function(fun) {this.reinstallHook = fun;}
+  _hooks: [],      // collection of callbacks {id: 1, categories: [], fun: function}
+
+  addHook: function(categories, fun) {
+    if (!firetray.js.isArray(categories)) throw new CategoryError();
+    let id = this._hooks.push({})-1;
+    this._hooks[id] = {id: id, categories: categories, fun: fun};
+    return id;
+  },
+
+  removeHook: function(id) {return this._hooks[id].splice(id-1, 1);},
+  removeCategoryFromHook: function(category, id) {
+    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+  },
+
+  _applyHooks: function(category) {
+    for (let i=0,len=this._hooks.length; i<len; ++i) {
+      let cb = this._hooks[i];
+      if (cb.categories.indexOf(category)) cb.fun(this.curVersion);
+    }
+  }
 
 };

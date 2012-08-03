@@ -105,14 +105,9 @@ firetray.Handler = {
     Services.obs.addObserver(this, "xpcom-will-shutdown", false);
     Services.obs.addObserver(this, "profile-change-teardown", false);
 
-    let welcome = function(ver) {
-      firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#v"+ver);
-      firetray.Handler.tryEraseOldOptions();
-      firetray.Handler.correctMailNotificationType();
-    };
-    VersionChange.setInstallHook(welcome);
-    VersionChange.setUpgradeHook(welcome);
-    VersionChange.setReinstallHook(welcome);
+    VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailNotificationType);
     VersionChange.watch();
 
     this.preventWarnOnClose();
@@ -292,10 +287,78 @@ firetray.Handler = {
     } catch (x) { F.ERROR(x); }
   },
 
+  quitApplication: function() {
+    try {
+      firetray.Utils.timer(function() {
+        let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']
+          .getService(Ci.nsIAppStartup);
+        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
+      }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+    } catch (x) { F.ERROR(x); }
+  },
+
+  preventWarnOnClose: function() {
+    if (!this.inBrowserApp) return;
+    let generalTabsPrefs = Services.prefs.getBranch("browser.tabs.");
+    this.warnOnCloseTmp = generalTabsPrefs.getBoolPref('warnOnClose');
+    F.LOG("warnOnClose saved. was: "+this.warnOnCloseTmp);
+    generalTabsPrefs.setBoolPref('warnOnClose', false);
+  },
+  restoreWarnOnClose: function() {
+    if (!this.inBrowserApp && !this.warnOnCloseTmp) return;
+    let generalTabsPrefs = Services.prefs.getBranch("browser.tabs.");
+    generalTabsPrefs.setBoolPref('warnOnClose', this.warnOnCloseTmp);
+    F.LOG("warnOnClose restored to: "+this.warnOnCloseTmp);
+  }
+
+}; // firetray.Handler
+
+
+firetray.PrefListener = new PrefListener(
+  "extensions.firetray.",
+  function(branch, name) {
+    F.LOG('Pref changed: '+name);
+    switch (name) {
+    case 'hides_single_window':
+      firetray.Handler.showHidePopupMenuItems();
+      break;
+    case 'show_icon_on_hide':
+      firetray.Handler.showHideIcon();
+      break;
+    case 'new_mail_icon_names':
+      firetray.StatusIcon.loadThemedIcons();
+    case 'message_count_type':
+    case 'folder_count_recursive':
+      firetray.Messaging.updateMsgCountWithCb();
+      break;
+    case 'app_mail_icon_names':
+    case 'app_browser_icon_names':
+    case 'app_default_icon_names':
+      firetray.StatusIcon.loadThemedIcons();
+    case 'app_icon_type':
+      if (firetray.Handler.inMailApp)
+        firetray.Messaging.updateMsgCountWithCb();
+      else
+        firetray.Handler.setIconImageDefault();
+      break;
+    default:
+    }
+  });
+
+
+firetray.VersionChangeHandler = {
+
+  showReleaseNotes: function(ver) {
+    firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#v"+ver);
+    firetray.Handler.tryEraseOldOptions();
+    firetray.Handler.correctMailNotificationType();
+  },
+
   openTab: function(url) {
-    if (this.appId === F.THUNDERBIRD_ID)
+    if (firetray.Handler.appId === F.THUNDERBIRD_ID)
       this.openMailTab(url);
-    else if (this.appId === F.FIREFOX_ID || this.appId === F.SEAMONKEY_ID)
+    else if (firetray.Handler.appId === F.FIREFOX_ID ||
+             firetray.Handler.appId === F.SEAMONKEY_ID)
       this.openBrowserTab(url);
     else
       F.ERROR("unsupported application");
@@ -359,62 +422,6 @@ firetray.Handler = {
         FIRETRAY_MESSAGE_COUNT_TYPE_NEW)
       firetray.Utils.prefService.setIntPref('mail_notification_type',
         FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
-  },
-
-  quitApplication: function() {
-    try {
-      firetray.Utils.timer(function() {
-        let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']
-          .getService(Ci.nsIAppStartup);
-        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
-      }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
-    } catch (x) { F.ERROR(x); }
-  },
-
-  preventWarnOnClose: function() {
-    if (!this.inBrowserApp) return;
-    let generalTabsPrefs = Services.prefs.getBranch("browser.tabs.");
-    this.warnOnCloseTmp = generalTabsPrefs.getBoolPref('warnOnClose');
-    F.LOG("warnOnClose saved. was: "+this.warnOnCloseTmp);
-    generalTabsPrefs.setBoolPref('warnOnClose', false);
-  },
-  restoreWarnOnClose: function() {
-    if (!this.inBrowserApp && !this.warnOnCloseTmp) return;
-    let generalTabsPrefs = Services.prefs.getBranch("browser.tabs.");
-    generalTabsPrefs.setBoolPref('warnOnClose', this.warnOnCloseTmp);
-    F.LOG("warnOnClose restored to: "+this.warnOnCloseTmp);
   }
 
-}; // firetray.Handler
-
-
-firetray.PrefListener = new PrefListener(
-  "extensions.firetray.",
-  function(branch, name) {
-    F.LOG('Pref changed: '+name);
-    switch (name) {
-    case 'hides_single_window':
-      firetray.Handler.showHidePopupMenuItems();
-      break;
-    case 'show_icon_on_hide':
-      firetray.Handler.showHideIcon();
-      break;
-    case 'new_mail_icon_names':
-      firetray.StatusIcon.loadThemedIcons();
-    case 'message_count_type':
-    case 'folder_count_recursive':
-      firetray.Messaging.updateMsgCountWithCb();
-      break;
-    case 'app_mail_icon_names':
-    case 'app_browser_icon_names':
-    case 'app_default_icon_names':
-      firetray.StatusIcon.loadThemedIcons();
-    case 'app_icon_type':
-      if (firetray.Handler.inMailApp)
-        firetray.Messaging.updateMsgCountWithCb();
-      else
-        firetray.Handler.setIconImageDefault();
-      break;
-    default:
-    }
-  });
+};
