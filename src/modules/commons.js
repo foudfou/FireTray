@@ -1,10 +1,11 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-/* for now, logging facilities (imported from logging.jsm) are automatically
-   provided by this module */
+/* for now, logging facilities (imported from logging.jsm) and Services are
+   automatically provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "F", "FIRETRAY_ID", "FIRETRAY_VERSION", "FIRETRAY_PREF_BRANCH",
-    "FIRETRAY_SPLASH_PAGE", "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
+  [ "firetray", "F", "Services", "FIRETRAY_ID", "FIRETRAY_VERSION",
+    "FIRETRAY_PREF_BRANCH", "FIRETRAY_SPLASH_PAGE",
+    "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
     "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
     "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
@@ -61,6 +62,27 @@ if ("undefined" == typeof(firetray)) {
 firetray.Utils = {
   prefService: Services.prefs.getBranch(FIRETRAY_PREF_BRANCH),
   strings: Services.strings.createBundle("chrome://firetray/locale/overlay.properties"),
+
+  addObservers: function(handler, topics){
+    topics.forEach(function(topic){
+      Services.obs.addObserver(this, topic, false);
+      this.observedTopics[topic] = true;
+      F.LOG("registred "+topic+" for "+handler);
+    }, handler);
+  },
+
+  removeObservers: function(handler, topics) {
+    topics.forEach(function(topic){
+      Services.obs.removeObserver(this, topic);
+      delete this.observedTopics[topic];
+    }, handler);
+  },
+
+  removeAllObservers: function(handler) {
+    for (let topic in handler.observedTopics)
+      Services.obs.removeObserver(handler, topic);
+    handler.observedTopics = {};
+  },
 
   getObjPref: function(prefStr) {
     try {

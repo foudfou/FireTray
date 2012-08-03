@@ -36,9 +36,11 @@ firetray.Handler = {
   windows: {},
   windowsCount: 0,
   visibleWindowsCount: 0,
+  observedTopics: {},
 
   appId:      (function(){return Services.appinfo.ID;})(),
   appName:    (function(){return Services.appinfo.name;})(),
+  appStartupTopic: null,
   runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
   runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
   addonRootDir: (function(){
@@ -74,6 +76,8 @@ firetray.Handler = {
       this.inBrowserApp = true;
     F.LOG('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
 
+    this.appStartupTopic = this.getAppStartupTopic(this.appId);
+
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/blank-icon.png");
 
@@ -81,7 +85,6 @@ firetray.Handler = {
     VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailNotificationType);
-    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.addIMServerTypePrefMaybe);
     VersionChange.applyHooksAndWatchUninstall();
 
     firetray.StatusIcon.init();
@@ -101,9 +104,8 @@ firetray.Handler = {
       }
     }
 
-    Services.obs.addObserver(this, this.getAppStartupTopic(this.appId), false);
-    Services.obs.addObserver(this, "xpcom-will-shutdown", false);
-    Services.obs.addObserver(this, "profile-change-teardown", false);
+    firetray.Utils.addObservers(firetray.Handler, [ this.appStartupTopic,
+      "xpcom-will-shutdown", "profile-change-teardown" ]);
 
     this.preventWarnOnClose();
 
@@ -120,9 +122,7 @@ firetray.Handler = {
     firetray.Window.shutdown();
     // watchout order and sufficiency of lib closings (tryCloseLibs())
 
-    Services.obs.removeObserver(this, this.getAppStartupTopic(this.appId), false);
-    Services.obs.removeObserver(this, "xpcom-will-shutdown", false);
-    Services.obs.removeObserver(this, "profile-change-teardown", false);
+    firetray.Utils.removeAllObservers(this);
 
     this.appStarted = false;
     this.initialized = false;
@@ -134,6 +134,7 @@ firetray.Handler = {
     case "sessionstore-windows-restored":
     case "mail-startup-done":
     case "final-ui-startup":
+      firetray.Utils.addObservers(firetray.Handler, [this.appStartupTopic]);
       F.LOG("RECEIVED: "+topic+", launching timer");
       // sessionstore-windows-restored does not come after the realization of
       // all windows... so we wait a little
@@ -420,19 +421,6 @@ firetray.VersionChangeHandler = {
         FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
       F.WARN("mail notification type set to newmail icon.");
     }
-  },
-
-  addIMServerTypePrefMaybe: function() {
-    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
-    let serverTypes = mailAccounts["serverTypes"];
-
-    if (!serverTypes["im"])
-      serverTypes["im"] = {"order":6,"excluded":true};
-
-    let prefObj = {"serverTypes":serverTypes, "excludedAccounts":mailAccounts["excludedAccounts"]};
-    firetray.Utils.setObjPref('mail_accounts', prefObj);
-
-    F.WARN("server type 'im' added to prefs.");
   }
 
 };

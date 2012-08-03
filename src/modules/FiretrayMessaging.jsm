@@ -9,6 +9,7 @@ const Cu = Components.utils;
 Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/FiretrayInstantMessaging.jsm");
 
 const FLDRS_UNINTERESTING = {
   Archive:   Ci.nsMsgFolderFlags.Archive,
@@ -43,6 +44,9 @@ firetray.Messaging = {
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                that.mailSessionListener.notificationFlags);
 
+    if (Services.prefs.getBoolPref("mail.chat.enabled"))
+      firetray.InstantMessaging.init();
+
     this.initialized = true;
   },
 
@@ -50,10 +54,10 @@ firetray.Messaging = {
     if (!this.initialized) return;
     F.LOG("Disabling Messaging");
 
-    this.cleaningTimer.cancel();
-
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
     firetray.Handler.setIconImageDefault();
+
+    this.cleaningTimer.cancel();
 
     this.initialized = false;
   },
@@ -89,6 +93,8 @@ firetray.Messaging = {
     }
   },
 
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=715799 for TB15+
+  // mozINewMailNotificationService (alternative message counting)
   /* http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsIFolderListener.idl */
   mailSessionListener: {
     notificationFlags:
@@ -233,6 +239,7 @@ firetray.Messaging = {
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
+        if (accountServer.type === 'im') continue; // IM messages are counted elsewhere
         F.LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
         if (serverTypes[accountServer.type].excluded ||
             (excludedAccounts.indexOf(accountServer.key) >= 0))
