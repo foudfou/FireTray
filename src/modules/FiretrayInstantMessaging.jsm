@@ -33,7 +33,7 @@ firetray.InstantMessaging = {
     if (!this.initialized) return;
     F.LOG("Disabling InstantMessaging");
 
-    Services.obs.removeAllObservers(firetray.InstantMessaging);
+    firetray.Utils.removeAllObservers(firetray.InstantMessaging);
 
     this.initialized = false;
   },

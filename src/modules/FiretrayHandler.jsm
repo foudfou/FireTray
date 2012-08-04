@@ -110,6 +110,7 @@ firetray.Handler = {
   },
 
   shutdown: function() {
+    F.LOG("Disabling Handler");
     firetray.PrefListener.unregister();
 
     if (this.inMailApp)

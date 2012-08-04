@@ -60,6 +60,7 @@ firetray.PopupMenu = {
   },
 
   shutdown: function() {
+    F.LOG("Disabling PopupMenu");
     firetray.Utils.tryCloseLibs([gobject, gtk]);
     this.initialized = false;
   },

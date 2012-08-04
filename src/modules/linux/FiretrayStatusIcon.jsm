@@ -39,14 +39,12 @@ firetray.StatusIcon = {
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/blank-icon.png");
 
-    this.defineIconNames();
-
     Cu.import("resource://firetray/linux/FiretrayGtkIcons.jsm");
     firetray.GtkIcons.init();
-
+    this.defineIconNames();
     this.loadThemedIcons();
-    this.trayIcon = gtk.gtk_status_icon_new();
 
+    this.trayIcon = gtk.gtk_status_icon_new();
     firetray.Handler.setIconImageDefault();
     firetray.Handler.setIconTooltipDefault();
 
@@ -61,6 +59,7 @@ firetray.StatusIcon = {
   },
 
   shutdown: function() {
+    F.LOG("Disabling StatusIcon");
     firetray.PopupMenu.shutdown();
     firetray.GtkIcons.shutdown();
     firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gio, gtk, pango, pangocairo]);

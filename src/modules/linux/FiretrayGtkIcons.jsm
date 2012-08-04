@@ -20,6 +20,8 @@ firetray.GtkIcons = {
 
   init: function() {
     try {
+      if (this.initialized) return true;
+
       this.loadDefaultTheme();
       this.initialized = true;
       return true;
