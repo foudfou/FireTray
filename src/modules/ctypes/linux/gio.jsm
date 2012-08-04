@@ -16,6 +16,7 @@ function gio_defines(lib) {
   this.GIcon = ctypes.StructType("GIcon");
   this.GThemedIcon = ctypes.StructType("GThemedIcon");
 
+  lib.lazy_bind("g_themed_icon_new", this.GIcon.ptr, ctypes.char.ptr);
   lib.lazy_bind("g_themed_icon_new_from_names", this.GIcon.ptr, ctypes.char.ptr.ptr, ctypes.int);
 
 }

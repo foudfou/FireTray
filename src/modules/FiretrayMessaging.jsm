@@ -54,10 +54,8 @@ firetray.Messaging = {
     F.LOG("Disabling Messaging");
 
     firetray.InstantMessaging.shutdown();
-    F.LOG("HI THERE");
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
-    firetray.Handler.setIconImageDefault();
 
     firetray.Utils.removeAllObservers(firetray.Messaging);
 

@@ -61,6 +61,7 @@ firetray.StatusIcon = {
   shutdown: function() {
     F.LOG("Disabling StatusIcon");
     firetray.PopupMenu.shutdown();
+    // FIXME: should destroy/hide icon here
     firetray.GtkIcons.shutdown();
     firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gio, gtk, pango, pangocairo]);
     this.initialized = false;

@@ -7,6 +7,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/linux/FiretrayIMStatusIcon.jsm");
 
 firetray.InstantMessaging = {
   initialized: false,
@@ -26,12 +27,16 @@ firetray.InstantMessaging = {
       "visited-status-resolution"
     ]);
 
+    firetray.IMStatusIcon.init();
+
     this.initialized = true;
   },
 
   shutdown: function() {
     if (!this.initialized) return;
     F.LOG("Disabling InstantMessaging");
+
+    firetray.IMStatusIcon.shutdown();
 
     firetray.Utils.removeAllObservers(firetray.InstantMessaging);
 
