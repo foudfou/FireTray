@@ -27,6 +27,7 @@ firetray.Messaging = {
   initialized: false,
   cleaningTimer: null,
   currentMsgCount: null,
+  observedTopics: {},
 
   init: function() {
     if (this.initialized) {
@@ -35,16 +36,14 @@ firetray.Messaging = {
     }
     F.LOG("Enabling Messaging");
 
-    // there is no means to detect account-removed event
-    this.cleaningTimer = firetray.Utils.timer(firetray.Messaging.cleanExcludedAccounts,
-      FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS, Ci.nsITimer.TYPE_REPEATING_SLACK);
-    F.LOG(this.cleaningTimer+"="+FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS);
+    firetray.Utils.addObservers(firetray.Messaging, [ "account-added",
+      "account-removed"]);
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                that.mailSessionListener.notificationFlags);
 
-    if (Services.prefs.getBoolPref("mail.chat.enabled"))
+    if (Services.prefs.getBoolPref("mail.chat.enabled") && this.existsIMAccount())
       firetray.InstantMessaging.init();
 
     this.initialized = true;
@@ -54,12 +53,42 @@ firetray.Messaging = {
     if (!this.initialized) return;
     F.LOG("Disabling Messaging");
 
+    firetray.InstantMessaging.shutdown();
+
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
     firetray.Handler.setIconImageDefault();
 
-    this.cleaningTimer.cancel();
+    Services.obs.removeAllObservers(firetray.Messaging);
 
     this.initialized = false;
+  },
+
+  existsIMAccount: function() {
+    let accounts = new this.Accounts();
+    for (let accountServer in accounts)
+      if (accountServer.type === 'im')  {
+        F.LOG("found im server: "+accountServer.prettyName);
+        return true;
+      }
+
+    return false;
+  },
+
+  observe: function(subject, topic, data) {
+    F.LOG("RECEIVED Messaging: "+topic+" subject="+subject+" data="+data);
+    switch (topic) {
+    case "account-removed":
+      this.cleanExcludedAccounts();
+      if (subject.QueryInterface(Ci.imIAccount) && !this.existsIMAccount())
+        firetray.InstantMessaging.shutdown();
+      break;
+    case "account-added":
+      if (subject.QueryInterface(Ci.imIAccount) && !firetray.InstantMessaging.initialized)
+        firetray.InstantMessaging.init();
+      break;
+    default:
+      F.WARN("unhandled topic: "+topic);
+    }
   },
 
   /* removes removed accounts from excludedAccounts pref. NOTE: Can't be called

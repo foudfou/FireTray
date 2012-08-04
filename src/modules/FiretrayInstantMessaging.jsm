@@ -19,7 +19,8 @@ firetray.InstantMessaging = {
     }
     F.LOG("Enabling InstantMessaging");
 
-    firetray.Utils.addObservers(firetray.InstantMessaging, [ // "*" for debugging
+    firetray.Utils.addObservers(firetray.InstantMessaging, [
+      // "*" // debugging
       "idle-time-changed", "new-directed-incoming-message", "new-text",
       "new-ui-conversation", "status-changed", "unread-im-count-changed",
       "visited-status-resolution"
@@ -38,16 +39,13 @@ firetray.InstantMessaging = {
   },
 
   observe: function(subject, topic, data) {
-    F.WARN("RECEIVED InstantMessaging:");
+    F.LOG("RECEIVED InstantMessaging: "+topic+" subject="+subject+" data="+data);
     switch (topic) {
     case "unread-im-count-changed":
-      F.WARN("received unread-im-count-changed: "+subject+" "+data);
       break;
     case "new-directed-incoming-message": // when PM or cited in channel: new-directed-incoming-message: [xpconnect wrapped (nsISupports, nsIClassInfo, prplIMessage)] null
-      F.WARN("new-directed-incoming-message: "+subject+" "+data);
       break;
     case "visited-status-resolution":
-      F.WARN("visited-status-resolution: "+subject+" "+data);
       break;
     case "status-changed":
     case "idle-time-changed":
