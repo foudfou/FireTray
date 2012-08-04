@@ -27,7 +27,6 @@ if ("undefined" == typeof(firetray)) {
 // other global functions
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 firetray.Handler = {
-  FILENAME_BLANK: null,
 
   initialized: false,
   inMailApp: false,
@@ -77,9 +76,6 @@ firetray.Handler = {
     F.LOG('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
 
     this.appStartupTopic = this.getAppStartupTopic(this.appId);
-
-    this.FILENAME_BLANK = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/blank-icon.png");
 
     VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
     VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
