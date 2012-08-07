@@ -43,7 +43,7 @@ firetray.IMStatusIcon = {
   },
 
   shutdown: function() {
-    gtk.gtk_status_icon_set_visible(this.trayIcon, false);
+    this.destroyIcons();
     // FIXME: tryCloseLibs should be done by Handler only, submodules should
     // just pass the imported ctypes modules to it
     // firetray.Utils.tryCloseLibs([gobject, gio, gtk]);
@@ -53,6 +53,14 @@ firetray.IMStatusIcon = {
   loadThemedIcons: function() {
     for (let name in this.themedIcons)
       this.themedIcons[name] = gio.g_themed_icon_new(name);
+  },
+
+  destroyIcons: function() {
+    for (let name in this.themedIcons) {
+      let gicon = this.themedIcons[name];
+      gicon = gobject.g_object_unref(gicon);
+    }
+    gobject.g_object_unref(this.trayIcon);
   },
 
   setIconImageFromGIcon: function(gicon) {
