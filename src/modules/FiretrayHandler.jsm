@@ -36,6 +36,8 @@ firetray.Handler = {
   windowsCount: 0,
   visibleWindowsCount: 0,
   observedTopics: {},
+  ctypesLibs: {},               // {"lib1": lib1, "lib2": lib2}
+
 
   appId:      (function(){return Services.appinfo.ID;})(),
   appName:    (function(){return Services.appinfo.name;})(),
@@ -117,13 +119,31 @@ firetray.Handler = {
       firetray.Messaging.shutdown();
     firetray.StatusIcon.shutdown();
     firetray.Window.shutdown();
-    // watchout order and sufficiency of lib closings (tryCloseLibs())
+    this.tryCloseLibs();
 
     firetray.Utils.removeAllObservers(this);
 
     this.appStarted = false;
     this.initialized = false;
     return true;
+  },
+
+  tryCloseLibs: function() {
+    try {
+      for (libName in this.ctypesLibs) {
+        let lib = this.ctypesLibs[libName];
+        if (lib.available())
+          lib.close();
+      };
+    } catch(x) { F.ERROR(x); }
+  },
+
+  subscribeLibsForClosing: function(libs) {
+    for (let i=0, len=libs.length; i<len; ++i) {
+      let lib = libs[i];
+      if (!this.ctypesLibs.hasOwnProperty(lib.name))
+        this.ctypesLibs[lib.name] = lib;
+    }
   },
 
   observe: function(subject, topic, data) {

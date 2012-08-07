@@ -11,7 +11,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
  * License.
- * 
+ *
  * The Original Code is Firetray
  *
  * The Initial Developer of the Original Code is
@@ -120,6 +120,8 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
           F.ERROR(soname+" unfound.");
       }
     }
+
+    this.name = aName;
 
     this.close = function() {
       F.LOG("Closing library " + aName);

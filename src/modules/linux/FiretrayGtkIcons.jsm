@@ -8,6 +8,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
+firetray.Handler.subscribeLibsForClosing([gtk]);
 
 if ("undefined" == typeof(firetray.StatusIcon))
   F.ERROR("This module MUST be imported from/after StatusIcon !");
@@ -32,7 +33,6 @@ firetray.GtkIcons = {
   },
 
   shutdown: function() {
-    firetray.Utils.tryCloseLibs([gtk]);
     this.initialized = false;
   },
 

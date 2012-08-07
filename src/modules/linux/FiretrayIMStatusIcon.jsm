@@ -13,6 +13,7 @@ Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
+firetray.Handler.subscribeLibsForClosing([gobject, gio, gtk]);
 
 if ("undefined" == typeof(firetray.Handler))
   F.ERROR("This module MUST be imported from/after FiretrayHandler !");
@@ -44,9 +45,6 @@ firetray.IMStatusIcon = {
 
   shutdown: function() {
     this.destroyIcons();
-    // FIXME: tryCloseLibs should be done by Handler only, submodules should
-    // just pass the imported ctypes modules to it
-    // firetray.Utils.tryCloseLibs([gobject, gio, gtk]);
     this.initialized = false;
   },
 

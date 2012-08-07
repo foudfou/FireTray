@@ -17,6 +17,7 @@ Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
 Cu.import("resource://firetray/commons.js");
+firetray.Handler.subscribeLibsForClosing([cairo, gobject, gdk, gio, gtk, pango, pangocairo]);
 
 if ("undefined" == typeof(firetray.Handler))
   F.ERROR("This module MUST be imported from/after FiretrayHandler !");
@@ -63,7 +64,6 @@ firetray.StatusIcon = {
     firetray.PopupMenu.shutdown();
     // FIXME: should destroy/hide icon here
     firetray.GtkIcons.shutdown();
-    firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gio, gtk, pango, pangocairo]);
     this.initialized = false;
   },
 

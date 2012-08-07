@@ -12,6 +12,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
+firetray.Handler.subscribeLibsForClosing([gobject, gtk]);
 
 if ("undefined" == typeof(firetray.StatusIcon))
   F.ERROR("This module MUST be imported from/after StatusIcon !");
@@ -61,7 +62,6 @@ firetray.PopupMenu = {
 
   shutdown: function() {
     F.LOG("Disabling PopupMenu");
-    firetray.Utils.tryCloseLibs([gobject, gtk]);
     this.initialized = false;
   },
 

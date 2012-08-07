@@ -216,15 +216,6 @@ firetray.Utils = {
     timer.initWithCallback({ notify: callback },
       delay, timerType);
     return timer;
-  },
-
-  tryCloseLibs: function(libs) {
-    try {
-      libs.forEach(function(lib) {
-        if (lib.available())
-          lib.close();
-      });
-    } catch(x) { F.ERROR(x); }
   }
 
 };

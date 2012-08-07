@@ -23,6 +23,7 @@ Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/libc.jsm");
 Cu.import("resource://firetray/ctypes/linux/x11.jsm");
 Cu.import("resource://firetray/commons.js");
+firetray.Handler.subscribeLibsForClosing([gobject, gdk, gtk, libc, x11, glib]);
 
 if ("undefined" == typeof(firetray.Handler))
   F.ERROR("This module MUST be imported from/after FiretrayHandler !");
@@ -61,7 +62,6 @@ firetray.Window = {
   },
 
   shutdown: function() {
-    firetray.Utils.tryCloseLibs([gobject, gdk, gtk, libc, x11, glib]);
     this.initialized = false;
   },
 
