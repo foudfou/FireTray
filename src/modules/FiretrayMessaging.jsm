@@ -62,6 +62,11 @@ firetray.Messaging = {
     this.initialized = false;
   },
 
+  // FIXME: this should definetely be done in InstantMessaging, but IM accounts
+  // seem not be initialized at this stage (Exception... "'TypeError:
+  // this._items is undefined' when calling method:
+  // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
+  // initAccounts() ourselves...
   existsIMAccount: function() {
     let accounts = new this.Accounts();
     for (let accountServer in accounts)
@@ -80,10 +85,12 @@ firetray.Messaging = {
       this.cleanExcludedAccounts();
       if (subject.QueryInterface(Ci.imIAccount) && !this.existsIMAccount())
         firetray.InstantMessaging.shutdown();
+      // FIXME: clean InstantMessaging.accounts or just update (?)
       break;
     case "account-added":
       if (subject.QueryInterface(Ci.imIAccount) && !firetray.InstantMessaging.initialized)
         firetray.InstantMessaging.init();
+      // FIXME: clean InstantMessaging.accounts or just update (?)
       break;
     default:
       F.WARN("unhandled topic: "+topic);

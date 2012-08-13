@@ -24,12 +24,14 @@ firetray.IMStatusIcon = {
 
   initialized: false,
   trayIcon: null,
-  themedIcons: {
-    "user-available": null,
-    "user-away": null,
-    "user-busy": null,
-    "user-offline": null
-  },
+  appId:      (function(){return Services.appinfo.ID;})(),
+  themedIcons: (function(){let o = {};
+    o[FIRETRAY_IM_STATUS_AVAILABLE] = null;
+    o[FIRETRAY_IM_STATUS_AWAY] = null;
+    o[FIRETRAY_IM_STATUS_BUSY] = null;
+    o[FIRETRAY_IM_STATUS_OFFLINE] = null;
+    return o;
+  })(),
 
   init: function() {
     if (!firetray.Handler.inMailApp) throw "IMStatusIcon for mail app only";
@@ -37,7 +39,7 @@ firetray.IMStatusIcon = {
 
     this.trayIcon = gtk.gtk_status_icon_new();
     this.loadThemedIcons();
-    this.setIconImageFromGIcon(this.themedIcons["user-offline"]);
+    this.setIconImage(FIRETRAY_IM_STATUS_OFFLINE);
 
     this.initialized = true;
     return true;
@@ -66,6 +68,10 @@ firetray.IMStatusIcon = {
       F.ERROR("Icon missing");
     F.LOG(gicon);
     gtk.gtk_status_icon_set_from_gicon(firetray.IMStatusIcon.trayIcon, gicon);
+  },
+
+  setIconImage: function(name) {
+    this.setIconImageFromGIcon(this.themedIcons[name]);
   }
 
 }; // firetray.IMStatusIcon
