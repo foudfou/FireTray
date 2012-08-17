@@ -235,6 +235,15 @@ firetray.Window = {
     if (firetray.Utils.prefService.getBoolPref('show_activates'))
       firetray.Window.activate(xid);
 
+    /* hides_on_minimize is tricky: first we don't store the hidden/minimized
+     state when saveStates(). But when restoring, we need to prevent the wm to
+     iconify the window, and we need to do it at a late stage */
+    if (firetray.Utils.prefService.getBoolPref('hides_on_minimize')) {
+      gdk.gdk_window_show_unraised(firetray.Handler.gdkWindows.get(xid)); // XMapWindow()
+      // gdk.gdk_window_deiconify(firetray.Handler.gdkWindows.get(xid));
+      F.LOG("deiconified");
+    }
+
     firetray.PopupMenu.hideWindowItemAndSeparatorMaybe(xid);
     firetray.Handler.showHideIcon();
   },
@@ -300,12 +309,14 @@ firetray.Window = {
   restoreStates: function(xid) {
     let winStates = firetray.Handler.windows[xid].savedStates;
     F.LOG("restored WindowStates: " + winStates);
+
     if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
       firetray.Handler.windows[xid].chromeWin.maximize();
       F.LOG("restored maximized");
     }
+
     let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-    if (!hides_on_minimize && (winStates & FIRETRAY_XWINDOW_HIDDEN)) {
+    if ((winStates & FIRETRAY_XWINDOW_HIDDEN) && !hides_on_minimize) {
       firetray.Handler.windows[xid].chromeWin.minimize();
       F.LOG("restored minimized");
     }
@@ -504,44 +515,31 @@ firetray.Window = {
     if (!xev)
       return gdk.GDK_FILTER_CONTINUE;
 
-    try {
-      let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
-      let xwin = xany.contents.window;
+    let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
+    let xwin = xany.contents.window;
 
-      let winStates, isHidden;
-      switch (xany.contents.type) {
+    switch (xany.contents.type) {
 
-      case x11.PropertyNotify:
-        let xprop = ctypes.cast(xev, x11.XPropertyEvent.ptr);
-        if (firetray.Handler.windows[xwin].visible &&
-            firetray.js.strEquals(xprop.contents.atom, x11.current.Atoms.WM_STATE) &&
-            firetray.js.strEquals(xprop.contents.state, x11.PropertyNewValue)) {
-          F.LOG("PropertyNotify: WM_STATE, send_event: "+xprop.contents.send_event+", state: "+xprop.contents.state);
-          winStates = firetray.Window.getXWindowStates(xwin);
-          isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
+    case x11.UnmapNotify:
+      let gdkWinState = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xwin));
+      F.WARN("gdkWinState="+gdkWinState+" for xid="+xwin);
+      // NOTE: Gecko 8.0 provides the 'sizemodechange' event
+      if (gdkWinState === gdk.GDK_WINDOW_STATE_ICONIFIED) {
+        F.LOG("GOT ICONIFIED");
+        let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+        let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+        if (hides_on_minimize) {
+          if (hides_single_window)
+            firetray.Handler.hideWindow(xwin);
+          else
+            firetray.Handler.hideAllWindows();
         }
-        break;
+      }
+      break;
 
       // default:
       //   F.LOG("xany.type="+xany.contents.type);
       //   break;
-      }
-
-      // NOTE: Gecko 8.0 provides the 'sizemodechange' event
-      if (isHidden) { // minimized
-        F.LOG("winStates="+winStates+", isHidden="+isHidden);
-        let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-        let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-        if (hides_on_minimize) {
-          if (hides_single_window) {
-            firetray.Handler.hideWindow(xwin);
-          } else
-          firetray.Handler.hideAllWindows();
-        }
-      }
-
-    } catch(x) {
-      F.ERROR(x);
     }
 
     return gdk.GDK_FILTER_CONTINUE;

@@ -274,6 +274,7 @@ function gdk_defines(lib) {
 
   lib.lazy_bind("gdk_window_stick", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_window_iconify", ctypes.void_t, this.GdkWindow.ptr);
+  lib.lazy_bind("gdk_window_deiconify", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_window_set_title", ctypes.void_t, this.GdkWindow.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gdk_window_beep", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_window_get_width", ctypes.int, this.GdkWindow.ptr);
