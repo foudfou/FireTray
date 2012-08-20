@@ -91,6 +91,12 @@ var firetrayUIOptions = {
     F.LOG("hides_on_close="+hides_on_close+", hides_on_minimize="+hides_on_minimize);
     document.getElementById('ui_hides_single_window').disabled =
       !(hides_on_close || hides_on_minimize);
+
+    let showActivates = document.getElementById('ui_show_activates');
+    if (hides_on_minimize)
+      showActivates.checked = showActivates.disabled = hides_on_minimize;
+    else
+      showActivates.disabled = hides_on_minimize;
   },
 
   updateScrollOptions: function() {

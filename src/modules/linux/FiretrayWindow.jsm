@@ -232,17 +232,14 @@ firetray.Window = {
 
     // after show
     firetray.Window.restoreDesktop(xid);
-    if (firetray.Utils.prefService.getBoolPref('show_activates'))
+    if (firetray.Utils.prefService.getBoolPref('show_activates') ||
+        /* hides_on_minimize is tricky: first we don't restore the window
+         minimized if hides_on_minimize is set, which is better than not
+         storing the minimized state at saveStates() (in case hides_on_minimize
+         is changed in between). But when restoring, we need to prevent the wm
+         to iconify the window, and we need to do it at a late stage */
+        firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
       firetray.Window.activate(xid);
-
-    /* hides_on_minimize is tricky: first we don't store the hidden/minimized
-     state when saveStates(). But when restoring, we need to prevent the wm to
-     iconify the window, and we need to do it at a late stage */
-    if (firetray.Utils.prefService.getBoolPref('hides_on_minimize')) {
-      gdk.gdk_window_show_unraised(firetray.Handler.gdkWindows.get(xid)); // XMapWindow()
-      // gdk.gdk_window_deiconify(firetray.Handler.gdkWindows.get(xid));
-      F.LOG("deiconified");
-    }
 
     firetray.PopupMenu.hideWindowItemAndSeparatorMaybe(xid);
     firetray.Handler.showHideIcon();
