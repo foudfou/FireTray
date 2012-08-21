@@ -29,8 +29,9 @@ if ("undefined" == typeof(firetray)) {
 firetray.Handler = {
 
   initialized: false,
-  inMailApp: false,
   inBrowserApp: false,
+  inMailApp: false,
+  isIMEnabled: false,
   appStarted: false,
   windows: {},
   windowsCount: 0,
@@ -200,6 +201,7 @@ firetray.Handler = {
   showWindow: function(winId) {},
   showHideAllWindows: function() {},
   activateLastWindow: function(gtkStatusIcon, gdkEvent, userData) {},
+  findActiveWindow: function() {},
 
   showAllWindows: function() {
     F.LOG("showAllWindows");

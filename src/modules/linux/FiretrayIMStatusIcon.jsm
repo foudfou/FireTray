@@ -11,7 +11,9 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
+Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
+Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gobject, gio, gtk]);
 
@@ -32,6 +34,7 @@ firetray.IMStatusIcon = {
     o[FIRETRAY_IM_STATUS_OFFLINE] = null;
     return o;
   })(),
+  callbacks: {onFocusIn: {}},
 
   init: function() {
     if (!firetray.Handler.inMailApp) throw "IMStatusIcon for mail app only";
@@ -72,6 +75,31 @@ firetray.IMStatusIcon = {
 
   setIconImage: function(name) {
     this.setIconImageFromGIcon(this.themedIcons[name]);
+  },
+
+  setIconBlinking: function(blink) {
+    gtk.gtk_status_icon_set_blinking(this.trayIcon, blink);
+  },
+
+  /* we could also use x11.FocusIn... just wanted to try a different method */
+  attachOnFocusInCallback: function(xid) {
+    F.LOG("attachOnFocusInCallback xid="+xid);
+    this.callbacks.onFocusIn[xid] = gtk.GCallbackWidgetFocuEvent_t(firetray.IMStatusIcon.onFocusIn);
+    gobject.g_signal_connect(firetray.Handler.gtkWindows.get(xid),
+      "focus-in-event", firetray.IMStatusIcon.callbacks.onFocusIn[xid], null);
+  },
+
+  // NOTE: fluxbox issues a FocusIn event when switching workspace by hotkey :(
+  // (http://sourceforge.net/tracker/index.php?func=detail&aid=3190205&group_id=35398&atid=413960)
+  onFocusIn: function(widget, event, data) {
+    F.LOG("onFocusIn");
+    // let gdkEventFocus = ctypes.cast(event, gdk.GdkEventFocus.ptr);
+    // let gdkWin = gdkEventFocus.contents.window;
+    // let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
+    // F.LOG("xid="+xid+" in="+gdkEventFocus.contents["in"]);
+    firetray.InstantMessaging.stopIconBlinkingMaybe();
   }
+
+  // FIXME: TODO: onclick/activate -> chatHandler.showCurrentConversation()
 
 }; // firetray.IMStatusIcon

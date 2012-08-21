@@ -516,7 +516,7 @@ firetray.Window = {
         if (firetray.Handler.windows[xwin].visible &&
             firetray.js.strEquals(xprop.contents.atom, x11.current.Atoms.WM_STATE) &&
             firetray.js.strEquals(xprop.contents.state, x11.PropertyNewValue)) {
-          F.LOG("PropertyNotify: WM_STATE, send_event: "+xprop.contents.send_event+", state: "+xprop.contents.state);
+          F.LOG("xid="+xwin+" PropertyNotify: WM_STATE, send_event: "+xprop.contents.send_event+", state: "+xprop.contents.state);
           winStates = firetray.Window.getXWindowStates(xwin);
           isHidden = winStates & FIRETRAY_XWINDOW_HIDDEN;
         }
@@ -536,7 +536,7 @@ firetray.Window = {
           if (hides_single_window) {
             firetray.Handler.hideWindow(xwin);
           } else
-          firetray.Handler.hideAllWindows();
+            firetray.Handler.hideAllWindows();
         }
       }
 
@@ -594,6 +594,12 @@ firetray.Handler.registerWindow = function(win) {
 
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
+
+    // FIXME: isn't it (c)leaner to do it in x11 window filter ?
+    if (firetray.Handler.isIMEnabled) {
+      Cu.import("resource://firetray/linux/FiretrayIMStatusIcon.jsm");
+      firetray.IMStatusIcon.attachOnFocusInCallback(xid);
+    }
 
   } catch (x) {
     firetray.Window.unregisterWindowByXID(xid);
@@ -654,6 +660,20 @@ firetray.Handler.activateLastWindow = function(gtkStatusIcon, gdkEvent, userData
 
   let stopPropagation = false;
   return stopPropagation;
+};
+
+firetray.Handler.findActiveWindow = function() {
+  let activeWin = null;
+  for (let xid in firetray.Handler.windows) {
+    let gtkWin = firetray.Handler.gtkWindows.get(xid);
+    let isActive = gtk.gtk_window_is_active(gtkWin);
+    F.LOG(xid+" is active="+isActive);
+    if (isActive) {
+      activeWin = xid;
+      break;
+    }
+  }
+  return activeWin;
 };
 
 

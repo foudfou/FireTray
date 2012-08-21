@@ -14,6 +14,7 @@ Cu.import("resource://firetray/linux/FiretrayIMStatusIcon.jsm");
 firetray.InstantMessaging = {
   initialized: false,
   observedTopics: {},
+  acknowledgeOnFocus: {},
 
   init: function() {
     if (this.initialized) {
@@ -25,8 +26,8 @@ firetray.InstantMessaging = {
     firetray.Utils.addObservers(firetray.InstantMessaging, [
       // "*" // debugging
       "account-connected", "account-disconnected", "idle-time-changed",
-      "new-directed-incoming-message", "new-text", "new-ui-conversation",
-      "status-changed", "unread-im-count-changed", "visited-status-resolution"
+      "new-directed-incoming-message", "status-changed",
+      "unread-im-count-changed"
     ]);
     firetray.IMStatusIcon.init();
 
@@ -50,19 +51,76 @@ firetray.InstantMessaging = {
     case "account-disconnected":
     case "idle-time-changed":
     case "status-changed":
-    // case "visited-status-resolution":
       this.updateIcon();
       break;
 
-    case "unread-im-count-changed":
+    case "new-directed-incoming-message": // when PM or cited in channel
+      let conv = subject.QueryInterface(Ci.prplIMessage).conversation;
+      F.LOG("conversation name="+conv.name); // normalizedName shouldn't be necessary
+
+      let convIsActiveTabInActiveWin = this.isConvActiveTabInActiveWindow(conv);
+      F.LOG("convIsActiveTabInActiveWin="+convIsActiveTabInActiveWin);
+      let [unreadTargettedCount, unreadTotalCount] = this.countUnreadMessages();
+      F.LOG("unreadTotalCount="+unreadTotalCount);
+      if (!convIsActiveTabInActiveWin) { // don't blink when conv tab already on top
+        this.acknowledgeOnFocus.must = true;
+        this.acknowledgeOnFocus.conv = conv;
+        firetray.IMStatusIcon.setIconBlinking(true);
+      }
       break;
 
-    case "new-directed-incoming-message": // when PM or cited in channel: new-directed-incoming-message: [xpconnect wrapped (nsISupports, nsIClassInfo, prplIMessage)] null
+    case "unread-im-count-changed":
+      let unreadMsgCount = data;
+      if (unreadMsgCount == 0)
+        this.stopIconBlinkingMaybe();
+      // FIXME: setToolTip
       break;
 
     default:
       F.WARN("unhandled topic: "+topic);
     }
+  },
+
+  stopIconBlinkingMaybe: function() {
+    F.WARN("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
+    let convIsActiveTabInActiveWin = this.isConvActiveTabInActiveWindow(
+      this.acknowledgeOnFocus.conv);
+
+    if (this.acknowledgeOnFocus.must && convIsActiveTabInActiveWin) {
+      firetray.IMStatusIcon.setIconBlinking(false);
+      this.acknowledgeOnFocus.must = false;
+    }
+  },
+
+  isConvActiveTabInActiveWindow: function(conv) {
+    let activeWin = firetray.Handler.findActiveWindow(),
+        activeChatTab = null;
+    if (!activeWin) return false;
+
+    activeChatTab = this.findActiveChatTab(activeWin);
+    let convNameRegex = new RegExp(" - "+conv.name+"$");
+    return activeChatTab ? convNameRegex.test(activeChatTab.title) : false;
+  },
+
+  findActiveChatTab: function(xid) {
+    let win = firetray.Handler.windows[xid].chromeWin;
+    let tabmail = win.document.getElementById("tabmail");
+    let chatTabs = tabmail.tabModes.chat.tabs;
+    for each (let tab in chatTabs)
+      if (tab.tabNode.selected) return tab;
+    return null;
+  },
+
+  // lifted from chat-messenger-overlay.js
+  countUnreadMessages: function() {
+    let convs = Services.conversations.getUIConversations();
+    let unreadTargettedCount = 0;
+    let unreadTotalCount = 0;
+    for each (let conv in convs) {
+      unreadTargettedCount += conv.unreadTargetedMessageCount;
+      unreadTotalCount += conv.unreadIncomingMessageCount;
+    }
+    return [unreadTargettedCount, unreadTotalCount];
   },
 
   updateIcon: function() {

@@ -74,6 +74,10 @@ function gtk_defines(lib) {
   this.GCallbackWindowStateEvent_t = ctypes.FunctionType(
     ctypes.default_abi, gobject.gboolean,
     [this.GtkWidget.ptr, gdk.GdkEventWindowState.ptr, gobject.gpointer]).ptr;
+  this.GCallbackWidgetFocuEvent_t = ctypes.FunctionType(
+    ctypes.default_abi, gobject.gboolean,
+    [this.GtkWidget.ptr, gdk.GdkEventFocus.ptr, gobject.gpointer]).ptr;
+
 
   lib.lazy_bind("gtk_icon_theme_get_default", this.GtkIconTheme.ptr);
   lib.lazy_bind("gtk_icon_theme_get_for_screen", this.GtkIconTheme.ptr, gdk.GdkScreen.ptr);
@@ -85,6 +89,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_status_icon_set_from_icon_name", ctypes.void_t, this.GtkStatusIcon.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gtk_status_icon_set_from_gicon", ctypes.void_t, this.GtkStatusIcon.ptr, gio.GIcon.ptr);
   lib.lazy_bind("gtk_status_icon_set_tooltip_text", ctypes.void_t, this.GtkStatusIcon.ptr, ctypes.char.ptr);
+  lib.lazy_bind("gtk_status_icon_set_blinking", ctypes.void_t, this.GtkStatusIcon.ptr, gobject.gboolean); // deprecated in gtk3
   lib.lazy_bind("gtk_status_icon_set_visible", ctypes.void_t, this.GtkStatusIcon.ptr, gobject.gboolean);
   lib.lazy_bind("gtk_menu_new", this.GtkMenu.ptr);
   lib.lazy_bind("gtk_menu_item_set_label", ctypes.void_t, this.GtkMenuItem.ptr, gobject.gchar.ptr);
@@ -104,7 +109,8 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_status_icon_set_from_pixbuf", ctypes.void_t, this.GtkStatusIcon.ptr, gdk.GdkPixbuf.ptr);
   lib.lazy_bind("gtk_window_list_toplevels", gobject.GList.ptr);
   lib.lazy_bind("gtk_window_get_title", gobject.gchar.ptr, this.GtkWindow.ptr);
-
+  lib.lazy_bind("gtk_window_is_active", gobject.gboolean, this.GtkWindow.ptr);
+  lib.lazy_bind("gtk_window_has_toplevel_focus", gobject.gboolean, this.GtkWindow.ptr);
   lib.lazy_bind("gtk_widget_get_has_window", gobject.gboolean, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_get_window", gdk.GdkWindow.ptr, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_get_parent_window", gdk.GdkWindow.ptr, this.GtkWidget.ptr);

@@ -43,8 +43,12 @@ firetray.Messaging = {
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                that.mailSessionListener.notificationFlags);
 
-    if (Services.prefs.getBoolPref("mail.chat.enabled") && this.existsIMAccount())
+    // FIXME: add im-icon pref
+    // FIXME: watch out account-added !!
+    if (Services.prefs.getBoolPref("mail.chat.enabled") && this.existsIMAccount()) {
       firetray.InstantMessaging.init();
+      firetray.Handler.isIMEnabled = true;
+    }
 
     this.initialized = true;
   },
@@ -283,7 +287,7 @@ firetray.Messaging = {
         let rootFolder = accountServer.rootFolder; // nsIMsgFolder
         if (rootFolder.hasSubFolders) {
           let subFolders = rootFolder.subFolders;
-          while(subFolders.hasMoreElements()) {
+          while (subFolders.hasMoreElements()) {
             let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
             if (!(folder.flags & excludedFoldersFlags)) {
               msgCount = folderCountFunction(folder, msgCount);
