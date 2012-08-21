@@ -311,6 +311,7 @@ firetray.Window = {
       F.LOG("restored minimized");
     }
 
+    /* helps prevent getting iconify event following show() */
     if (firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
       firetray.Handler.windows[xid].chromeWin.restore();
 
@@ -515,7 +516,7 @@ firetray.Window = {
 
     case x11.UnmapNotify:
       let gdkWinState = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xwin));
-      F.WARN("gdkWinState="+gdkWinState+" for xid="+xwin);
+      F.LOG("gdkWinState="+gdkWinState+" for xid="+xwin);
       // NOTE: Gecko 8.0 provides the 'sizemodechange' event
       if (gdkWinState === gdk.GDK_WINDOW_STATE_ICONIFIED) {
         F.LOG("GOT ICONIFIED");
