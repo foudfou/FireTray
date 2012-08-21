@@ -232,13 +232,7 @@ firetray.Window = {
 
     // after show
     firetray.Window.restoreDesktop(xid);
-    if (firetray.Utils.prefService.getBoolPref('show_activates') ||
-        /* hides_on_minimize is tricky: first we don't restore the window
-         minimized if hides_on_minimize is set, which is better than not
-         storing the minimized state at saveStates() (in case hides_on_minimize
-         is changed in between). But when restoring, we need to prevent the wm
-         to iconify the window, and we need to do it at a late stage */
-        firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
+    if (firetray.Utils.prefService.getBoolPref('show_activates'))
       firetray.Window.activate(xid);
 
     firetray.PopupMenu.hideWindowItemAndSeparatorMaybe(xid);
@@ -312,11 +306,13 @@ firetray.Window = {
       F.LOG("restored maximized");
     }
 
-    let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-    if ((winStates & FIRETRAY_XWINDOW_HIDDEN) && !hides_on_minimize) {
+    if (winStates & FIRETRAY_XWINDOW_HIDDEN) {
       firetray.Handler.windows[xid].chromeWin.minimize();
       F.LOG("restored minimized");
     }
+
+    if (firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
+      firetray.Handler.windows[xid].chromeWin.restore();
 
     delete firetray.Handler.windows[xid].savedStates;
   },
@@ -541,7 +537,6 @@ firetray.Window = {
 
     return gdk.GDK_FILTER_CONTINUE;
   }
-
 }; // firetray.Window
 
 

@@ -8,7 +8,7 @@ pref("extensions.firetray.hides_on_close", true);
 pref("extensions.firetray.hides_on_minimize", true);
 pref("extensions.firetray.hides_single_window", true);
 pref("extensions.firetray.start_hidden", false);
-pref("extensions.firetray.show_activates", true);
+pref("extensions.firetray.show_activates", false);
 pref("extensions.firetray.remember_desktop", false);
 
 pref("extensions.firetray.app_icon_type", 0);
