@@ -21,7 +21,7 @@ if ("undefined" == typeof(firetray.Handler))
   F.ERROR("This module MUST be imported from/after FiretrayHandler !");
 
 
-firetray.IMStatusIcon = {
+firetray.ChatStatusIcon = {
   GTK_THEME_ICON_PATH: null,
 
   initialized: false,
@@ -37,7 +37,7 @@ firetray.IMStatusIcon = {
   callbacks: {onFocusIn: {}},
 
   init: function() {
-    if (!firetray.Handler.inMailApp) throw "IMStatusIcon for mail app only";
+    if (!firetray.Handler.inMailApp) throw "ChatStatusIcon for mail app only";
     if (!firetray.GtkIcons.initialized) throw "GtkIcons should have been initialized by StatusIcon";
 
     this.trayIcon = gtk.gtk_status_icon_new();
@@ -68,10 +68,10 @@ firetray.IMStatusIcon = {
   },
 
   setIconImageFromGIcon: function(gicon) {
-    if (!firetray.IMStatusIcon.trayIcon || !gicon)
+    if (!firetray.ChatStatusIcon.trayIcon || !gicon)
       F.ERROR("Icon missing");
     F.LOG(gicon);
-    gtk.gtk_status_icon_set_from_gicon(firetray.IMStatusIcon.trayIcon, gicon);
+    gtk.gtk_status_icon_set_from_gicon(firetray.ChatStatusIcon.trayIcon, gicon);
   },
 
   setIconImage: function(name) {
@@ -94,9 +94,9 @@ firetray.IMStatusIcon = {
 
   attachOnFocusInCallback: function(xid) {
     F.LOG("attachOnFocusInCallback xid="+xid);
-    this.callbacks.onFocusIn[xid] = gtk.GCallbackWidgetFocuEvent_t(firetray.IMStatusIcon.onFocusIn);
+    this.callbacks.onFocusIn[xid] = gtk.GCallbackWidgetFocuEvent_t(firetray.ChatStatusIcon.onFocusIn);
     gobject.g_signal_connect(firetray.Handler.gtkWindows.get(xid),
-      "focus-in-event", firetray.IMStatusIcon.callbacks.onFocusIn[xid], null);
+      "focus-in-event", firetray.ChatStatusIcon.callbacks.onFocusIn[xid], null);
   },
 
   // NOTE: fluxbox issues a FocusIn event when switching workspace by hotkey :(
@@ -107,9 +107,9 @@ firetray.IMStatusIcon = {
     // let gdkWin = gdkEventFocus.contents.window;
     // let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
     // F.LOG("xid="+xid+" in="+gdkEventFocus.contents["in"]);
-    firetray.InstantMessaging.stopIconBlinkingMaybe();
+    firetray.Chat.stopIconBlinkingMaybe();
   }
 
   // FIXME: TODO: onclick/activate -> chatHandler.showCurrentConversation()
 
-}; // firetray.IMStatusIcon
+}; // firetray.ChatStatusIcon

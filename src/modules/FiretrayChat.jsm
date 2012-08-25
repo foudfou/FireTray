@@ -8,44 +8,44 @@ const Cu = Components.utils;
 
 Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://firetray/commons.js");
-Cu.import("resource://firetray/linux/FiretrayIMStatusIcon.jsm");
+Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
 
 // FIXME: rename to firetray.Chat
-firetray.InstantMessaging = {
+firetray.Chat = {
   initialized: false,
   observedTopics: {},
   acknowledgeOnFocus: {},
 
   init: function() {
     if (this.initialized) {
-      F.WARN("InstantMessaging already initialized");
+      F.WARN("Chat already initialized");
       return;
     }
-    F.LOG("Enabling InstantMessaging");
+    F.LOG("Enabling Chat");
 
-    firetray.Utils.addObservers(firetray.InstantMessaging, [
+    firetray.Utils.addObservers(firetray.Chat, [
       // "*" // debugging
       "account-connected", "account-disconnected", "idle-time-changed",
       "new-directed-incoming-message", "status-changed",
       "unread-im-count-changed"
     ]);
-    firetray.IMStatusIcon.init();
+    firetray.ChatStatusIcon.init();
 
     this.initialized = true;
   },
 
   shutdown: function() {
     if (!this.initialized) return;
-    F.LOG("Disabling InstantMessaging");
+    F.LOG("Disabling Chat");
 
-    firetray.IMStatusIcon.shutdown();
-    firetray.Utils.removeAllObservers(firetray.InstantMessaging);
+    firetray.ChatStatusIcon.shutdown();
+    firetray.Utils.removeAllObservers(firetray.Chat);
 
     this.initialized = false;
   },
 
   observe: function(subject, topic, data) {
-    F.LOG("RECEIVED InstantMessaging: "+topic+" subject="+subject+" data="+data);
+    F.LOG("RECEIVED Chat: "+topic+" subject="+subject+" data="+data);
     switch (topic) {
     case "account-connected":
     case "account-disconnected":
@@ -63,7 +63,7 @@ firetray.InstantMessaging = {
       if (!convIsActiveTabInActiveWin) { // don't blink when conv tab already on top
         this.acknowledgeOnFocus.must = true;
         this.acknowledgeOnFocus.conv = conv;
-        firetray.IMStatusIcon.setIconBlinking(true);
+        firetray.ChatStatusIcon.setIconBlinking(true);
       }
       break;
 
@@ -76,7 +76,7 @@ firetray.InstantMessaging = {
         unreadMsgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
         .replace("#1", unreadMsgCount);
-      firetray.IMStatusIcon.setIconTooltip(localizedTooltip);
+      firetray.ChatStatusIcon.setIconTooltip(localizedTooltip);
       break;
 
     default:
@@ -86,14 +86,14 @@ firetray.InstantMessaging = {
 
   stopIconBlinkingMaybe: function() {
     F.LOG("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
-    // if (!this.acknowledgeOnFocus.must) return;
+    if (!this.acknowledgeOnFocus.must) return;
 
     let convIsActiveTabInActiveWin = this.isConvActiveTabInActiveWindow(
       this.acknowledgeOnFocus.conv);
     F.LOG("convIsActiveTabInActiveWin="+convIsActiveTabInActiveWin);
 
     if (this.acknowledgeOnFocus.must && convIsActiveTabInActiveWin) {
-      firetray.IMStatusIcon.setIconBlinking(false);
+      firetray.ChatStatusIcon.setIconBlinking(false);
       this.acknowledgeOnFocus.must = false;
     }
   },
@@ -145,7 +145,7 @@ firetray.InstantMessaging = {
 
     F.LOG("IM status changed="+iconName);
     if (iconName)
-      firetray.IMStatusIcon.setIconImage(iconName);
+      firetray.ChatStatusIcon.setIconImage(iconName);
   }
 
 };

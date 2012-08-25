@@ -9,7 +9,7 @@ const Cu = Components.utils;
 Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://firetray/commons.js");
-Cu.import("resource://firetray/FiretrayInstantMessaging.jsm");
+Cu.import("resource://firetray/FiretrayChat.jsm");
 
 const FLDRS_UNINTERESTING = {
   Archive:   Ci.nsMsgFolderFlags.Archive,
@@ -45,7 +45,7 @@ firetray.Messaging = {
 
     // FIXME: add im-icon pref
     if (Services.prefs.getBoolPref("mail.chat.enabled") && this.existsIMAccount())
-      firetray.InstantMessaging.init();
+      firetray.Chat.init();
 
     this.initialized = true;
   },
@@ -54,7 +54,7 @@ firetray.Messaging = {
     if (!this.initialized) return;
     F.LOG("Disabling Messaging");
 
-    firetray.InstantMessaging.shutdown();
+    firetray.Chat.shutdown();
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
 
@@ -63,7 +63,7 @@ firetray.Messaging = {
     this.initialized = false;
   },
 
-  // FIXME: this should definetely be done in InstantMessaging, but IM accounts
+  // FIXME: this should definetely be done in Chat, but IM accounts
   // seem not be initialized at this stage (Exception... "'TypeError:
   // this._items is undefined' when calling method:
   // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
@@ -85,11 +85,11 @@ firetray.Messaging = {
     case "account-removed":
       this.cleanExcludedAccounts();
       if (subject.QueryInterface(Ci.imIAccount) && !this.existsIMAccount())
-        firetray.InstantMessaging.shutdown();
+        firetray.Chat.shutdown();
       break;
     case "account-added":
-      if (subject.QueryInterface(Ci.imIAccount) && !firetray.InstantMessaging.initialized)
-        firetray.InstantMessaging.init();
+      if (subject.QueryInterface(Ci.imIAccount) && !firetray.Chat.initialized)
+        firetray.Chat.init();
       break;
     default:
       F.WARN("unhandled topic: "+topic);
