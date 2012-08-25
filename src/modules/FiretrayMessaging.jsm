@@ -44,11 +44,8 @@ firetray.Messaging = {
                                                that.mailSessionListener.notificationFlags);
 
     // FIXME: add im-icon pref
-    // FIXME: watch out account-added !!
-    if (Services.prefs.getBoolPref("mail.chat.enabled") && this.existsIMAccount()) {
+    if (Services.prefs.getBoolPref("mail.chat.enabled") && this.existsIMAccount())
       firetray.InstantMessaging.init();
-      firetray.Handler.isIMEnabled = true;
-    }
 
     this.initialized = true;
   },
@@ -89,12 +86,10 @@ firetray.Messaging = {
       this.cleanExcludedAccounts();
       if (subject.QueryInterface(Ci.imIAccount) && !this.existsIMAccount())
         firetray.InstantMessaging.shutdown();
-      // FIXME: clean InstantMessaging.accounts or just update (?)
       break;
     case "account-added":
       if (subject.QueryInterface(Ci.imIAccount) && !firetray.InstantMessaging.initialized)
         firetray.InstantMessaging.init();
-      // FIXME: clean InstantMessaging.accounts or just update (?)
       break;
     default:
       F.WARN("unhandled topic: "+topic);

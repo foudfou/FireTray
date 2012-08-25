@@ -31,14 +31,12 @@ firetray.Handler = {
   initialized: false,
   inBrowserApp: false,
   inMailApp: false,
-  isIMEnabled: false,
   appStarted: false,
   windows: {},
   windowsCount: 0,
   visibleWindowsCount: 0,
   observedTopics: {},
   ctypesLibs: {},               // {"lib1": lib1, "lib2": lib2}
-
 
   appId:      (function(){return Services.appinfo.ID;})(),
   appName:    (function(){return Services.appinfo.name;})(),

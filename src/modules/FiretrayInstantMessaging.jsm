@@ -60,8 +60,6 @@ firetray.InstantMessaging = {
 
       let convIsActiveTabInActiveWin = this.isConvActiveTabInActiveWindow(conv);
       F.LOG("convIsActiveTabInActiveWin="+convIsActiveTabInActiveWin);
-      let [unreadTargettedCount, unreadTotalCount] = this.countUnreadMessages();
-      F.LOG("unreadTotalCount="+unreadTotalCount);
       if (!convIsActiveTabInActiveWin) { // don't blink when conv tab already on top
         this.acknowledgeOnFocus.must = true;
         this.acknowledgeOnFocus.conv = conv;
@@ -73,7 +71,12 @@ firetray.InstantMessaging = {
       let unreadMsgCount = data;
       if (unreadMsgCount == 0)
         this.stopIconBlinkingMaybe();
-      // FIXME: setToolTip
+
+      let localizedTooltip = PluralForm.get(
+        unreadMsgCount,
+        firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
+        .replace("#1", unreadMsgCount);
+      firetray.IMStatusIcon.setIconTooltip(localizedTooltip);
       break;
 
     default:
@@ -82,9 +85,12 @@ firetray.InstantMessaging = {
   },
 
   stopIconBlinkingMaybe: function() {
-    F.WARN("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
+    F.LOG("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
+    // if (!this.acknowledgeOnFocus.must) return;
+
     let convIsActiveTabInActiveWin = this.isConvActiveTabInActiveWindow(
       this.acknowledgeOnFocus.conv);
+    F.LOG("convIsActiveTabInActiveWin="+convIsActiveTabInActiveWin);
 
     if (this.acknowledgeOnFocus.must && convIsActiveTabInActiveWin) {
       firetray.IMStatusIcon.setIconBlinking(false);
@@ -95,7 +101,7 @@ firetray.InstantMessaging = {
   isConvActiveTabInActiveWindow: function(conv) {
     let activeWin = firetray.Handler.findActiveWindow(),
         activeChatTab = null;
-    if (!activeWin) return false;
+    if (!firetray.Handler.windows[activeWin]) return false;
 
     activeChatTab = this.findActiveChatTab(activeWin);
     let convNameRegex = new RegExp(" - "+conv.name+"$");
@@ -109,18 +115,6 @@ firetray.InstantMessaging = {
     for each (let tab in chatTabs)
       if (tab.tabNode.selected) return tab;
     return null;
-  },
-
-  // lifted from chat-messenger-overlay.js
-  countUnreadMessages: function() {
-    let convs = Services.conversations.getUIConversations();
-    let unreadTargettedCount = 0;
-    let unreadTotalCount = 0;
-    for each (let conv in convs) {
-      unreadTargettedCount += conv.unreadTargetedMessageCount;
-      unreadTotalCount += conv.unreadIncomingMessageCount;
-    }
-    return [unreadTargettedCount, unreadTotalCount];
   },
 
   updateIcon: function() {

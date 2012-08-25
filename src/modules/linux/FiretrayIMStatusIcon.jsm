@@ -43,6 +43,7 @@ firetray.IMStatusIcon = {
     this.trayIcon = gtk.gtk_status_icon_new();
     this.loadThemedIcons();
     this.setIconImage(FIRETRAY_IM_STATUS_OFFLINE);
+    this.setIconTooltipDefault();
 
     this.initialized = true;
     return true;
@@ -81,7 +82,16 @@ firetray.IMStatusIcon = {
     gtk.gtk_status_icon_set_blinking(this.trayIcon, blink);
   },
 
-  /* we could also use x11.FocusIn... just wanted to try a different method */
+  setIconTooltip: function(txt) {
+    if (!this.trayIcon) return false;
+    gtk.gtk_status_icon_set_tooltip_text(this.trayIcon, txt);
+    return true;
+  },
+
+  setIconTooltipDefault: function() {
+    this.setIconTooltip(firetray.Handler.appName+" Chat");
+  },
+
   attachOnFocusInCallback: function(xid) {
     F.LOG("attachOnFocusInCallback xid="+xid);
     this.callbacks.onFocusIn[xid] = gtk.GCallbackWidgetFocuEvent_t(firetray.IMStatusIcon.onFocusIn);

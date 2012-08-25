@@ -595,8 +595,7 @@ firetray.Handler.registerWindow = function(win) {
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
 
-    // FIXME: isn't it (c)leaner to do it in x11 window filter ?
-    if (firetray.Handler.isIMEnabled) {
+    if (firetray.Handler.inMailApp && firetray.InstantMessaging.initialized) { // missing import ok
       Cu.import("resource://firetray/linux/FiretrayIMStatusIcon.jsm");
       firetray.IMStatusIcon.attachOnFocusInCallback(xid);
     }
@@ -662,17 +661,26 @@ firetray.Handler.activateLastWindow = function(gtkStatusIcon, gdkEvent, userData
   return stopPropagation;
 };
 
+/* gtk_window_is_active() not reliable */
 firetray.Handler.findActiveWindow = function() {
+  let rootWin = x11.XDefaultRootWindow(x11.current.Display);
+  let [propsFound, nitems] =
+    firetray.Window.getXWindowProperties(rootWin, x11.current.Atoms._NET_ACTIVE_WINDOW);
+
+  F.LOG("ACTIVE_WINDOW propsFound, nitems="+propsFound+", "+nitems);
+  if (!propsFound) return null;
+
   let activeWin = null;
-  for (let xid in firetray.Handler.windows) {
-    let gtkWin = firetray.Handler.gtkWindows.get(xid);
-    let isActive = gtk.gtk_window_is_active(gtkWin);
-    F.LOG(xid+" is active="+isActive);
-    if (isActive) {
-      activeWin = xid;
-      break;
-    }
-  }
+  if (firetray.js.strEquals(nitems.value, 0))
+    F.WARN("active window not found");
+  else if (firetray.js.strEquals(nitems.value, 1))
+    activeWin = propsFound.contents[0];
+  else
+    throw new RangeError("more than one active window found");
+
+  x11.XFree(propsFound);
+
+  F.LOG("ACTIVE_WINDOW="+activeWin);
   return activeWin;
 };
 
