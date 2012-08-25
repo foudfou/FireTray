@@ -10,7 +10,6 @@ Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://firetray/commons.js");
 Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
 
-// FIXME: rename to firetray.Chat
 firetray.Chat = {
   initialized: false,
   observedTopics: {},
@@ -118,27 +117,32 @@ firetray.Chat = {
   },
 
   updateIcon: function() {
-    let userStatus = Services.core.globalUserStatus.statusType;
+    let globalConnectedStatus = this.globalConnectedStatus();
+    let userStatus;
+    if (globalConnectedStatus)
+      userStatus = Services.core.globalUserStatus.statusType;
+    else
+      userStatus = Ci.imIStatusInfo.STATUS_OFFLINE;
     F.LOG("IM status="+userStatus);
 
     let iconName;
     switch (userStatus) {
-    case Ci.imIStatusInfo.STATUS_OFFLINE:
+    case Ci.imIStatusInfo.STATUS_OFFLINE: // 1
       iconName = FIRETRAY_IM_STATUS_OFFLINE;
       break;
-    case Ci.imIStatusInfo.STATUS_IDLE:
-    case Ci.imIStatusInfo.STATUS_AWAY:
+    case Ci.imIStatusInfo.STATUS_IDLE: // 4
+    case Ci.imIStatusInfo.STATUS_AWAY: // 5
       iconName = FIRETRAY_IM_STATUS_AWAY;
       break;
-    case Ci.imIStatusInfo.STATUS_AVAILABLE:
+    case Ci.imIStatusInfo.STATUS_AVAILABLE: // 7
       iconName = FIRETRAY_IM_STATUS_AVAILABLE;
       break;
-    case Ci.imIStatusInfo.STATUS_UNAVAILABLE:
+    case Ci.imIStatusInfo.STATUS_UNAVAILABLE: // 6
       iconName = FIRETRAY_IM_STATUS_BUSY;
       break;
-    case Ci.imIStatusInfo.STATUS_UNKNOWN:
-    case Ci.imIStatusInfo.STATUS_INVISIBLE:
-    case Ci.imIStatusInfo.STATUS_MOBILE:
+    case Ci.imIStatusInfo.STATUS_UNKNOWN: // 0
+    case Ci.imIStatusInfo.STATUS_INVISIBLE: // 2
+    case Ci.imIStatusInfo.STATUS_MOBILE:    // 3
     default:
         // ignore
     }
@@ -146,6 +150,18 @@ firetray.Chat = {
     F.LOG("IM status changed="+iconName);
     if (iconName)
       firetray.ChatStatusIcon.setIconImage(iconName);
+  },
+
+  globalConnectedStatus: function() {
+    let accounts = Services.accounts.getAccounts();
+    let globalConnected = false;
+    while (accounts.hasMoreElements()) {
+      let account = accounts.getNext().QueryInterface(Ci.imIAccount);
+      F.LOG("account="+account+" STATUS="+account.statusInfo.statusType+" connected="+account.connected);
+      globalConnected = globalConnected || account.connected;
+    }
+    F.LOG("globalConnected="+globalConnected);
+    return globalConnected;
   }
 
 };

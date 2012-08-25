@@ -5,6 +5,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://firetray/FiretrayHandler.jsm");
+Cu.import("resource://firetray/FiretrayChat.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
@@ -592,6 +593,14 @@ var firetrayUIOptions = {
       if (!/\d/.test(charStr))
         event.preventDefault();
     }
+  },
+
+  toggleChat: function(enabled) {
+    F.LOG("Chat icon enable="+enabled);
+    if (enabled)
+      firetray.Chat.init();
+    else
+      firetray.Chat.shutdown();
   }
 
 };

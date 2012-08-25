@@ -7,24 +7,25 @@
 <!ENTITY windows_options "Windows">
 <!ENTITY icon_options "Icon">
 <!ENTITY mail_options "Mail">
+<!ENTITY chat_options "Chat">
 
-<!ENTITY bool_hides_on_close.label "Closing window hides to tray">
-<!ENTITY bool_hides_on_close.accesskey "C">
-<!ENTITY bool_hides_on_minimize.label "Minimizing window hides to tray">
-<!ENTITY bool_hides_on_minimize.accesskey "M">
-<!ENTITY bool_hides_single_window.label "Hide windows individually">
-<!ENTITY bool_hides_single_window.tooltip "not all windows at once">
-<!ENTITY bool_hides_single_window.accesskey "H">
-<!ENTITY bool_start_hidden.label "Start application hidden to tray">
-<!ENTITY bool_start_hidden.accesskey "S">
-<!ENTITY bool_show_activates.label "Activate restored windows">
-<!ENTITY bool_show_activates.accesskey "e">
-<!ENTITY bool_show_activates.tooltip "restored windows raise on top and get focus">
-<!ENTITY bool_remember_desktop.label "Remember desktop (per-window)">
-<!ENTITY bool_remember_desktop.accesskey "R">
+<!ENTITY hides_on_close.label "Closing window hides to tray">
+<!ENTITY hides_on_close.accesskey "C">
+<!ENTITY hides_on_minimize.label "Minimizing window hides to tray">
+<!ENTITY hides_on_minimize.accesskey "M">
+<!ENTITY hides_single_window.label "Hide windows individually">
+<!ENTITY hides_single_window.tooltip "not all windows at once">
+<!ENTITY hides_single_window.accesskey "H">
+<!ENTITY start_hidden.label "Start application hidden to tray">
+<!ENTITY start_hidden.accesskey "S">
+<!ENTITY show_activates.label "Activate restored windows">
+<!ENTITY show_activates.accesskey "e">
+<!ENTITY show_activates.tooltip "restored windows raise on top and get focus">
+<!ENTITY remember_desktop.label "Remember desktop (per-window)">
+<!ENTITY remember_desktop.accesskey "R">
 
-<!ENTITY bool_show_icon_on_hide.label "Show tray icon only if a window is hidden">
-<!ENTITY bool_show_icon_on_hide.accesskey "w">
+<!ENTITY show_icon_on_hide.label "Show tray icon only if a window is hidden">
+<!ENTITY show_icon_on_hide.accesskey "w">
 <!ENTITY app_icon_type "Application icon type">
 <!ENTITY app_icon_themed.label "Default themed">
 <!ENTITY app_icon_themed.accesskey "D">
@@ -77,3 +78,6 @@
 <!ENTITY account_or_server_type_excluded.tooltip "Includes accounts or types into unread messages count">
 <!ENTITY account_or_server_type_order "Order">
 <!ENTITY account_or_server_type_order.tooltip "Order in which mail server types are displayed. Double-clic to edit.">
+
+<!ENTITY chat_icon_enable.label "Enable chat icon">
+<!ENTITY chat_icon_enable.accesskey "E">

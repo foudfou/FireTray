@@ -43,8 +43,9 @@ firetray.Messaging = {
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                that.mailSessionListener.notificationFlags);
 
-    // FIXME: add im-icon pref
-    if (Services.prefs.getBoolPref("mail.chat.enabled") && this.existsIMAccount())
+    if (Services.prefs.getBoolPref("mail.chat.enabled") &&
+        firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
+        this.existsChatAccount())
       firetray.Chat.init();
 
     this.initialized = true;
@@ -68,7 +69,7 @@ firetray.Messaging = {
   // this._items is undefined' when calling method:
   // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
   // initAccounts() ourselves...
-  existsIMAccount: function() {
+  existsChatAccount: function() {
     let accounts = new this.Accounts();
     for (let accountServer in accounts)
       if (accountServer.type === 'im')  {
@@ -84,7 +85,7 @@ firetray.Messaging = {
     switch (topic) {
     case "account-removed":
       this.cleanExcludedAccounts();
-      if (subject.QueryInterface(Ci.imIAccount) && !this.existsIMAccount())
+      if (subject.QueryInterface(Ci.imIAccount) && !this.existsChatAccount())
         firetray.Chat.shutdown();
       break;
     case "account-added":
