@@ -157,12 +157,6 @@
                     preference="pref_folder_count_recursive"
                     observes="broadcaster-notification-disabled"/>
 
-          <checkbox id="ui_only_favorite_folders"
-                    label="&only_favorite_folders.label;"
-                    accesskey="&only_favorite_folders.accesskey;"
-                    preference="pref_only_favorite_folders"
-                    observes="broadcaster-notification-disabled"/>
-
           <groupbox id="ui_mail_notification" flex="1">
             <caption>
               <label id="ui_mail_notification_type_label"
@@ -256,6 +250,13 @@
                      tooltiptext="&unread_count_account_exceptions.tooltip;"
                      observes="broadcaster-notification-disabled" />
             </caption>
+
+            <checkbox id="ui_only_favorite_folders"
+                      label="&only_favorite_folders.label;"
+                      accesskey="&only_favorite_folders.accesskey;"
+                      preference="pref_only_favorite_folders"
+                      tooltiptext="&only_favorite_folders.tooltip;"
+                      observes="broadcaster-notification-disabled"/>
 
             <tree id="ui_tree_mail_accounts" flex="1" rows="10" minwidth="400"
                   seltype="single" editable="true" hidecolumnpicker="false"

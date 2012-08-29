@@ -20,6 +20,7 @@ var firetrayUIOptions = {
     this.strings = document.getElementById("firetray-options-strings");
 
     if (firetray.Handler.inMailApp) {
+      Cu.import("resource:///modules/mailServices.js");
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.initMailControls();
     } else {
@@ -405,7 +406,7 @@ var firetrayUIOptions = {
 
       let subRows = firetray.Utils.XPath(
         checkboxCell,
-        'ancestor::xul:treeitem[1]/descendant::xul:treechildren//xul:treerow');
+        'ancestor::xul:treeitem[1]/child::xul:treechildren/xul:treeitem/xul:treerow');
       F.LOG("subRows="+subRows);
       for (let i=0, len=subRows.length; i<len; ++i) {
         firetrayUIOptions._disableTreeRow(
@@ -424,6 +425,7 @@ var firetrayUIOptions = {
    * preferences as excluded, but *shown* as "not included"
    */
   // FIXME: this function is too long !
+  // FIXME: tree not updated if accounts or favorite added/removed
   populateTreeAccountsOrServerTypes: function() {
     let that = this;
     let prefPane = document.getElementById("pane1");
@@ -451,37 +453,37 @@ var firetrayUIOptions = {
     for (let i=0, len=serverTypesSorted.length; i<len; ++i) {
       let serverTypeName = serverTypesSorted[i];
 
-      let item = document.createElement('treeitem');
-      item.setAttribute("container",true);
-      item.setAttribute("open",true);
+      let typeItem = document.createElement('treeitem');
+      typeItem.setAttribute("container",true);
+      typeItem.setAttribute("open",true);
 
-      let row = document.createElement('treerow');
-      item.appendChild(row);
+      let typeRow = document.createElement('treerow');
+      typeItem.appendChild(typeRow);
 
       // account_or_server_type_name
       let cellName = document.createElement('treecell');
       cellName.setAttribute('label',serverTypeName);
       cellName.setAttribute('editable',false);
-      row.appendChild(cellName);
+      typeRow.appendChild(cellName);
 
       // account_or_server_type_excluded => checkbox
       let cellExcluded = document.createElement('treecell');
       cellExcluded.setAttribute('value',!serverTypes[serverTypeName].excluded);
       cellExcluded.addEventListener( // CAUTION: removeEventListener in onQuit()
         'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
-      row.appendChild(cellExcluded);
+      typeRow.appendChild(cellExcluded);
 
       // account_or_server_type_order
       let cellOrder = document.createElement('treecell');
       cellOrder.setAttribute('label',serverTypes[serverTypeName].order);
       cellOrder.addEventListener( // CAUTION: removeEventListener in onQuit()
         'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
-      row.appendChild(cellOrder);
+      typeRow.appendChild(cellOrder);
 
-      target.appendChild(item);
+      target.appendChild(typeItem);
 
       // add actual accounts as children
-      let subChildren = document.createElement('treechildren');
+      let accountChildren = document.createElement('treechildren');
       let typeAccounts = accountsByServerType[serverTypeName];
       F.LOG("type: "+serverTypeName+", Accounts: "+JSON.stringify(typeAccounts));
       if (typeof(typeAccounts) == "undefined")
@@ -489,46 +491,89 @@ var firetrayUIOptions = {
 
       let rowDisabled = (cellExcluded.getAttribute("value") === "false");
       for (let i=0, len=typeAccounts.length; i<len; ++i) {
-        let subItem = document.createElement('treeitem');
-        let subRow = document.createElement('treerow');
+        let account = typeAccounts[i];
+        let accountItem = document.createElement('treeitem');
+        accountItem.setAttribute("container",true);
+        accountItem.setAttribute("open",true);
+
+        let accountRow = document.createElement('treerow');
 
         // account_or_server_type_name
-        cell = document.createElement('treecell');
-        cell.setAttribute('id', typeAccounts[i].key);
-        cell.setAttribute('label',typeAccounts[i].name);
-        cell.setAttribute('editable',false);
+        let accountCell = document.createElement('treecell');
+        accountCell.setAttribute('id', account.key);
+        accountCell.setAttribute('label',account.name);
+        accountCell.setAttribute('editable',false);
         if (rowDisabled === true)
-          cell.setAttribute('properties', "disabled");
-        subRow.appendChild(cell);
+          accountCell.setAttribute('properties', "disabled");
+        accountRow.appendChild(accountCell);
 
         // account_or_server_type_excluded => checkbox
-        let cell = document.createElement('treecell');
-        cell.setAttribute('value',(accountsExcluded.indexOf(typeAccounts[i].key) < 0));
+        accountCell = document.createElement('treecell');
+        accountCell.setAttribute('value',(accountsExcluded.indexOf(account.key) < 0));
         if (rowDisabled === true) {
-          cell.setAttribute('properties', "disabled");
-          cell.setAttribute('editable', "false");
+          accountCell.setAttribute('properties', "disabled");
+          accountCell.setAttribute('editable', "false");
         } else {
-          cell.addEventListener(  // CAUTION: removeEventListener in onQuit()
+          accountCell.addEventListener(  // CAUTION: removeEventListener in onQuit()
             'DOMAttrModified', that._userChangeValueTree, true);
         }
-        subRow.appendChild(cell);
+        accountRow.appendChild(accountCell);
 
         // account_or_server_type_order - UNUSED (added for consistency)
-        cell = document.createElement('treecell');
-        cell.setAttribute('editable',false);
+        accountCell = document.createElement('treecell');
+        accountCell.setAttribute('editable',false);
         if (rowDisabled === true)
-          cell.setAttribute('properties', "disabled");
-        subRow.appendChild(cell);
+          accountCell.setAttribute('properties', "disabled");
+        accountRow.appendChild(accountCell);
 
         // we must initialize sub-cells correctly to prevent prefsync at a
         // stage where the pref will be incomplete
         /* this._disableTreeRow(
-           subRow, (cellExcluded.getAttribute("value") === "false")); */
-        subItem.appendChild(subRow);
-        subChildren.appendChild(subItem);
-      }
-      item.appendChild(subChildren);
+         accountRow, (cellExcluded.getAttribute("value") === "false")); */
+        accountItem.appendChild(accountRow);
+        accountChildren.appendChild(accountItem);
 
+        // add favorite folders
+        let folderChildren = document.createElement('treechildren');
+        let folderChildrenCount = 0;
+        let msgAccount = MailServices.accounts.getIncomingServer(account.key);
+        firetray.Messaging.applyToSubfolders(msgAccount.rootFolder, true, function(folder) {
+          if (!(folder.flags & Ci.nsMsgFolderFlags.Favorite)) return;
+
+          F.LOG("adding folder favorite="+folder.prettyName);
+          let folderItem = document.createElement('treeitem');
+          let folderRow = document.createElement('treerow');
+
+          // folder name
+          let folderCell = document.createElement('treecell');
+          folderCell.setAttribute('id', folder.name);
+          folderCell.setAttribute('label',folder.prettyName);
+          folderCell.setAttribute('editable',false);
+          folderCell.setAttribute('properties', "disabled");
+          folderRow.appendChild(folderCell);
+
+          // checkbox
+          folderCell = document.createElement('treecell');
+          folderCell.setAttribute('editable', "false");
+          folderCell.setAttribute('properties', "disabled");
+          folderRow.appendChild(folderCell);
+
+          // order - UNUSED
+          folderCell = document.createElement('treecell');
+          folderCell.setAttribute('editable', "false");
+          folderCell.setAttribute('properties', "disabled");
+          folderRow.appendChild(folderCell);
+
+          folderItem.appendChild(folderRow);
+          folderChildren.appendChild(folderItem);
+          ++folderChildrenCount;
+        });
+
+        if (folderChildrenCount)
+          accountItem.appendChild(folderChildren);
+      }
+
+      typeItem.appendChild(accountChildren);
     }
 
     let tree = document.getElementById("ui_tree_mail_accounts");

@@ -48,8 +48,6 @@
 <!ENTITY mail_notification_enabled.accesskey "a">
 <!ENTITY folder_count_recursive.label "Include subfolders">
 <!ENTITY folder_count_recursive.accesskey "f">
-<!ENTITY only_favorite_folders.label "Only favorite folders">
-<!ENTITY only_favorite_folders.accesskey "v">
 <!ENTITY mail_notification_type.label "Mail notification type">
 <!ENTITY mail_notification_type.tooltip "aka. Biff">
 <!ENTITY mail_notification_unread_count.label "display new message count">
@@ -70,8 +68,12 @@
 <!ENTITY unread_count_folder_exceptions.label "Included special folders">
 <!ENTITY unread_count_folder_exceptions.tooltip "Included special folders for unread message count">
 <!ENTITY excluded_folders_list.tooltip "Use CTRL + left click to select/deselect folders for unread message count">
+
 <!ENTITY unread_count_account_exceptions.label "Included accounts">
 <!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">
+<!ENTITY only_favorite_folders.label "Only favorite folders">
+<!ENTITY only_favorite_folders.accesskey "v">
+<!ENTITY only_favorite_folders.tooltip "Within included folder types and included accounts, only count messages in favorite folders">
 
 <!ENTITY account_or_server_type_name "Account">
 <!ENTITY account_or_server_type_name.tooltip "Account name or type">

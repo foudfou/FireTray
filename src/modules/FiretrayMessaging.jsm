@@ -26,6 +26,7 @@ firetray.Messaging = {
   initialized: false,
   cleaningTimer: null,
   currentMsgCount: null,
+  newMsgCount: null,
 
   init: function() {
     if (this.initialized) {
@@ -114,7 +115,7 @@ firetray.Messaging = {
 
     OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {
       F.LOG("OnItemPropertyFlagChanged"+property+" for "+item+" was "+oldFlag+" became "+newFlag);
-      this.onMsgCountChange(item, property, oldValue, newValue);
+      this.onMsgCountChange(item, property, oldFlag, newFlag);
     },
 
     OnItemEvent: function(item, event) {
@@ -123,20 +124,19 @@ firetray.Messaging = {
 
     onMsgCountChange: function(item, property, oldValue, newValue) {
       let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
-      let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
       let onlyFavorites = firetray.Utils.prefService.getBoolPref("only_favorite_folders");
+      let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
 
       if (!(item.flags & excludedFoldersFlags)) {
         let prop = property.toString();
-        if (prop === "FolderFlag") {
-          if (onlyFavorites && (oldValue ^ newValue) & Ci.nsMsgFolderFlags.Favorite) {
+        if (prop === "FolderFlag" && onlyFavorites) {
+          if ((oldValue ^ newValue) & Ci.nsMsgFolderFlags.Favorite)
             firetray.Messaging.updateMsgCountWithCb();
-          }
-        } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD &&
-            prop === "TotalUnreadMessages") {
+        } else if (prop === "TotalUnreadMessages" &&
+                   msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
           firetray.Messaging.updateMsgCountWithCb();
-        } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW &&
-                   prop === "NewMessages") {
+        } else if (prop === "NewMessages" &&
+                   msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
           if (oldValue === true && newValue === false)
             item.setNumNewMessages(0); // https://bugzilla.mozilla.org/show_bug.cgi?id=727460
           firetray.Messaging.updateMsgCountWithCb();
@@ -153,30 +153,28 @@ firetray.Messaging = {
     if (!this.initialized) return;
 
     if ("undefined" === typeof(callback) || !callback) callback = function() { // default
-      firetray.Messaging.updateIcon(msgCount);
+      firetray.Messaging.updateIcon(this.newMsgCount);
 
       let mailChangeTriggerFile = firetray.Utils.prefService.getCharPref("mail_change_trigger");
       if (mailChangeTriggerFile)
-        firetray.Messaging.runProcess(mailChangeTriggerFile, [msgCount.toString()]);
+        firetray.Messaging.runProcess(mailChangeTriggerFile, [this.newMsgCount.toString()]);
     };
 
-    let msgCount;
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     F.LOG("msgCountType="+msgCountType);
     if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
-      msgCount = this.countMessages(this.unreadMsgCountIterate);
+      this.countMessages("UnreadMessages");
     } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
-      msgCount = this.countMessages(this.newMsgCountIterate);
+      this.countMessages("HasNewMessages");
     } else
       F.ERROR('unknown message count type');
 
-    if (msgCount !== this.currentMsgCount) {
+    if (this.newMsgCount !== this.currentMsgCount) {
       callback.call(this);
-      this.currentMsgCount = msgCount;
+      this.currentMsgCount = this.newMsgCount;
     } else {
       F.LOG("message count unchanged");
     }
-
   },
 
   updateIcon: function(msgCount) {
@@ -227,87 +225,80 @@ firetray.Messaging = {
   /**
    * computes total unread or new message count.
    */
-  countMessages: function(folderCountFunction) {
+  countMessages: function(countType) {
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
     F.LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
     let serverTypes = mailAccounts["serverTypes"];
     let excludedAccounts = mailAccounts["excludedAccounts"];
 
-    let msgCount = 0;
-    try {
-      let accounts = new this.Accounts();
-      for (let accountServer in accounts) {
-        F.LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
-        if ( (serverTypes[accountServer.type].excluded)
-          || (excludedAccounts.indexOf(accountServer.key) >= 0) )
-          continue;
-
-        let rootFolder = accountServer.rootFolder; // nsIMsgFolder
-        if (rootFolder.hasSubFolders) {
-          let subFolders = rootFolder.subFolders;
-          while(subFolders.hasMoreElements()) {
-            let folder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-            msgCount = folderCountFunction(folder, msgCount);
-          }
-        }
+    this.newMsgCount = 0;
+    let accounts = new this.Accounts();
+    for (let accountServer in accounts) { // nsIMsgAccount
+      if (!serverTypes[accountServer.type]) {
+        F.WARN("'"+accountServer.type+"' server type is not handled");
+        continue;
       }
-    } catch (x) {
-      F.ERROR(x);
+      F.LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
+      if ((serverTypes[accountServer.type].excluded) ||
+          (excludedAccounts.indexOf(accountServer.key) >= 0))
+        continue;
+
+      this.applyToSubfolders(
+        accountServer.rootFolder,
+        firetray.Utils.prefService.getBoolPref("folder_count_recursive"),
+        function(folder){this.msgCountIterate(countType, folder);}
+      );
+
     }
-    F.LOG("Total New="+msgCount);
-    return msgCount;
+    F.LOG("Total "+countType+"="+this.newMsgCount);
   },
 
-  unreadMsgCountIterate: function(folder, accumulator) {
-    let folderCountFunctionName = 'getNumUnread';
-    let onlyFavorites = firetray.Utils.prefService.getBoolPref("only_favorite_folders");
-    let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
-
-    if (folder.hasSubFolders && firetray.Utils.prefService.getBoolPref("folder_count_recursive")) {
-      // need to handle each folder on it's own to respect folder flags
+  /**
+   * @param folder: a nsIMsgFolder
+   * @param recursive: if we should look into nested folders
+   * @param fun: a function to apply to all folders
+   */
+  applyToSubfolders: function(folder, recursive, fun) {
+    if (folder.hasSubFolders) {
       let subFolders = folder.subFolders;
       while(subFolders.hasMoreElements()) {
         let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-        accumulator = firetray.Messaging.unreadMsgCountIterate(subFolder, accumulator);
+        if (recursive && subFolder.hasSubFolders)
+          firetray.Messaging.applyToSubfoldersRecursive(subFolder, recursive, fun);
+        else
+          fun.call(this, subFolder);
       }
     }
-
-    let folderUnreadMsgCount = 0;
-    if (!(folder.flags & excludedFoldersFlags)) {
-      if (!onlyFavorites || folder.flags & Ci.nsMsgFolderFlags.Favorite) {
-        folderUnreadMsgCount = folder[folderCountFunctionName](false);
-      }
-    }
-
-    F.LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
-    return accumulator + folderUnreadMsgCount;
+  },
+  applyToSubfoldersRecursive: function(folder, recursive, fun) {
+    fun.call(this, folder);
+    this.applyToSubfolders(folder, recursive, fun);
   },
 
-  newMsgCountIterate: function(folder, accumulator) {
-    if (folder.hasSubFolders && firetray.Utils.prefService.getBoolPref("folder_count_recursive")) {
-      F.LOG("hasSubFolders");
-      let subFolders = folder.subFolders;
-      while(subFolders.hasMoreElements()) {
-        let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
-        accumulator = firetray.Messaging.newMsgCountIterate(subFolder, accumulator);
-      }
-    }
-
+  /**
+   * @param type: one of 'UnreadMessages', 'HasNewMessages'
+   */
+  msgCountIterate: function(type, folder) {
     let onlyFavorites = firetray.Utils.prefService.getBoolPref("only_favorite_folders");
     let excludedFoldersFlags = firetray.Utils.prefService.getIntPref("excluded_folders_flags");
     if (!(folder.flags & excludedFoldersFlags)) {
       if (!onlyFavorites || folder.flags & Ci.nsMsgFolderFlags.Favorite) {
-        accumulator = firetray.Messaging.addHasNewMessages(folder, accumulator);
+        firetray.Messaging["add"+type](folder);
       }
     }
-
-    return accumulator;
+    F.LOG("newMsgCount="+this.newMsgCount);
   },
 
-  addHasNewMessages: function(folder, accumulator) {
-      let folderNewMsgCount = folder.hasNewMessages;
-      F.LOG(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
-      return accumulator || folderNewMsgCount;
+  addUnreadMessages: function(folder) {
+    let folderUnreadMsgCount = folder['getNumUnread'](false);
+    F.LOG("folder: "+folder.prettyName+" folderUnreadMsgCount="+folderUnreadMsgCount);
+    this.newMsgCount += folderUnreadMsgCount;
+  },
+
+  addHasNewMessages: function(folder) {
+    let folderNewMsgCount = folder.hasNewMessages;
+    F.LOG("folder: "+folder.prettyName+" hasNewMessages="+folderNewMsgCount);
+    this.newMsgCount = this.newMsgCount || folderNewMsgCount;
   },
 
   runProcess: function(filepath, args) {
