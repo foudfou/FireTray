@@ -32,6 +32,7 @@
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
       <preference id="pref_mail_notification_enabled" name="extensions.firetray.mail_notification_enabled" type="bool" />
       <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
+      <preference id="pref_only_favorite_folders" name="extensions.firetray.only_favorite_folders" type="bool" />
       <preference id="pref_message_count_type" name="extensions.firetray.message_count_type" type="int" />
       <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
@@ -154,6 +155,12 @@
                     label="&folder_count_recursive.label;"
                     accesskey="&folder_count_recursive.accesskey;"
                     preference="pref_folder_count_recursive"
+                    observes="broadcaster-notification-disabled"/>
+
+          <checkbox id="ui_only_favorite_folders"
+                    label="&only_favorite_folders.label;"
+                    accesskey="&only_favorite_folders.accesskey;"
+                    preference="pref_only_favorite_folders"
                     observes="broadcaster-notification-disabled"/>
 
           <groupbox id="ui_mail_notification" flex="1">
