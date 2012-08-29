@@ -82,6 +82,7 @@ firetray.Handler = {
     VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailNotificationType);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailServerTypes);
     VersionChange.applyHooksAndWatchUninstall();
 
     firetray.StatusIcon.init();
@@ -363,8 +364,6 @@ firetray.VersionChangeHandler = {
 
   showReleaseNotes: function() {
     firetray.VersionChangeHandler.openTab(FIRETRAY_SPLASH_PAGE+"#v"+FIRETRAY_VERSION);
-    firetray.VersionChangeHandler.tryEraseOldOptions();
-    firetray.VersionChangeHandler.correctMailNotificationType();
   },
 
   openTab: function(url) {
@@ -437,6 +436,17 @@ firetray.VersionChangeHandler = {
       firetray.Utils.prefService.setIntPref('mail_notification_type',
         FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
       F.WARN("mail notification type set to newmail icon.");
+    }
+  },
+
+  correctMailServerTypes: function() {
+    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+    let serverTypes = mailAccounts["serverTypes"];
+    if (!serverTypes["exquilla"]) {
+      serverTypes["exquilla"] = {"order":6,"excluded":true};
+      let prefObj = {"serverTypes":serverTypes, "excludedAccounts":mailAccounts["excludedAccounts"]};
+      firetray.Utils.setObjPref('mail_accounts', prefObj);
+      F.WARN("mail server types corrected");
     }
   }
 

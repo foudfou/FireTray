@@ -274,7 +274,10 @@ firetray.Messaging = {
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
-        if (accountServer.type === 'im') continue; // IM messages are counted elsewhere
+        if (!serverTypes[accountServer.type]) {
+          F.WARN("'"+accountServer.type+"' server type is not handled");
+          continue;
+        }
         F.LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
         if (serverTypes[accountServer.type].excluded ||
             (excludedAccounts.indexOf(accountServer.key) >= 0))
