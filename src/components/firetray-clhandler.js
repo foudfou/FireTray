@@ -8,6 +8,8 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://firetray/logging.jsm");
 Cu.import("resource://firetray/FiretrayHandler.jsm");
 
+let log = firetray.Logger.getLogger("firetray-clhandler");
+
 function firetayCommandLineHandler() {}
 firetayCommandLineHandler.prototype = {
   classDescription: "firetayCommandLineHandler",
@@ -25,8 +27,8 @@ firetayCommandLineHandler.prototype = {
   /* nsICommandLineHandler */
   handle: function clh_handle(cmdLine)
   {
-    if (cmdLine.handleFlag("showHide", false)) {
-      F.LOG("*** CmdLine call ***");
+    if (cmdLine.handleFlag("firetray-showHide", false)) {
+      log.debug("*** CmdLine call ***");
       firetray.Handler.showHideAllWindows();
       cmdLine.preventDefault = true;
     }

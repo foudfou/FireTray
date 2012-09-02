@@ -12,6 +12,8 @@ Cu.import("resource://firetray/commons.js");
 
 const FIRETRAY_WINDOW_COUNT_MAX = 64;
 
+let log = firetray.Logger.getLogger("ctypesMap");
+
 /**
  * basic Hash mapping a key (of any type) to a cell in a ctypes array
  */
@@ -32,11 +34,11 @@ ctypesMap.prototype.get = function(key) {
 
 ctypesMap.prototype.insert = function(key, item) {
   if (this.map.hasOwnProperty(key)) {
-    F.LOG("REPLACE");
+    log.debug("REPLACE");
     this.array[this.map[key]] = item;
 
   } else if (this.freedCells.length) {
-    F.LOG("USE FREE CELL");
+    log.debug("USE FREE CELL");
     let idx = this.freedCells.shift();
     this.array[idx] = item;
     this.map[key] = idx;
@@ -57,7 +59,7 @@ ctypesMap.prototype.insert = function(key, item) {
 ctypesMap.prototype.remove = function(key) {
   if (!this.map.hasOwnProperty(key))
       throw new RangeError('Unknown key: '+key);
-  F.LOG("FREE CELL");
+  log.debug("FREE CELL");
 
   let idx = this.map[key];
   if (!delete this.map[key])

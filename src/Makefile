@@ -144,7 +144,7 @@ copy_and_strip_maybe = \
 	  cp -f $(2) $(1); \
 	else \
 	  echo "Stripping debug calls from JS file $<"; \
-	  sed '/F.LOG(/d' $(2) > $(1); \
+	  sed '/log.debug(/d' $(2) > $(1); \
 	fi
 
 # Debug calls are removed for performance.

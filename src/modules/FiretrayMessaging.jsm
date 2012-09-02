@@ -21,6 +21,8 @@ const FLDRS_UNINTERESTING = {
   Virtual:   Ci.nsMsgFolderFlags.Virtual
 };
 
+let log = firetray.Logger.getLogger("firetray.Messaging");
+
 
 firetray.Messaging = {
   initialized: false,
@@ -29,15 +31,15 @@ firetray.Messaging = {
 
   init: function() {
     if (this.initialized) {
-      F.WARN("Messaging already initialized");
+      log.warn("Messaging already initialized");
       return;
     }
-    F.LOG("Enabling Messaging");
+    log.debug("Enabling Messaging");
 
     // there is no means to detect account-removed event
     this.cleaningTimer = firetray.Utils.timer(firetray.Messaging.cleanExcludedAccounts,
       FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS, Ci.nsITimer.TYPE_REPEATING_SLACK);
-    F.LOG(this.cleaningTimer+"="+FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS);
+    log.debug(this.cleaningTimer+"="+FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS);
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
@@ -48,7 +50,7 @@ firetray.Messaging = {
 
   shutdown: function() {
     if (!this.initialized) return;
-    F.LOG("Disabling Messaging");
+    log.debug("Disabling Messaging");
 
     this.cleaningTimer.cancel();
 
@@ -61,7 +63,7 @@ firetray.Messaging = {
   /* removes removed accounts from excludedAccounts pref. NOTE: Can't be called
     at shutdown because MailServices.accounts no longer available */
   cleanExcludedAccounts: function() {
-    F.LOG("* cleaning *");
+    log.debug("* cleaning *");
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
     let excludedAccounts = mailAccounts["excludedAccounts"];
 
@@ -83,7 +85,7 @@ firetray.Messaging = {
     }
 
     if (cleaningNeeded) {
-      F.LOG("cleaning excluded accounts");
+      log.debug("cleaning excluded accounts");
       let prefObj = {"serverTypes":mailAccounts["serverTypes"], "excludedAccounts":newExcludedAccounts};
       firetray.Utils.setObjPref('mail_accounts', prefObj);
     }
@@ -99,25 +101,25 @@ firetray.Messaging = {
       Ci.nsIFolderListener.intPropertyChanged,
 
     OnItemPropertyChanged: function(item, property, oldValue, newValue) { // NumNewBiffMessages
-      F.LOG("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
+      log.debug("OnItemPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
     },
 
     OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { // TotalUnreadMessages, BiffState (per server)
-      F.LOG("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
+      log.debug("OnItemIntPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
       this.onMsgCountChange(item, property, oldValue, newValue);
     },
 
     OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) { // NewMessages (per folder)
-      F.LOG("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
+      log.debug("OnItemBoolPropertyChanged "+property+" for folder "+item.prettyName+" was "+oldValue+" became "+newValue+" NEW MESSAGES="+item.getNumNewMessages(true));
       this.onMsgCountChange(item, property, oldValue, newValue);
     },
 
     OnItemPropertyFlagChanged: function(item, property, oldFlag, newFlag) {
-      F.LOG("OnItemPropertyFlagChanged"+property+" for "+item+" was "+oldFlag+" became "+newFlag);
+      log.debug("OnItemPropertyFlagChanged"+property+" for "+item+" was "+oldFlag+" became "+newFlag);
     },
 
     OnItemEvent: function(item, event) {
-      F.LOG("OnItemEvent"+event+" for folder "+item.prettyName);
+      log.debug("OnItemEvent"+event+" for folder "+item.prettyName);
     },
 
     onMsgCountChange: function(item, property, oldValue, newValue) {
@@ -143,7 +145,7 @@ firetray.Messaging = {
    * @param callback: optional callback to call when msgCount changed.
    */
   updateMsgCountWithCb: function(callback) {
-    F.LOG("updateMsgCountWithCb");
+    log.debug("updateMsgCountWithCb");
     if (!this.initialized) return;
 
     if ("undefined" === typeof(callback) || !callback) callback = function() { // default
@@ -156,19 +158,19 @@ firetray.Messaging = {
 
     let msgCount;
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
-    F.LOG("msgCountType="+msgCountType);
+    log.debug("msgCountType="+msgCountType);
     if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD) {
       msgCount = this.countMessages(this.unreadMsgCountIterate);
     } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
       msgCount = this.countMessages(this.newMsgCountIterate);
     } else
-      F.ERROR('unknown message count type');
+      log.error('unknown message count type');
 
     if (msgCount !== this.currentMsgCount) {
       callback.call(this);
       this.currentMsgCount = msgCount;
     } else {
-      F.LOG("message count unchanged");
+      log.debug("message count unchanged");
     }
 
   },
@@ -183,11 +185,11 @@ firetray.Messaging = {
         msgCount,
         firetray.Utils.strings.GetStringFromName("tooltip.unread_messages"))
         .replace("#1", msgCount);
-      F.LOG(localizedTooltip);
+      log.debug(localizedTooltip);
     } else if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
       localizedTooltip = firetray.Utils.strings.GetStringFromName("tooltip.new_messages");
     } else
-      F.ERROR('unknown message count type');
+      log.error('unknown message count type');
 
     if (msgCount == 0) {
       firetray.Handler.setIconImageDefault();
@@ -208,7 +210,7 @@ firetray.Messaging = {
         firetray.Handler.setIconImageFromFile(prefCustomIconPath);
         break;
       default:
-        F.ERROR("Unknown notification mode: "+prefMailNotification);
+        log.error("Unknown notification mode: "+prefMailNotification);
       }
 
       firetray.Handler.setIconTooltip(localizedTooltip);
@@ -223,7 +225,7 @@ firetray.Messaging = {
    */
   countMessages: function(folderCountFunction) {
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
-    F.LOG("mail accounts from pref: "+JSON.stringify(mailAccounts));
+    log.debug("mail accounts from pref: "+JSON.stringify(mailAccounts));
     let serverTypes = mailAccounts["serverTypes"];
     let excludedAccounts = mailAccounts["excludedAccounts"];
     let excludedFoldersFlags = firetray.Utils.prefService
@@ -233,7 +235,7 @@ firetray.Messaging = {
     try {
       let accounts = new this.Accounts();
       for (let accountServer in accounts) {
-        F.LOG("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
+        log.debug("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
         if ( (serverTypes[accountServer.type].excluded)
           || (excludedAccounts.indexOf(accountServer.key) >= 0) )
           continue;
@@ -250,9 +252,9 @@ firetray.Messaging = {
         }
       }
     } catch (x) {
-      F.ERROR(x);
+      log.error(x);
     }
-    F.LOG("Total New="+msgCount);
+    log.debug("Total New="+msgCount);
     return msgCount;
   },
 
@@ -260,13 +262,13 @@ firetray.Messaging = {
     let folderCountFunctionName = 'getNumUnread';
     let folderUnreadMsgCount = folder[folderCountFunctionName](
       firetray.Utils.prefService.getBoolPref("folder_count_recursive"));
-    F.LOG(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
+    log.debug(folder.prettyName+" "+folderCountFunctionName+"="+folderUnreadMsgCount);
     return accumulator + folderUnreadMsgCount;
   },
 
   newMsgCountIterate: function(folder, accumulator) {
     if (folder.hasSubFolders && firetray.Utils.prefService.getBoolPref("folder_count_recursive")) {
-      F.LOG("hasSubFolders");
+      log.debug("hasSubFolders");
       let subFolders = folder.subFolders;
       while(subFolders.hasMoreElements()) {
         let subFolder = subFolders.getNext().QueryInterface(Ci.nsIMsgFolder);
@@ -279,12 +281,12 @@ firetray.Messaging = {
 
   addHasNewMessages: function(folder, accumulator) {
       let folderNewMsgCount = folder.hasNewMessages;
-      F.LOG(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
+      log.debug(folder.prettyName+" hasNewMessages="+folderNewMsgCount);
       return accumulator || folderNewMsgCount;
   },
 
   runProcess: function(filepath, args) {
-    F.LOG("runProcess="+filepath+" args="+args);
+    log.debug("runProcess="+filepath+" args="+args);
     try {
       // create a file for the process
       var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile); // TODO: nsILocalFile merged into the nsIFile in Gecko 14
@@ -295,7 +297,7 @@ firetray.Messaging = {
       process.init(file);
 
       process.run(false, args, args.length);
-    } catch(x) {F.ERROR(x);}
+    } catch(x) {log.error(x);}
   }
 
 };
@@ -317,7 +319,7 @@ firetray.Messaging.Accounts = function(sortByTypeAndName) {
 };
 firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   let accounts = MailServices.accounts.accounts;
-  F.LOG("sortByTypeAndName="+this.sortByTypeAndName);
+  log.debug("sortByTypeAndName="+this.sortByTypeAndName);
 
   /* NOTE: sort() not provided by nsIMsgAccountManager.accounts
    (nsISupportsArray, nsICollection). Should be OK to re-build a JS-Array for
@@ -348,7 +350,7 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   }
 
   for (let i=0, len=accountServers.length; i<len; ++i) {
-    F.LOG("ACCOUNT: "+accountServers[i].prettyName+" type: "+accountServers[i].type);
+    log.debug("ACCOUNT: "+accountServers[i].prettyName+" type: "+accountServers[i].type);
     yield accountServers[i];
   }
 };

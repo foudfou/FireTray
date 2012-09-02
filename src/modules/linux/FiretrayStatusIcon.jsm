@@ -18,8 +18,10 @@ Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
 Cu.import("resource://firetray/commons.js");
 
+let log = firetray.Logger.getLogger("firetray.StatusIcon");
+
 if ("undefined" == typeof(firetray.Handler))
-  F.ERROR("This module MUST be imported from/after FiretrayHandler !");
+  log.error("This module MUST be imported from/after FiretrayHandler !");
 
 
 firetray.StatusIcon = {
@@ -40,9 +42,9 @@ firetray.StatusIcon = {
 
     try {
       this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath("chrome://firetray/skin/linux/icons");
-      F.LOG(this.GTK_THEME_ICON_PATH);
+      log.debug(this.GTK_THEME_ICON_PATH);
       let gtkIconTheme = gtk.gtk_icon_theme_get_default();
-      F.LOG("gtkIconTheme="+gtkIconTheme);
+      log.debug("gtkIconTheme="+gtkIconTheme);
       gtk.gtk_icon_theme_append_search_path(gtkIconTheme, this.GTK_THEME_ICON_PATH);
 
       this.loadThemedIcons();
@@ -50,7 +52,7 @@ firetray.StatusIcon = {
       this.trayIcon  = gtk.gtk_status_icon_new();
 
     } catch (x) {
-      F.ERROR(x);
+      log.error(x);
       return false;
     }
 
@@ -114,15 +116,15 @@ firetray.StatusIcon = {
 
   initThemedIcon: function(names) {
     if (!firetray.js.isArray(names)) throw new TypeError();
-    F.LOG("themedIconNames="+names);
+    log.debug("themedIconNames="+names);
     let namesLen = names.length;
-    F.LOG("themedIconNamesLen="+namesLen);
+    log.debug("themedIconNamesLen="+namesLen);
     let themedIconNames = ctypes.char.ptr.array(namesLen)();
     for (let i=0; i<namesLen; ++i)
       themedIconNames[i] = ctypes.char.array()(names[i]);
-    F.LOG("themedIconNames="+themedIconNames);
+    log.debug("themedIconNames="+themedIconNames);
     let themedIcon = gio.g_themed_icon_new_from_names(themedIconNames, namesLen);
-    F.LOG("themedIcon="+themedIcon);
+    log.debug("themedIcon="+themedIcon);
     return themedIcon;
   },
 
@@ -137,18 +139,18 @@ firetray.StatusIcon = {
     gobject.g_signal_connect(this.trayIcon, "scroll-event",
       firetray.StatusIcon.callbacks.onScroll, null);
 
-    F.LOG("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
+    log.debug("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
     this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
       firetray.Handler.showHideAllWindows);
     let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
       "activate", firetray.StatusIcon.callbacks.iconActivate, null);
-    F.LOG("g_connect activate="+handlerId);
+    log.debug("g_connect activate="+handlerId);
 
     this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
       firetray.Handler.activateLastWindow);
     handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
       "button-press-event", firetray.StatusIcon.callbacks.iconMiddleClick, null);
-    F.LOG("g_connect middleClick="+handlerId);
+    log.debug("g_connect middleClick="+handlerId);
   },
 
   onScroll: function(icon, event, data) {
@@ -162,36 +164,36 @@ firetray.StatusIcon = {
     let direction = gdkEventScroll.contents.direction;
     switch(direction) {
     case gdk.GDK_SCROLL_UP:
-	    F.LOG("SCROLL UP");
+	    log.debug("SCROLL UP");
       if (scroll_mode === "down_hides")
         firetray.Handler.showAllWindows();
       else if (scroll_mode === "up_hides")
         firetray.Handler.hideAllWindows();
 	    break;
     case gdk.GDK_SCROLL_DOWN:
-	    F.LOG("SCROLL DOWN");
+	    log.debug("SCROLL DOWN");
       if (scroll_mode === "down_hides")
         firetray.Handler.hideAllWindows();
       else if (scroll_mode === "up_hides")
         firetray.Handler.showAllWindows();
 	    break;
     default:
-	    F.ERROR("SCROLL UNKNOWN");
+	    log.error("SCROLL UNKNOWN");
     }
   },
 
   setIconImageFromFile: function(filename) {
     if (!firetray.StatusIcon.trayIcon)
-      F.ERROR("Icon missing");
-    F.LOG(filename);
+      log.error("Icon missing");
+    log.debug(filename);
     gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
                                         filename);
   },
 
   setIconImageFromGIcon: function(gicon) {
     if (!firetray.StatusIcon.trayIcon || !gicon)
-      F.ERROR("Icon missing");
-    F.LOG(gicon);
+      log.error("Icon missing");
+    log.debug(gicon);
     gtk.gtk_status_icon_set_from_gicon(firetray.StatusIcon.trayIcon, gicon);
   }
 
@@ -224,7 +226,7 @@ firetray.Handler.setIconTooltip = function(toolTipStr) {
     gtk.gtk_status_icon_set_tooltip_text(firetray.StatusIcon.trayIcon,
                                          toolTipStr);
   } catch (x) {
-    F.ERROR(x);
+    log.error(x);
     return false;
   }
   return true;
@@ -237,7 +239,7 @@ firetray.Handler.setIconTooltipDefault = function() {
 };
 
 firetray.Handler.setIconText = function(text, color) { // FIXME: function too long
-  F.LOG("setIconText, color="+color);
+  log.debug("setIconText, color="+color);
   if (typeof(text) != "string")
     throw new TypeError();
 
@@ -252,13 +254,13 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
     let colorMap = gdk.gdk_screen_get_system_colormap(gdk.gdk_screen_get_default());
     let visual = gdk.gdk_colormap_get_visual(colorMap);
     let visualDepth = visual.contents.depth;
-    F.LOG("colorMap="+colorMap+" visual="+visual+" visualDepth="+visualDepth);
+    log.debug("colorMap="+colorMap+" visual="+visual+" visualDepth="+visualDepth);
     let fore = new gdk.GdkColor;
     fore.pixel = fore.red = fore.green = fore.blue = 0;
     let alpha  = new gdk.GdkColor;
     alpha.pixel = alpha.red = alpha.green = alpha.blue = 0xFFFF;
     if (!fore || !alpha)
-      F.WARN("Undefined GdkColor fore or alpha");
+      log.warn("Undefined GdkColor fore or alpha");
     gdk.gdk_color_parse(color, fore.address());
     if(fore.red == alpha.red && fore.green == alpha.green && fore.blue == alpha.blue) {
       alpha.red=0; // make sure alpha is different from fore
@@ -283,15 +285,15 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
     pango.pango_font_description_set_weight(fnt,pango.PANGO_WEIGHT_SEMIBOLD);
     pango.pango_layout_set_spacing(layout,0);
     pango.pango_layout_set_font_description(layout, fnt);
-    F.LOG("layout="+layout);
-    F.LOG("text="+text);
+    log.debug("layout="+layout);
+    log.debug("text="+text);
     pango.pango_layout_set_text(layout, text,-1);
     let tw = new ctypes.int;
     let th = new ctypes.int;
     let sz;
     let border = 4;
     pango.pango_layout_get_pixel_size(layout, tw.address(), th.address());
-    F.LOG("tw="+tw.value+" th="+th.value);
+    log.debug("tw="+tw.value+" th="+th.value);
     // fit text to the icon by decreasing font size
     while ( tw.value > (w - border) || th.value > (h - border) ) {
       sz = pango.pango_font_description_get_size(fnt);
@@ -304,7 +306,7 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
       pango.pango_layout_set_font_description(layout, fnt);
       pango.pango_layout_get_pixel_size(layout, tw.address(), th.address());
     }
-    F.LOG("tw="+tw.value+" th="+th.value);
+    log.debug("tw="+tw.value+" th="+th.value);
     pango.pango_font_description_free(fnt);
     // center text
     let px = (w-tw.value)/2;
@@ -319,7 +321,7 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
 
     let buf = gdk.gdk_pixbuf_get_from_drawable(null, pmDrawable, null, 0, 0, 0, 0, w, h);
     gobject.g_object_unref(pm);
-    F.LOG("alpha="+alpha);
+    log.debug("alpha="+alpha);
     let alphaRed = gobject.guint16(alpha.red);
     let alphaRed_guchar = ctypes.cast(alphaRed, gobject.guchar);
     let alphaGreen = gobject.guint16(alpha.green);
@@ -335,7 +337,7 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
 
     gtk.gtk_status_icon_set_from_pixbuf(firetray.StatusIcon.trayIcon, dest);
   } catch (x) {
-    F.ERROR(x);
+    log.error(x);
     return false;
   }
 

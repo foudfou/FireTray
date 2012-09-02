@@ -11,7 +11,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
  * License.
- * 
+ *
  * The Original Code is Firetray
  *
  * The Initial Developer of the Original Code is
@@ -43,6 +43,8 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
 var EXPORTED_SYMBOLS  = [ "ctypes_library" ];
+
+let log = firetray.Logger.getLogger("ctypes-utils");
 
 /**
  * Loads a library using ctypes and exports an object on to the specified
@@ -80,7 +82,7 @@ var EXPORTED_SYMBOLS  = [ "ctypes_library" ];
  */
 function ctypes_library(aName, aABIs, aDefines, aGlobal) {
   try {
-    F.LOG("Trying to load library: " + aName);
+    log.debug("Trying to load library: " + aName);
 
     if (typeof(aName) != "string") {
       throw Error("Invalid library name");
@@ -110,19 +112,19 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     var library;
     for each (let abi in aABIs) {
       let soname = "lib" + aName + ".so." + abi.toString();
-      F.LOG("Trying " + soname);
+      log.debug("Trying " + soname);
       try {
         library = ctypes.open(soname);
         this.ABI = abi;
-        F.LOG("Successfully loaded " + soname);
+        log.debug("Successfully loaded " + soname);
         break;
       } catch(e) {
-          F.ERROR(soname+" unfound.");
+          log.error(soname+" unfound.");
       }
     }
 
     this.close = function() {
-      F.LOG("Closing library " + aName);
+      log.debug("Closing library " + aName);
       library.close();
       this.ABI = -1;
 
@@ -131,7 +133,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
         return;
       }
 
-      F.LOG("Unloading JS module " + aGlobal.__URI__);
+      log.debug("Unloading JS module " + aGlobal.__URI__);
       Cu.unload(aGlobal.__URI__);
     };
 
@@ -140,7 +142,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     };
 
     if (!library) {
-      F.LOG("Failed to load library: " + aName);
+      log.debug("Failed to load library: " + aName);
       this.ABI = -1;
       return;
     }
@@ -159,7 +161,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
           return library.declare.apply(library, args);
         } catch (ex) {
           Cu.reportError(ex);
-          F.ERROR("Missing symbol " + arguments[0] + " in library " + aName);
+          log.error("Missing symbol " + arguments[0] + " in library " + aName);
           self.ABI = -1;
           return null;
         }
@@ -182,7 +184,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     aGlobal[aGlobal.EXPORTED_SYMBOLS[0]] = this;
   } catch(e) {
     Cu.reportError(e);
-    F.ERROR(aName+" definition error: "+e);
+    log.error(aName+" definition error: "+e);
     this.ABI = -1;
   }
 }

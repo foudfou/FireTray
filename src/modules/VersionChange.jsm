@@ -7,6 +7,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/AddonManager.jsm");
 Cu.import("resource://firetray/commons.js");
 
+let log = firetray.Logger.getLogger("VersionChange");
 
 /**
  * handles version changes.
@@ -23,7 +24,7 @@ var VersionChange = {
   watch: function() {
     AddonManager.addAddonListener(this.uninstallListener);
     AddonManager.getAddonByID(FIRETRAY_ID, this.onVersionChange.bind(this));
-    F.LOG("version change watching enabled");
+    log.debug("version change watching enabled");
   },
 
   // we need to remove pref 'installedVersion' on uninstalling to be able to
@@ -42,13 +43,13 @@ var VersionChange = {
   },
 
   onVersionChange: function(addon) {
-    F.LOG("VERSION: "+addon.version);
+    log.debug("VERSION: "+addon.version);
 
     this.curVersion = addon.version;
     var firstrun = firetray.Utils.prefService.getBoolPref("firstrun");
 
     if (firstrun) {
-      F.LOG("FIRST RUN");
+      log.debug("FIRST RUN");
       this.initPrefs();
       this.installHook(this.curVersion);
 
@@ -58,12 +59,12 @@ var VersionChange = {
         var versionDelta = this.versionComparator.compare(this.curVersion, installedVersion);
         if (versionDelta > 0) {
           firetray.Utils.prefService.setCharPref("installedVersion", this.curVersion);
-          F.LOG("UPGRADE");
+          log.debug("UPGRADE");
           this.upgradeHook(this.curVersion);
         }
 
       } catch (ex) {
-        F.LOG("REINSTALL");
+        log.debug("REINSTALL");
         this.initPrefs();
         this.reinstallHook(this.curVersion);
       }

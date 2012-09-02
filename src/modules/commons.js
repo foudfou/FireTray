@@ -3,7 +3,7 @@
 /* for now, logging facilities (imported from logging.jsm) are automatically
    provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "F", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
+  [ "firetray", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
     "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
     "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
     "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
@@ -11,7 +11,9 @@ var EXPORTED_SYMBOLS =
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS",
     "FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS",
-    "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD", "FIRETRAY_MESSAGE_COUNT_TYPE_NEW" ];
+    "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD", "FIRETRAY_MESSAGE_COUNT_TYPE_NEW",
+    "FIRETRAY_FIREFOX_ID", "FIRETRAY_THUNDERBIRD_ID", "FIRETRAY_SONGBIRD_ID",
+    "FIRETRAY_SUNBIRD_ID", "FIRETRAY_SEAMONKEY_ID", "FIRETRAY_CHATZILLA_ID" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -37,17 +39,12 @@ const FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS   = 15*60*1000;
 const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD = 0;
 const FIRETRAY_MESSAGE_COUNT_TYPE_NEW    = 1;
 
-if ("undefined" == typeof(F)) {
-  var F = {};                   // helper wrapper
-};
-
-F.FIREFOX_ID     = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
-F.THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
-F.SONGBIRD_ID    = "songbird@songbirdnest.com";
-F.SUNBIRD_ID     = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-F.SEAMONKEY_ID   = "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}";
-F.CHATZILLA_ID   = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
-
+const FIRETRAY_FIREFOX_ID     = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+const FIRETRAY_THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
+const FIRETRAY_SONGBIRD_ID    = "songbird@songbirdnest.com";
+const FIRETRAY_SUNBIRD_ID     = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
+const FIRETRAY_SEAMONKEY_ID   = "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}";
+const FIRETRAY_CHATZILLA_ID   = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
 
 /**
  * firetray namespace.
@@ -55,6 +52,8 @@ F.CHATZILLA_ID   = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
 if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
+
+let log = firetray.Logger.getLogger("firetray.commons");
 
 firetray.Utils = {
   prefService: Services.prefs.getBranch("extensions.firetray."),
@@ -65,16 +64,16 @@ firetray.Utils = {
       var objPref = JSON.parse(
         firetray.Utils.prefService.getCharPref(prefStr));
     } catch (x) {
-      F.ERROR(x);
+      log.error(x);
     }
     return objPref;
   },
   setObjPref: function(prefStr, obj) {
-    F.LOG(obj);
+    log.debug(obj);
     try {
       firetray.Utils.prefService.setCharPref(prefStr, JSON.stringify(obj));
     } catch (x) {
-      F.ERROR(x);
+      log.error(x);
     }
   },
 
@@ -91,7 +90,7 @@ firetray.Utils = {
   QueryInterfaces: function(obj) {
     for each (i in Components.interfaces)
       try {
-        if (obj instanceof i) F.LOG (i);
+        if (obj instanceof i) log.debug (i);
       } catch(x) {}
   },
 
@@ -104,7 +103,7 @@ firetray.Utils = {
     let registeryValue = Cc['@mozilla.org/chrome/chrome-registry;1']
       .getService(Ci.nsIChromeRegistry)
       .convertChromeURL(uri).spec;
-    F.LOG(registeryValue);
+    log.debug(registeryValue);
 
     if (/^file:/.test(registeryValue))
       registeryValue = this._urlToPath(registeryValue);
@@ -132,7 +131,7 @@ firetray.Utils = {
         str += "obj["+i+"]: Unavailable\n";
       }
     }
-    F.LOG(str);
+    log.debug(str);
   },
 
   _nsResolver: function(prefix) {
@@ -152,9 +151,9 @@ firetray.Utils = {
       var result = doc.evaluate(xpath, ref, that._nsResolver,
                                 XPathResult.ANY_TYPE, null);
     } catch (x) {
-      F.ERROR(x);
+      log.error(x);
     }
-    F.LOG("XPathResult="+result.resultType);
+    log.debug("XPathResult="+result.resultType);
 
     switch (result.resultType) {
     case XPathResult.NUMBER_TYPE:
@@ -168,7 +167,7 @@ firetray.Utils = {
     var list = [];
     try {
       for (let node = result.iterateNext(); node; node = result.iterateNext()) {
-        F.LOG("node="+node.nodeName);
+        log.debug("node="+node.nodeName);
         switch (node.nodeType) {
         case node.ATTRIBUTE_NODE:
           list.push(node.value);
@@ -181,7 +180,7 @@ firetray.Utils = {
         }
       }
     } catch (x) {
-      F.ERROR(x);
+      log.error(x);
     }
 
     return list;
@@ -200,7 +199,7 @@ firetray.Utils = {
         if (lib.available())
           lib.close();
       });
-    } catch(x) { F.ERROR(x); }
+    } catch(x) { log.error(x); }
   }
 
 };
