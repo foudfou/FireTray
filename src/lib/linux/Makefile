@@ -14,7 +14,7 @@ libs = firetray_$(platform)-gcc$(GCCVERSION).so
 all: $(libs)
 	@echo
 	@echo add this line to chrome.manifest:
-	@echo -e "resource\tfiretray-lib\t\t\tlib/linux/$(libs)"
+	@echo "resource	firetray-lib			lib/linux/$(libs)"
 	@echo
 	@echo and use
 	@echo 'Cu.import("resource://firetray/ctypes/libfiretray.jsm");'
