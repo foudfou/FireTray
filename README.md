@@ -89,4 +89,4 @@ Acknowledgment
   [Nils Maier](https://addons.mozilla.org/fr/firefox/addon/minimizetotray-revived/
   "MinToTrayR addon page").
 * kind support from Neil Deaking, Bobby Holley
-
+* default icons borrowed from Mozilla and Pidgin

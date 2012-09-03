@@ -17,6 +17,7 @@ Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
 Cu.import("resource://firetray/commons.js");
+firetray.Handler.subscribeLibsForClosing([cairo, gobject, gdk, gio, gtk, pango, pangocairo]);
 
 let log = firetray.Logger.getLogger("firetray.StatusIcon");
 
@@ -25,7 +26,7 @@ if ("undefined" == typeof(firetray.Handler))
 
 
 firetray.StatusIcon = {
-  GTK_THEME_ICON_PATH: null,
+  FILENAME_BLANK: null,
 
   initialized: false,
   callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
@@ -38,26 +39,16 @@ firetray.StatusIcon = {
   defaultNewMailIconName: null,
 
   init: function() {
+    this.FILENAME_BLANK = firetray.Utils.chromeToPath(
+      "chrome://firetray/skin/blank-icon.png");
+
+    Cu.import("resource://firetray/linux/FiretrayGtkIcons.jsm");
+    firetray.GtkIcons.init();
     this.defineIconNames();
+    this.loadThemedIcons();
 
-    try {
-      this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath("chrome://firetray/skin/linux/icons");
-      log.debug(this.GTK_THEME_ICON_PATH);
-      let gtkIconTheme = gtk.gtk_icon_theme_get_default();
-      log.debug("gtkIconTheme="+gtkIconTheme);
-      gtk.gtk_icon_theme_append_search_path(gtkIconTheme, this.GTK_THEME_ICON_PATH);
-
-      this.loadThemedIcons();
-
-      this.trayIcon  = gtk.gtk_status_icon_new();
-
-    } catch (x) {
-      log.error(x);
-      return false;
-    }
-
+    this.trayIcon = gtk.gtk_status_icon_new();
     firetray.Handler.setIconImageDefault();
-
     firetray.Handler.setIconTooltipDefault();
 
     Cu.import("resource://firetray/linux/FiretrayPopupMenu.jsm");
@@ -71,8 +62,10 @@ firetray.StatusIcon = {
   },
 
   shutdown: function() {
+    log.debug("Disabling StatusIcon");
     firetray.PopupMenu.shutdown();
-    firetray.Utils.tryCloseLibs([cairo, gobject, gdk, gio, gtk, pango, pangocairo]);
+    // FIXME: should destroy/hide icon here
+    firetray.GtkIcons.shutdown();
     this.initialized = false;
   },
 
@@ -245,7 +238,8 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
 
   try {
     // build background from image
-    let specialIcon = gdk.gdk_pixbuf_new_from_file(this.FILENAME_BLANK, null); // GError **error);
+    let specialIcon = gdk.gdk_pixbuf_new_from_file(
+      firetray.StatusIcon.FILENAME_BLANK, null); // GError **error);
     let dest = gdk.gdk_pixbuf_copy(specialIcon);
     let w = gdk.gdk_pixbuf_get_width(specialIcon);
     let h = gdk.gdk_pixbuf_get_height(specialIcon);

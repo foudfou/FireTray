@@ -29,21 +29,20 @@ let log = firetray.Logger.getLogger("firetray.Handler");
 // other global functions
 // (https://developer.mozilla.org/en/XUL_School/JavaScript_Object_Management)
 firetray.Handler = {
-  FILENAME_DEFAULT: null,
-  FILENAME_SUFFIX: "32.png",
-  FILENAME_BLANK: null,
-  FILENAME_NEWMAIL: null,
 
   initialized: false,
-  inMailApp: false,
   inBrowserApp: false,
+  inMailApp: false,
   appStarted: false,
   windows: {},
   windowsCount: 0,
   visibleWindowsCount: 0,
+  observedTopics: {},
+  ctypesLibs: {},               // {"lib1": lib1, "lib2": lib2}
 
   appId:      (function(){return Services.appinfo.ID;})(),
   appName:    (function(){return Services.appinfo.name;})(),
+  appStartupTopic: null,
   runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
   runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
   addonRootDir: (function(){
@@ -79,12 +78,14 @@ firetray.Handler = {
       this.inBrowserApp = true;
     log.debug('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
 
-    this.FILENAME_DEFAULT = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/" +  this.appName.toLowerCase() + this.FILENAME_SUFFIX);
-    this.FILENAME_BLANK = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/blank-icon.png");
-    this.FILENAME_NEWMAIL = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/message-mail-new.png");
+    this.appStartupTopic = this.getAppStartupTopic(this.appId);
+
+    VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
+    VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailNotificationType);
+    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailServerTypes);
+    VersionChange.applyHooksAndWatchUninstall();
 
     firetray.StatusIcon.init();
     firetray.Handler.showHideIcon();
@@ -103,19 +104,8 @@ firetray.Handler = {
       }
     }
 
-    Services.obs.addObserver(this, this.getAppStartupTopic(this.appId), false);
-    Services.obs.addObserver(this, "xpcom-will-shutdown", false);
-    Services.obs.addObserver(this, "profile-change-teardown", false);
-
-    let welcome = function(ver) {
-      firetray.Handler.openTab(FIRETRAY_SPLASH_PAGE+"#v"+ver);
-      firetray.Handler.tryEraseOldOptions();
-      firetray.Handler.correctMailNotificationType();
-    };
-    VersionChange.setInstallHook(welcome);
-    VersionChange.setUpgradeHook(welcome);
-    VersionChange.setReinstallHook(welcome);
-    VersionChange.watch();
+    firetray.Utils.addObservers(firetray.Handler, [ this.appStartupTopic,
+      "xpcom-will-shutdown", "profile-change-teardown" ]);
 
     this.preventWarnOnClose();
 
@@ -124,21 +114,38 @@ firetray.Handler = {
   },
 
   shutdown: function() {
+    log.debug("Disabling Handler");
     firetray.PrefListener.unregister();
 
     if (this.inMailApp)
       firetray.Messaging.shutdown();
     firetray.StatusIcon.shutdown();
     firetray.Window.shutdown();
-    // watchout order and sufficiency of lib closings (tryCloseLibs())
+    this.tryCloseLibs();
 
-    Services.obs.removeObserver(this, this.getAppStartupTopic(this.appId), false);
-    Services.obs.removeObserver(this, "xpcom-will-shutdown", false);
-    Services.obs.removeObserver(this, "profile-change-teardown", false);
+    firetray.Utils.removeAllObservers(this);
 
     this.appStarted = false;
     this.initialized = false;
     return true;
+  },
+
+  tryCloseLibs: function() {
+    try {
+      for (libName in this.ctypesLibs) {
+        let lib = this.ctypesLibs[libName];
+        if (lib.available())
+          lib.close();
+      };
+    } catch(x) { log.error(x); }
+  },
+
+  subscribeLibsForClosing: function(libs) {
+    for (let i=0, len=libs.length; i<len; ++i) {
+      let lib = libs[i];
+      if (!this.ctypesLibs.hasOwnProperty(lib.name))
+        this.ctypesLibs[lib.name] = lib;
+    }
   },
 
   observe: function(subject, topic, data) {
@@ -194,6 +201,7 @@ firetray.Handler = {
   showWindow: function(winId) {},
   showHideAllWindows: function() {},
   activateLastWindow: function(gtkStatusIcon, gdkEvent, userData) {},
+  findActiveWindow: function() {},
 
   showAllWindows: function() {
     log.debug("showAllWindows");
@@ -294,75 +302,6 @@ firetray.Handler = {
     } catch (x) { log.error(x); }
   },
 
-  openTab: function(url) {
-    if (this.appId === FIRETRAY_THUNDERBIRD_ID)
-      this.openMailTab(url);
-    else if (this.appId === FIRETRAY_FIREFOX_ID || this.appId === FIRETRAY_SEAMONKEY_ID)
-      this.openBrowserTab(url);
-    else
-      log.error("unsupported application");
-  },
-
-  openMailTab: function(url) {
-    let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
-    if (mail3PaneWindow) {
-      var tabmail = mail3PaneWindow.document.getElementById("tabmail");
-      mail3PaneWindow.focus();
-    }
-
-    if (tabmail) {
-      firetray.Utils.timer(function() {
-        log.debug("openMailTab");
-        tabmail.openTab("contentTab", {contentPage: url});
-      }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
-    }
-  },
-
-  openBrowserTab: function(url) {
-    let win = Services.wm.getMostRecentWindow("navigator:browser");
-    log.debug("WIN="+win);
-    if (win) {
-      var mainWindow = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-            .getInterface(Components.interfaces.nsIWebNavigation)
-            .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
-            .rootTreeItem
-            .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-            .getInterface(Components.interfaces.nsIDOMWindow);
-
-      mainWindow.setTimeout(function(win){
-        log.debug("openBrowser");
-        mainWindow.gBrowser.selectedTab = mainWindow.gBrowser.addTab(url);
-      }, 1000);
-    }
-  },
-
-  tryEraseOldOptions: function() {
-    let v03Options = [
-      "close_to_tray", "minimize_to_tray", "start_minimized", "confirm_exit",
-      "restore_to_next_unread", "mail_count_type", "show_mail_count",
-      "dont_count_spam", "dont_count_archive", "dont_count_drafts",
-      "dont_count_sent", "dont_count_templates", "show_mail_notification",
-      "show_icon_only_minimized", "use_custom_normal_icon",
-      "use_custom_special_icon", "custom_normal_icon", "custom_special_icon",
-      "text_color", "scroll_to_hide", "scroll_action", "grab_multimedia_keys",
-      "hide_show_mm_key", "accounts_to_exclude" ];
-    let v040b2Options = [ 'mail_notification' ];
-    let oldOptions = v03Options.concat(v040b2Options);
-
-    for (let i = 0, length = oldOptions.length; i<length; ++i) {
-      try {
-        firetray.Utils.prefService.clearUserPref(oldOptions[i]);
-      } catch (x) {}
-    }
-  },
-
-  correctMailNotificationType: function() {
-    if (firetray.Utils.prefService.getIntPref('message_count_type') ===
-        FIRETRAY_MESSAGE_COUNT_TYPE_NEW)
-      firetray.Utils.prefService.setIntPref('mail_notification_type',
-        FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
-  },
-
   quitApplication: function() {
     try {
       firetray.Utils.timer(function() {
@@ -421,3 +360,94 @@ firetray.PrefListener = new PrefListener(
     default:
     }
   });
+
+
+firetray.VersionChangeHandler = {
+
+  showReleaseNotes: function() {
+    firetray.VersionChangeHandler.openTab(FIRETRAY_SPLASH_PAGE+"#v"+FIRETRAY_VERSION);
+  },
+
+  openTab: function(url) {
+    if (this.appId === FIRETRAY_THUNDERBIRD_ID)
+      this.openMailTab(url);
+    else if (this.appId === FIRETRAY_FIREFOX_ID || this.appId === FIRETRAY_SEAMONKEY_ID)
+      this.openBrowserTab(url);
+    else
+      log.error("unsupported application");
+  },
+
+  openMailTab: function(url) {
+    let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
+    if (mail3PaneWindow) {
+      var tabmail = mail3PaneWindow.document.getElementById("tabmail");
+      mail3PaneWindow.focus();
+    }
+
+    if (tabmail) {
+      firetray.Utils.timer(function() {
+        log.debug("openMailTab");
+        tabmail.openTab("contentTab", {contentPage: url});
+      }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+    }
+  },
+
+  openBrowserTab: function(url) {
+    let win = Services.wm.getMostRecentWindow("navigator:browser");
+    log.debug("WIN="+win);
+    if (win) {
+      var mainWindow = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+            .getInterface(Components.interfaces.nsIWebNavigation)
+            .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+            .rootTreeItem
+            .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+            .getInterface(Components.interfaces.nsIDOMWindow);
+
+      mainWindow.setTimeout(function(win){
+        log.debug("openBrowser");
+        mainWindow.gBrowser.selectedTab = mainWindow.gBrowser.addTab(url);
+      }, 1000);
+    }
+  },
+
+  tryEraseOldOptions: function() {
+    let v03Options = [
+      "close_to_tray", "minimize_to_tray", "start_minimized", "confirm_exit",
+      "restore_to_next_unread", "mail_count_type", "show_mail_count",
+      "dont_count_spam", "dont_count_archive", "dont_count_drafts",
+      "dont_count_sent", "dont_count_templates", "show_mail_notification",
+      "show_icon_only_minimized", "use_custom_normal_icon",
+      "use_custom_special_icon", "custom_normal_icon", "custom_special_icon",
+      "text_color", "scroll_to_hide", "scroll_action", "grab_multimedia_keys",
+      "hide_show_mm_key", "accounts_to_exclude" ];
+    let v040b2Options = [ 'mail_notification' ];
+    let oldOptions = v03Options.concat(v040b2Options);
+
+    for (let i = 0, length = oldOptions.length; i<length; ++i) {
+      try {
+        let option = oldOptions[i];
+        firetray.Utils.prefService.clearUserPref(option);
+      } catch (x) {}
+    }
+  },
+
+  correctMailNotificationType: function() {
+    if (firetray.Utils.prefService.getIntPref('message_count_type') ===
+        FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
+      firetray.Utils.prefService.setIntPref('mail_notification_type',
+        FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
+      log.warn("mail notification type set to newmail icon.");
+    }
+  },
+  correctMailServerTypes: function() {
+    let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
+    let serverTypes = mailAccounts["serverTypes"];
+    if (!serverTypes["exquilla"]) {
+      serverTypes["exquilla"] = {"order":6,"excluded":true};
+      let prefObj = {"serverTypes":serverTypes, "excludedAccounts":mailAccounts["excludedAccounts"]};
+      firetray.Utils.setObjPref('mail_accounts', prefObj);
+      log.warn("mail server types corrected");
+    }
+  }
+
+};

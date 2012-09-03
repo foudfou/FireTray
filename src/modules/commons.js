@@ -1,13 +1,15 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-/* for now, logging facilities (imported from logging.jsm) are automatically
-   provided by this module */
+/* for now, logging facilities (imported from logging.jsm) and Services are
+   automatically provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "FIRETRAY_ID", "FIRETRAY_SPLASH_PAGE",
-    "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
+  [ "firetray", "FIRETRAY_ID", "FIRETRAY_VERSION", "FIRETRAY_PREF_BRANCH",
+    "FIRETRAY_SPLASH_PAGE", "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
     "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
     "FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
+    "FIRETRAY_IM_STATUS_AVAILABLE", "FIRETRAY_IM_STATUS_AWAY",
+    "FIRETRAY_IM_STATUS_BUSY", "FIRETRAY_IM_STATUS_OFFLINE",
     "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS",
     "FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS",
@@ -22,22 +24,29 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
+const FIRETRAY_VERSION     = "0.4.2"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
 const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
 const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
 
-const FIRETRAY_APPLICATION_ICON_TYPE_THEMED      = 0;
-const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM      = 1;
+const FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
+const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM = 1;
+
+const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD         = 0;
+const FIRETRAY_MESSAGE_COUNT_TYPE_NEW            = 1;
 
 const FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT = 0;
 const FIRETRAY_NOTIFICATION_NEWMAIL_ICON         = 1;
 const FIRETRAY_NOTIFICATION_CUSTOM_ICON          = 2;
 
+const FIRETRAY_IM_STATUS_AVAILABLE = "user-available";
+const FIRETRAY_IM_STATUS_AWAY      = "user-away";
+const FIRETRAY_IM_STATUS_BUSY      = "user-busy";
+const FIRETRAY_IM_STATUS_OFFLINE   = "user-offline";
+
 const FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS = 500;
 const FIRETRAY_DELAY_NOWAIT_MILLISECONDS          = 0;
 const FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS   = 15*60*1000;
-
-const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD = 0;
-const FIRETRAY_MESSAGE_COUNT_TYPE_NEW    = 1;
 
 const FIRETRAY_FIREFOX_ID     = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
 const FIRETRAY_THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
@@ -56,8 +65,29 @@ if ("undefined" == typeof(firetray)) {
 let log = firetray.Logger.getLogger("firetray.commons");
 
 firetray.Utils = {
-  prefService: Services.prefs.getBranch("extensions.firetray."),
+  prefService: Services.prefs.getBranch(FIRETRAY_PREF_BRANCH),
   strings: Services.strings.createBundle("chrome://firetray/locale/overlay.properties"),
+
+  addObservers: function(handler, topics){
+    topics.forEach(function(topic){
+      Services.obs.addObserver(this, topic, false);
+      this.observedTopics[topic] = true;
+      log.debug("registred "+topic+" for "+handler);
+    }, handler);
+  },
+
+  removeObservers: function(handler, topics) {
+    topics.forEach(function(topic){
+      Services.obs.removeObserver(this, topic);
+      delete this.observedTopics[topic];
+    }, handler);
+  },
+
+  removeAllObservers: function(handler) {
+    for (let topic in handler.observedTopics)
+      Services.obs.removeObserver(handler, topic);
+    handler.observedTopics = {};
+  },
 
   getObjPref: function(prefStr) {
     try {
@@ -191,15 +221,6 @@ firetray.Utils = {
     timer.initWithCallback({ notify: callback },
       delay, timerType);
     return timer;
-  },
-
-  tryCloseLibs: function(libs) {
-    try {
-      libs.forEach(function(lib) {
-        if (lib.available())
-          lib.close();
-      });
-    } catch(x) { log.error(x); }
   }
 
 };

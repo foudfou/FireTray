@@ -5,25 +5,38 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/AddonManager.jsm");
-Cu.import("resource://firetray/commons.js");
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://firetray/logging.jsm");
 
 let log = firetray.Logger.getLogger("VersionChange");
 
 /**
  * handles version changes.
- * use setInstallHook(), setUpgradeHook(), setReinstallHook()
  * http://mike.kaply.com/2011/02/02/running-add-on-code-at-first-run-and-upgrade/
  */
 var VersionChange = {
 
-  curVersion: null,
+  initialized:  false,
+  addonId:      null,
+  addonVersion: null,
+  addOnPrefs: null,
+
+  init: function(id, version, prefBranch) {
+    log.debug("VersionChange got: id="+id+" ver="+version+" prefBranch="+prefBranch);
+    this.addOnId = id;
+    this.addonVersion = version;
+    this.addOnPrefs = Services.prefs.getBranch(prefBranch);
+
+    this.initialized = true;
+  },
 
   versionComparator: Cc["@mozilla.org/xpcom/version-comparator;1"]
     .getService(Ci.nsIVersionComparator),
 
-  watch: function() {
+  applyHooksAndWatchUninstall: function() {
+    if (!this.initialized) throw "VersionChange not initialized";
+    this.onVersionChange(this.addonVersion); // AddonManager.getAddonByID() async, whereas we need sync call
     AddonManager.addAddonListener(this.uninstallListener);
-    AddonManager.getAddonByID(FIRETRAY_ID, this.onVersionChange.bind(this));
     log.debug("version change watching enabled");
   },
 
@@ -31,56 +44,74 @@ var VersionChange = {
   // detect reinstall later
   uninstallListener: {
     onUninstalling: function(addon) {
-      if (addon.id !== FIRETRAY_ID) return;
-      firetray.Utils.prefService.clearUserPref("installedVersion");
+      if (addon.id !== this.addonId) return;
+      this.addOnPrefs.clearUserPref("installedVersion");
     },
     onOperationCancelled: function(addon) {
-      if (addon.id !== FIRETRAY_ID) return;
+      if (addon.id !== this.addonId) return;
       let beingUninstalled = (addon.pendingOperations & AddonManager.PENDING_UNINSTALL) != 0;
       if (beingUninstalled)
-        firetray.Utils.prefService.clearUserPref("installedVersion");
+        this.addOnPrefs.clearUserPref("installedVersion");
     }
   },
 
-  onVersionChange: function(addon) {
-    log.debug("VERSION: "+addon.version);
+  onVersionChange: function() {
+    log.debug("VERSION: "+this.addonVersion);
 
-    this.curVersion = addon.version;
-    var firstrun = firetray.Utils.prefService.getBoolPref("firstrun");
+    var firstrun = this.addOnPrefs.getBoolPref("firstrun");
 
     if (firstrun) {
       log.debug("FIRST RUN");
       this.initPrefs();
-      this.installHook(this.curVersion);
+      this._applyHooks("install");
 
     } else {
       try {
-        var installedVersion = firetray.Utils.prefService.getCharPref("installedVersion");
-        var versionDelta = this.versionComparator.compare(this.curVersion, installedVersion);
+        var installedVersion = this.addOnPrefs.getCharPref("installedVersion");
+        var versionDelta = this.versionComparator.compare(this.addonVersion, installedVersion);
         if (versionDelta > 0) {
-          firetray.Utils.prefService.setCharPref("installedVersion", this.curVersion);
+          this.addOnPrefs.setCharPref("installedVersion", this.addonVersion);
           log.debug("UPGRADE");
-          this.upgradeHook(this.curVersion);
+          this._applyHooks("upgrade");
         }
 
       } catch (ex) {
         log.debug("REINSTALL");
         this.initPrefs();
-        this.reinstallHook(this.curVersion);
+        this._applyHooks("reinstall");
       }
     }
+
   },
 
   initPrefs: function() {
-    firetray.Utils.prefService.setBoolPref("firstrun", false);
-    firetray.Utils.prefService.setCharPref("installedVersion", VersionChange.curVersion);
+    this.addOnPrefs.setBoolPref("firstrun", false);
+    this.addOnPrefs.setCharPref("installedVersion", VersionChange.addonVersion);
   },
 
-  installHook: function(ver){},
-  upgradeHook: function(ver){},
-  reinstallHook: function(ver){},
-  setInstallHook: function(fun) {this.installHook = fun;},
-  setUpgradeHook: function(fun) {this.upgradeHook = fun;},
-  setReinstallHook: function(fun) {this.reinstallHook = fun;}
+  _hooks: [], // collection of callbacks {id: 1, categories: [], fun: function}
+
+  addHook: function(categories, fun) {
+    if (Object.prototype.toString.call(categories) !== "[object Array]") throw new TypeError();
+    let id = this._hooks.push({})-1;
+    this._hooks[id] = {id: id, categories: categories, fun: fun};
+    return id;
+  },
+
+  removeHook: function(id) {return this._hooks[id].splice(id-1, 1);},
+  removeCategoryFromHook: function(category, id) {
+    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+  },
+
+  _applyHooks: function(category) {
+    try {
+      log.debug("_hooks.len="+this._hooks.length+" category="+category);
+      for (let i=0,len=this._hooks.length; i<len; ++i) {
+        let cb = this._hooks[i];
+        if (cb.categories.indexOf(category) > -1) cb.fun();
+        else log.debug("cb id="+cb.id+" not in category: "+cb.categories+"\n"+cb.fun);
+      }
+    } catch(x){log.error(x);}
+  }
 
 };

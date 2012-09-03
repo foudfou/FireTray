@@ -1,4 +1,4 @@
-/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  *	 Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -89,6 +89,7 @@ function gobject_defines(lib) {
   this.guint16 = ctypes.uint16_t;
   this.gint = ctypes.int;
   this.gint8 = ctypes.int8_t;
+  this.gint16 = ctypes.int16_t;
   this.gchar = ctypes.char;
   this.guchar = ctypes.unsigned_char;
   this.gboolean = this.gint;
@@ -151,6 +152,8 @@ function gobject_defines(lib) {
   lib.lazy_bind("g_signal_handler_block", ctypes.void_t, this.gpointer, this.gulong);
   lib.lazy_bind("g_signal_handler_unblock", ctypes.void_t, this.gpointer, this.gulong);
 
+  /* NOTE: we can't easily work with g_object_get_property() because it uses
+  GValue, which is an opaque struct, and thus can't be initialized by ctypes */
 }
 
 new ctypes_library(GOBJECT_LIBNAME, GOBJECT_ABIS, gobject_defines, this);

@@ -30,6 +30,7 @@
       <preference id="pref_app_icon_filename" name="extensions.firetray.app_icon_filename" type="string"/>
       <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
+      <preference id="pref_chat_icon_enable" name="extensions.firetray.chat_icon_enable" type="bool" />
       <preference id="pref_mail_notification_enabled" name="extensions.firetray.mail_notification_enabled" type="bool" />
       <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
       <preference id="pref_only_favorite_folders" name="extensions.firetray.only_favorite_folders" type="bool" />
@@ -45,6 +46,7 @@
         <tab label="&windows_options;"/>
         <tab label="&icon_options;"/>
         <tab label="&mail_options;" id="mail_tab" />
+        <tab label="&chat_options;" />
       </tabs>
       <tabpanels flex="1">
 
@@ -52,27 +54,27 @@
           <vbox pack="start" align="left" flex="1">
 
             <checkbox id="ui_hides_on_close" preference="pref_hides_on_close"
-                      label="&bool_hides_on_close.label;"
-                      accesskey="&bool_hides_on_close.accesskey;"
+                      label="&hides_on_close.label;"
+                      accesskey="&hides_on_close.accesskey;"
                       oncommand="firetrayUIOptions.updateWindowAndIconOptions();"/>
             <checkbox id="ui_hides_on_minimize" preference="pref_hides_on_minimize"
-                      label="&bool_hides_on_minimize.label;"
-                      accesskey="&bool_hides_on_minimize.accesskey;"
+                      label="&hides_on_minimize.label;"
+                      accesskey="&hides_on_minimize.accesskey;"
                       oncommand="firetrayUIOptions.updateWindowAndIconOptions();"/>
             <checkbox id="ui_hides_single_window" preference="pref_hides_single_window"
-                      label="&bool_hides_single_window.label;"
-                      accesskey="&bool_hides_single_window.accesskey;"
-                      tooltiptext="&bool_hides_single_window.tooltip;"/>
+                      label="&hides_single_window.label;"
+                      accesskey="&hides_single_window.accesskey;"
+                      tooltiptext="&hides_single_window.tooltip;"/>
             <checkbox id="ui_start_hidden" preference="pref_start_hidden"
-                      label="&bool_start_hidden.label;"
-                      accesskey="&bool_start_hidden.accesskey;"/>
+                      label="&start_hidden.label;"
+                      accesskey="&start_hidden.accesskey;"/>
             <checkbox id="ui_show_activates" preference="pref_show_activates"
-                      label="&bool_show_activates.label;"
-                      accesskey="&bool_show_activates.accesskey;"
-                      tooltiptext="&bool_show_activates.tooltip;"/>
+                      label="&show_activates.label;"
+                      accesskey="&show_activates.accesskey;"
+                      tooltiptext="&show_activates.tooltip;"/>
             <checkbox id="ui_remember_desktop" preference="pref_remember_desktop"
-                      label="&bool_remember_desktop.label;"
-                      accesskey="&bool_remember_desktop.accesskey;"/>
+                      label="&remember_desktop.label;"
+                      accesskey="&remember_desktop.accesskey;"/>
 
           </vbox>
         </tabpanel>
@@ -114,8 +116,8 @@
             </radiogroup>
 
             <checkbox id="ui_show_icon_on_hide" preference="pref_show_icon_on_hide"
-                      label="&bool_show_icon_on_hide.label;"
-                      accesskey="&bool_show_icon_on_hide.accesskey;"/>
+                      label="&show_icon_on_hide.label;"
+                      accesskey="&show_icon_on_hide.accesskey;"/>
 
             <checkbox id="ui_scroll_hides" preference="pref_scroll_hides"
                       label="&enable_mouse_scroll.label;"
@@ -282,6 +284,17 @@
             </tree>
 
           </groupbox>
+
+          </vbox>
+        </tabpanel>
+
+        <tabpanel id="chat_tabpanel" flex="1">
+          <vbox align="left" flex="1">
+
+            <checkbox id="ui_chat_icon_enable" preference="pref_chat_icon_enable"
+                      label="&chat_icon_enable.label;"
+                      accesskey="&chat_icon_enable.accesskey;"
+                      oncommand="firetrayUIOptions.toggleChat(this.checked);"/>
 
           </vbox>
         </tabpanel>

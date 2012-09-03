@@ -237,6 +237,12 @@ function gdk_defines(lib) {
     { "x_root": gobject.gdouble },
     { "y_root": gobject.gdouble }
   ]);
+  this.GdkEventFocus = ctypes.StructType("GdkEventFocus", [
+    { "type": this.GdkEventType },
+    { "window": this.GdkWindow.ptr },
+    { "send_event": gobject.gint8 },
+    { "in": gobject.gint16 },
+  ]);
 
   this.GdkFilterFunc_t = ctypes.FunctionType(
     ctypes.default_abi, this.GdkFilterReturn,

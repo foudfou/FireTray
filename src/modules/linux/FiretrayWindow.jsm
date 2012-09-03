@@ -23,6 +23,7 @@ Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/libc.jsm");
 Cu.import("resource://firetray/ctypes/linux/x11.jsm");
 Cu.import("resource://firetray/commons.js");
+firetray.Handler.subscribeLibsForClosing([gobject, gdk, gtk, libc, x11, glib]);
 
 let log = firetray.Logger.getLogger("firetray.Window");
 
@@ -63,7 +64,6 @@ firetray.Window = {
   },
 
   shutdown: function() {
-    firetray.Utils.tryCloseLibs([gobject, gdk, gtk, libc, x11, glib]);
     this.initialized = false;
   },
 
@@ -588,6 +588,11 @@ firetray.Handler.registerWindow = function(win) {
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
 
+    if (firetray.Handler.inMailApp && firetray.Chat.initialized) { // missing import ok
+      Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
+      firetray.ChatStatusIcon.attachOnFocusInCallback(xid);
+    }
+
   } catch (x) {
     firetray.Window.unregisterWindowByXID(xid);
     log.error(x);
@@ -647,6 +652,29 @@ firetray.Handler.activateLastWindow = function(gtkStatusIcon, gdkEvent, userData
 
   let stopPropagation = false;
   return stopPropagation;
+};
+
+/* gtk_window_is_active() not reliable */
+firetray.Handler.findActiveWindow = function() {
+  let rootWin = x11.XDefaultRootWindow(x11.current.Display);
+  let [propsFound, nitems] =
+    firetray.Window.getXWindowProperties(rootWin, x11.current.Atoms._NET_ACTIVE_WINDOW);
+
+  log.debug("ACTIVE_WINDOW propsFound, nitems="+propsFound+", "+nitems);
+  if (!propsFound) return null;
+
+  let activeWin = null;
+  if (firetray.js.strEquals(nitems.value, 0))
+    log.warn("active window not found");
+  else if (firetray.js.strEquals(nitems.value, 1))
+    activeWin = propsFound.contents[0];
+  else
+    throw new RangeError("more than one active window found");
+
+  x11.XFree(propsFound);
+
+  log.debug("ACTIVE_WINDOW="+activeWin);
+  return activeWin;
 };
 
 

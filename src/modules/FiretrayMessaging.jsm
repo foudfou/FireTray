@@ -7,8 +7,10 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/FiretrayChat.jsm");
 
 const FLDRS_UNINTERESTING = {
   Archive:   Ci.nsMsgFolderFlags.Archive,
@@ -29,6 +31,7 @@ firetray.Messaging = {
   cleaningTimer: null,
   currentMsgCount: null,
   newMsgCount: null,
+  observedTopics: {},
 
   init: function() {
     if (this.initialized) {
@@ -37,14 +40,17 @@ firetray.Messaging = {
     }
     log.debug("Enabling Messaging");
 
-    // there is no means to detect account-removed event
-    this.cleaningTimer = firetray.Utils.timer(firetray.Messaging.cleanExcludedAccounts,
-      FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS, Ci.nsITimer.TYPE_REPEATING_SLACK);
-    log.debug(this.cleaningTimer+"="+FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS);
+    firetray.Utils.addObservers(firetray.Messaging, [ "account-added",
+      "account-removed"]);
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                that.mailSessionListener.notificationFlags);
+
+    if (Services.prefs.getBoolPref("mail.chat.enabled") &&
+        firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
+        this.existsChatAccount())
+      firetray.Chat.init();
 
     this.initialized = true;
   },
@@ -53,12 +59,46 @@ firetray.Messaging = {
     if (!this.initialized) return;
     log.debug("Disabling Messaging");
 
-    this.cleaningTimer.cancel();
+    if (firetray.hasOwnProperty('Chat')) firetray.Chat.shutdown();
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
-    firetray.Handler.setIconImageDefault();
+
+    firetray.Utils.removeAllObservers(firetray.Messaging);
 
     this.initialized = false;
+  },
+
+  // FIXME: this should definetely be done in Chat, but IM accounts
+  // seem not be initialized at this stage (Exception... "'TypeError:
+  // this._items is undefined' when calling method:
+  // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
+  // initAccounts() ourselves...
+  existsChatAccount: function() {
+    let accounts = new this.Accounts();
+    for (let accountServer in accounts)
+      if (accountServer.type === 'im')  {
+        log.debug("found im server: "+accountServer.prettyName);
+        return true;
+      }
+
+    return false;
+  },
+
+  observe: function(subject, topic, data) {
+    log.debug("RECEIVED Messaging: "+topic+" subject="+subject+" data="+data);
+    switch (topic) {
+    case "account-removed":
+      this.cleanExcludedAccounts();
+      if (subject.QueryInterface(Ci.imIAccount) && !this.existsChatAccount())
+        firetray.Chat.shutdown();
+      break;
+    case "account-added":
+      if (subject.QueryInterface(Ci.imIAccount) && !firetray.Chat.initialized)
+        firetray.Chat.init();
+      break;
+    default:
+      log.warn("unhandled topic: "+topic);
+    }
   },
 
   /* removes removed accounts from excludedAccounts pref. NOTE: Can't be called
@@ -92,6 +132,8 @@ firetray.Messaging = {
     }
   },
 
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=715799 for TB15+
+  // mozINewMailNotificationService (alternative message counting)
   /* http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsIFolderListener.idl */
   mailSessionListener: {
     notificationFlags:
@@ -236,10 +278,14 @@ firetray.Messaging = {
     this.newMsgCount = 0;
     let accounts = new this.Accounts();
     for (let accountServer in accounts) { // nsIMsgAccount
-      if (!serverTypes[accountServer.type]) {
+
+      if (accountServer.type === 'im') {
+        continue;               // IM messages are counted elsewhere
+      } else if (!serverTypes[accountServer.type]) {
         log.warn("'"+accountServer.type+"' server type is not handled");
         continue;
       }
+
       log.debug("is servertype excluded: "+serverTypes[accountServer.type].excluded+", account exclusion index: "+excludedAccounts.indexOf(accountServer.key));
       if ((serverTypes[accountServer.type].excluded) ||
           (excludedAccounts.indexOf(accountServer.key) >= 0))

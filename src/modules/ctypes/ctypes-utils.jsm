@@ -123,6 +123,8 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
       }
     }
 
+    this.name = aName;
+
     this.close = function() {
       log.debug("Closing library " + aName);
       library.close();

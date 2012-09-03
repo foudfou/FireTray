@@ -12,6 +12,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
+firetray.Handler.subscribeLibsForClosing([gobject, gtk]);
 
 let log = firetray.Logger.getLogger("firetray.PopupMenu");
 
@@ -62,7 +63,7 @@ firetray.PopupMenu = {
   },
 
   shutdown: function() {
-    firetray.Utils.tryCloseLibs([gobject, gtk]);
+    log.debug("Disabling PopupMenu");
     this.initialized = false;
   },
 
