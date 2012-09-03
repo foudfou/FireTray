@@ -31,6 +31,7 @@ firetray.Chat = {
       "unread-im-count-changed"
     ]);
     firetray.ChatStatusIcon.init();
+    this.updateIcon();
 
     this.initialized = true;
   },
