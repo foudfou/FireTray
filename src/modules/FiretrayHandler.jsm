@@ -403,6 +403,7 @@ firetray.PrefListener = new PrefListener(
       break;
     case 'new_mail_icon_names':
       firetray.StatusIcon.loadThemedIcons();
+    case 'only_favorite_folders':
     case 'message_count_type':
     case 'folder_count_recursive':
       firetray.Messaging.updateMsgCountWithCb();
