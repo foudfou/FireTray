@@ -78,12 +78,11 @@ firetray.Handler = {
 
     this.appStartupTopic = this.getAppStartupTopic(this.appId);
 
-    VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
     VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailNotificationType);
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailServerTypes);
-    VersionChange.applyHooksAndWatchUninstall();
+    VersionChange.launch();
 
     firetray.StatusIcon.init();
     firetray.Handler.showHideIcon();

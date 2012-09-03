@@ -6,8 +6,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/AddonManager.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource://firetray/logging.jsm");
-
+Cu.import("resource://firetray/commons.js");
 
 /**
  * handles version changes.
@@ -15,26 +14,21 @@ Cu.import("resource://firetray/logging.jsm");
  */
 var VersionChange = {
 
-  initialized:  false,
-  addonId:      null,
+  initialized: false,
+  addonId: FIRETRAY_ID,
   addonVersion: null,
-  addOnPrefs: null,
+  addonPrefs: (function(){return Services.prefs.getBranch(FIRETRAY_PREF_BRANCH);})(),
 
-  init: function(id, version, prefBranch) {
-    F.LOG("VersionChange got: id="+id+" ver="+version+" prefBranch="+prefBranch);
-    this.addOnId = id;
-    this.addonVersion = version;
-    this.addOnPrefs = Services.prefs.getBranch(prefBranch);
-
-    this.initialized = true;
+  launch: function() {
+    AddonManager.getAddonByID(FIRETRAY_ID, this.applyHooksAndWatchUninstall.bind(this));
   },
 
   versionComparator: Cc["@mozilla.org/xpcom/version-comparator;1"]
     .getService(Ci.nsIVersionComparator),
 
-  applyHooksAndWatchUninstall: function() {
-    if (!this.initialized) throw "VersionChange not initialized";
-    this.onVersionChange(this.addonVersion); // AddonManager.getAddonByID() async, whereas we need sync call
+  applyHooksAndWatchUninstall: function(addon) {
+    this.addonVersion = addon.version;
+    this.onVersionChange(this.addonVersion);
     AddonManager.addAddonListener(this.uninstallListener);
     F.LOG("version change watching enabled");
   },
@@ -44,20 +38,20 @@ var VersionChange = {
   uninstallListener: {
     onUninstalling: function(addon) {
       if (addon.id !== this.addonId) return;
-      this.addOnPrefs.clearUserPref("installedVersion");
+      this.addonPrefs.clearUserPref("installedVersion");
     },
     onOperationCancelled: function(addon) {
       if (addon.id !== this.addonId) return;
       let beingUninstalled = (addon.pendingOperations & AddonManager.PENDING_UNINSTALL) != 0;
       if (beingUninstalled)
-        this.addOnPrefs.clearUserPref("installedVersion");
+        this.addonPrefs.clearUserPref("installedVersion");
     }
   },
 
   onVersionChange: function() {
     F.LOG("VERSION: "+this.addonVersion);
 
-    var firstrun = this.addOnPrefs.getBoolPref("firstrun");
+    var firstrun = this.addonPrefs.getBoolPref("firstrun");
 
     if (firstrun) {
       F.LOG("FIRST RUN");
@@ -66,10 +60,10 @@ var VersionChange = {
 
     } else {
       try {
-        var installedVersion = this.addOnPrefs.getCharPref("installedVersion");
+        var installedVersion = this.addonPrefs.getCharPref("installedVersion");
         var versionDelta = this.versionComparator.compare(this.addonVersion, installedVersion);
         if (versionDelta > 0) {
-          this.addOnPrefs.setCharPref("installedVersion", this.addonVersion);
+          this.addonPrefs.setCharPref("installedVersion", this.addonVersion);
           F.LOG("UPGRADE");
           this._applyHooks("upgrade");
         }
@@ -84,8 +78,8 @@ var VersionChange = {
   },
 
   initPrefs: function() {
-    this.addOnPrefs.setBoolPref("firstrun", false);
-    this.addOnPrefs.setCharPref("installedVersion", VersionChange.addonVersion);
+    this.addonPrefs.setBoolPref("firstrun", false);
+    this.addonPrefs.setCharPref("installedVersion", VersionChange.addonVersion);
   },
 
   _hooks: [], // collection of callbacks {id: 1, categories: [], fun: function}
