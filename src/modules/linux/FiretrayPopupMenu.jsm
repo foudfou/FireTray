@@ -14,7 +14,7 @@ Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gobject, gtk]);
 
-let log = firetray.Logger.getLogger("firetray.PopupMenu");
+let log = firetray.Logging.getLogger("firetray.PopupMenu");
 
 if ("undefined" == typeof(firetray.StatusIcon))
   log.error("This module MUST be imported from/after StatusIcon !");

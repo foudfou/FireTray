@@ -25,7 +25,7 @@ Cu.import("resource://firetray/ctypes/linux/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gobject, gdk, gtk, libc, x11, glib]);
 
-let log = firetray.Logger.getLogger("firetray.Window");
+let log = firetray.Logging.getLogger("firetray.Window");
 
 if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");

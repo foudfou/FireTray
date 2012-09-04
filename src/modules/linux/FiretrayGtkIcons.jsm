@@ -13,7 +13,7 @@ firetray.Handler.subscribeLibsForClosing([gtk]);
 if ("undefined" == typeof(firetray.StatusIcon))
   log.error("This module MUST be imported from/after StatusIcon !");
 
-let log = firetray.Logger.getLogger("firetray.GtkIcons");
+let log = firetray.Logging.getLogger("firetray.GtkIcons");
 
 
 firetray.GtkIcons = {

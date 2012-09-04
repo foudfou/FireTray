@@ -19,7 +19,7 @@ Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([cairo, gobject, gdk, gio, gtk, pango, pangocairo]);
 
-let log = firetray.Logger.getLogger("firetray.StatusIcon");
+let log = firetray.Logging.getLogger("firetray.StatusIcon");
 
 if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");

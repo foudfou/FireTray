@@ -34,7 +34,7 @@ if ("undefined" == typeof(firetray)) {
 };
 
 // https://wiki.mozilla.org/Labs/JS_Modules#Logging
-firetray.Logger = {
+firetray.Logging = {
   initialized: false,
 
   init: function() {
@@ -52,15 +52,15 @@ firetray.Logger = {
       Cu.ReportError(errMsg);
     };
 
-    this.setupLogging();
+    this.setupLogging("firetray");
 
-    let log = this.getLogger("firetray.Logger");
+    let log = this.getLogger("firetray.Logging");
     log.debug("initialized");
 
     this.initialized = true;
   },
 
-  setupLogging: function() {
+  setupLogging: function(loggerName) {
 
     // lifted from log4moz.js
     function SimpleFormatter(dateFormat) {
@@ -113,19 +113,19 @@ firetray.Logger = {
       __proto__: SimpleFormatter.prototype,
 
       format: function(message) {
-        var color = COLOR_NORMAL;
+        let color = COLOR_NORMAL;
+
         switch (message.levelDesc) {
         case "FATAL":  color = COLOR_BOLD_RED; break;
-        case "ERROR":  color = COLOR_RED; break;
-        case "WARN":   color = COLOR_YELLOW; break;
-        case "INFO":   color = COLOR_GREEN; break;
-        case "CONFIG": color = COLOR_MAGENTA; break;
-        case "DEBUG":  color = COLOR_BLUE; break;
-        case "TRACE":  color = COLOR_CYAN_; break;
-        case "ALL":    color = COLOR_NORMAL; break;
+        case "ERROR":  color = COLOR_RED;      break;
+        case "WARN":   color = COLOR_YELLOW;   break;
+        case "INFO":   color = COLOR_GREEN;    break;
+        case "CONFIG": color = COLOR_MAGENTA;  break;
+        case "DEBUG":  color = COLOR_BLUE;     break;
+        case "TRACE":  color = COLOR_CYAN_;    break;
+        case "ALL":    color = COLOR_NORMAL;   break;
         default:
         };
-
 
         let stringLog = SimpleFormatter.prototype.format.call(this, message);
         stringLog = color + stringLog + COLOR_RESET;
@@ -134,28 +134,29 @@ firetray.Logger = {
       }
     };
 
-    // Loggers are hierarchical, lowering this log level will affect all output
-    let root = Log4Moz.repository.rootLogger;
-    root.level = Log4Moz.Level["All"];
+    // Loggers are hierarchical, affiliation is handled by a '.' in the name.
+    this._logger = Log4Moz.repository.getLogger(loggerName);
+    // Lowering this log level will affect all of our addon output
+    this._logger.level = Log4Moz.Level["All"];
 
     // A console appender outputs to the JS Error Console
     let dateFormat = "%T";
     let simpleFormatter = new SimpleFormatter(dateFormat);
     let capp = new Log4Moz.ConsoleAppender(simpleFormatter);
     capp.level = Log4Moz.Level["Debug"];
-    root.addAppender(capp);
+    this._logger.addAppender(capp);
 
     // A dump appender outputs to standard out
     let colorFormatter = new ColorTermFormatter(dateFormat);
     let dapp = new Log4Moz.DumpAppender(colorFormatter);
     dapp.level = Log4Moz.Level["Debug"];
-    root.addAppender(dapp);
+    this._logger.addAppender(dapp);
   },
 
   getLogger: function(loggerName){
     return Log4Moz.repository.getLogger(loggerName);
   }
 
-};
+};                              // firetray.Logging
 
-firetray.Logger.init();
+firetray.Logging.init();

@@ -8,7 +8,7 @@ Cu.import("resource://gre/modules/AddonManager.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-let log = firetray.Logger.getLogger("VersionChange");
+let log = firetray.Logging.getLogger("firetray.VersionChange");
 
 /**
  * handles version changes.

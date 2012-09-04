@@ -44,7 +44,7 @@ Cu.import("resource://firetray/logging.jsm");
 
 var EXPORTED_SYMBOLS  = [ "ctypes_library" ];
 
-let log = firetray.Logger.getLogger("ctypes-utils");
+let log = firetray.Logging.getLogger("firetray.ctypes-utils");
 
 /**
  * Loads a library using ctypes and exports an object on to the specified

@@ -22,7 +22,7 @@ const FLDRS_UNINTERESTING = {
   Virtual:   Ci.nsMsgFolderFlags.Virtual
 };
 
-let log = firetray.Logger.getLogger("firetray.Messaging");
+let log = firetray.Logging.getLogger("firetray.Messaging");
 
 
 firetray.Messaging = {

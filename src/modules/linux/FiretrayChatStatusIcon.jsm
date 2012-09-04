@@ -20,7 +20,7 @@ firetray.Handler.subscribeLibsForClosing([gobject, gio, gtk]);
 if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");
 
-let log = firetray.Logger.getLogger("firetray.ChatStatusIcon");
+let log = firetray.Logging.getLogger("firetray.ChatStatusIcon");
 
 
 firetray.ChatStatusIcon = {

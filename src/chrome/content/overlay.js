@@ -7,7 +7,7 @@ if ("undefined" == typeof(Cc)) var Cc = Components.classes;
 if ("undefined" == typeof(Ci)) var Ci = Components.interfaces;
 if ("undefined" == typeof(Cu)) var Cu = Components.utils;
 
-let log = firetray.Logger.getLogger("firetrayChrome");
+let log = firetray.Logging.getLogger("firetray.Chrome");
 
 // https://groups.google.com/group/mozilla.dev.extensions/browse_thread/thread/e89e9c2a834ff2b6#
 var firetrayChrome = { // each new window gets a new firetrayChrome !

@@ -8,7 +8,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://firetray/logging.jsm");
 Cu.import("resource://firetray/FiretrayHandler.jsm");
 
-let log = firetray.Logger.getLogger("firetray-clhandler");
+let log = firetray.Logging.getLogger("firetray.clhandler");
 
 function firetayCommandLineHandler() {}
 firetayCommandLineHandler.prototype = {

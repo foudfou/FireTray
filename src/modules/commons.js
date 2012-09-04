@@ -62,7 +62,7 @@ if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
 
-let log = firetray.Logger.getLogger("firetray.commons");
+let log = firetray.Logging.getLogger("firetray.commons");
 
 firetray.Utils = {
   prefService: Services.prefs.getBranch(FIRETRAY_PREF_BRANCH),

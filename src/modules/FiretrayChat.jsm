@@ -10,7 +10,7 @@ Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://firetray/commons.js");
 Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
 
-let log = firetray.Logger.getLogger("firetray.Chat");
+let log = firetray.Logging.getLogger("firetray.Chat");
 
 firetray.Chat = {
   initialized: false,

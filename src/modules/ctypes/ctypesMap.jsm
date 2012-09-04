@@ -12,7 +12,7 @@ Cu.import("resource://firetray/commons.js");
 
 const FIRETRAY_WINDOW_COUNT_MAX = 64;
 
-let log = firetray.Logger.getLogger("ctypesMap");
+let log = firetray.Logging.getLogger("firetray.ctypesMap");
 
 /**
  * basic Hash mapping a key (of any type) to a cell in a ctypes array
