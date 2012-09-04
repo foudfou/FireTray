@@ -588,7 +588,7 @@ firetray.Handler.registerWindow = function(win) {
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
 
-    if (firetray.Handler.inMailApp && firetray.Chat.initialized) { // missing import ok
+    if (firetray.Handler.appHasChat && firetray.Chat.initialized) { // missing import ok
       Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
       firetray.ChatStatusIcon.attachOnFocusInCallback(xid);
     }

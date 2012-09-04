@@ -33,6 +33,7 @@ firetray.Handler = {
   initialized: false,
   inBrowserApp: false,
   inMailApp: false,
+  appHasChat: false,
   appStarted: false,
   windows: {},
   windowsCount: 0,
@@ -59,7 +60,7 @@ firetray.Handler = {
 
     // version checked during install, so we shouldn't need to care
     let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
-    log.debug("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
+    log.info("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
     switch (this.runtimeOS) {
     case "Linux":
       Cu.import("resource://firetray/linux/FiretrayStatusIcon.jsm");
@@ -76,7 +77,9 @@ firetray.Handler = {
       this.inMailApp = true;
     if (this.appId === FIRETRAY_FIREFOX_ID || this.appId === FIRETRAY_SEAMONKEY_ID)
       this.inBrowserApp = true;
-    log.debug('inMailApp: '+this.inMailApp+', inBrowserApp: '+this.inBrowserApp);
+    if (this.appId === FIRETRAY_THUNDERBIRD_ID && Services.vc.compare(xulVer,"15.0")>=0)
+      this.appHasChat = true;
+    log.info('inMailApp='+this.inMailApp+', inBrowserApp='+this.inBrowserApp+', appHasChat='+this.appHasChat);
 
     this.appStartupTopic = this.getAppStartupTopic(this.appId);
 

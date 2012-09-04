@@ -10,7 +10,6 @@ Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://firetray/commons.js");
-Cu.import("resource://firetray/FiretrayChat.jsm");
 
 const FLDRS_UNINTERESTING = {
   Archive:   Ci.nsMsgFolderFlags.Archive,
@@ -47,10 +46,13 @@ firetray.Messaging = {
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                that.mailSessionListener.notificationFlags);
 
-    if (Services.prefs.getBoolPref("mail.chat.enabled") &&
+    if (firetray.Handler.appHasChat &&
+        Services.prefs.getBoolPref("mail.chat.enabled") &&
         firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
-        this.existsChatAccount())
+        this.existsChatAccount()) {
+      Cu.import("resource://firetray/FiretrayChat.jsm");
       firetray.Chat.init();
+    }
 
     this.initialized = true;
   },
@@ -59,7 +61,7 @@ firetray.Messaging = {
     if (!this.initialized) return;
     log.debug("Disabling Messaging");
 
-    if (firetray.hasOwnProperty('Chat')) firetray.Chat.shutdown();
+    if (firetray.Handler.appHasChat) firetray.Chat.shutdown();
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
 
