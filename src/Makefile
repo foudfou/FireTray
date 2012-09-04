@@ -51,7 +51,7 @@ install_rdf := install.rdf
 
 # Version fetched from install.rdf
 VERSION := $(shell awk '/<em:version>/ {  version=$$1; \
-  version=gensub(/<em:version>(.+)<\/em:version>/, "\\1", "g", version); \
+  version=gensub(/^.*<em:version>(.+)<\/em:version>.*$$/, "\\1", "g", version); \
   print version }' $(install_rdf))
 
 # The target XPI files.
@@ -113,7 +113,7 @@ xpi_includes := $(license) \
 build_includes := $(foreach f,$(xpi_includes),$(build_dir)/$(f))
 
 
-$(xpi_built): $(build_dir) $(build_includes)
+$(xpi_built): check_version $(build_dir) $(build_includes)
 	@echo "Creating XPI file."
 	@cd $(build_dir); $(ZIP) $(xpi_file) $(xpi_includes)
 	@echo "Creating XPI file. Done!"
@@ -176,3 +176,12 @@ $(profile_locations):
 clean_build:
 	@echo "Removing build dir: $(build_dir)"
 	@rm -rf $(build_dir)
+
+# Version fetched from install.rdf
+const_file := modules/commons.js
+
+VERSION_HARD_CODED := $(shell awk -F\" '/const\W+FIRETRAY_VERSION/ \
+  { print $$2}' $(const_file))
+check_version:
+	@echo "checking version consistency"
+	@[ "$(VERSION)" == "$(VERSION_HARD_CODED)" ]

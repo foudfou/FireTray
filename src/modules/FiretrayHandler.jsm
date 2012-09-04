@@ -372,9 +372,11 @@ firetray.VersionChangeHandler = {
   },
 
   openTab: function(url) {
-    if (this.appId === FIRETRAY_THUNDERBIRD_ID)
+    log.info("appId="+firetray.Handler.appId);
+    if (firetray.Handler.appId === FIRETRAY_THUNDERBIRD_ID)
       this.openMailTab(url);
-    else if (this.appId === FIRETRAY_FIREFOX_ID || this.appId === FIRETRAY_SEAMONKEY_ID)
+    else if (firetray.Handler.appId === FIRETRAY_FIREFOX_ID ||
+             firetray.Handler.appId === FIRETRAY_SEAMONKEY_ID)
       this.openBrowserTab(url);
     else
       log.error("unsupported application");
@@ -442,6 +444,7 @@ firetray.VersionChangeHandler = {
       log.warn("mail notification type set to newmail icon.");
     }
   },
+
   correctMailServerTypes: function() {
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
     let serverTypes = mailAccounts["serverTypes"];

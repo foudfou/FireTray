@@ -19,7 +19,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>13.0</em:minVersion>
-        <em:maxVersion>15.0a1</em:maxVersion>
+        <em:maxVersion>17.0a1</em:maxVersion>
       </Description>
     </em:targetApplication>
 
@@ -61,6 +61,8 @@
     <em:contributor>Hicham.Haouari</em:contributor>
     <em:contributor>Jreybert</em:contributor>
     <em:contributor>aedrin</em:contributor>
+    <em:contributor>David Wille</em:contributor>
+    <em:contributor>Roland Tapken</em:contributor>
 
     <em:translator>Lachezar [bg-BG]</em:translator>
     <em:translator>SoftcatalàAljullu,ellibre [ca-AD]</em:translator>

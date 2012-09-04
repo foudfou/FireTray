@@ -105,10 +105,6 @@ firetray.ChatStatusIcon = {
   // (http://sourceforge.net/tracker/index.php?func=detail&aid=3190205&group_id=35398&atid=413960)
   onFocusIn: function(widget, event, data) {
     log.debug("onFocusIn");
-    // let gdkEventFocus = ctypes.cast(event, gdk.GdkEventFocus.ptr);
-    // let gdkWin = gdkEventFocus.contents.window;
-    // let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
-    // log.debug("xid="+xid+" in="+gdkEventFocus.contents["in"]);
     firetray.Chat.stopIconBlinkingMaybe();
   }
 
