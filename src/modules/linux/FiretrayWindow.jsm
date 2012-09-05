@@ -162,6 +162,7 @@ firetray.Window = {
 
   getGdkWindowFromNativeHandle: function(nativeHandle) {
     let gdkw = new gdk.GdkWindow.ptr(ctypes.UInt64(nativeHandle)); // a new pointer to the GdkWindow
+    gdkw = gdk.gdk_window_get_effective_toplevel(gdkw);
     log.debug("gdkw="+gdkw+" *gdkw="+this.addrPointedByInHex(gdkw));
     return gdkw;
   },
@@ -171,9 +172,6 @@ firetray.Window = {
     gdk.gdk_window_get_user_data(gdkWin, gptr.address());
     log.debug("gptr="+gptr+" *gptr="+this.addrPointedByInHex(gptr));
     let gtkw = ctypes.cast(gptr, gtk.GtkWindow.ptr);
-    let gtkw_voidp = ctypes.cast(gtkw, ctypes.void_t.ptr);
-    let gtkwid_top = gtk.gtk_widget_get_toplevel(ctypes.cast(gtkw, gtk.GtkWidget.ptr));
-    gtkw = ctypes.cast(gtkwid_top, gtk.GtkWindow.ptr);
     log.debug("gtkw="+gtkw+" *gtkw="+this.addrPointedByInHex(gtkw));
     return gtkw;
   },
@@ -494,17 +492,24 @@ firetray.Window = {
       return null;
   },
 
-  checkSubscribedEventMasks: function(xid) {
+  checkSubscribedEventMasks: function(xid, gdkWin) {
     let xWindowAttributes = new x11.XWindowAttributes;
     let status = x11.XGetWindowAttributes(x11.current.Display, xid, xWindowAttributes.address());
     log.debug("xWindowAttributes: "+xWindowAttributes);
     let xEventMask = xWindowAttributes.your_event_mask;
-    let xEventMaskNeeded = x11.VisibilityChangeMask|x11.StructureNotifyMask|x11.PropertyChangeMask;
+    let xEventMaskNeeded = x11.VisibilityChangeMask|x11.StructureNotifyMask|
+      x11.FocusChangeMask|x11.PropertyChangeMask;
     log.debug("xEventMask="+xEventMask+" xEventMaskNeeded="+xEventMaskNeeded);
     if ((xEventMask & xEventMaskNeeded) !== xEventMaskNeeded) {
-      log.warn("missing mandatory event-masks");
-      // could try to subscribe here with XChangeWindowAttributes()
+      log.error("missing mandatory event-masks"); // change with gdk_window_set_events()
     }
+
+    // TEST
+    let gdkEventMask = gdk.gdk_window_get_events(gdkWin);
+    log.info("gdkEventMask="+gdkEventMask);
+    gdk.gdk_window_set_events(gdkWin, 64514);
+    gdkEventMask = gdk.gdk_window_get_events(gdkWin);
+    log.info("gdkEventMask="+gdkEventMask);
   },
 
   filterWindow: function(xev, gdkEv, data) {
@@ -517,6 +522,7 @@ firetray.Window = {
     switch (xany.contents.type) {
 
     case x11.UnmapNotify:
+      log.info("UnmapNotify");
       let gdkWinState = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xwin));
       log.debug("gdkWinState="+gdkWinState+" for xid="+xwin);
       // NOTE: Gecko 8.0 provides the 'sizemodechange' event
@@ -539,7 +545,37 @@ firetray.Window = {
     }
 
     return gdk.GDK_FILTER_CONTINUE;
+  },
+
+  // TEST
+  onUnmap: function(widget, event, data) {
+    log.debug("onUnmap");
+    let gdkWin = ctypes.cast(data, gdk.GdkWindow.ptr);
+    let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
+    log.info("gdkWin="+gdkWin+" xid="+xid);
+
+try {
+
+    let gdkWinState = gdk.gdk_window_get_state(gdkWin);
+    log.debug("gdkWinState="+gdkWinState);
+    // NOTE: Gecko 8.0 provides the 'sizemodechange' event
+    if (gdkWinState === gdk.GDK_WINDOW_STATE_ICONIFIED) {
+      log.debug("GOT ICONIFIED");
+      let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+      let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+      if (hides_on_minimize) {
+        if (hides_single_window)
+          firetray.Handler.hideWindow(xid);
+        else
+          firetray.Handler.hideAllWindows();
+      }
+    }
+
+} catch(error) {log.error(error);}
+
+    return false;               // do propagate
   }
+
 }; // firetray.Window
 
 
@@ -561,7 +597,7 @@ firetray.Handler.registerWindow = function(win) {
   this.windows[xid] = {};
   this.windows[xid].chromeWin = win;
   this.windows[xid].baseWin = baseWin;
-  firetray.Window.checkSubscribedEventMasks(xid);
+  firetray.Window.checkSubscribedEventMasks(xid, gdkWin);
   try {
     this.gtkWindows.insert(xid, gtkWin);
     this.gdkWindows.insert(xid, gdkWin);
@@ -587,6 +623,10 @@ firetray.Handler.registerWindow = function(win) {
 
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
+
+    // // TEST
+    // this.windows[xid].unmapEventCb = gtk.GCallbackWidgetFocuEvent_t(firetray.Window.onUnmap);
+    // gobject.g_signal_connect(gtkWin, "unmap-event", this.windows[xid].unmapEventCb, gdkWin);
 
     if (firetray.Handler.appHasChat && firetray.Chat.initialized) { // missing import ok
       Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
