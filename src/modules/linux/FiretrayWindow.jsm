@@ -162,6 +162,7 @@ firetray.Window = {
 
   getGdkWindowFromNativeHandle: function(nativeHandle) {
     let gdkw = new gdk.GdkWindow.ptr(ctypes.UInt64(nativeHandle)); // a new pointer to the GdkWindow
+    gdkw = gdk.gdk_window_get_effective_toplevel(gdkw);
     log.debug("gdkw="+gdkw+" *gdkw="+this.addrPointedByInHex(gdkw));
     return gdkw;
   },
@@ -171,9 +172,6 @@ firetray.Window = {
     gdk.gdk_window_get_user_data(gdkWin, gptr.address());
     log.debug("gptr="+gptr+" *gptr="+this.addrPointedByInHex(gptr));
     let gtkw = ctypes.cast(gptr, gtk.GtkWindow.ptr);
-    let gtkw_voidp = ctypes.cast(gtkw, ctypes.void_t.ptr);
-    let gtkwid_top = gtk.gtk_widget_get_toplevel(ctypes.cast(gtkw, gtk.GtkWidget.ptr));
-    gtkw = ctypes.cast(gtkwid_top, gtk.GtkWindow.ptr);
     log.debug("gtkw="+gtkw+" *gtkw="+this.addrPointedByInHex(gtkw));
     return gtkw;
   },
@@ -499,11 +497,11 @@ firetray.Window = {
     let status = x11.XGetWindowAttributes(x11.current.Display, xid, xWindowAttributes.address());
     log.debug("xWindowAttributes: "+xWindowAttributes);
     let xEventMask = xWindowAttributes.your_event_mask;
-    let xEventMaskNeeded = x11.VisibilityChangeMask|x11.StructureNotifyMask|x11.PropertyChangeMask;
+    let xEventMaskNeeded = x11.VisibilityChangeMask|x11.StructureNotifyMask|
+      x11.FocusChangeMask|x11.PropertyChangeMask;
     log.debug("xEventMask="+xEventMask+" xEventMaskNeeded="+xEventMaskNeeded);
     if ((xEventMask & xEventMaskNeeded) !== xEventMaskNeeded) {
-      log.warn("missing mandatory event-masks");
-      // could try to subscribe here with XChangeWindowAttributes()
+      log.error("missing mandatory event-masks"); // change with gdk_window_set_events()
     }
   },
 
@@ -540,6 +538,7 @@ firetray.Window = {
 
     return gdk.GDK_FILTER_CONTINUE;
   }
+
 }; // firetray.Window
 
 

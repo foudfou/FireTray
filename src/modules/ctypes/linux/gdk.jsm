@@ -248,6 +248,10 @@ function gdk_defines(lib) {
     ctypes.default_abi, this.GdkFilterReturn,
     [this.GdkXEvent.ptr, this.GdkEvent.ptr, gobject.gpointer]).ptr;
 
+  lib.lazy_bind("gdk_flush", ctypes.void_t);
+  lib.lazy_bind("gdk_error_trap_push", ctypes.void_t);
+  lib.lazy_bind("gdk_error_trap_pop", gobject.gint);
+
   lib.lazy_bind("gdk_x11_drawable_get_xid", x11.XID, this.GdkDrawable.ptr);
   lib.lazy_bind("gdk_window_new", this.GdkWindow.ptr, this.GdkWindow.ptr, this.GdkWindowAttributes.ptr, gobject.gint);
   lib.lazy_bind("gdk_window_destroy", ctypes.void_t, this.GdkWindow.ptr);
@@ -298,6 +302,7 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_get_user_data", ctypes.void_t, this.GdkWindow.ptr, gobject.gpointer.ptr);
   lib.lazy_bind("gdk_atom_intern", this.GdkAtom, gobject.gchar.ptr, gobject.gboolean);
   lib.lazy_bind("gdk_property_change", ctypes.void_t, this.GdkWindow.ptr, this.GdkAtom, this.GdkAtom, gobject.gint, this.GdkPropMode, gobject.guchar.ptr, gobject.gint);
+  lib.lazy_bind("gdk_window_get_effective_toplevel", this.GdkWindow.ptr, this.GdkWindow.ptr);
 
   lib.lazy_bind("gdk_display_get_n_screens", gobject.gint, this.GdkDisplay.ptr);
   lib.lazy_bind("gdk_display_get_screen", this.GdkScreen.ptr, this.GdkDisplay.ptr, gobject.gint);

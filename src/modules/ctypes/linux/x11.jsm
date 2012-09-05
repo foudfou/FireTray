@@ -120,6 +120,7 @@ function x11_defines(lib) {
   this.StructureNotifyMask      = 1<<17
   this.SubstructureNotifyMask   = 1<<19;
   this.SubstructureRedirectMask = 1<<20;
+  this.FocusChangeMask          = 1<<21
   this.PropertyChangeMask       = 1<<22
 
   this.Bool = ctypes.int;
