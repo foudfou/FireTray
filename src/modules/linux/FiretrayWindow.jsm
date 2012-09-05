@@ -492,7 +492,7 @@ firetray.Window = {
       return null;
   },
 
-  checkSubscribedEventMasks: function(xid, gdkWin) {
+  checkSubscribedEventMasks: function(xid) {
     let xWindowAttributes = new x11.XWindowAttributes;
     let status = x11.XGetWindowAttributes(x11.current.Display, xid, xWindowAttributes.address());
     log.debug("xWindowAttributes: "+xWindowAttributes);
@@ -503,13 +503,6 @@ firetray.Window = {
     if ((xEventMask & xEventMaskNeeded) !== xEventMaskNeeded) {
       log.error("missing mandatory event-masks"); // change with gdk_window_set_events()
     }
-
-    // TEST
-    let gdkEventMask = gdk.gdk_window_get_events(gdkWin);
-    log.info("gdkEventMask="+gdkEventMask);
-    gdk.gdk_window_set_events(gdkWin, 64514);
-    gdkEventMask = gdk.gdk_window_get_events(gdkWin);
-    log.info("gdkEventMask="+gdkEventMask);
   },
 
   filterWindow: function(xev, gdkEv, data) {
@@ -522,7 +515,6 @@ firetray.Window = {
     switch (xany.contents.type) {
 
     case x11.UnmapNotify:
-      log.info("UnmapNotify");
       let gdkWinState = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xwin));
       log.debug("gdkWinState="+gdkWinState+" for xid="+xwin);
       // NOTE: Gecko 8.0 provides the 'sizemodechange' event
@@ -545,35 +537,6 @@ firetray.Window = {
     }
 
     return gdk.GDK_FILTER_CONTINUE;
-  },
-
-  // TEST
-  onUnmap: function(widget, event, data) {
-    log.debug("onUnmap");
-    let gdkWin = ctypes.cast(data, gdk.GdkWindow.ptr);
-    let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
-    log.info("gdkWin="+gdkWin+" xid="+xid);
-
-try {
-
-    let gdkWinState = gdk.gdk_window_get_state(gdkWin);
-    log.debug("gdkWinState="+gdkWinState);
-    // NOTE: Gecko 8.0 provides the 'sizemodechange' event
-    if (gdkWinState === gdk.GDK_WINDOW_STATE_ICONIFIED) {
-      log.debug("GOT ICONIFIED");
-      let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-      let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-      if (hides_on_minimize) {
-        if (hides_single_window)
-          firetray.Handler.hideWindow(xid);
-        else
-          firetray.Handler.hideAllWindows();
-      }
-    }
-
-} catch(error) {log.error(error);}
-
-    return false;               // do propagate
   }
 
 }; // firetray.Window
@@ -597,7 +560,7 @@ firetray.Handler.registerWindow = function(win) {
   this.windows[xid] = {};
   this.windows[xid].chromeWin = win;
   this.windows[xid].baseWin = baseWin;
-  firetray.Window.checkSubscribedEventMasks(xid, gdkWin);
+  firetray.Window.checkSubscribedEventMasks(xid);
   try {
     this.gtkWindows.insert(xid, gtkWin);
     this.gdkWindows.insert(xid, gdkWin);
@@ -623,10 +586,6 @@ firetray.Handler.registerWindow = function(win) {
 
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
-
-    // // TEST
-    // this.windows[xid].unmapEventCb = gtk.GCallbackWidgetFocuEvent_t(firetray.Window.onUnmap);
-    // gobject.g_signal_connect(gtkWin, "unmap-event", this.windows[xid].unmapEventCb, gdkWin);
 
     if (firetray.Handler.appHasChat && firetray.Chat.initialized) { // missing import ok
       Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
