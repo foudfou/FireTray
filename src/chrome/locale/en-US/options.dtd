@@ -42,13 +42,13 @@
 <!ENTITY hide "hide" >
 <!ENTITY restore "restore" >
 
-<!ENTITY mail_change_trigger.placeholder "mail change trigger">
-<!ENTITY mail_change_trigger.tooltip "Absolute path of the program to run when the message count changes. The first argument is the new message count.">
-
 <!ENTITY mail_notification_enabled.label "Enable mail notification">
 <!ENTITY mail_notification_enabled.accesskey "a">
-<!ENTITY folder_count_recursive.label "Include subfolders">
-<!ENTITY folder_count_recursive.accesskey "f">
+<!ENTITY message_count_type.label "message count type :">
+<!ENTITY message_count_type.accesskey "m">
+<!ENTITY message_count_type_unread "unread messages">
+<!ENTITY message_count_type_new "new messages">
+<!ENTITY message_count_type_new.tooltip "new messages since a folder was last visited.">
 <!ENTITY mail_notification_type.label "Mail notification type">
 <!ENTITY mail_notification_type.tooltip "aka. Biff">
 <!ENTITY mail_notification_unread_count.label "display new message count">
@@ -61,10 +61,6 @@
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Choose">
 <!ENTITY choose.accesskey "O">
-<!ENTITY message_count_type "message count type :">
-<!ENTITY message_count_type_unread "unread messages">
-<!ENTITY message_count_type_new "new messages">
-<!ENTITY message_count_type_new.tooltip "new messages since a folder was last visited.">
 
 <!ENTITY unread_count_folder_exceptions.label "Included special folders">
 <!ENTITY unread_count_folder_exceptions.tooltip "Included special folders for unread message count">
@@ -72,6 +68,8 @@
 
 <!ENTITY unread_count_account_exceptions.label "Included accounts">
 <!ENTITY unread_count_account_exceptions.tooltip "Included accounts for unread message count">
+<!ENTITY folder_count_recursive.label "Include subfolders">
+<!ENTITY folder_count_recursive.accesskey "f">
 <!ENTITY only_favorite_folders.label "Only favorite folders">
 <!ENTITY only_favorite_folders.accesskey "v">
 <!ENTITY only_favorite_folders.tooltip "Within included folder types and included accounts, only count messages in favorite folders">
@@ -82,6 +80,11 @@
 <!ENTITY account_or_server_type_excluded.tooltip "Includes accounts or types into unread messages count">
 <!ENTITY account_or_server_type_order "Order">
 <!ENTITY account_or_server_type_order.tooltip "Order in which mail server types are displayed. Double-clic to edit.">
+
+<!ENTITY mail_change_trigger.label "Launch on count change :">
+<!ENTITY mail_change_trigger.accesskey "L">
+<!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
+<!ENTITY mail_change_trigger.tooltip "Absolute path of the program to run when the message count changes. The first argument is the new message count.">
 
 <!ENTITY chat_icon_enable.label "Enable chat icon">
 <!ENTITY chat_icon_enable.accesskey "E">

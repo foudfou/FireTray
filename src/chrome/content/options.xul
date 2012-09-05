@@ -30,15 +30,15 @@
       <preference id="pref_app_icon_filename" name="extensions.firetray.app_icon_filename" type="string"/>
       <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
-      <preference id="pref_chat_icon_enable" name="extensions.firetray.chat_icon_enable" type="bool" />
       <preference id="pref_mail_notification_enabled" name="extensions.firetray.mail_notification_enabled" type="bool" />
-      <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
-      <preference id="pref_only_favorite_folders" name="extensions.firetray.only_favorite_folders" type="bool" />
       <preference id="pref_message_count_type" name="extensions.firetray.message_count_type" type="int" />
       <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
       <preference id="pref_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
       <preference id="pref_mail_change_trigger" name="extensions.firetray.mail_change_trigger" type="string"/>
       <preference id="pref_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
+      <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
+      <preference id="pref_only_favorite_folders" name="extensions.firetray.only_favorite_folders" type="bool" />
+      <preference id="pref_chat_icon_enable" name="extensions.firetray.chat_icon_enable" type="bool" />
     </preferences>
 
     <tabbox>
@@ -144,7 +144,8 @@
           <radiogroup id="ui_message_count_type" preference="pref_message_count_type"
                       oncommand="firetrayUIOptions.updateMessageCountSettings()">
             <hbox align="center" flex="1">
-              <label observes="broadcaster-notification-disabled">&message_count_type;</label>
+              <label control="ui_message_count_type" observes="broadcaster-notification-disabled"
+                     value="&message_count_type.label;" accesskey="&message_count_type.accesskey;" />
               <radio id="ui_message_count_type_unread" label="&message_count_type_unread;"
                      observes="broadcaster-notification-disabled"/>
               <radio id="ui_message_count_type_new" label="&message_count_type_new;"
@@ -152,12 +153,6 @@
                      observes="broadcaster-notification-disabled"/>
             </hbox>
           </radiogroup>
-
-          <checkbox id="ui_folder_count_recursive"
-                    label="&folder_count_recursive.label;"
-                    accesskey="&folder_count_recursive.accesskey;"
-                    preference="pref_folder_count_recursive"
-                    observes="broadcaster-notification-disabled"/>
 
           <groupbox id="ui_mail_notification" flex="1">
             <caption>
@@ -175,6 +170,7 @@
                        observes="broadcaster-notification-disabled" />
                 <hbox id="icon_text_color" align="center">
                   <label value="&icon_text_color;" accesskey="&icon_text_color.accesskey;"
+                         control="btn_icon_text_color"
                          observes="broadcaster-notification-disabled"/>
                   <colorpicker id="btn_icon_text_color" type="button"
                                preference="pref_icon_text_color"
@@ -223,11 +219,6 @@
 
           </groupbox>
 
-          <textbox id="ui_mail_change_trigger" size="18" placeholder="&mail_change_trigger.placeholder;"
-                   onchange="firetrayUIOptions.updateMailTrigger();" flex="1"
-                   tooltiptext="&mail_change_trigger.tooltip;"
-                   observes="broadcaster-notification-disabled" />
-
           <!-- NOTE: groupbox and caption don't have a 'disabled' attribute !! -->
           <groupbox id="unread_count_folder_exceptions" flex="1">
             <!-- label extracted from caption so we can disable it -->
@@ -253,12 +244,20 @@
                      observes="broadcaster-notification-disabled" />
             </caption>
 
-            <checkbox id="ui_only_favorite_folders"
-                      label="&only_favorite_folders.label;"
-                      accesskey="&only_favorite_folders.accesskey;"
-                      preference="pref_only_favorite_folders"
-                      tooltiptext="&only_favorite_folders.tooltip;"
-                      observes="broadcaster-notification-disabled"/>
+            <hbox>
+              <checkbox id="ui_folder_count_recursive"
+                        label="&folder_count_recursive.label;"
+                        accesskey="&folder_count_recursive.accesskey;"
+                        preference="pref_folder_count_recursive"
+                        observes="broadcaster-notification-disabled"/>
+
+              <checkbox id="ui_only_favorite_folders"
+                        label="&only_favorite_folders.label;"
+                        accesskey="&only_favorite_folders.accesskey;"
+                        preference="pref_only_favorite_folders"
+                        tooltiptext="&only_favorite_folders.tooltip;"
+                        observes="broadcaster-notification-disabled"/>
+            </hbox>
 
             <tree id="ui_tree_mail_accounts" flex="1" rows="10" minwidth="400"
                   seltype="single" editable="true" hidecolumnpicker="false"
@@ -284,6 +283,15 @@
             </tree>
 
           </groupbox>
+
+          <hbox align="center">
+            <label control="ui_mail_change_trigger" value="&mail_change_trigger.label;"
+                   accesskey="&mail_change_trigger.accesskey;" />
+            <textbox id="ui_mail_change_trigger" size="18" placeholder="&mail_change_trigger.placeholder;"
+                     onchange="firetrayUIOptions.updateMailTrigger();" flex="1"
+                     tooltiptext="&mail_change_trigger.tooltip;"
+                     observes="broadcaster-notification-disabled" />
+          </hbox>
 
           </vbox>
         </tabpanel>
