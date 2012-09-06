@@ -164,13 +164,16 @@ firetray.Messaging = {
     log.debug("updateMsgCountWithCb");
     if (!this.initialized) return;
 
-    if ("undefined" === typeof(callback) || !callback) callback = function() { // default
-      firetray.Messaging.updateIcon(this.newMsgCount);
+    if ("undefined" === typeof(callback) || !callback)
+      callback = function(haveNewMail, newMsgCount) { // default
+        firetray.Messaging.updateIcon(newMsgCount);
 
-      let mailChangeTriggerFile = firetray.Utils.prefService.getCharPref("mail_change_trigger");
-      if (mailChangeTriggerFile)
-        firetray.Messaging.runProcess(mailChangeTriggerFile, [this.newMsgCount.toString()]);
-    };
+        if (haveNewMail) {
+          let mailChangeTriggerFile = firetray.Utils.prefService.getCharPref("mail_change_trigger");
+          if (mailChangeTriggerFile)
+            firetray.Messaging.runProcess(mailChangeTriggerFile, [newMsgCount.toString()]);
+        }
+      };
 
     let msgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     log.debug("msgCountType="+msgCountType);
@@ -181,12 +184,9 @@ firetray.Messaging = {
     } else
       log.error('unknown message count type');
 
-    if (this.newMsgCount !== this.currentMsgCount) {
-      callback.call(this);
-      this.currentMsgCount = this.newMsgCount;
-    } else {
-      log.debug("message count unchanged");
-    }
+    let haveNewMail = (this.newMsgCount > this.currentMsgCount);
+    callback.call(this, haveNewMail, this.newMsgCount);
+    this.currentMsgCount = this.newMsgCount;
   },
 
   updateIcon: function(msgCount) {
