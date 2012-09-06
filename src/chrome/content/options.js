@@ -5,7 +5,6 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://firetray/FiretrayHandler.jsm");
-Cu.import("resource://firetray/FiretrayChat.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
@@ -13,6 +12,8 @@ const TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED = 1;
 const TREEROW_ACCOUNT_OR_SERVER_TYPE_ORDER    = 2;
 const TREELEVEL_SERVER_TYPES      = 0;
 const TREELEVEL_EXCLUDED_ACCOUNTS = 1;
+
+const PREF_DEFAULT_PANE = "pref-pane-windows";
 
 
 let log = firetray.Logging.getLogger("firetray.UIOptions");
@@ -28,9 +29,13 @@ var firetrayUIOptions = {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.initMailControls();
     } else {
-      let mailTab = document.getElementById("mail_tab");
-      this.hideElement(mailTab, true);
+      this.hidePrefPane("pref-pane-mail");
     }
+
+    if (firetray.Handler.appHasChat)
+      Cu.import("resource://firetray/FiretrayChat.jsm");
+    else
+      this.hidePrefPane("pref-pane-chat");
 
     this.updateWindowAndIconOptions();
     this.updateScrollOptions();
@@ -59,6 +64,15 @@ var firetrayUIOptions = {
           'DOMAttrModified', that._userChangeValueTree, true);
       }
     }
+  },
+
+  hidePrefPane: function(name){
+    if (!this._prefwindow)
+      this._prefwindow = document.getElementById("firetray-preferences");
+    let radio = document.getAnonymousElementByAttribute(this._prefwindow, "pane", name);
+    if (radio.selected)
+      prefwindow.showPane(document.getElementById(PREF_DEFAULT_PANE));
+    radio.hidden = true;
   },
 
   hideElement: function(targetNode, hiddenval) {

@@ -172,7 +172,7 @@ firetray.Handler = {
   existsChatAccount: function() {
     let accounts = new firetray.Messaging.Accounts();
     for (let accountServer in accounts)
-      if (accountServer.type === 'im')  {
+      if (accountServer.type === FIRETRAY_ACCOUNT_SERVER_TYPE_IM)  {
         log.debug("found im server: "+accountServer.prettyName);
         return true;
       }

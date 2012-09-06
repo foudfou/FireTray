@@ -33,14 +33,14 @@ firetray.PopupMenu = {
     this.menuShell = ctypes.cast(this.menu, gtk.GtkMenuShell.ptr);
     var addMenuSeparator = false;
 
-    if (firetray.Handler.inBrowserApp) {
-      this.addItem("NewWindow", "gtk-new", "activate", firetray.Handler.openBrowserWindow);
+    if (firetray.Handler.inMailApp) {
+      this.addItem("ResetIcon", "gtk-apply", "activate", firetray.Handler.setIconImageDefault);
+      this.addItem("NewMessage", "gtk-edit", "activate", firetray.Handler.openMailMessage);
       addMenuSeparator = true;
     }
 
-    if (firetray.Handler.inMailApp) {
-      this.addItem("NewMessage", "gtk-edit", "activate", firetray.Handler.openMailMessage);
-      this.addItem("ResetIcon", "gtk-apply", "activate", firetray.Handler.setIconImageDefault);
+    if (firetray.Handler.inBrowserApp) {
+      this.addItem("NewWindow", "gtk-new", "activate", firetray.Handler.openBrowserWindow);
       addMenuSeparator = true;
     }
 

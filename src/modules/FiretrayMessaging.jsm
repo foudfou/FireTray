@@ -165,10 +165,10 @@ firetray.Messaging = {
     if (!this.initialized) return;
 
     if ("undefined" === typeof(callback) || !callback)
-      callback = function(haveNewMail, newMsgCount) { // default
+      callback = function(msgCountChange, newMsgCount) { // default
         firetray.Messaging.updateIcon(newMsgCount);
 
-        if (haveNewMail) {
+        if (msgCountChange) {
           let mailChangeTriggerFile = firetray.Utils.prefService.getCharPref("mail_change_trigger");
           if (mailChangeTriggerFile)
             firetray.Messaging.runProcess(mailChangeTriggerFile, [newMsgCount.toString()]);
@@ -184,8 +184,8 @@ firetray.Messaging = {
     } else
       log.error('unknown message count type');
 
-    let haveNewMail = (this.newMsgCount > this.currentMsgCount);
-    callback.call(this, haveNewMail, this.newMsgCount);
+    let msgCountChange = (this.newMsgCount !== this.currentMsgCount);
+    callback.call(this, msgCountChange, this.newMsgCount);
     this.currentMsgCount = this.newMsgCount;
   },
 
@@ -247,7 +247,7 @@ firetray.Messaging = {
     let accounts = new this.Accounts();
     for (let accountServer in accounts) { // nsIMsgAccount
 
-      if (accountServer.type === 'im') {
+      if (accountServer.type === FIRETRAY_ACCOUNT_SERVER_TYPE_IM) {
         continue;               // IM messages are counted elsewhere
       } else if (!serverTypes[accountServer.type]) {
         log.warn("'"+accountServer.type+"' server type is not handled");
