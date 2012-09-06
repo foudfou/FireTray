@@ -8,4 +8,10 @@
     <stringbundle id="firetray-strings" src="chrome://firetray/locale/overlay.properties"/>
   </stringbundleset>
 
+  <keyset>
+    <key id="key_debug" key="P" modifiers="control alt shift"
+         oncommand="window.openDialog('chrome://firetray/content/options.xul',
+                    '', 'chrome,titlebar,toolbar,centerscreen', 'pane3');" />
+  </keyset>
+
 </overlay>

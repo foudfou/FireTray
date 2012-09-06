@@ -39,20 +39,11 @@ firetray.Messaging = {
     }
     log.debug("Enabling Messaging");
 
-    firetray.Utils.addObservers(firetray.Messaging, [ "account-added",
-      "account-removed"]);
+    firetray.Utils.addObservers(firetray.Messaging, ["account-removed"]);
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
                                                that.mailSessionListener.notificationFlags);
-
-    if (firetray.Handler.appHasChat &&
-        Services.prefs.getBoolPref("mail.chat.enabled") &&
-        firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
-        this.existsChatAccount()) {
-      Cu.import("resource://firetray/FiretrayChat.jsm");
-      firetray.Chat.init();
-    }
 
     this.initialized = true;
   },
@@ -61,8 +52,6 @@ firetray.Messaging = {
     if (!this.initialized) return;
     log.debug("Disabling Messaging");
 
-    if (firetray.Handler.appHasChat) firetray.Chat.shutdown();
-
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
 
     firetray.Utils.removeAllObservers(firetray.Messaging);
@@ -70,34 +59,11 @@ firetray.Messaging = {
     this.initialized = false;
   },
 
-  // FIXME: this should definetely be done in Chat, but IM accounts
-  // seem not be initialized at this stage (Exception... "'TypeError:
-  // this._items is undefined' when calling method:
-  // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
-  // initAccounts() ourselves...
-  existsChatAccount: function() {
-    let accounts = new this.Accounts();
-    for (let accountServer in accounts)
-      if (accountServer.type === 'im')  {
-        log.debug("found im server: "+accountServer.prettyName);
-        return true;
-      }
-
-    return false;
-  },
-
   observe: function(subject, topic, data) {
     log.debug("RECEIVED Messaging: "+topic+" subject="+subject+" data="+data);
     switch (topic) {
     case "account-removed":
       this.cleanExcludedAccounts();
-      if (subject.QueryInterface(Ci.imIAccount) && !this.existsChatAccount())
-        firetray.Chat.shutdown();
-      break;
-    case "account-added":
-      if (subject.QueryInterface(Ci.imIAccount) && !firetray.Chat.initialized)
-        firetray.Chat.init();
-      break;
     default:
       log.warn("unhandled topic: "+topic);
     }

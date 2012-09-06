@@ -193,6 +193,7 @@ firetray.StatusIcon = {
 }; // firetray.StatusIcon
 
 firetray.Handler.setIconImageDefault = function() {
+  log.debug("setIconImageDefault");
   if (!firetray.StatusIcon.themedIconApp)
     throw "Default application themed icon not set";
   let appIconType = firetray.Utils.prefService.getIntPref("app_icon_type");

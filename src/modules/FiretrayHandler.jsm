@@ -107,6 +107,17 @@ firetray.Handler = {
       }
     }
 
+    if (this.appHasChat && Services.prefs.getBoolPref("mail.chat.enabled") &&
+        firetray.Utils.prefService.getBoolPref("chat_icon_enable")) {
+      Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
+      if (this.existsChatAccount()) {
+        Cu.import("resource://firetray/FiretrayChat.jsm");
+        firetray.Chat.init();
+        firetray.Utils.addObservers(firetray.Handler, [
+          "account-added", "account-removed"]);
+      }
+    }
+
     firetray.Utils.addObservers(firetray.Handler, [ this.appStartupTopic,
       "xpcom-will-shutdown", "profile-change-teardown" ]);
 
@@ -119,6 +130,8 @@ firetray.Handler = {
   shutdown: function() {
     log.debug("Disabling Handler");
     firetray.PrefListener.unregister();
+
+    if (firetray.Handler.appHasChat) firetray.Chat.shutdown();
 
     if (this.inMailApp)
       firetray.Messaging.shutdown();
@@ -151,6 +164,22 @@ firetray.Handler = {
     }
   },
 
+  // FIXME: this should definetely be done in Chat, but IM accounts
+  // seem not be initialized at this stage (Exception... "'TypeError:
+  // this._items is undefined' when calling method:
+  // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
+  // initAccounts() ourselves...
+  existsChatAccount: function() {
+    let accounts = new firetray.Messaging.Accounts();
+    for (let accountServer in accounts)
+      if (accountServer.type === 'im')  {
+        log.debug("found im server: "+accountServer.prettyName);
+        return true;
+      }
+
+    return false;
+  },
+
   observe: function(subject, topic, data) {
     switch (topic) {
     case "sessionstore-windows-restored":
@@ -172,7 +201,18 @@ firetray.Handler = {
       if (data === 'shutdown-persist')
         this.restoreWarnOnClose();
       break;
+
+    case "account-removed":
+      if (!this.existsChatAccount())
+        firetray.Chat.shutdown();
+      break;
+    case "account-added":
+      if (!firetray.Chat.initialized)
+        firetray.Chat.init();
+      break;
+
     default:
+      log.warn("unhandled topic: "+topic);
     }
   },
 
@@ -343,6 +383,15 @@ firetray.PrefListener = new PrefListener(
     case 'show_icon_on_hide':
       firetray.Handler.showHideIcon();
       break;
+    case 'mail_notification_enabled':
+      if (firetray.Utils.prefService.getBoolPref('mail_notification_enabled')) {
+        firetray.Messaging.init();
+        firetray.Messaging.updateMsgCountWithCb();
+      } else {
+        firetray.Messaging.shutdown();
+        firetray.Handler.setIconImageDefault();
+      }
+      break;
     case 'new_mail_icon_names':
       firetray.StatusIcon.loadThemedIcons();
     case 'only_favorite_folders':
@@ -353,12 +402,12 @@ firetray.PrefListener = new PrefListener(
     case 'app_mail_icon_names':
     case 'app_browser_icon_names':
     case 'app_default_icon_names':
-      firetray.StatusIcon.loadThemedIcons();
     case 'app_icon_type':
+      firetray.StatusIcon.loadThemedIcons();
+    case 'app_icon_filename':
+      firetray.Handler.setIconImageDefault();
       if (firetray.Handler.inMailApp)
         firetray.Messaging.updateMsgCountWithCb();
-      else
-        firetray.Handler.setIconImageDefault();
       break;
     default:
     }

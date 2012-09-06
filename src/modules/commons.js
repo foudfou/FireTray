@@ -70,6 +70,11 @@ firetray.Utils = {
 
   addObservers: function(handler, topics){
     topics.forEach(function(topic){
+      if (this.observedTopics[topic]) {
+        log.warn(topic+" already registred for "+handler);
+        return;
+      }
+
       Services.obs.addObserver(this, topic, false);
       this.observedTopics[topic] = true;
       log.debug("registred "+topic+" for "+handler);
