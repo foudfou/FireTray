@@ -81,8 +81,6 @@ firetray.Handler = {
       this.appHasChat = true;
     log.info('inMailApp='+this.inMailApp+', inBrowserApp='+this.inBrowserApp+', appHasChat='+this.appHasChat);
 
-    this.appStartupTopic = this.getAppStartupTopic(this.appId);
-
     VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
     VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
@@ -110,14 +108,14 @@ firetray.Handler = {
     if (this.appHasChat && Services.prefs.getBoolPref("mail.chat.enabled") &&
         firetray.Utils.prefService.getBoolPref("chat_icon_enable")) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
-      if (this.existsChatAccount()) {
-        Cu.import("resource://firetray/FiretrayChat.jsm");
+      Cu.import("resource://firetray/FiretrayChat.jsm");
+      firetray.Utils.addObservers(firetray.Handler, [
+        "account-added", "account-removed"]);
+      if (this.existsChatAccount())
         firetray.Chat.init();
-        firetray.Utils.addObservers(firetray.Handler, [
-          "account-added", "account-removed"]);
-      }
     }
 
+    this.appStartupTopic = this.getAppStartupTopic(this.appId);
     firetray.Utils.addObservers(firetray.Handler, [ this.appStartupTopic,
       "xpcom-will-shutdown", "profile-change-teardown" ]);
 
@@ -165,7 +163,7 @@ firetray.Handler = {
   },
 
   // FIXME: this should definetely be done in Chat, but IM accounts
-  // seem not be initialized at this stage (Exception... "'TypeError:
+  // seem not be initialized at early stage (Exception... "'TypeError:
   // this._items is undefined' when calling method:
   // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
   // initAccounts() ourselves...
@@ -197,7 +195,7 @@ firetray.Handler = {
       log.debug("xpcom-will-shutdown");
       this.shutdown();
       break;
-    case "profile-change-teardown":
+    case "profile-change-teardown": // also found "quit-application-granted"
       if (data === 'shutdown-persist')
         this.restoreWarnOnClose();
       break;

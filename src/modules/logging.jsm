@@ -2,6 +2,8 @@
 
 var EXPORTED_SYMBOLS = [ "firetray" ];
 
+const FIRETRAY_LOG_LEVEL = "All"; // "All" for debugging
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
@@ -137,7 +139,7 @@ firetray.Logging = {
     // Loggers are hierarchical, affiliation is handled by a '.' in the name.
     this._logger = Log4Moz.repository.getLogger(loggerName);
     // Lowering this log level will affect all of our addon output
-    this._logger.level = Log4Moz.Level["All"];
+    this._logger.level = Log4Moz.Level[FIRETRAY_LOG_LEVEL];
 
     // A console appender outputs to the JS Error Console
     let dateFormat = "%T";

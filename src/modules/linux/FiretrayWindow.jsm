@@ -196,8 +196,7 @@ firetray.Window = {
 
   getXIDFromChromeWindow: function(win) {
     for (let xid in firetray.Handler.windows)
-      if (firetray.Handler.windows[xid].chromeWin === win)
-        return xid;
+      if (firetray.Handler.windows[xid].chromeWin === win) return xid;
     log.error("unknown window while lookup");
     return null;
   },
@@ -547,7 +546,7 @@ firetray.Window = {
 /** debug facility */
 firetray.Handler.dumpWindows = function() {
   log.debug(firetray.Handler.windowsCount);
-  for (let winId in firetray.Handler.windows) log.debug(winId+"="+firetray.Handler.gtkWindows.get(winId));
+  for (let winId in firetray.Handler.windows) log.info(winId+"="+firetray.Handler.gtkWindows.get(winId));
 };
 
 firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeWindow;

@@ -30,6 +30,7 @@ firetray.Chat = {
       "new-directed-incoming-message", "status-changed",
       "unread-im-count-changed"
     ]);
+
     firetray.ChatStatusIcon.init();
     this.updateIcon();
 
@@ -156,15 +157,29 @@ firetray.Chat = {
   },
 
   globalConnectedStatus: function() {
-    let accounts = Services.accounts.getAccounts();
-    let globalConnected = false;
-    while (accounts.hasMoreElements()) {
-      let account = accounts.getNext().QueryInterface(Ci.imIAccount);
-      log.debug("account="+account+" STATUS="+account.statusInfo.statusType+" connected="+account.connected);
-      globalConnected = globalConnected || account.connected;
+    /* Because we may already be connected during init (for ex. when toggling
+     the chat_icon_enable pref), we need to updateIcon() during init(). But IM
+     accounts' list is not initialized at early stage... */
+    try {
+
+      let accounts = Services.accounts.getAccounts();
+      let globalConnected = false;
+
+      while (accounts.hasMoreElements()) {
+        let account = accounts.getNext().QueryInterface(Ci.imIAccount);
+        log.debug("account="+account+" STATUS="+account.statusInfo.statusType+" connected="+account.connected);
+        globalConnected = globalConnected || account.connected;
+      }
+      log.debug("globalConnected="+globalConnected);
+      return globalConnected;
+
+    } catch (e if e instanceof Components.Exception &&
+             e.result === Components.results.NS_ERROR_XPC_JS_THREW_JS_OBJECT &&
+             /_items is undefined/.test(e.message)) {
+      return false;             // ignore
+    } catch(e) {
+      log.error(e); return false;
     }
-    log.debug("globalConnected="+globalConnected);
-    return globalConnected;
   }
 
 };

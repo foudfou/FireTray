@@ -64,6 +64,7 @@ firetray.Messaging = {
     switch (topic) {
     case "account-removed":
       this.cleanExcludedAccounts();
+      break;
     default:
       log.warn("unhandled topic: "+topic);
     }

@@ -76,8 +76,9 @@ chrome_sources := $(chrome_sources_js) \
                $(wildcard $(chrome_source_root)/content/*.xml) \
                $(wildcard $(chrome_source_root)/content/*.css) \
                $(wildcard $(chrome_source_root)/skin/*.css) \
-               $(wildcard $(chrome_source_root)/skin/*.png) \
                $(wildcard $(chrome_source_root)/skin/*.gif) \
+               $(wildcard $(chrome_source_root)/skin/*.png) \
+               $(wildcard $(chrome_source_root)/skin/*.svg) \
                $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/22x22/apps/*.png) \
                $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/32x32/apps/*.png) \
                $(wildcard $(chrome_source_root)/locale/*/*.dtd) \
