@@ -484,8 +484,10 @@ firetray.VersionChangeHandler = {
   },
 
   correctMailNotificationType: function() {
-    if (firetray.Utils.prefService.getIntPref('message_count_type') ===
-        FIRETRAY_MESSAGE_COUNT_TYPE_NEW) {
+    let msgCountType = firetray.Utils.prefService.getIntPref('message_count_type');
+    let mailNotificationType = firetray.Utils.prefService.getIntPref('mail_notification_type');
+    if (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW &&
+        mailNotificationType === FIRETRAY_NOTIFICATION_MESSAGE_COUNT) {
       firetray.Utils.prefService.setIntPref('mail_notification_type',
         FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
       log.warn("mail notification type set to newmail icon.");

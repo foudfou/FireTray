@@ -213,7 +213,7 @@ firetray.Messaging = {
     } else if (msgCount > 0) {
       let prefMailNotification = firetray.Utils.prefService.getIntPref('mail_notification_type');
       switch (prefMailNotification) {
-      case FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT:
+      case FIRETRAY_NOTIFICATION_MESSAGE_COUNT:
         let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
         firetray.Handler.setIconText(msgCount.toString(), prefIconTextColor);
         break;

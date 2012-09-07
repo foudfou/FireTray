@@ -194,7 +194,7 @@ var firetrayUIOptions = {
 
   initNotificationSettings: function() {
     document.getElementById("ui_radio_mail_notification_unread_count").value =
-      FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT;
+      FIRETRAY_NOTIFICATION_MESSAGE_COUNT;
     document.getElementById("ui_radio_mail_notification_newmail_icon").value =
       FIRETRAY_NOTIFICATION_NEWMAIL_ICON;
     document.getElementById("ui_radio_mail_notification_custom_mail_icon").value =
@@ -258,7 +258,7 @@ var firetrayUIOptions = {
 
     let iconTextColor = document.getElementById("icon_text_color");
     this.disableChildren(iconTextColor,
-      (notificationSetting !== FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT));
+      (notificationSetting !== FIRETRAY_NOTIFICATION_MESSAGE_COUNT));
 
     let newMailIconNames = document.getElementById("newmail_icon_names");
     this.disableNChildren(newMailIconNames, 2,
@@ -278,7 +278,7 @@ var firetrayUIOptions = {
 
     let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
     let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
-    if (msgCountTypeIsNewMessages && (mailNotificationType === FIRETRAY_NOTIFICATION_UNREAD_MESSAGE_COUNT)) {
+    if (msgCountTypeIsNewMessages && (mailNotificationType === FIRETRAY_NOTIFICATION_MESSAGE_COUNT)) {
       radioMailNotify.selectedIndex = this.radioGetIndexByValue(radioMailNotify, FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
       let newMailIconNames = document.getElementById("newmail_icon_names");
       this.disableNChildren(newMailIconNames, 2, false);
