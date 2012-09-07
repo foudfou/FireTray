@@ -2,11 +2,11 @@
 
 var EXPORTED_SYMBOLS = [ "firetray" ];
 
-const FIRETRAY_LOG_LEVEL = "All"; // "All" for debugging
-
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
+
+const FIRETRAY_LOG_LEVEL = "Warn"; // "All" for debugging
 
 const COLOR_NORMAL          = "";
 const COLOR_RESET           = "\033[m";
@@ -30,6 +30,17 @@ const COLOR_BG_YELLOW       = "\033[43m";
 const COLOR_BG_BLUE         = "\033[44m";
 const COLOR_BG_MAGENTA      = "\033[45m";
 const COLOR_BG_CYAN         = "\033[46m";
+
+var colorTermLogColors = {
+  "FATAL":  COLOR_BOLD_RED,
+  "ERROR":  COLOR_RED,
+  "WARN":   COLOR_YELLOW,
+  "INFO":   COLOR_GREEN,
+  "CONFIG": COLOR_MAGENTA,
+  "DEBUG":  COLOR_CYAN,
+  "TRACE":  COLOR_NORMAL,
+  "ALL":    COLOR_NORMAL
+};
 
 if ("undefined" == typeof(firetray)) {
   var firetray = {};
@@ -115,20 +126,7 @@ firetray.Logging = {
       __proto__: SimpleFormatter.prototype,
 
       format: function(message) {
-        let color = COLOR_NORMAL;
-
-        switch (message.levelDesc) {
-        case "FATAL":  color = COLOR_BOLD_RED; break;
-        case "ERROR":  color = COLOR_RED;      break;
-        case "WARN":   color = COLOR_YELLOW;   break;
-        case "INFO":   color = COLOR_GREEN;    break;
-        case "CONFIG": color = COLOR_MAGENTA;  break;
-        case "DEBUG":  color = COLOR_BLUE;     break;
-        case "TRACE":  color = COLOR_CYAN_;    break;
-        case "ALL":    color = COLOR_NORMAL;   break;
-        default:
-        };
-
+        let color = colorTermLogColors[message.levelDesc];
         let stringLog = SimpleFormatter.prototype.format.call(this, message);
         stringLog = color + stringLog + COLOR_RESET;
 

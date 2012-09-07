@@ -202,8 +202,8 @@ firetray.Window = {
   },
 
   unregisterWindowByXID: function(xid) {
-    firetray.Handler.windowsCount -= 1;
-    if (firetray.Handler.windows[xid].visible) firetray.Handler.visibleWindowsCount -= 1;
+    this.updateVisibility(xid, false);
+
     if (firetray.Handler.windows.hasOwnProperty(xid)) {
       if (!delete firetray.Handler.windows[xid])
         throw new DeleteError();
@@ -256,8 +256,7 @@ firetray.Window = {
     log.debug('startupHide: '+xid);
 
     firetray.Handler.windows[xid].baseWin.visibility = false;
-    firetray.Handler.windows[xid].visible = false;
-    firetray.Handler.visibleWindowsCount -= 1;
+    this.updateVisibility(xid, false);
 
     firetray.PopupMenu.showWindowItem(xid);
     firetray.Handler.showHideIcon();
@@ -350,10 +349,19 @@ firetray.Window = {
     else
       gtk.gtk_widget_hide(gtkWidget);
 
-    firetray.Handler.windows[xid].visible = visibility;
+    this.updateVisibility(xid, visibility);
+  },
+
+  updateVisibility: function(xid, visibility) {
+    let win = firetray.Handler.windows[xid];
+    if (win.visible === visibility)
+      log.warn("window (xid="+xid+") was already visible="+win.visible);
+
     firetray.Handler.visibleWindowsCount = visibility ?
       firetray.Handler.visibleWindowsCount + 1 :
       firetray.Handler.visibleWindowsCount - 1 ;
+
+    win.visible = visibility; // nsIBaseWin.visibility always true :-(
   },
 
   xSendClientMessgeEvent: function(xid, atom, data, dataSize) {
@@ -509,13 +517,23 @@ firetray.Window = {
       return gdk.GDK_FILTER_CONTINUE;
 
     let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
-    let xwin = xany.contents.window;
+    let xid = xany.contents.window;
 
     switch (xany.contents.type) {
 
-    case x11.UnmapNotify:
-      let gdkWinState = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xwin));
-      log.debug("gdkWinState="+gdkWinState+" for xid="+xwin);
+    case x11.MapNotify:
+      log.debug("MapNotify");
+      let win = firetray.Handler.windows[xid];
+      if (!win.visible) { // happens when hidden app called from command line
+        log.warn("window not visible, correcting visibility");
+        firetray.Window.updateVisibility(xid, true);
+        log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
+      }
+      break;
+
+    case x11.UnmapNotify:       // for catching 'iconify'
+      let gdkWinState = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xid));
+      log.debug("gdkWinState="+gdkWinState+" for xid="+xid);
       // NOTE: Gecko 8.0 provides the 'sizemodechange' event
       if (gdkWinState === gdk.GDK_WINDOW_STATE_ICONIFIED) {
         log.debug("GOT ICONIFIED");
@@ -523,7 +541,7 @@ firetray.Window = {
         let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
         if (hides_on_minimize) {
           if (hides_single_window)
-            firetray.Handler.hideWindow(xwin);
+            firetray.Handler.hideWindow(xid);
           else
             firetray.Handler.hideAllWindows();
         }
@@ -573,8 +591,7 @@ firetray.Handler.registerWindow = function(win) {
   this.windowsCount += 1;
   // NOTE: no need to check for window state to set visibility because all
   // windows *are* shown at startup
-  this.windows[xid].visible = true; // this.windows[xid].baseWin.visibility always true :-(
-  this.visibleWindowsCount += 1;
+  firetray.Window.updateVisibility(xid, true);
   log.debug("window "+xid+" registered");
   // NOTE: shouldn't be necessary to gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK);
 
