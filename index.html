@@ -31,6 +31,7 @@
       <nav>
 	<ul>
 	  <li><a href="#about">About</a></li>
+	  <li><a href="#features">Features</a></li>
 	  <li><a href="#release-notes">Release Notes</a></li>
 	</ul>
       </nav>
@@ -38,7 +39,7 @@
     <a href="https://github.com/foudfou/FireTray">
       <img style="position: fixed; top: 0; right: 0; border: 0;"
 	   src="https://a248.e.akamai.net/assets.github.com/img/7afbc8b248c68eb468279e8c17986ad46549fb71/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
-	   alt="Fork me on GitHub">
+	   alt="Fork me on GitHub" />
     </a>
   </div>
 
@@ -48,9 +49,9 @@
       <header>
         <p id="about">
 	  FireTray is a Linux Mozilla addon that targets Firefox, Thunderbird
-	  and Seamonkey. It provides a tray icon with much window handling
-	  functionality. For mail applications, the icon can show the number of
-	  unread or new messages. FireTray is very customizable.
+	  and Seamonkey. It provides a system tray icon with much window
+	  handling functionality. For mail applications, the icon can show the
+	  number of unread or new messages. FireTray is very customizable.
         </p>
       </header>
     </div>
@@ -86,6 +87,43 @@
     <hr class="space"/>
 
     <div class="span-16 colborder">
+
+      <section id="features">
+        <h2>Features</h2>
+
+        <p><ul>
+            <li><p>for all applications:</p>
+              <ul><li>show/hide a single or all windows</li>
+                <li>restore windows to their previous state, position, size</li>
+                <li>restore each window to its original virtual desktop/workspace</li>
+                <li>activate restored windows</li>
+                <li>hide to tray on close</li>
+                <li>hide to tray on minimize</li>
+                <li>start minimized to tray</li>
+                <li>show icon only when hidden to tray</li>
+                <li>mouse scroll on tray icon shows/hides</li>
+                <li>GTK-themable icons</li>
+                <li>customizable tray icons</li>
+                <li>popup menu (show/hide individual windows, open new windows, quit)</li>
+                <li>adds <code>-firetrayShowHide</code> option (useful for window manager's keyboard shortcuts)</li>
+                <li>middle click on the tray icon activates last registered window</li></ul></li>
+
+            <li><p>for mail applications:</p>
+              <ul><li>display unread message count in tray icon</li>
+                <li>display biff in tray icon for new messages</li>
+                <li>include/exclude mail accounts to/from messages count</li>
+                <li>include/exclude folders types to/from messages count</li>
+                <li>count in sub-folders recursively</li>
+                <li>handle <a href="https://addons.mozilla.org/fr/thunderbird/addon/exquilla-exchange-web-services/">Exquilla</a> accounts</li>
+                <li>restrict message count to favorite folders</li>
+                <li>trigger external program on message count change</li></ul></li>
+
+            <li><p>for applications embedding chat (currently only Thunderbird)</p>
+              <ul><li>display additional system tray status icon</li></ul></li>
+
+          </ul></p>
+      </section>
+
       <section id="release-notes">
         <h2>Release Notes</h2>
 
@@ -99,7 +137,9 @@
           <p><ul>
               <li>Chat icon (Thunderbird-only) (<a href="https://github.com/foudfou/FireTray/issues/51">#51</a>)</li>
               <li>handle <a href="https://addons.mozilla.org/fr/thunderbird/addon/exquilla-exchange-web-services/">Exquilla</a> accounts (<a href="https://github.com/foudfou/FireTray/issues/55">#55</a>)</li>
-              <li>better preference interface (+ Ctrl-Alt-Shift-P shortcut)</li>
+              <li>better preference interface
+              (<span class="key">Ctrl</span>+<span class="key">Alt</span>+<span class="key">Shift</span>+<span class="key">P</span>
+              keyboard shortcut)</li>
               <li>option to restrict count to favorite folders
               (<a href="https://github.com/foudfou/FireTray/issues/21">#21</a>, <a href="https://github.com/foudfou/FireTray/issues/45">#45</a>)</li>
               <li>option to launch program on message count change (<a href="https://github.com/foudfou/FireTray/issues/33">#33</a>, <a href="https://github.com/foudfou/FireTray/issues/37">#37</a>)</li>
@@ -192,9 +232,9 @@
       <aside id="related_links">
         <h4>related links</h4>
         <p><a href="https://addons.mozilla.org/fr/firefox/addon/firetray/">Firetray
-        on Mozilla</a>
-        <p><a href="https://github.com/foudfou/FireTray">Firetray development</a>
-        <p><a href="http://code.google.com/p/firetray/">Firetray-XPCOM development</a>
+        on Mozilla</a></p>
+        <p><a href="https://github.com/foudfou/FireTray">Firetray development</a></p>
+        <p><a href="http://code.google.com/p/firetray/">Firetray-XPCOM development</a></p>
       </aside>
 
       <hr class="space" />
@@ -202,7 +242,7 @@
       <aside id="friends">
         <h4>Friends</h4>
         <p><a href="http://www.system-d.de/produkte/industrial-storage/industrial-ssd.html">Industrial
-        Flash</a>
+        Flash</a></p>
       </aside>
     </div>
 
