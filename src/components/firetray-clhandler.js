@@ -27,7 +27,7 @@ firetayCommandLineHandler.prototype = {
   /* nsICommandLineHandler */
   handle: function clh_handle(cmdLine)
   {
-    if (cmdLine.handleFlag("firetray-showHide", false)) {
+    if (cmdLine.handleFlag("firetrayShowHide", false)) {
       log.debug("*** CmdLine call ***");
       firetray.Handler.showHideAllWindows();
       cmdLine.preventDefault = true;
