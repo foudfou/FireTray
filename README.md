@@ -20,17 +20,24 @@ Features
   * show icon only when hidden to tray
   * mouse scroll on tray icon shows/hides
   * GTK-themable icons
-  * customizable tray icon
-  * popup menu (show/hide indivisual windows, open new windows, quit)
-  * adds `-showHide` option (useful for window manager's keyboard shortcuts)
+  * customizable tray icons
+  * popup menu (show/hide individual windows, open new windows, quit)
+  * adds `-firetrayShowHide` option (useful for window manager's keyboard shortcuts)
   * middle click on the tray icon activates last registered window
 
 * for mail applications:
   * display unread message count in tray icon
-  * display biff in tray icon when new messages
+  * display biff in tray icon for new messages
   * include/exclude mail accounts to/from messages count
   * include/exclude folders types to/from messages count
   * count in sub-folders recursively
+  * handle [Exquilla](https://addons.mozilla.org/fr/thunderbird/addon/exquilla-exchange-web-services/) accounts
+  * restrict message count to favorite folders
+  * trigger external program on message count change
+
+* for applications embedding chat (currently only Thunderbird)
+  * display additional system tray status icon
+
 
 Notes
 -----
