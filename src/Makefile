@@ -1,3 +1,5 @@
+SHELL=/bin/dash
+
 .PHONY: help
 help:
 	@echo "BUILD/INSTALL INSTRUCTIONS"
@@ -185,4 +187,4 @@ VERSION_HARD_CODED := $(shell awk -F\" '/const\W+FIRETRAY_VERSION/ \
   { print $$2}' $(const_file))
 check_version:
 	@echo "checking version consistency"
-	@[ "$(VERSION)" == "$(VERSION_HARD_CODED)" ]
+	@[ "$(VERSION)" = "$(VERSION_HARD_CODED)" ]
