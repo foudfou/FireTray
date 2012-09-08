@@ -1,4 +1,6 @@
-SHELL=/bin/dash
+ifeq ($(wildcard /bin/dash), /bin/dash)
+    SHELL=/bin/dash
+endif
 
 .PHONY: help
 help:
