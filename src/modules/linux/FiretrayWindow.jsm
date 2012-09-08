@@ -202,18 +202,18 @@ firetray.Window = {
   },
 
   unregisterWindowByXID: function(xid) {
-    this.updateVisibility(xid, false);
-
-    if (firetray.Handler.windows.hasOwnProperty(xid)) {
-      if (!delete firetray.Handler.windows[xid])
-        throw new DeleteError();
-      firetray.Handler.gtkWindows.remove(xid);
-      firetray.Handler.gdkWindows.remove(xid);
-      firetray.PopupMenu.removeWindowItem(xid);
-    } else {
+    if (!firetray.Handler.windows.hasOwnProperty(xid)) {
       log.error("can't unregister unknown window "+xid);
       return false;
     }
+
+    if (!delete firetray.Handler.windows[xid])
+      throw new DeleteError();
+    firetray.Handler.gtkWindows.remove(xid);
+    firetray.Handler.gdkWindows.remove(xid);
+    firetray.PopupMenu.removeWindowItem(xid);
+    firetray.Handler.visibleWindowsCount -= 1;
+
     log.debug("window "+xid+" unregistered");
     return true;
   },
@@ -490,7 +490,11 @@ firetray.Window = {
   getWindowTitle: function(xid) {
     let title = firetray.Handler.windows[xid].baseWin.title;
     log.debug("|baseWin.title="+title+"|");
-    let tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
+    let tailIndex;
+    if (firetray.Handler.appId === FIRETRAY_SEAMONKEY_ID)
+      tailIndex = title.indexOf(" - "+firetray.Handler.appName);
+    else
+      tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
     if (tailIndex !== -1)
       return title.substring(0, tailIndex);
     else if (title === "Mozilla "+firetray.Handler.appName)
@@ -603,7 +607,7 @@ firetray.Handler.registerWindow = function(win) {
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
 
-    if (firetray.Handler.appHasChat && firetray.Chat.initialized) { // missing import ok
+    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) { // missing import ok
       Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
       firetray.ChatStatusIcon.attachOnFocusInCallback(xid);
     }
@@ -657,12 +661,11 @@ firetray.Handler.activateLastWindow = function(gtkStatusIcon, gdkEvent, userData
 
     let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
     log.debug("visibilityRate="+visibilityRate);
-    if (visibilityRate === 1) {
-      for(var key in firetray.Handler.windows);
-      firetray.Window.activate(key);
-    } else {
+    if (visibilityRate < 1)
       firetray.Handler.showAllWindows();
-    }
+
+    for(var key in firetray.Handler.windows);
+    firetray.Window.activate(key);
   }
 
   let stopPropagation = false;

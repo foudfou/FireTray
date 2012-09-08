@@ -57,6 +57,7 @@ firetray.Handler = {
 
   init: function() {            // does creates icon
     firetray.PrefListener.register(false);
+    firetray.MailChatPrefListener.register(false);
 
     // version checked during install, so we shouldn't need to care
     let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
@@ -105,8 +106,7 @@ firetray.Handler = {
       }
     }
 
-    if (this.appHasChat && Services.prefs.getBoolPref("mail.chat.enabled") &&
-        firetray.Utils.prefService.getBoolPref("chat_icon_enable")) {
+    if (this.isChatEnabled()) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
       Cu.import("resource://firetray/FiretrayChat.jsm");
       firetray.Utils.addObservers(firetray.Handler, [
@@ -127,9 +127,7 @@ firetray.Handler = {
 
   shutdown: function() {
     log.debug("Disabling Handler");
-    firetray.PrefListener.unregister();
-
-    if (firetray.Handler.appHasChat) firetray.Chat.shutdown();
+    if (firetray.Handler.isChatEnabled()) firetray.Chat.shutdown();
 
     if (this.inMailApp)
       firetray.Messaging.shutdown();
@@ -139,9 +137,20 @@ firetray.Handler = {
 
     firetray.Utils.removeAllObservers(this);
 
+    firetray.MailChatPrefListener.register(false);
+    firetray.PrefListener.unregister();
+
     this.appStarted = false;
     this.initialized = false;
     return true;
+  },
+
+  isChatEnabled: function() {
+    let chatIsEnabled = (this.appHasChat &&
+                         Services.prefs.getBoolPref("mail.chat.enabled") &&
+                         firetray.Utils.prefService.getBoolPref("chat_icon_enable"));
+    log.info('isChatEnabled='+chatIsEnabled);
+    return chatIsEnabled;
   },
 
   tryCloseLibs: function() {
@@ -183,6 +192,7 @@ firetray.Handler = {
     case "sessionstore-windows-restored":
     case "mail-startup-done":
     case "final-ui-startup":
+      if (firetray.Handler.appStarted) return; // second TB window issues "mail-startup-done"
       log.debug("RECEIVED: "+topic+", launching timer");
       // sessionstore-windows-restored does not come after the realization of
       // all windows... so we wait a little
@@ -200,11 +210,11 @@ firetray.Handler = {
         this.restoreWarnOnClose();
       break;
 
-    case "account-removed":
+    case "account-removed":     // emitted by IM
       if (!this.existsChatAccount())
         firetray.Chat.shutdown();
       break;
-    case "account-added":
+    case "account-added":       // emitted by IM
       if (!firetray.Chat.initialized)
         firetray.Chat.init();
       break;
@@ -370,8 +380,10 @@ firetray.Handler = {
 }; // firetray.Handler
 
 
+// FIXME: since prefs can also be changed from config editor, we need to
+// observe *all* firetray prefs !
 firetray.PrefListener = new PrefListener(
-  "extensions.firetray.",
+  FIRETRAY_PREF_BRANCH,
   function(branch, name) {
     log.debug('Pref changed: '+name);
     switch (name) {
@@ -411,6 +423,32 @@ firetray.PrefListener = new PrefListener(
     }
   });
 
+firetray.MailChatPrefListener = new PrefListener(
+  "mail.chat.",
+  function(branch, name) {
+    log.debug('MailChat pref changed: '+name);
+    switch (name) {
+    case 'enabled':
+      let doEnableChat = (firetray.Handler.appHasChat &&
+                          firetray.Utils.prefService.getBoolPref("chat_icon_enable"));
+      if (!doEnableChat) return;
+
+      if (Services.prefs.getBoolPref("mail.chat.enabled")) {
+        if (!firetray.Chat) {
+          Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
+          Cu.import("resource://firetray/FiretrayChat.jsm");
+          firetray.Utils.addObservers(firetray.Handler, [
+            "account-added", "account-removed"]);
+        }
+        if (firetray.Handler.existsChatAccount())
+          firetray.Chat.init();
+      } else {
+        firetray.Chat.shutdown();
+      }
+      break;
+    default:
+    }
+  });
 
 firetray.VersionChangeHandler = {
 

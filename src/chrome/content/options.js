@@ -32,7 +32,7 @@ var firetrayUIOptions = {
       this.hidePrefPane("pref-pane-mail");
     }
 
-    if (firetray.Handler.appHasChat)
+    if (firetray.Handler.isChatEnabled())
       Cu.import("resource://firetray/FiretrayChat.jsm");
     else
       this.hidePrefPane("pref-pane-chat");
