@@ -1,5 +1,6 @@
-ifeq ($(wildcard /bin/dash), /bin/dash)
-    SHELL=/bin/dash
+dash := /bin/dash
+ifeq ($(wildcard $(dash)), $(dash))
+    SHELL=$(dash)
 endif
 
 .PHONY: help
@@ -75,27 +76,27 @@ chrome_source_root := chrome
 
 # The chrome sources.
 chrome_sources_js := $(wildcard $(chrome_source_root)/content/*.js)
-chrome_sources := $(chrome_sources_js) \
-               $(wildcard $(chrome_source_root)/content/*.xul) \
-               $(wildcard $(chrome_source_root)/content/*.xml) \
-               $(wildcard $(chrome_source_root)/content/*.css) \
-               $(wildcard $(chrome_source_root)/skin/*.css) \
-               $(wildcard $(chrome_source_root)/skin/*.gif) \
-               $(wildcard $(chrome_source_root)/skin/*.png) \
-               $(wildcard $(chrome_source_root)/skin/*.svg) \
-               $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/22x22/apps/*.png) \
-               $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/32x32/apps/*.png) \
-               $(wildcard $(chrome_source_root)/locale/*/*.dtd) \
+chrome_sources := $(chrome_sources_js)								\
+               $(wildcard $(chrome_source_root)/content/*.xul)					\
+               $(wildcard $(chrome_source_root)/content/*.xml)					\
+               $(wildcard $(chrome_source_root)/content/*.css)					\
+               $(wildcard $(chrome_source_root)/skin/*.css)					\
+               $(wildcard $(chrome_source_root)/skin/*.gif)					\
+               $(wildcard $(chrome_source_root)/skin/*.png)					\
+               $(wildcard $(chrome_source_root)/skin/*.svg)					\
+               $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/22x22/apps/*.png)	\
+               $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/32x32/apps/*.png)	\
+               $(wildcard $(chrome_source_root)/locale/*/*.dtd)					\
                $(wildcard $(chrome_source_root)/locale/*/*.properties)
 
 # The modules (JSM) dir.
 modules_dir := modules
 
 # The sources for the module files.
-modules_sources := $(wildcard $(modules_dir)/*.js) \
-		$(wildcard $(modules_dir)/*.jsm) \
-		$(wildcard $(modules_dir)/ctypes/*.jsm) \
-		$(wildcard $(modules_dir)/ctypes/linux/*.jsm) \
+modules_sources := $(wildcard $(modules_dir)/*.js)		\
+		$(wildcard $(modules_dir)/*.jsm)		\
+		$(wildcard $(modules_dir)/ctypes/*.jsm)		\
+		$(wildcard $(modules_dir)/ctypes/linux/*.jsm)	\
 		$(wildcard $(modules_dir)/linux/*.jsm)
 
 # The components (JSM) dir.
@@ -143,14 +144,17 @@ $(build_dir)/%: %
 	@mkdir -p $(dir $@)
 	@cp -f $< $@ # -d for symlinks
 
-copy_and_strip_maybe = \
-	@mkdir -p $(dir $(1)); \
-	if [[ "$(DEBUG)" =~ $(YES_RE) ]]; then \
-	  cp -f $(2) $(1); \
-	else \
-	  echo "Stripping debug calls from JS file $<"; \
-	  sed '/log.debug(/d' $(2) > $(1); \
-	fi
+copy_and_strip_maybe =					\
+	@mkdir -p $(dir $(1));				\
+  case "$(DEBUG)" in					\
+    $(YES_RE))						\
+      cp -f $(2) $(1);					\
+      ;;						\
+    *)							\
+      echo "Stripping debug calls from JS file $<";	\
+      sed '/log.debug(/d' $(2) > $(1);			\
+      ;;						\
+  esac
 
 # Debug calls are removed for performance.
 # NOTE: we could also use m4 for filtering source files...
@@ -164,18 +168,18 @@ $(build_dir)/$(components_dir)/%.js: $(components_dir)/%.js
 	$(call copy_and_strip_maybe,$@,$<)
 
 $(build_dir):
-	@if [ ! -x $(build_dir) ]; \
-  then \
-    mkdir -p $(build_dir); \
+	@if [ ! -x $(build_dir) ];	\
+  then					\
+    mkdir -p $(build_dir);		\
   fi
 
 $(profile_locations):
 	@echo "Creating extension folder: $(profile_locations)"
-	@for p in $(profile_locations) ; do \
-  if [ ! -x "$$p" ]; \
-  then \
-    mkdir -p $$p; \
-  fi; \
+	@for p in $(profile_locations) ; do	\
+  if [ ! -x "$$p" ];				\
+  then						\
+    mkdir -p $$p;				\
+  fi;						\
   done
 
 clean_build:
