@@ -7,7 +7,7 @@ pref("extensions.firetray.firstrun", true);
 pref("extensions.firetray.hides_on_close", true);
 pref("extensions.firetray.hides_on_minimize", true);
 pref("extensions.firetray.hides_single_window", true);
-pref("extensions.firetray.hides_last_only", true);
+pref("extensions.firetray.hides_last_only", false);
 pref("extensions.firetray.start_hidden", false);
 pref("extensions.firetray.show_activates", false);
 pref("extensions.firetray.remember_desktop", false);
