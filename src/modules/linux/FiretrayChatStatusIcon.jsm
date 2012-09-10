@@ -105,7 +105,9 @@ firetray.ChatStatusIcon = {
   // (http://sourceforge.net/tracker/index.php?func=detail&aid=3190205&group_id=35398&atid=413960)
   onFocusIn: function(widget, event, data) {
     log.debug("onFocusIn");
-    firetray.Chat.stopIconBlinkingMaybe();
+    let xid = firetray.Window.getXIDFromGtkWidget(widget);
+    log.debug("xid="+xid);
+    firetray.Chat.stopIconBlinkingMaybe(xid);
   }
 
   // FIXME: TODO: onclick/activate -> chatHandler.showCurrentConversation()

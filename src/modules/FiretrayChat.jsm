@@ -87,12 +87,12 @@ firetray.Chat = {
     }
   },
 
-  stopIconBlinkingMaybe: function() {
+  stopIconBlinkingMaybe: function(xid) {
     log.debug("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
     if (!this.acknowledgeOnFocus.must) return;
 
     let convIsActiveTabInActiveWin = this.isConvActiveTabInActiveWindow(
-      this.acknowledgeOnFocus.conv);
+      this.acknowledgeOnFocus.conv, xid);
     log.debug("convIsActiveTabInActiveWin="+convIsActiveTabInActiveWin);
 
     if (this.acknowledgeOnFocus.must && convIsActiveTabInActiveWin) {
@@ -101,14 +101,17 @@ firetray.Chat = {
     }
   },
 
-  isConvActiveTabInActiveWindow: function(conv) {
-    let activeWin = firetray.Handler.findActiveWindow(),
-        activeChatTab = null;
+  isConvActiveTabInActiveWindow: function(conv, xid) {
+    let activeWin = xid || firetray.Handler.findActiveWindow();
     if (!firetray.Handler.windows[activeWin]) return false;
 
+    let activeChatTab = null;
     activeChatTab = this.findActiveChatTab(activeWin);
+
     let convNameRegex = new RegExp(" - "+conv.name+"$");
-    return activeChatTab ? convNameRegex.test(activeChatTab.title) : false;
+    let title = activeChatTab && activeChatTab.title;
+    log.debug("conv.name='"+conv.name+"' title="+title);
+    return convNameRegex.test(title);
   },
 
   findActiveChatTab: function(xid) {

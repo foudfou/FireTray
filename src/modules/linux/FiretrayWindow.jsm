@@ -147,13 +147,8 @@ firetray.Window = {
   },
 
   getXIDFromGtkWidget: function(gtkWid) {
-    try {
-      let gdkWin = gtk.gtk_widget_get_window(gtkWid);
-      return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
-    } catch (x) {
-      log.error(x);
-    }
-    return null;
+    let gdkWin = gtk.gtk_widget_get_window(gtkWid);
+    return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
   },
 
   addrPointedByInHex: function(ptr) {
@@ -672,7 +667,8 @@ firetray.Handler.activateLastWindow = function(gtkStatusIcon, gdkEvent, userData
   return stopPropagation;
 };
 
-/* gtk_window_is_active() not reliable */
+/* NOTE: gtk_window_is_active() not reliable, and _NET_ACTIVE_WINDOW may not
+   always be set before 'focus-in-event' (gnome-shell 3.4.1) */
 firetray.Handler.findActiveWindow = function() {
   let rootWin = x11.XDefaultRootWindow(x11.current.Display);
   let [propsFound, nitems] =
