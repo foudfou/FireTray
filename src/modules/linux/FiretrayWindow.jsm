@@ -206,8 +206,10 @@ firetray.Window = {
       throw new DeleteError();
     firetray.Handler.gtkWindows.remove(xid);
     firetray.Handler.gdkWindows.remove(xid);
-    firetray.PopupMenu.removeWindowItem(xid);
+    firetray.Handler.windowsCount -= 1;
     firetray.Handler.visibleWindowsCount -= 1;
+
+    firetray.PopupMenu.removeWindowItem(xid);
 
     log.debug("window "+xid+" unregistered");
     return true;

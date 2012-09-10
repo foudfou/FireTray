@@ -16,6 +16,9 @@
 <!ENTITY hides_single_window.label "Hide windows individually">
 <!ENTITY hides_single_window.tooltip "not all windows at once">
 <!ENTITY hides_single_window.accesskey "H">
+<!ENTITY hides_last_only.label "Only last window can be hidden">
+<!ENTITY hides_last_only.tooltip "other windows will be closed (terminated)">
+<!ENTITY hides_last_only.accesskey "O">
 <!ENTITY start_hidden.label "Start application hidden to tray">
 <!ENTITY start_hidden.accesskey "S">
 <!ENTITY show_activates.label "Activate restored windows">

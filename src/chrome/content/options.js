@@ -108,8 +108,9 @@ var firetrayUIOptions = {
     let hides_on_close    = document.getElementById("ui_hides_on_close").checked;
     let hides_on_minimize = document.getElementById("ui_hides_on_minimize").checked;
     log.debug("hides_on_close="+hides_on_close+", hides_on_minimize="+hides_on_minimize);
-    document.getElementById('ui_hides_single_window').disabled =
-      !(hides_on_close || hides_on_minimize);
+    let doDisable = !(hides_on_close || hides_on_minimize);
+    document.getElementById('ui_hides_single_window').disabled = doDisable;
+    document.getElementById('ui_hides_last_only').disabled = doDisable;
   },
 
   updateScrollOptions: function() {

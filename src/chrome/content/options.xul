@@ -23,6 +23,7 @@
       <preference id="pref_hides_on_close" name="extensions.firetray.hides_on_close" type="bool"/>
       <preference id="pref_hides_on_minimize" name="extensions.firetray.hides_on_minimize" type="bool"/>
       <preference id="pref_hides_single_window" name="extensions.firetray.hides_single_window" type="bool"/>
+      <preference id="pref_hides_last_only" name="extensions.firetray.hides_last_only" type="bool"/>
       <preference id="pref_start_hidden" name="extensions.firetray.start_hidden" type="bool"/>
       <preference id="pref_show_activates" name="extensions.firetray.show_activates" type="bool"/>
       <preference id="pref_remember_desktop" name="extensions.firetray.remember_desktop" type="bool"/>
@@ -41,6 +42,10 @@
                 label="&hides_single_window.label;"
                 accesskey="&hides_single_window.accesskey;"
                 tooltiptext="&hides_single_window.tooltip;"/>
+      <checkbox id="ui_hides_last_only" preference="pref_hides_last_only"
+                label="&hides_last_only.label;"
+                accesskey="&hides_last_only.accesskey;"
+                tooltiptext="&hides_last_only.tooltip;"/>
       <checkbox id="ui_start_hidden" preference="pref_start_hidden"
                 label="&start_hidden.label;"
                 accesskey="&start_hidden.accesskey;"/>

@@ -31,12 +31,13 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     return true;
   },
 
+
+  /* NOTE: don't do firetray.Handler.initialized=false here, otherwise after a
+   window close, a new window will create a new handler (and hence, a new tray
+   icon) */
   onQuit: function(win) {
     firetray.Handler.unregisterWindow(win);
-
-    /* NOTE: don't do firetray.Handler.initialized=false here, otherwise after
-     a window close, a new window will create a new handler (and hence, a new
-     tray icon) */
+    log.info("windowsCount="+firetray.Handler.windowsCount+", visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
     log.debug('Firetray UNLOADED !');
   },
 
@@ -52,9 +53,13 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
       throw new TypeError('originalTarget not a ChromeWindow');
 
     let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
-    let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-    log.debug('hides_on_close: '+hides_on_close+', hides_single_window='+hides_single_window);
+    log.debug('hides_on_close: '+hides_on_close);
     if (hides_on_close) {
+      let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+      let hides_last_only = firetray.Utils.prefService.getBoolPref('hides_last_only');
+      log.debug('hides_single_window='+hides_single_window+', windowsCount='+firetray.Handler.windowsCount);
+      if (hides_last_only && (firetray.Handler.windowsCount > 1)) return;
+
       if (hides_single_window) {
         firetray.Handler.hideWindow(firetrayChrome.winId);
       } else
