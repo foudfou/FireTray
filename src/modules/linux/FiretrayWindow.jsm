@@ -668,7 +668,7 @@ firetray.Handler.activateLastWindow = function(gtkStatusIcon, gdkEvent, userData
 };
 
 /* NOTE: gtk_window_is_active() not reliable, and _NET_ACTIVE_WINDOW may not
-   always be set before 'focus-in-event' (gnome-shell 3.4.1) */
+   always be set before 'focus-in-event' (gnome-shell/mutter 3.4.1) */
 firetray.Handler.findActiveWindow = function() {
   let rootWin = x11.XDefaultRootWindow(x11.current.Display);
   let [propsFound, nitems] =
