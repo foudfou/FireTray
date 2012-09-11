@@ -200,7 +200,7 @@ firetray.Utils = {
       return result.booleanValue;
     case XPathResult.STRING_TYPE:
       return result.stringValue;
-    } // else XPathResult.UNORDERED_NODE_ITERATOR_TYPE
+    } // else XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
 
     var list = [];
     try {
@@ -221,6 +221,7 @@ firetray.Utils = {
       log.error(x);
     }
 
+    log.debug("len="+list.length);
     return list;
   },
 

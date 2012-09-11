@@ -287,12 +287,10 @@ var firetrayUIOptions = {
     }
   },
 
-  toggleNotifications: function(enabled) {
+  toggleNotifications: function(enabled) { // Messaging init/shutdown done in PrefListener
     if (enabled) {
       document.getElementById("broadcaster-notification-disabled")
         .removeAttribute("disabled"); // UI update (enables!)
-      if (!firetray.Messaging.initialized) firetray.Messaging.init();
-      firetray.Messaging.updateIcon();
 
       let prefMailNotificationType = firetray.Utils.prefService.getIntPref("mail_notification_type");
       this.disableNotificationMaybe(prefMailNotificationType);
@@ -304,23 +302,20 @@ var firetrayUIOptions = {
     } else {
       document.getElementById("broadcaster-notification-disabled")
         .setAttribute("disabled", "true"); // UI update
-      firetray.Messaging.shutdown();
     }
   },
 
   chooseAppIconFile: function() {
-    var filepath = document.getElementById("app_icon_custom_filename");
-    this._chooseIconFile(filepath);
+    this._chooseIconFile("app_icon_custom_filename");
     firetray.Handler.setIconImageDefault();
   },
 
   chooseMailIconFile: function() {
-    var filepath = document.getElementById("custom_mail_icon_filename");
-    this._chooseIconFile(filepath);
+    this._chooseIconFile("custom_mail_icon_filename");
     firetray.Messaging.updateIcon();
   },
 
-  _chooseIconFile: function(iconFilename) {
+  _chooseIconFile: function(elementId, prefpaneId) {
 	  const nsIFilePicker = Ci.nsIFilePicker;
 	  var filePicker = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 	  filePicker.init(window, "Select Icon", nsIFilePicker.modeOpen); // FIXME: i18n
@@ -328,10 +323,18 @@ var firetrayUIOptions = {
 
 	  var rv = filePicker.show();
 	  if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
-		  iconFilename.value = filePicker.file.path;
-		  var prefpane = document.getElementById("pane1");
-		  prefpane.userChangedValue(iconFilename);
+      let filenameElt = document.getElementById(elementId);
+		  filenameElt.value = filePicker.file.path;
+      let prefpane = this.getAncestorPrefpane(filenameElt);
+		  prefpane.userChangedValue(filenameElt);
 	  }
+  },
+
+  getAncestorPrefpane: function(elt) {
+    let prefpanes = firetray.Utils.XPath(elt, 'ancestor::xul:prefpane');
+    if (prefpanes.length !== 1)
+      throw new RangeError("not single prefpane found for '"+elt.getAttribute("id")+"'");
+    return prefpanes[0];
   },
 
   /**
@@ -412,7 +415,7 @@ var firetrayUIOptions = {
   _userChangeValueTree: function(event) {
     if (event.attrName == "label") log.debug("label changed!");
     if (event.attrName == "value") log.debug("value changed!");
-    document.getElementById("pane1")
+    document.getElementById("pref-pane-mail")
       .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
 
     firetray.Messaging.updateMsgCountWithCb();
@@ -447,7 +450,6 @@ var firetrayUIOptions = {
   // FIXME: tree not updated if accounts or favorite added/removed
   populateTreeAccountsOrServerTypes: function() {
     let that = this;
-    let prefPane = document.getElementById("pane1");
 
     let mailAccounts = firetray.Utils.getObjPref("mail_accounts");
     let serverTypes = mailAccounts["serverTypes"];
