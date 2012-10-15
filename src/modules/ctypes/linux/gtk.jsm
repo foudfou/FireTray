@@ -17,6 +17,10 @@ Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 
 function gtk_defines(lib) {
+  this.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION = 2;
+  this.FIRETRAY_REQUIRED_GTK_MINOR_VERSION = 20;
+  this.FIRETRAY_REQUIRED_GTK_MICRO_VERSION = 0;
+
   this.GTK_ICON_SIZE_MENU = 1; // enum GtkIconSize
   this.GTK_WINDOW_TOPLEVEL = 0; // enum GtkWindowType
 
@@ -78,6 +82,7 @@ function gtk_defines(lib) {
     ctypes.default_abi, gobject.gboolean,
     [this.GtkWidget.ptr, gdk.GdkEventFocus.ptr, gobject.gpointer]).ptr;
 
+  lib.lazy_bind("gtk_check_version", gobject.gchar.ptr, gobject.guint, gobject.guint, gobject.guint);
 
   lib.lazy_bind("gtk_icon_theme_get_default", this.GtkIconTheme.ptr);
   lib.lazy_bind("gtk_icon_theme_get_for_screen", this.GtkIconTheme.ptr, gdk.GdkScreen.ptr);
