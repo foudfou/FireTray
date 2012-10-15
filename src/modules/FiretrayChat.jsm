@@ -108,9 +108,9 @@ firetray.Chat = {
     let activeChatTab = null;
     activeChatTab = this.findActiveChatTab(activeWin);
 
-    let convNameRegex = new RegExp(" - "+conv.name+"$");
+    let convNameRegex = new RegExp(" - "+conv.title+"$");
     let title = activeChatTab && activeChatTab.title;
-    log.debug("conv.name='"+conv.name+"' title="+title);
+    log.debug("conv.title='"+conv.title+"' title="+title);
     return convNameRegex.test(title);
   },
 
