@@ -61,9 +61,9 @@ firetray.Chat = {
       let conv = subject.QueryInterface(Ci.prplIMessage).conversation;
       log.debug("conversation name="+conv.name); // normalizedName shouldn't be necessary
 
-      let convIsActiveTabInActiveWin = this.isConvActiveTabInActiveWindow(conv);
-      log.debug("convIsActiveTabInActiveWin="+convIsActiveTabInActiveWin);
-      if (!convIsActiveTabInActiveWin) { // don't blink when conv tab already on top
+      let convIsCurrentlyShown = this.isConvCurrentlyShown(conv);
+      log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
+      if (!convIsCurrentlyShown) { // don't blink when conv tab already on top
         this.acknowledgeOnFocus.must = true;
         this.acknowledgeOnFocus.conv = conv;
         firetray.ChatStatusIcon.setIconBlinking(true);
@@ -91,36 +91,47 @@ firetray.Chat = {
     log.debug("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
     if (!this.acknowledgeOnFocus.must) return;
 
-    let convIsActiveTabInActiveWin = this.isConvActiveTabInActiveWindow(
+    let convIsCurrentlyShown = this.isConvCurrentlyShown(
       this.acknowledgeOnFocus.conv, xid);
-    log.debug("convIsActiveTabInActiveWin="+convIsActiveTabInActiveWin);
+    log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
 
-    if (this.acknowledgeOnFocus.must && convIsActiveTabInActiveWin) {
+    if (this.acknowledgeOnFocus.must && convIsCurrentlyShown) {
       firetray.ChatStatusIcon.setIconBlinking(false);
       this.acknowledgeOnFocus.must = false;
     }
   },
 
-  isConvActiveTabInActiveWindow: function(conv, xid) {
+  isConvCurrentlyShown: function(conv, xid) {
     let activeWin = xid || firetray.Handler.findActiveWindow();
     if (!firetray.Handler.windows[activeWin]) return false;
 
-    let activeChatTab = null;
-    activeChatTab = this.findActiveChatTab(activeWin);
+    let activeChatTab = this.findSelectedChatTab(activeWin);
+    if (!activeChatTab) return false;
 
-    let convNameRegex = new RegExp(" - "+conv.title+"$");
-    let title = activeChatTab && activeChatTab.title;
-    log.debug("conv.title='"+conv.title+"' title="+title);
-    return convNameRegex.test(title);
+    // for now there is only one Chat tab, so we don't need to
+    // findSelectedChatTabFromTab(activeChatTab.tabNode). And, as there is only
+    // one forlderPaneBox, there will also probably be only one contactlistbox
+    // for all Chat tabs anyway
+    let selectedConv = this.findSelectedConv(activeWin);
+
+    log.debug("conv.title='"+conv.title+"' selectedConv.title='"+selectedConv.title+"'");
+    return (conv.id == selectedConv.id);
   },
 
-  findActiveChatTab: function(xid) {
+  findSelectedChatTab: function(xid) {
     let win = firetray.Handler.windows[xid].chromeWin;
     let tabmail = win.document.getElementById("tabmail");
     let chatTabs = tabmail.tabModes.chat.tabs;
     for each (let tab in chatTabs)
       if (tab.tabNode.selected) return tab;
     return null;
+  },
+
+  findSelectedConv: function(xid) {
+    let win = firetray.Handler.windows[xid].chromeWin;
+    let selectedItem = win.document.getElementById("contactlistbox").selectedItem;
+    if (!selectedItem || selectedItem.localName != "imconv") return null;
+    return selectedItem.conv;
   },
 
   updateIcon: function() {
