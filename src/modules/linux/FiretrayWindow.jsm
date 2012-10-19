@@ -60,6 +60,14 @@ firetray.Handler.gtkPopupMenuWindowItems = new ctypesMap(gtk.GtkImageMenuItem.pt
 firetray.Window = {
 
   init: function() {
+    let gtkVersionCheck = gtk.gtk_check_version(
+      gtk.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION,
+      gtk.FIRETRAY_REQUIRED_GTK_MINOR_VERSION,
+      gtk.FIRETRAY_REQUIRED_GTK_MICRO_VERSION
+    );
+    if (!gtkVersionCheck.isNull())
+      log.error("gtk_check_version="+gtkVersionCheck.readString());
+
     this.initialized = true;
   },
 
@@ -157,7 +165,7 @@ firetray.Window = {
 
   getGdkWindowFromNativeHandle: function(nativeHandle) {
     let gdkw = new gdk.GdkWindow.ptr(ctypes.UInt64(nativeHandle)); // a new pointer to the GdkWindow
-    gdkw = gdk.gdk_window_get_effective_toplevel(gdkw);
+    gdkw = gdk.gdk_window_get_toplevel(gdkw);
     log.debug("gdkw="+gdkw+" *gdkw="+this.addrPointedByInHex(gdkw));
     return gdkw;
   },

@@ -89,6 +89,7 @@ firetray.Handler = {
     VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailServerTypes);
     VersionChange.applyHooksAndWatchUninstall();
 
+    firetray.Window.init();
     firetray.StatusIcon.init();
     firetray.Handler.showHideIcon();
     log.debug('StatusIcon initialized');
