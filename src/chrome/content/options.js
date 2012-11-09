@@ -316,18 +316,22 @@ var firetrayUIOptions = {
   },
 
   _chooseIconFile: function(elementId, prefpaneId) {
-	  const nsIFilePicker = Ci.nsIFilePicker;
-	  var filePicker = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-	  filePicker.init(window, "Select Icon", nsIFilePicker.modeOpen); // FIXME: i18n
-	  filePicker.appendFilters(nsIFilePicker.filterImages);
+    const nsIFilePicker = Ci.nsIFilePicker;
+    var filePicker = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
-	  var rv = filePicker.show();
-	  if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
-      let filenameElt = document.getElementById(elementId);
-		  filenameElt.value = filePicker.file.path;
-      let prefpane = this.getAncestorPrefpane(filenameElt);
-		  prefpane.userChangedValue(filenameElt);
-	  }
+    let fpCallback = function fpCallback_done(aResult) {
+      if (aResult == nsIFilePicker.returnOK ||
+          aResult == nsIFilePicker.returnReplace) {
+        let filenameElt = document.getElementById(elementId);
+        filenameElt.value = filePicker.file.path;
+        let prefpane = firetrayUIOptions.getAncestorPrefpane(filenameElt);
+        prefpane.userChangedValue(filenameElt);
+      }
+    };
+
+    filePicker.init(window, "Select Icon", nsIFilePicker.modeOpen); // FIXME: i18n
+    filePicker.appendFilters(nsIFilePicker.filterImages);
+    filePicker.open(fpCallback);
   },
 
   getAncestorPrefpane: function(elt) {
