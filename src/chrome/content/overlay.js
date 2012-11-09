@@ -7,7 +7,8 @@ if ("undefined" == typeof(Cc)) var Cc = Components.classes;
 if ("undefined" == typeof(Ci)) var Ci = Components.interfaces;
 if ("undefined" == typeof(Cu)) var Cu = Components.utils;
 
-let log = firetray.Logging.getLogger("firetray.Chrome");
+// can't use 'log': don't pollute global (chrome) namespace
+let ftlog = firetray.Logging.getLogger("firetray.Chrome");
 
 // https://groups.google.com/group/mozilla.dev.extensions/browse_thread/thread/e89e9c2a834ff2b6#
 var firetrayChrome = { // each new window gets a new firetrayChrome !
@@ -18,16 +19,16 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   onLoad: function(win) {
     this.strings = document.getElementById("firetray-strings"); // chrome-specific
 
-    log.debug("Handler initialized: "+firetray.Handler.initialized);
+    ftlog.debug("Handler initialized: "+firetray.Handler.initialized);
     let init = firetray.Handler.initialized || firetray.Handler.init();
 
-    log.debug("ONLOAD"); firetray.Handler.dumpWindows();
+    ftlog.debug("ONLOAD"); firetray.Handler.dumpWindows();
     this.winId = firetray.Handler.registerWindow(win);
     win.setTimeout(firetrayChrome.startHiddenMaybe, 0, this.winId);
 
     win.addEventListener('close', firetrayChrome.onClose, true);
 
-    log.debug('Firetray LOADED: ' + init);
+    ftlog.debug('Firetray LOADED: ' + init);
     return true;
   },
 
@@ -37,8 +38,8 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
    icon) */
   onQuit: function(win) {
     firetray.Handler.unregisterWindow(win);
-    log.info("windowsCount="+firetray.Handler.windowsCount+", visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
-    log.debug('Firetray UNLOADED !');
+    ftlog.info("windowsCount="+firetray.Handler.windowsCount+", visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
+    ftlog.debug('Firetray UNLOADED !');
   },
 
   /* until we find a fix (TODO), we need to set browser.tabs.warnOnClose=false
@@ -47,17 +48,17 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
    use trying to set warnOnClose=false temporarily in onClose, since onClose is
    called *after* the popup */
   onClose: function(event) {
-    log.debug('Firetray CLOSE');
+    ftlog.debug('Firetray CLOSE');
     let win = event.originalTarget;
     if (!win instanceof ChromeWindow)
       throw new TypeError('originalTarget not a ChromeWindow');
 
     let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
-    log.debug('hides_on_close: '+hides_on_close);
+    ftlog.debug('hides_on_close: '+hides_on_close);
     if (hides_on_close) {
       let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
       let hides_last_only = firetray.Utils.prefService.getBoolPref('hides_last_only');
-      log.debug('hides_single_window='+hides_single_window+', windowsCount='+firetray.Handler.windowsCount);
+      ftlog.debug('hides_single_window='+hides_single_window+', windowsCount='+firetray.Handler.windowsCount);
       if (hides_last_only && (firetray.Handler.windowsCount > 1)) return;
 
       if (hides_single_window) {
@@ -69,7 +70,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   },
 
   startHiddenMaybe: function(winId) {
-    log.debug('startHiddenMaybe'+'. appStarted='+firetray.Handler.appStarted);
+    ftlog.debug('startHiddenMaybe'+'. appStarted='+firetray.Handler.appStarted);
 
     if (firetray.Utils.prefService.getBoolPref('start_hidden') &&
         !firetray.Handler.appStarted) { // !appStarted for new windows !
