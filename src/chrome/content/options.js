@@ -71,7 +71,7 @@ var firetrayUIOptions = {
       this._prefwindow = document.getElementById("firetray-preferences");
     let radio = document.getAnonymousElementByAttribute(this._prefwindow, "pane", name);
     if (radio.selected)
-      prefwindow.showPane(document.getElementById(PREF_DEFAULT_PANE));
+      _prefwindow.showPane(document.getElementById(PREF_DEFAULT_PANE));
     radio.hidden = true;
   },
 
