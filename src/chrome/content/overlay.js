@@ -24,7 +24,9 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
 
     ftlog.debug("ONLOAD"); firetray.Handler.dumpWindows();
     this.winId = firetray.Handler.registerWindow(win);
-    win.setTimeout(firetrayChrome.startHiddenMaybe, 0, this.winId);
+    win.setTimeout(firetrayChrome.startHiddenMaybe,
+                   FIRETRAY_DELAY_STARTUP_HIDE_MILLISECONDS,
+                   this.winId);
 
     win.addEventListener('close', firetrayChrome.onClose, true);
 

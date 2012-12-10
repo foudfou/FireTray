@@ -192,7 +192,7 @@ firetray.Handler = {
     switch (topic) {
     case "sessionstore-windows-restored":
     case "mail-startup-done":
-    case "final-ui-startup":
+    case "final-ui-startup":                   // subject=ChromeWindow
       if (firetray.Handler.appStarted) return; // second TB window issues "mail-startup-done"
       log.debug("RECEIVED: "+topic+", launching timer");
       // sessionstore-windows-restored does not come after the realization of

@@ -261,7 +261,7 @@ firetray.Window = {
     log.debug('startupHide: '+xid);
 
     firetray.Handler.windows[xid].baseWin.visibility = false;
-    this.updateVisibility(xid, false);
+    firetray.Window.updateVisibility(xid, false);
 
     firetray.PopupMenu.showWindowItem(xid);
     firetray.Handler.showHideIcon();
