@@ -225,7 +225,7 @@ firetray.Utils = {
     return list;
   },
 
-  timer: function(callback, delay, timerType) {
+  timer: function(delay, timerType, callback) {
     var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     timer.initWithCallback({ notify: callback },
       delay, timerType);

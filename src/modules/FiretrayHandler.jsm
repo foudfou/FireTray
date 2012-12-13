@@ -192,16 +192,16 @@ firetray.Handler = {
     case "before-first-paint":
       log.debug("before-first-paint: "+subject.baseURI);
       firetray.Utils.removeObservers(firetray.Handler, [ "before-first-paint" ]);
-      firetray.Utils.timer(function() {
+      firetray.Utils.timer(FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS,
+        Ci.nsITimer.TYPE_ONE_SHOT, function() {
+          if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
+            log.debug("start_hidden");
+            firetray.Handler.hideAllWindows();
+          }
 
-        if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
-          log.debug("start_hidden");
-          firetray.Handler.hideAllWindows();
-        }
-
-        firetray.Handler.appStarted = true;
-        log.debug("*** appStarted ***");
-      }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+          firetray.Handler.appStarted = true;
+          log.debug("*** appStarted ***");
+        });
       break;
 
     case "xpcom-will-shutdown":
@@ -327,10 +327,11 @@ firetray.Handler = {
 
       // FIXME: obviously we need to wait to avoid seg fault on jsapi.cpp:827
       // 827         if (t->data.requestDepth) {
-      firetray.Utils.timer(function() {
-        for(var key in firetray.Handler.windows) break;
-        firetray.Handler.windows[key].chromeWin.open(home);
-      }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      firetray.Utils.timer(FIRETRAY_DELAY_NOWAIT_MILLISECONDS,
+        Ci.nsITimer.TYPE_ONE_SHOT, function() {
+          for(var key in firetray.Handler.windows) break;
+          firetray.Handler.windows[key].chromeWin.open(home);
+        });
     } catch (x) { log.error(x); }
   },
 
@@ -345,11 +346,12 @@ firetray.Handler = {
 
   quitApplication: function() {
     try {
-      firetray.Utils.timer(function() {
-        let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']
-          .getService(Ci.nsIAppStartup);
-        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
-      }, FIRETRAY_DELAY_NOWAIT_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      firetray.Utils.timer(FIRETRAY_DELAY_NOWAIT_MILLISECONDS,
+        Ci.nsITimer.TYPE_ONE_SHOT, function() {
+          let appStartup = Cc['@mozilla.org/toolkit/app-startup;1']
+                .getService(Ci.nsIAppStartup);
+          appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
+        });
     } catch (x) { log.error(x); }
   },
 
@@ -465,10 +467,11 @@ firetray.VersionChangeHandler = {
     }
 
     if (tabmail) {
-      firetray.Utils.timer(function() {
-        log.debug("openMailTab");
-        tabmail.openTab("contentTab", {contentPage: url});
-      }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+      firetray.Utils.timer(FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS,
+        Ci.nsITimer.TYPE_ONE_SHOT, function() {
+          log.debug("openMailTab");
+          tabmail.openTab("contentTab", {contentPage: url});
+        });
     }
   },
 
