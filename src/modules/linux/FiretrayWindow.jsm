@@ -257,16 +257,6 @@ firetray.Window = {
     firetray.Handler.showHideIcon();
   },
 
-  startupHide: function(xid) {
-    log.debug('startupHide: '+xid);
-
-    firetray.Handler.windows[xid].baseWin.visibility = false;
-    firetray.Window.updateVisibility(xid, false);
-
-    firetray.PopupMenu.showWindowItem(xid);
-    firetray.Handler.showHideIcon();
-  },
-
   savePositionAndSize: function(xid) {
     let gx = {}, gy = {}, gwidth = {}, gheight = {};
     firetray.Handler.windows[xid].baseWin.getPositionAndSize(gx, gy, gwidth, gheight);
@@ -533,7 +523,7 @@ firetray.Window = {
     case x11.MapNotify:
       log.debug("MapNotify");
       let win = firetray.Handler.windows[xid];
-      if (!win.visible) { // happens when hidden app called from command line
+      if (!win.visible && firetray.Handler.appStarted) { // happens when hidden app called from command line
         log.warn("window not visible, correcting visibility");
         firetray.Window.updateVisibility(xid, true);
         log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
@@ -635,7 +625,6 @@ firetray.Handler.unregisterWindow = function(win) {
 
 firetray.Handler.showWindow = firetray.Window.show;
 firetray.Handler.hideWindow = firetray.Window.hide;
-firetray.Handler.startupHideWindow = firetray.Window.startupHide;
 
 firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   log.debug("showHideAllWindows: "+userData);

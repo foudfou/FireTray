@@ -43,7 +43,6 @@ firetray.Handler = {
 
   appId:      (function(){return Services.appinfo.ID;})(),
   appName:    (function(){return Services.appinfo.name;})(),
-  appStartupTopic: null,
   runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
   runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
   addonRootDir: (function(){
@@ -116,9 +115,8 @@ firetray.Handler = {
         firetray.Chat.init();
     }
 
-    this.appStartupTopic = this.getAppStartupTopic(this.appId);
-    firetray.Utils.addObservers(firetray.Handler, [ this.appStartupTopic,
-      "xpcom-will-shutdown", "profile-change-teardown" ]);
+    firetray.Utils.addObservers(firetray.Handler,
+    [ "before-first-paint", "xpcom-will-shutdown", "profile-change-teardown" ]);
 
     this.preventWarnOnClose();
 
@@ -190,18 +188,22 @@ firetray.Handler = {
 
   observe: function(subject, topic, data) {
     switch (topic) {
-    case "sessionstore-windows-restored":
-    case "mail-startup-done":
-    case "final-ui-startup":                   // subject=ChromeWindow
-      if (firetray.Handler.appStarted) return; // second TB window issues "mail-startup-done"
-      log.debug("RECEIVED: "+topic+", launching timer");
-      // sessionstore-windows-restored does not come after the realization of
-      // all windows... so we wait a little
+
+    case "before-first-paint":
+      log.debug("before-first-paint: "+subject.baseURI);
+      firetray.Utils.removeObservers(firetray.Handler, [ "before-first-paint" ]);
       firetray.Utils.timer(function() {
+
+        if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
+          log.debug("start_hidden");
+          firetray.Handler.hideAllWindows();
+        }
+
         firetray.Handler.appStarted = true;
         log.debug("*** appStarted ***");
       }, FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
       break;
+
     case "xpcom-will-shutdown":
       log.debug("xpcom-will-shutdown");
       this.shutdown();
@@ -225,18 +227,6 @@ firetray.Handler = {
     }
   },
 
-  getAppStartupTopic: function(id) {
-    switch (id) {
-    case FIRETRAY_FIREFOX_ID:
-    case FIRETRAY_SEAMONKEY_ID:
-      return 'sessionstore-windows-restored';
-    case FIRETRAY_THUNDERBIRD_ID:
-      return 'mail-startup-done';
-    default:
-      return 'final-ui-startup';
-    }
-  },
-
   // these get overridden in OS-specific Icon/Window handlers
   setIconImageDefault: function() {},
   setIconImageNewMail: function() {},
@@ -249,7 +239,6 @@ firetray.Handler = {
   unregisterWindow: function(win) {},
   getWindowIdFromChromeWindow: function(win) {},
   hideWindow: function(winId) {},
-  startupHideWindow: function(winId) {},
   showWindow: function(winId) {},
   showHideAllWindows: function() {},
   activateLastWindow: function(gtkStatusIcon, gdkEvent, userData) {},

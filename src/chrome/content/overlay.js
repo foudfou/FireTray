@@ -24,9 +24,6 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
 
     ftlog.debug("ONLOAD"); firetray.Handler.dumpWindows();
     this.winId = firetray.Handler.registerWindow(win);
-    win.setTimeout(firetrayChrome.startHiddenMaybe,
-                   FIRETRAY_DELAY_STARTUP_HIDE_MILLISECONDS,
-                   this.winId);
 
     win.addEventListener('close', firetrayChrome.onClose, true);
 
@@ -68,15 +65,6 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
       } else
         firetray.Handler.hideAllWindows();
       event && event.preventDefault();
-    }
-  },
-
-  startHiddenMaybe: function(winId) {
-    ftlog.debug('startHiddenMaybe'+'. appStarted='+firetray.Handler.appStarted);
-
-    if (firetray.Utils.prefService.getBoolPref('start_hidden') &&
-        !firetray.Handler.appStarted) { // !appStarted for new windows !
-      firetray.Handler.startupHideWindow(winId);
     }
   }
 
