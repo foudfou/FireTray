@@ -553,7 +553,18 @@ firetray.Window = {
     }
 
     return gdk.GDK_FILTER_CONTINUE;
+  },
+
+  showAllWindowsAndActivate: function() {
+    let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
+    log.debug("visibilityRate="+visibilityRate);
+    if (visibilityRate < 1)
+      firetray.Handler.showAllWindows();
+
+    for(var key in firetray.Handler.windows);
+    firetray.Window.activate(key);
   }
+
 
 }; // firetray.Window
 
@@ -646,20 +657,15 @@ firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
   return stopPropagation;
 };
 
-firetray.Handler.activateLastWindow = function(gtkStatusIcon, gdkEvent, userData) {
-  log.debug("activateLastWindow");
+firetray.Handler.showAllWindowsAndActivate = firetray.Window.showAllWindowsAndActivate;
+firetray.Handler.activateLastWindowCb = function(gtkStatusIcon, gdkEvent, userData) {
+  log.debug("activateLastWindowCb");
 
   let gdkEventButton = ctypes.cast(gdkEvent, gdk.GdkEventButton.ptr);
   if (gdkEventButton.contents.button === 2 && gdkEventButton.contents.type === gdk.GDK_BUTTON_PRESS) {
     log.debug("MIDDLE CLICK");
 
-    let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
-    log.debug("visibilityRate="+visibilityRate);
-    if (visibilityRate < 1)
-      firetray.Handler.showAllWindows();
-
-    for(var key in firetray.Handler.windows);
-    firetray.Window.activate(key);
+    firetray.Window.showAllWindowsAndActivate();
   }
 
   let stopPropagation = false;

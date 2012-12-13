@@ -140,7 +140,7 @@ firetray.StatusIcon = {
     log.debug("g_connect activate="+handlerId);
 
     this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
-      firetray.Handler.activateLastWindow);
+      firetray.Handler.activateLastWindowCb);
     handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
       "button-press-event", firetray.StatusIcon.callbacks.iconMiddleClick, null);
     log.debug("g_connect middleClick="+handlerId);

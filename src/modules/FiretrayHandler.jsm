@@ -241,7 +241,7 @@ firetray.Handler = {
   hideWindow: function(winId) {},
   showWindow: function(winId) {},
   showHideAllWindows: function() {},
-  activateLastWindow: function(gtkStatusIcon, gdkEvent, userData) {},
+  activateLastWindowCb: function(gtkStatusIcon, gdkEvent, userData) {},
   findActiveWindow: function() {},
 
   showAllWindows: function() {

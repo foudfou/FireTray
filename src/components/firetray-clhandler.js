@@ -28,9 +28,15 @@ firetayCommandLineHandler.prototype = {
   handle: function clh_handle(cmdLine)
   {
     if (cmdLine.handleFlag("firetrayShowHide", false)) {
-      log.debug("*** CmdLine call ***");
+      log.debug("*** CmdLine call -firetrayShowHide ***");
       firetray.Handler.showHideAllWindows();
       cmdLine.preventDefault = true;
+
+    } else if (cmdLine.handleFlag("firetrayPresent", false)) {
+      log.debug("*** CmdLine call -firetrayPresent ***");
+      firetray.Handler.showAllWindowsAndActivate();
+      cmdLine.preventDefault = true;
+
     }
   },
 
