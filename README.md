@@ -22,7 +22,8 @@ Features
   * GTK-themable icons
   * customizable tray icons
   * popup menu (show/hide individual windows, open new windows, quit)
-  * adds `-firetrayShowHide` option (useful for window manager's keyboard shortcuts)
+  * command-line `-firetrayShowHide` option (useful for window manager's keyboard shortcuts)
+  * command-line `-firetrayPresent` option (activates windows)
   * middle click on the tray icon activates last registered window
 
 * for mail applications:
