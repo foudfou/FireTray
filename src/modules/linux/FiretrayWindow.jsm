@@ -294,6 +294,10 @@ firetray.Window = {
     let winStates = firetray.Handler.windows[xid].savedStates;
     log.debug("restored WindowStates: " + winStates);
 
+    /* helps prevent getting iconify event following show() */
+    if (firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
+      firetray.Handler.windows[xid].chromeWin.restore(); // nsIDOMChromeWindow.idl
+
     if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
       firetray.Handler.windows[xid].chromeWin.maximize();
       log.debug("restored maximized");
@@ -303,10 +307,6 @@ firetray.Window = {
       firetray.Handler.windows[xid].chromeWin.minimize();
       log.debug("restored minimized");
     }
-
-    /* helps prevent getting iconify event following show() */
-    if (firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
-      firetray.Handler.windows[xid].chromeWin.restore();
 
     delete firetray.Handler.windows[xid].savedStates;
   },
