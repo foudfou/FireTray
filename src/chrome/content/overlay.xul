@@ -9,7 +9,7 @@
   </stringbundleset>
 
   <keyset>
-    <key id="key_debug" key="P" modifiers="control alt shift"
+    <key id="firetray_key_debug" key="P" modifiers="control alt shift"
          oncommand="window.openDialog('chrome://firetray/content/options.xul',
                     '', 'chrome,titlebar,toolbar,centerscreen', 'pane3');" />
   </keyset>
