@@ -350,19 +350,48 @@ firetray.Messaging.Accounts = function(sortByTypeAndName) {
 
   this.sortByTypeAndName = sortByTypeAndName;
 };
+
+// https://bugzilla.mozilla.org/show_bug.cgi?id=820377
+firetray.Messaging._accountsRef = MailServices.accounts.accounts;
+if (firetray.Messaging._accountsRef instanceof Ci.nsIArray) {
+
+  function _getAccountServersAsJSArray() {
+    let accountServers = [];
+    let accEnumerator = firetray.Messaging._accountsRef.enumerate();
+    while (accEnumerator.hasMoreElements()) {
+      let account = accEnumerator.getNext().QueryInterface(Ci.nsIMsgAccount);
+      log.debug("account="+account);
+      let accountServer = account.incomingServer;
+      accountServers.push(accountServer);
+    }
+    log.debug("accountServers="+accountServers.length);
+    return accountServers;
+  }
+
+} else if (firetray.Messaging._accountsRef instanceof Ci.nsISupportsArray) {
+
+  function _getAccountServersAsJSArray() {
+    let accountServers = [];
+    for (let i=0, len=firetray.Messaging._accountsRef.Count(); i<len; ++i) {
+      let account = firetray.Messaging._accountsRef.QueryElementAt(i, Ci.nsIMsgAccount);
+      let accountServer = account.incomingServer;
+      accountServers[i] = accountServer;
+    }
+    log.debug("accountServers="+accountServers.length);
+    return accountServers;
+  }
+
+} else {
+    throw TypeError("unknown type for MailServices.accounts.accounts");
+}
+
 firetray.Messaging.Accounts.prototype.__iterator__ = function() {
-  let accounts = MailServices.accounts.accounts;
   log.debug("sortByTypeAndName="+this.sortByTypeAndName);
 
   /* NOTE: sort() not provided by nsIMsgAccountManager.accounts
-   (nsISupportsArray, nsICollection). Should be OK to re-build a JS-Array for
-   few accounts */
-  let accountServers = [];
-  for (let i=0, len=accounts.Count(); i<len; ++i) {
-    let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
-    let accountServer = account.incomingServer;
-    accountServers[i] = accountServer;
-  }
+   (nsISupportsArray or nsIArray if xulrunner >= 20.0). Should be OK to
+   re-build a JS-Array for few accounts */
+  let accountServers = _getAccountServersAsJSArray();
 
   let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
   let serverTypes = mailAccounts["serverTypes"];
