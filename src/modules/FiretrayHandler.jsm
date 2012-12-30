@@ -43,6 +43,7 @@ firetray.Handler = {
 
   appId:      (function(){return Services.appinfo.ID;})(),
   appName:    (function(){return Services.appinfo.name;})(),
+  xulVer:     (function(){return Services.appinfo.platformVersion;})(), // Services.vc.compare(xulVer,"2.0a")>=0
   runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
   runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
   addonRootDir: (function(){
@@ -59,8 +60,7 @@ firetray.Handler = {
     firetray.MailChatPrefListener.register(false);
 
     // version checked during install, so we shouldn't need to care
-    let xulVer = Services.appinfo.platformVersion; // Services.vc.compare(xulVer,"2.0a")>=0
-    log.info("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + xulVer);
+    log.info("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + this.xulVer);
     switch (this.runtimeOS) {
     case "Linux":
       Cu.import("resource://firetray/linux/FiretrayStatusIcon.jsm");
@@ -77,7 +77,7 @@ firetray.Handler = {
       this.inMailApp = true;
     if (this.appId === FIRETRAY_FIREFOX_ID || this.appId === FIRETRAY_SEAMONKEY_ID)
       this.inBrowserApp = true;
-    if (this.appId === FIRETRAY_THUNDERBIRD_ID && Services.vc.compare(xulVer,"15.0")>=0)
+    if (this.appId === FIRETRAY_THUNDERBIRD_ID && Services.vc.compare(this.xulVer,"15.0")>=0)
       this.appHasChat = true;
     log.info('inMailApp='+this.inMailApp+', inBrowserApp='+this.inBrowserApp+', appHasChat='+this.appHasChat);
 
