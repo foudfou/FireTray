@@ -445,7 +445,7 @@ firetray.MailChatPrefListener = new PrefListener(
 firetray.VersionChangeHandler = {
 
   showReleaseNotes: function() {
-    firetray.VersionChangeHandler.openTab(FIRETRAY_SPLASH_PAGE+"#v"+FIRETRAY_VERSION);
+    firetray.VersionChangeHandler.openTab(FIRETRAY_SPLASH_PAGE+"#release-notes");
   },
 
   openTab: function(url) {
