@@ -306,28 +306,30 @@ var firetrayUIOptions = {
   },
 
   chooseAppIconFile: function() {
+    let updateIcon = firetray.Handler.setIconImageDefault.bind(firetray.Handler);
     this._chooseIconFile("app_icon_custom_filename");
-    firetray.Handler.setIconImageDefault();
   },
 
   chooseMailIconFile: function() {
-    this._chooseIconFile("custom_mail_icon_filename");
-    firetray.Messaging.updateIcon();
+    let updateIcon = firetray.Messaging.updateIcon.bind(firetray.Messaging);
+    this._chooseIconFile("custom_mail_icon_filename", updateIcon);
   },
 
-  _chooseIconFile: function(elementId, prefpaneId) {
+  _chooseIconFile: function(elementId, callback) {
     const nsIFilePicker = Ci.nsIFilePicker;
     var filePicker = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
-    let fpCallback = function fpCallback_done(aResult) {
+    let fpCallback = { done: function(aResult) {
       if (aResult == nsIFilePicker.returnOK ||
           aResult == nsIFilePicker.returnReplace) {
         let filenameElt = document.getElementById(elementId);
         filenameElt.value = filePicker.file.path;
         let prefpane = firetrayUIOptions.getAncestorPrefpane(filenameElt);
         prefpane.userChangedValue(filenameElt);
+
+        callback.call();
       }
-    };
+    }};
 
     filePicker.init(window, "Select Icon", nsIFilePicker.modeOpen); // FIXME: i18n
     filePicker.appendFilters(nsIFilePicker.filterImages);
