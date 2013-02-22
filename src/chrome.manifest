@@ -1,6 +1,7 @@
 content		firetray			chrome/content/
 skin		firetray	classic/1.0	chrome/skin/
 locale		firetray	en-US		chrome/locale/en-US/
+locale		firetray	sk-SK		chrome/locale/sk-SK/
 resource	firetray			modules/
 
 overlay	chrome://browser/content/browser.xul	chrome://firetray/content/overlay.xul
