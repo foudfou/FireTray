@@ -225,6 +225,11 @@ firetray.Utils = {
     return list;
   },
 
+  /*
+   * keep a long-living reference to the returned timer, if you don't want to
+   * see it GC'ed ! see
+   * http://www.joshmatthews.net/blog/2011/03/nsitimer-anti-pattern/
+   */
   timer: function(delay, timerType, callback) {
     var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     timer.initWithCallback({ notify: callback },

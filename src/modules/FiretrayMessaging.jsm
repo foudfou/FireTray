@@ -27,7 +27,6 @@ let log = firetray.Logging.getLogger("firetray.Messaging");
 
 firetray.Messaging = {
   initialized: false,
-  cleaningTimer: null,
   currentMsgCount: null,
   newMsgCount: null,
   observedTopics: {},
