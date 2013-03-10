@@ -41,7 +41,8 @@ profile_id := mozilla-dev
 ZIP := zip # --symlinks
 
 # The target location of the build and build files.
-build_dir := ../build
+git_rev = $(shell git rev-parse --short HEAD)
+build_dir := ../build-$(git_rev)
 
 # The location of the extension profile. (this extension is intended for Linux only)
 profile_locations := \
