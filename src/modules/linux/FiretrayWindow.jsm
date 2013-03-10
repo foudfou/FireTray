@@ -243,7 +243,8 @@ firetray.Window = {
     firetray.Handler.showHideIcon();
   },
 
-  /* FIXME: hiding windows should also hide child windows */
+  /* FIXME: hiding windows should also hide child windows, like message windows
+   in Thunderbird */
   hide: function(xid) {
     log.debug("hide");
 
@@ -488,7 +489,7 @@ firetray.Window = {
     let title = firetray.Handler.windows[xid].baseWin.title;
     log.debug("|baseWin.title="+title+"|");
     let tailIndex;
-    if (firetray.Handler.appId === FIRETRAY_SEAMONKEY_ID)
+    if (firetray.Handler.appId === FIRETRAY_APP_DB['seamonkey']['id'])
       tailIndex = title.indexOf(" - "+firetray.Handler.appName);
     else
       tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
@@ -513,6 +514,25 @@ firetray.Window = {
     }
   },
 
+  startupFilter: function(xev, gdkEv, data) {
+    if (!xev)
+      return gdk.GDK_FILTER_CONTINUE;
+
+    let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
+    let xid = xany.contents.window;
+
+    if (xany.contents.type === x11.MapNotify) {
+      if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
+        log.debug("start_hidden");
+        firetray.Window.hide(xid);
+      }
+      gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),
+                                   firetray.Handler.windows[xid].startupFilterCb, null);
+    }
+
+    return gdk.GDK_FILTER_CONTINUE;
+  },
+
   filterWindow: function(xev, gdkEv, data) {
     if (!xev)
       return gdk.GDK_FILTER_CONTINUE;
@@ -527,7 +547,7 @@ firetray.Window = {
       let gdkWinStateOnMap = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xid));
       log.debug("gdkWinState="+gdkWinStateOnMap+" for xid="+xid);
       let win = firetray.Handler.windows[xid];
-      if (!win.visible && firetray.Handler.appStarted) { // happens when hidden app called from command line
+      if (firetray.Handler.appStarted && !win.visible) { // happens when hidden app called from command line
         log.warn("window not visible, correcting visibility");
         firetray.Window.updateVisibility(xid, true);
         log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
@@ -617,6 +637,8 @@ firetray.Handler.registerWindow = function(win) {
 
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
+    this.windows[xid].startupFilterCb = gdk.GdkFilterFunc_t(firetray.Window.startupFilter);
+    gdk.gdk_window_add_filter(gdkWin, this.windows[xid].startupFilterCb, null);
 
     if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) { // missing import ok
       Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");

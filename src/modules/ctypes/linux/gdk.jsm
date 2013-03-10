@@ -292,6 +292,7 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_get_events", this.GdkEventMask, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_window_set_events", ctypes.void_t, this.GdkWindow.ptr, this.GdkEventMask);
   lib.lazy_bind("gdk_window_add_filter", ctypes.void_t, this.GdkWindow.ptr, this.GdkFilterFunc, gobject.gpointer);
+  lib.lazy_bind("gdk_window_remove_filter", ctypes.void_t, this.GdkWindow.ptr, this.GdkFilterFunc, gobject.gpointer);
   lib.lazy_bind("gdk_display_get_default", this.GdkDisplay.ptr);
   lib.lazy_bind("gdk_x11_display_get_xdisplay", x11.Display.ptr, this.GdkDisplay.ptr);
   lib.lazy_bind("gdk_window_get_state", this.GdkWindowState, this.GdkWindow.ptr);

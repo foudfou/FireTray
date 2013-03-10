@@ -15,8 +15,7 @@ var EXPORTED_SYMBOLS =
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS",
     "FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS",
     "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD", "FIRETRAY_MESSAGE_COUNT_TYPE_NEW",
-    "FIRETRAY_FIREFOX_ID", "FIRETRAY_THUNDERBIRD_ID", "FIRETRAY_SONGBIRD_ID",
-    "FIRETRAY_SUNBIRD_ID", "FIRETRAY_SEAMONKEY_ID", "FIRETRAY_CHATZILLA_ID" ];
+    "FIRETRAY_APP_DB" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -26,8 +25,8 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
 const FIRETRAY_VERSION     = "0.4.5"; // needed for sync call of onVersionChange() :(
-const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
 const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
+const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
 const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
 
 const FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
@@ -51,12 +50,39 @@ const FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS = 500;
 const FIRETRAY_DELAY_NOWAIT_MILLISECONDS          = 0;
 const FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS   = 15*60*1000;
 
-const FIRETRAY_FIREFOX_ID     = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
-const FIRETRAY_THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
-const FIRETRAY_SONGBIRD_ID    = "songbird@songbirdnest.com";
-const FIRETRAY_SUNBIRD_ID     = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-const FIRETRAY_SEAMONKEY_ID   = "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}";
-const FIRETRAY_CHATZILLA_ID   = "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}";
+const FIRETRAY_APP_DB = {
+
+  firefox: {
+    id: "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}",
+    mainXUL: "chrome://browser/content/browser.xul"
+  },
+
+  thunderbird: {
+    id:  "{3550f703-e582-4d05-9a08-453d09bdfdc6}",
+    mainXUL: "chrome://messenger/content/msgAccountCentral.xul"
+  },
+
+  seamonkey: {
+    id: "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}",
+    mainXUL: null
+  },
+
+  songbird: {
+    id: "songbird@songbirdnest.com",
+    mainXUL: null
+  },
+
+  sunbird: {
+    id: "718e30fb-e89b-41dd-9da7-e25a45638b28}",
+    mainXUL: null
+  },
+
+  chatzilla: {
+    id: "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}",
+    mainXUL: null
+  }
+
+};
 
 /**
  * firetray namespace.

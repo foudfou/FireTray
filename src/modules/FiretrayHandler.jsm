@@ -74,13 +74,17 @@ firetray.Handler = {
       return false;
     }
 
-    if (this.appId === FIRETRAY_THUNDERBIRD_ID || this.appId === FIRETRAY_SEAMONKEY_ID)
+    if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
+        this.appId === FIRETRAY_APP_DB['seamonkey']['id'])
       this.inMailApp = true;
-    if (this.appId === FIRETRAY_FIREFOX_ID || this.appId === FIRETRAY_SEAMONKEY_ID)
+    if (this.appId === FIRETRAY_APP_DB['firefox']['id'] ||
+        this.appId === FIRETRAY_APP_DB['seamonkey']['id'])
       this.inBrowserApp = true;
-    if (this.appId === FIRETRAY_THUNDERBIRD_ID && Services.vc.compare(this.xulVer,"15.0")>=0)
+    if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] &&
+        Services.vc.compare(this.xulVer,"15.0")>=0)
       this.appHasChat = true;
-    log.info('inMailApp='+this.inMailApp+', inBrowserApp='+this.inBrowserApp+', appHasChat='+this.appHasChat);
+    log.info('inMailApp='+this.inMailApp+', inBrowserApp='+this.inBrowserApp+
+      ', appHasChat='+this.appHasChat);
 
     VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
     VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
@@ -119,7 +123,13 @@ firetray.Handler = {
     }
 
     firetray.Utils.addObservers(firetray.Handler,
-    [ "before-first-paint", "xpcom-will-shutdown", "profile-change-teardown" ]);
+      [ "xpcom-will-shutdown", "profile-change-teardown" ]);
+    if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
+        this.appId === FIRETRAY_APP_DB['firefox']['id']) {
+      firetray.Utils.addObservers(firetray.Handler, [ "before-first-paint" ]);
+    } else {
+      firetray.Utils.addObservers(firetray.Handler, [ "xul-window-visible" ]);
+    }
 
     this.preventWarnOnClose();
 
@@ -187,23 +197,29 @@ firetray.Handler = {
     return false;
   },
 
+  startupDone: function() {
+    firetray.Handler.timers['startup-done'] =
+      firetray.Utils.timer(FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS,
+        Ci.nsITimer.TYPE_ONE_SHOT, function() {
+          firetray.Handler.appStarted = true;
+          log.debug("*** appStarted ***");
+        });
+  },
+
   observe: function(subject, topic, data) {
     switch (topic) {
 
     case "before-first-paint":
+      if (FIRETRAY_APP_DB[this.appName.toLowerCase()]['mainXUL'] !== subject.baseURI) return;
+
       log.debug("before-first-paint: "+subject.baseURI);
       firetray.Utils.removeObservers(firetray.Handler, [ "before-first-paint" ]);
-      firetray.Handler.timers['before-first-paint'] =
-        firetray.Utils.timer(FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS,
-          Ci.nsITimer.TYPE_ONE_SHOT, function() {
-            if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
-              log.debug("start_hidden");
-              firetray.Handler.hideAllWindows();
-            }
-
-            firetray.Handler.appStarted = true;
-            log.debug("*** appStarted ***");
-          });
+      firetray.Handler.startupDone();
+      break;
+    case "xul-window-visible":
+      log.debug("xul-window-visible: "+subject+","+data);
+      firetray.Utils.removeObservers(firetray.Handler, [ "xul-window-visible" ]);
+      firetray.Handler.startupDone();
       break;
 
     case "xpcom-will-shutdown":
@@ -297,9 +313,9 @@ firetray.Handler = {
   },
 
   _getBrowserProperties: function() {
-    if (firetray.Handler.appId === FIRETRAY_FIREFOX_ID)
+    if (firetray.Handler.appId === FIRETRAY_APP_DB['firefox']['id'])
       return "chrome://branding/locale/browserconfig.properties";
-    else if (firetray.Handler.appId === FIRETRAY_SEAMONKEY_ID)
+    else if (firetray.Handler.appId === FIRETRAY_APP_DB['seamonkey']['id'])
       return "chrome://navigator-region/locale/region.properties";
     else return null;
   },
@@ -454,10 +470,10 @@ firetray.VersionChangeHandler = {
 
   openTab: function(url) {
     log.info("appId="+firetray.Handler.appId);
-    if (firetray.Handler.appId === FIRETRAY_THUNDERBIRD_ID)
+    if (firetray.Handler.appId === FIRETRAY_APP_DB['thunderbird']['id'])
       this.openMailTab(url);
-    else if (firetray.Handler.appId === FIRETRAY_FIREFOX_ID ||
-             firetray.Handler.appId === FIRETRAY_SEAMONKEY_ID)
+    else if (firetray.Handler.appId === FIRETRAY_APP_DB['firefox']['id'] ||
+             firetray.Handler.appId === FIRETRAY_APP_DB['seamonkey']['id'])
       this.openBrowserTab(url);
     else
       log.error("unsupported application");
