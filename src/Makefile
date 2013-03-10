@@ -40,9 +40,22 @@ profile_id := mozilla-dev
 # ("could not be installed because Firefox cannot modify the needed file")
 ZIP := zip # --symlinks
 
+ifdef DEBUG
+build_debug := -debug
+copy_and_strip_maybe =				\
+@mkdir -p $(dir $(1));				\
+cp -f $(2) $(1);
+else
+copy_and_strip_maybe =				\
+@mkdir -p $(dir $(1));				\
+echo "Stripping debug calls from JS file $<";	\
+sed '/log.debug(/d' $(2) > $(1);
+endif
+
 # The target location of the build and build files.
-git_rev = $(shell git rev-parse --short HEAD)
-build_dir := ../build-$(git_rev)
+git_rev = -$(shell git rev-parse --short HEAD)
+build_dir := ../build$(git_rev)$(build_debug)
+
 
 # The location of the extension profile. (this extension is intended for Linux only)
 profile_locations := \
@@ -137,25 +150,10 @@ build: $(xpi_built)
 clean: clean_build
 	@echo "Cleanup is done."
 
-# Regex for 'no'
-YES_RE := yes|y|Y|true|on
-
 # called via $(build_includes)
 $(build_dir)/%: %
 	@mkdir -p $(dir $@)
 	@cp -f $< $@ # -d for symlinks
-
-copy_and_strip_maybe =					\
-	@mkdir -p $(dir $(1));				\
-  case "$(DEBUG)" in					\
-    $(YES_RE))						\
-      cp -f $(2) $(1);					\
-      ;;						\
-    *)							\
-      echo "Stripping debug calls from JS file $<";	\
-      sed '/log.debug(/d' $(2) > $(1);			\
-      ;;						\
-  esac
 
 # Debug calls are removed for performance.
 # NOTE: we could also use m4 for filtering source files...
@@ -184,8 +182,8 @@ $(profile_locations):
   done
 
 clean_build:
-	@echo "Removing build dir: $(build_dir)"
-	@rm -rf $(build_dir)
+	@echo "Removing build dirs: $(build_dir)*"
+	@rm -rf $(build_dir)*
 
 # Version fetched from install.rdf
 const_file := modules/commons.js
