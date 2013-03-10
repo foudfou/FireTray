@@ -203,8 +203,7 @@ firetray.PopupMenu = {
   },
 
   windowItemsHandled: function() {
-    return (firetray.Handler.inBrowserApp &&
-            firetray.Utils.prefService.getBoolPref('hides_single_window'));
+    return firetray.Utils.prefService.getBoolPref('hides_single_window');
   }
 
 }; // firetray.PopupMenu

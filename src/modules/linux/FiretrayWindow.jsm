@@ -258,6 +258,16 @@ firetray.Window = {
     firetray.Handler.showHideIcon();
   },
 
+  startupHide: function(xid) {
+    log.debug('startupHide: '+xid);
+
+    firetray.Handler.windows[xid].baseWin.visibility = false;
+    firetray.Window.updateVisibility(xid, false);
+
+    firetray.PopupMenu.showWindowItem(xid);
+    firetray.Handler.showHideIcon();
+  },
+
   savePositionAndSize: function(xid) {
     let gx = {}, gy = {}, gwidth = {}, gheight = {};
     firetray.Handler.windows[xid].baseWin.getPositionAndSize(gx, gy, gwidth, gheight);
@@ -489,10 +499,10 @@ firetray.Window = {
     let title = firetray.Handler.windows[xid].baseWin.title;
     log.debug("|baseWin.title="+title+"|");
     let tailIndex;
-    if (firetray.Handler.appId === FIRETRAY_APP_DB['seamonkey']['id'])
+    tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
+    if (tailIndex === -1)
       tailIndex = title.indexOf(" - "+firetray.Handler.appName);
-    else
-      tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
+
     if (tailIndex !== -1)
       return title.substring(0, tailIndex);
     else if (title === "Mozilla "+firetray.Handler.appName)
@@ -512,25 +522,6 @@ firetray.Window = {
     if ((xEventMask & xEventMaskNeeded) !== xEventMaskNeeded) {
       log.error("missing mandatory event-masks"); // change with gdk_window_set_events()
     }
-  },
-
-  startupFilter: function(xev, gdkEv, data) {
-    if (!xev)
-      return gdk.GDK_FILTER_CONTINUE;
-
-    let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
-    let xid = xany.contents.window;
-
-    if (xany.contents.type === x11.MapNotify) {
-      if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
-        log.debug("start_hidden");
-        firetray.Window.hide(xid);
-      }
-      gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),
-                                   firetray.Handler.windows[xid].startupFilterCb, null);
-    }
-
-    return gdk.GDK_FILTER_CONTINUE;
   },
 
   filterWindow: function(xev, gdkEv, data) {
@@ -575,6 +566,25 @@ firetray.Window = {
       // default:
       //   log.debug("xany.type="+xany.contents.type);
       //   break;
+    }
+
+    return gdk.GDK_FILTER_CONTINUE;
+  },
+
+  startupFilter: function(xev, gdkEv, data) {
+    if (!xev)
+      return gdk.GDK_FILTER_CONTINUE;
+
+    let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
+    let xid = xany.contents.window;
+
+    if (xany.contents.type === x11.MapNotify) {
+      if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
+        log.debug("start_hidden");
+        firetray.Window.startupHide(xid);
+      }
+      gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),
+                                   firetray.Handler.windows[xid].startupFilterCb, null);
     }
 
     return gdk.GDK_FILTER_CONTINUE;
