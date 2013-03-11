@@ -478,13 +478,15 @@ firetray.VersionChangeHandler = {
       this.openBrowserTab(url);
 
     else if (firetray.Handler.appId === FIRETRAY_APP_DB['zotero']['id']) {
-      let win = Services.wm.getMostRecentWindow("navigator:browser");
-      if (!win)
-        log.error("Zotero main-window not found");
-      else
+      let win = null;
+      if (win = Services.wm.getMostRecentWindow("zotero:basicViewer")) {
+        win.loadURI(uri);
+      } else if (win = Services.wm.getMostRecentWindow("navigator:browser")) {
         win.openDialog("chrome://zotero/content/standalone/basicViewer.xul",
                        "basicViewer",
                        "chrome,resizable,centerscreen,menubar,scrollbars", url);
+      } else
+        log.error("Zotero main-window not found");
 
     } else {
       this.openSystemBrowser(url);
@@ -527,6 +529,7 @@ firetray.VersionChangeHandler = {
   },
 
   openSystemBrowser: function(url) {
+    log.debug("openSystemBrowser");
     try {
       var uri = Services.io.newURI(url, null, null);
       var handler = Cc['@mozilla.org/uriloader/external-protocol-service;1']
