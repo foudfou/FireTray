@@ -472,11 +472,23 @@ firetray.VersionChangeHandler = {
     log.info("appId="+firetray.Handler.appId);
     if (firetray.Handler.appId === FIRETRAY_APP_DB['thunderbird']['id'])
       this.openMailTab(url);
+
     else if (firetray.Handler.appId === FIRETRAY_APP_DB['firefox']['id'] ||
              firetray.Handler.appId === FIRETRAY_APP_DB['seamonkey']['id'])
       this.openBrowserTab(url);
-    else
-      log.error("unsupported application");
+
+    else if (firetray.Handler.appId === FIRETRAY_APP_DB['zotero']['id']) {
+      let win = Services.wm.getMostRecentWindow("navigator:browser");
+      if (!win)
+        log.error("Zotero main-window not found");
+      else
+        win.openDialog("chrome://zotero/content/standalone/basicViewer.xul",
+                       "basicViewer",
+                       "chrome,resizable,centerscreen,menubar,scrollbars", url);
+
+    } else {
+      this.openSystemBrowser(url);
+    }
   },
 
   openMailTab: function(url) {
@@ -512,6 +524,17 @@ firetray.VersionChangeHandler = {
         mainWindow.gBrowser.selectedTab = mainWindow.gBrowser.addTab(url);
       }, 1000);
     }
+  },
+
+  openSystemBrowser: function(url) {
+    try {
+      var uri = Services.io.newURI(url, null, null);
+      var handler = Cc['@mozilla.org/uriloader/external-protocol-service;1']
+            .getService(Ci.nsIExternalProtocolService)
+            .getProtocolHandlerInfo('http');
+      handler.preferredAction = Ci.nsIHandlerInfo.useSystemDefault;
+      handler.launchWithURI(uri, null);
+    } catch (e) {log.error(e);}
   },
 
   tryEraseOldOptions: function() {

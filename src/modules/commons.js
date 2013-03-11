@@ -80,6 +80,11 @@ const FIRETRAY_APP_DB = {
   chatzilla: {
     id: "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}",
     mainXUL: null
+  },
+
+  zotero: {
+    id: "zotero@chnm.gmu.edu",
+    mainXUL: null
   }
 
 };

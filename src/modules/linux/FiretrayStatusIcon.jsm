@@ -157,21 +157,21 @@ firetray.StatusIcon = {
     let direction = gdkEventScroll.contents.direction;
     switch(direction) {
     case gdk.GDK_SCROLL_UP:
-	    log.debug("SCROLL UP");
+      log.debug("SCROLL UP");
       if (scroll_mode === "down_hides")
         firetray.Handler.showAllWindows();
       else if (scroll_mode === "up_hides")
         firetray.Handler.hideAllWindows();
-	    break;
+      break;
     case gdk.GDK_SCROLL_DOWN:
-	    log.debug("SCROLL DOWN");
+      log.debug("SCROLL DOWN");
       if (scroll_mode === "down_hides")
         firetray.Handler.hideAllWindows();
       else if (scroll_mode === "up_hides")
         firetray.Handler.showAllWindows();
-	    break;
+      break;
     default:
-	    log.error("SCROLL UNKNOWN");
+      log.error("SCROLL UNKNOWN");
     }
   },
 
