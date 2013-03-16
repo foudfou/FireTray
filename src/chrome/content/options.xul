@@ -313,8 +313,7 @@
 
       <checkbox id="ui_chat_icon_enable" preference="pref_chat_icon_enable"
                 label="&chat_icon_enable.label;"
-                accesskey="&chat_icon_enable.accesskey;"
-                oncommand="firetrayUIOptions.toggleChat(this.checked);"/>
+                accesskey="&chat_icon_enable.accesskey;"/>
 
     </vbox>
 

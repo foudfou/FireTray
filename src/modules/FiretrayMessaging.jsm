@@ -165,10 +165,10 @@ firetray.Messaging = {
     if (!this.initialized) return;
 
     if ("undefined" === typeof(callback) || !callback)
-      callback = function(msgCountChange, newMsgCount) { // default
+      callback = function(msgCountChanged, newMsgCount) { // default
         firetray.Messaging.updateIcon(newMsgCount);
 
-        if (msgCountChange) {
+        if (msgCountChanged) {
           let mailChangeTriggerFile = firetray.Utils.prefService.getCharPref("mail_change_trigger");
           if (mailChangeTriggerFile)
             firetray.Messaging.runProcess(mailChangeTriggerFile, [newMsgCount.toString()]);
@@ -184,8 +184,8 @@ firetray.Messaging = {
     } else
       log.error('unknown message count type');
 
-    let msgCountChange = (this.newMsgCount !== this.currentMsgCount);
-    callback.call(this, msgCountChange, this.newMsgCount);
+    let msgCountChanged = (this.newMsgCount !== this.currentMsgCount);
+    callback.call(this, msgCountChanged, this.newMsgCount);
     this.currentMsgCount = this.newMsgCount;
   },
 

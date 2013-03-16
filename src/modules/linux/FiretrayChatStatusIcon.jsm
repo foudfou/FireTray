@@ -9,6 +9,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
+Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
@@ -36,7 +37,7 @@ firetray.ChatStatusIcon = {
     o[FIRETRAY_IM_STATUS_OFFLINE] = null;
     return o;
   })(),
-  callbacks: {onFocusIn: {}},
+  signals: {'focus-in': {callback: {}, handler: {}}},
 
   init: function() {
     if (!firetray.Handler.inMailApp) throw "ChatStatusIcon for mail app only";
@@ -96,9 +97,20 @@ firetray.ChatStatusIcon = {
 
   attachOnFocusInCallback: function(xid) {
     log.debug("attachOnFocusInCallback xid="+xid);
-    this.callbacks.onFocusIn[xid] = gtk.GCallbackWidgetFocuEvent_t(firetray.ChatStatusIcon.onFocusIn);
-    gobject.g_signal_connect(firetray.Handler.gtkWindows.get(xid),
-      "focus-in-event", firetray.ChatStatusIcon.callbacks.onFocusIn[xid], null);
+    this.signals['focus-in'].callback[xid] =
+      gtk.GCallbackWidgetFocuEvent_t(firetray.ChatStatusIcon.onFocusIn);
+    this.signals['focus-in'].handler[xid] = gobject.g_signal_connect(
+      firetray.Handler.gtkWindows.get(xid), "focus-in-event",
+      firetray.ChatStatusIcon.signals['focus-in'].callback[xid], null);
+    log.debug("focus-in handler="+this.signals['focus-in'].handler[xid]);
+  },
+
+  detachOnFocusInCallback: function(xid) {
+    log.debug("detachOnFocusInCallback xid="+xid);
+    let gtkWin = firetray.Handler.gtkWindows.get(xid);
+    gobject.g_signal_handler_disconnect(gtkWin, this.signals['focus-in'].handler[xid]);
+    delete this.signals['focus-in'].callback[xid];
+    delete this.signals['focus-in'].handler[xid];
   },
 
   // NOTE: fluxbox issues a FocusIn event when switching workspace by hotkey :(

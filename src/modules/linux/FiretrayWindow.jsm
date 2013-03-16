@@ -68,6 +68,11 @@ firetray.Window = {
     if (!gtkVersionCheck.isNull())
       log.error("gtk_check_version="+gtkVersionCheck.readString());
 
+    if (firetray.Handler.isChatEnabled()) {
+      Cu.import("resource://firetray/FiretrayChat.jsm");
+      Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
+    }
+
     this.initialized = true;
   },
 
@@ -209,6 +214,9 @@ firetray.Window = {
       log.error("can't unregister unknown window "+xid);
       return false;
     }
+
+    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized)
+      firetray.ChatStatusIcon.detachOnFocusInCallback(xid);
 
     if (!delete firetray.Handler.windows[xid])
       throw new DeleteError();
@@ -650,10 +658,8 @@ firetray.Handler.registerWindow = function(win) {
     this.windows[xid].startupFilterCb = gdk.GdkFilterFunc_t(firetray.Window.startupFilter);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].startupFilterCb, null);
 
-    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) { // missing import ok
-      Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
+    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized)
       firetray.ChatStatusIcon.attachOnFocusInCallback(xid);
-    }
 
   } catch (x) {
     firetray.Window.unregisterWindowByXID(xid);

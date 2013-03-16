@@ -111,14 +111,15 @@ firetray.Handler = {
       }
     }
 
-    let chatIsEnabled = this.isChatEnabled();
-    log.info('isChatEnabled='+chatIsEnabled);
-    if (chatIsEnabled) {
+    let chatIsProvided = this.isChatProvided();
+    log.info('isChatProvided='+chatIsProvided);
+    if (chatIsProvided) {
       Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
       Cu.import("resource://firetray/FiretrayChat.jsm");
       firetray.Utils.addObservers(firetray.Handler, [
         "account-added", "account-removed"]);
-      if (this.existsChatAccount())
+      if (firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
+          this.existsChatAccount())
         firetray.Chat.init();
     }
 
@@ -139,7 +140,8 @@ firetray.Handler = {
 
   shutdown: function() {
     log.debug("Disabling Handler");
-    if (firetray.Handler.isChatEnabled()) firetray.Chat.shutdown();
+    if (firetray.Handler.isChatProvided() && firetray.Chat.initialized)
+      firetray.Chat.shutdown();
 
     if (this.inMailApp)
       firetray.Messaging.shutdown();
@@ -158,9 +160,12 @@ firetray.Handler = {
   },
 
   isChatEnabled: function() {
-    return this.appHasChat &&
-      Services.prefs.getBoolPref("mail.chat.enabled") &&
+    return this.isChatProvided() &&
       firetray.Utils.prefService.getBoolPref("chat_icon_enable");
+  },
+
+  isChatProvided: function() {
+    return this.appHasChat && Services.prefs.getBoolPref("mail.chat.enabled");
   },
 
   tryCloseLibs: function() {
@@ -233,15 +238,30 @@ firetray.Handler = {
 
     case "account-removed":     // emitted by IM
       if (!this.existsChatAccount())
-        firetray.Chat.shutdown();
+        firetray.Handler.toggleChat(false);
       break;
     case "account-added":       // emitted by IM
       if (!firetray.Chat.initialized)
-        firetray.Chat.init();
+        firetray.Handler.toggleChat(true);
       break;
 
     default:
       log.warn("unhandled topic: "+topic);
+    }
+  },
+
+  toggleChat: function(enabled) {
+    log.debug("Chat icon enable="+enabled);
+
+    if (enabled) {
+      firetray.Chat.init();
+      for (let winId in firetray.Handler.windows)
+        firetray.ChatStatusIcon.attachOnFocusInCallback(winId);
+
+    } else {
+      for (let winId in firetray.Handler.windows)
+        firetray.ChatStatusIcon.detachOnFocusInCallback(winId);
+      firetray.Chat.shutdown();
     }
   },
 
@@ -393,7 +413,7 @@ firetray.Handler = {
 
 
 // FIXME: since prefs can also be changed from config editor, we need to
-// observe *all* firetray prefs !
+// 1. observe *all* firetray prefs, and 2. change options' UI accordingly !
 firetray.PrefListener = new PrefListener(
   FIRETRAY_PREF_BRANCH,
   function(branch, name) {
@@ -431,6 +451,11 @@ firetray.PrefListener = new PrefListener(
       if (firetray.Handler.inMailApp)
         firetray.Messaging.updateMsgCountWithCb();
       break;
+
+    case 'chat_icon_enable':
+      firetray.Handler.toggleChat(firetray.Handler.isChatEnabled());
+      break;
+
     default:
     }
   });
@@ -441,9 +466,10 @@ firetray.MailChatPrefListener = new PrefListener(
     log.debug('MailChat pref changed: '+name);
     switch (name) {
     case 'enabled':
-      let doEnableChat = (firetray.Handler.appHasChat &&
-                          firetray.Utils.prefService.getBoolPref("chat_icon_enable"));
-      if (!doEnableChat) return;
+      let enableChatCond =
+            (firetray.Handler.appHasChat &&
+             firetray.Utils.prefService.getBoolPref("chat_icon_enable"));
+      if (!enableChatCond) return;
 
       if (Services.prefs.getBoolPref("mail.chat.enabled")) {
         if (!firetray.Chat) {
@@ -453,9 +479,10 @@ firetray.MailChatPrefListener = new PrefListener(
             "account-added", "account-removed"]);
         }
         if (firetray.Handler.existsChatAccount())
-          firetray.Chat.init();
+          firetray.Handler.toggleChat(true);
+
       } else {
-        firetray.Chat.shutdown();
+        firetray.Handler.toggleChat(false);
       }
       break;
     default:

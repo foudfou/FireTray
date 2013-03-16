@@ -20,9 +20,13 @@ let log = firetray.Logging.getLogger("firetray.UIOptions");
 
 var firetrayUIOptions = {
   strings: null,
+  prefwindow: null,
 
   onLoad: function(e) {
     this.strings = document.getElementById("firetray-options-strings");
+    this.prefwindow = document.getElementById("firetray-preferences");
+    if (!this.prefwindow)
+      log.error("pref window not found");
 
     if (firetray.Handler.inMailApp) {
       Cu.import("resource:///modules/mailServices.js");
@@ -32,7 +36,7 @@ var firetrayUIOptions = {
       this.hidePrefPane("pref-pane-mail");
     }
 
-    if (firetray.Handler.isChatEnabled())
+    if (firetray.Handler.isChatProvided())
       Cu.import("resource://firetray/FiretrayChat.jsm");
     else
       this.hidePrefPane("pref-pane-chat");
@@ -67,11 +71,9 @@ var firetrayUIOptions = {
   },
 
   hidePrefPane: function(name){
-    if (!this._prefwindow)
-      this._prefwindow = document.getElementById("firetray-preferences");
-    let radio = document.getAnonymousElementByAttribute(this._prefwindow, "pane", name);
+    let radio = document.getAnonymousElementByAttribute(this.prefwindow, "pane", name);
     if (radio.selected)
-      _prefwindow.showPane(document.getElementById(PREF_DEFAULT_PANE));
+      this.prefwindow.showPane(document.getElementById(PREF_DEFAULT_PANE));
     radio.hidden = true;
   },
 
@@ -664,14 +666,6 @@ var firetrayUIOptions = {
       if (!/\d/.test(charStr))
         event.preventDefault();
     }
-  },
-
-  toggleChat: function(enabled) {
-    log.debug("Chat icon enable="+enabled);
-    if (enabled)
-      firetray.Chat.init();
-    else
-      firetray.Chat.shutdown();
   }
 
 };
