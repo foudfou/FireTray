@@ -308,7 +308,8 @@ firetray.Messaging = {
   addUnreadMessages: function(folder) {
     let folderUnreadMsgCount = folder['getNumUnread'](false);
     log.debug("folder: "+folder.prettyName+" folderUnreadMsgCount="+folderUnreadMsgCount);
-    this.newMsgCount += folderUnreadMsgCount;
+    if (folderUnreadMsgCount > 0)
+      this.newMsgCount += folderUnreadMsgCount;
   },
 
   addHasNewMessages: function(folder) {
