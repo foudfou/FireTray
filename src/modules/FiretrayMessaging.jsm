@@ -308,6 +308,9 @@ firetray.Messaging = {
   addUnreadMessages: function(folder) {
     let folderUnreadMsgCount = folder['getNumUnread'](false);
     log.debug("folder: "+folder.prettyName+" folderUnreadMsgCount="+folderUnreadMsgCount);
+    /* nsMsgDBFolder::GetNumUnread basically returns mNumUnreadMessages +
+      mNumPendingUnreadMessages, while mNumPendingUnreadMessages may get -1
+      when updated from the cache. Which means getNumUnread might return -1. */
     if (folderUnreadMsgCount > 0)
       this.newMsgCount += folderUnreadMsgCount;
   },
