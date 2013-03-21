@@ -14,13 +14,11 @@ libs = firetray_$(platform)-gcc$(GCCVERSION).so
 all: $(libs)
 	@echo
 	@echo add this line to chrome.manifest:
-	@echo "resource	firetray-lib			lib/linux/$(libs)"
+	@echo "resource	firetray-lib			lib/linux/$(libs)	abi=Linux_x86_64-gcc3"
 	@echo
 	@echo and use
 	@echo 'Cu.import("resource://firetray/ctypes/libfiretray.jsm");'
-	@echo 'libfiretray.init();'
-	@echo '//...'
-	@echo 'libfiretray.shutdown();'
+	@echo 'firetray.Handler.subscribeLibsForClosing([libfiretray]);'
 	@echo
 
 $(libs): firetray.o

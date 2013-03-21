@@ -68,6 +68,13 @@ firetray.Window = {
     if (!gtkVersionCheck.isNull())
       log.error("gtk_check_version="+gtkVersionCheck.readString());
 
+    Cu.import("resource://firetray/ctypes/libfiretray.jsm");
+    firetray.Handler.subscribeLibsForClosing([libfiretray]);
+    log.info("GTK VERSION="+
+             libfiretray.gtk_get_major_version()+"."+
+             libfiretray.gtk_get_minor_version()+"."+
+             libfiretray.gtk_get_micro_version());
+
     if (firetray.Handler.isChatEnabled()) {
       Cu.import("resource://firetray/FiretrayChat.jsm");
       Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
