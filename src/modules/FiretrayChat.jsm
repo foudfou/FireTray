@@ -60,14 +60,7 @@ firetray.Chat = {
     case "new-directed-incoming-message": // when PM or cited in channel
       let conv = subject.QueryInterface(Ci.prplIMessage).conversation;
       log.debug("conversation name="+conv.name); // normalizedName shouldn't be necessary
-
-      let convIsCurrentlyShown = this.isConvCurrentlyShown(conv);
-      log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
-      if (!convIsCurrentlyShown) { // don't blink when conv tab already on top
-        this.acknowledgeOnFocus.must = true;
-        this.acknowledgeOnFocus.conv = conv;
-        firetray.ChatStatusIcon.setIconBlinking(true);
-      }
+      this.startIconBlinkingMaybe(conv);
       break;
 
     case "unread-im-count-changed":
@@ -87,8 +80,21 @@ firetray.Chat = {
     }
   },
 
-  stopIconBlinkingMaybe: function(xid) {
-    log.debug("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
+  // rename to setUrgency(bool), and possibly handle blinking ourselves
+  // (gtk_status_icon_set_blinking deprecated)
+  startIconBlinkingMaybe: function(conv) {
+    let convIsCurrentlyShown = this.isConvCurrentlyShown(conv);
+    log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
+    if (!convIsCurrentlyShown) { // don't blink when conv tab already on top
+      this.acknowledgeOnFocus.must = true;
+      this.acknowledgeOnFocus.conv = conv;
+      firetray.ChatStatusIcon.setIconBlinking(true);
+      // TODO: + gtk_window_set_urgency_hint(true)
+    }
+  },
+
+  stopIconBlinkingMaybe: function(xid) { // xid optional
+    log.error("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
     if (!this.acknowledgeOnFocus.must) return;
 
     let convIsCurrentlyShown = this.isConvCurrentlyShown(
@@ -96,6 +102,7 @@ firetray.Chat = {
     log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
 
     if (this.acknowledgeOnFocus.must && convIsCurrentlyShown) {
+      // TODO: + gtk_window_set_urgency_hint(false)
       firetray.ChatStatusIcon.setIconBlinking(false);
       this.acknowledgeOnFocus.must = false;
     }
