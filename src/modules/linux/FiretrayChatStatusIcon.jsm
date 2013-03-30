@@ -37,7 +37,9 @@ firetray.ChatStatusIcon = {
     o[FIRETRAY_IM_STATUS_OFFLINE] = null;
     return o;
   })(),
+  themedIconNameCurrent: null,
   signals: {'focus-in': {callback: {}, handler: {}}},
+  timers: {},
 
   init: function() {
     if (!firetray.Handler.inMailApp) throw "ChatStatusIcon for mail app only";
@@ -78,12 +80,26 @@ firetray.ChatStatusIcon = {
   },
 
   setIconImage: function(name) {
+    this.themedIconNameCurrent = name;
     this.setIconImageFromGIcon(this.themedIcons[name]);
   },
 
-  // TODO: handle blinking ourselves (gtk_status_icon_set_blinking deprecated)
-  setIconBlinking: function(blink) {
-    gtk.gtk_status_icon_set_blinking(this.trayIcon, blink);
+  startIconBlinking: function() { // gtk_status_icon_set_blinking deprecated
+    this.on = true;
+    firetray.ChatStatusIcon.timers['blink'] = firetray.Utils.timer(
+      500, Ci.nsITimer.TYPE_REPEATING_SLACK, function() {
+        if (firetray.ChatStatusIcon.on)
+          gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, null);
+        else
+          firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
+        firetray.ChatStatusIcon.on = !firetray.ChatStatusIcon.on;
+      });
+  },
+
+  stopIconBlinking: function() {
+    this.timers['blink'].cancel();
+    this.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
+    this.on = false;
   },
 
   setUrgency: function(xid, urgent) {

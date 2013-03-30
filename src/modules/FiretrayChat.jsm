@@ -103,7 +103,7 @@ firetray.Chat = {
         }
       }
 
-      firetray.ChatStatusIcon.setIconBlinking(true);
+      firetray.ChatStatusIcon.startIconBlinking();
     }
   },
 
@@ -120,7 +120,7 @@ firetray.Chat = {
 
     if (this.acknowledgeOnFocus.must && convIsCurrentlyShown) {
       firetray.ChatStatusIcon.setUrgency(xid, false);
-      firetray.ChatStatusIcon.setIconBlinking(false);
+      firetray.ChatStatusIcon.stopIconBlinking();
       this.acknowledgeOnFocus.must = false;
     }
   },
