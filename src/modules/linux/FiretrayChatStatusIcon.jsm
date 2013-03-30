@@ -84,12 +84,16 @@ firetray.ChatStatusIcon = {
     this.setIconImageFromGIcon(this.themedIcons[name]);
   },
 
-  startIconBlinking: function() { // gtk_status_icon_set_blinking deprecated
+  setIconVoid: function() {
+    gtk.gtk_status_icon_set_from_pixbuf(this.trayIcon, null);
+  },
+
+  startIconBlinking: function() { // gtk_status_icon_set_blinking() deprecated
     this.on = true;
     firetray.ChatStatusIcon.timers['blink'] = firetray.Utils.timer(
       500, Ci.nsITimer.TYPE_REPEATING_SLACK, function() {
         if (firetray.ChatStatusIcon.on)
-          gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, null);
+          firetray.ChatStatusIcon.setIconVoid();
         else
           firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
         firetray.ChatStatusIcon.on = !firetray.ChatStatusIcon.on;
