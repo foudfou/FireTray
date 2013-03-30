@@ -60,13 +60,13 @@ firetray.Chat = {
     case "new-directed-incoming-message": // when PM or cited in channel
       let conv = subject.QueryInterface(Ci.prplIMessage).conversation;
       log.debug("conversation name="+conv.name); // normalizedName shouldn't be necessary
-      this.startIconBlinkingMaybe(conv);
+      this.startGetAttentionMaybe(conv);
       break;
 
     case "unread-im-count-changed":
       let unreadMsgCount = data;
       if (unreadMsgCount == 0)
-        this.stopIconBlinkingMaybe();
+        this.stopGetAttentionMaybe(firetray.Handler.findActiveWindow());
 
       let localizedTooltip = PluralForm.get(
         unreadMsgCount,
@@ -80,21 +80,38 @@ firetray.Chat = {
     }
   },
 
-  // rename to setUrgency(bool), and possibly handle blinking ourselves
-  // (gtk_status_icon_set_blinking deprecated)
-  startIconBlinkingMaybe: function(conv) {
+  startGetAttentionMaybe: function(conv) {
+    log.debug('startGetAttentionMaybe');
     let convIsCurrentlyShown = this.isConvCurrentlyShown(conv);
     log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
     if (!convIsCurrentlyShown) { // don't blink when conv tab already on top
       this.acknowledgeOnFocus.must = true;
       this.acknowledgeOnFocus.conv = conv;
+
+      /* there can potentially be multiple windows, each with a Chat tab and
+       the same conv open... so we need to handle all windows */
+      for (let xid in firetray.Handler.windows) {
+        let win = firetray.Handler.windows[xid].chromeWin;
+        let contactlist = win.document.getElementById("contactlistbox");
+        for (let i=0; i<contactlist.itemCount; ++i) {
+          let item = contactlist.getItemAtIndex(i);
+          if (item.localName !== 'imconv')
+            continue;
+          if (item.hasOwnProperty('conv') && item.conv.target === conv) {
+            firetray.ChatStatusIcon.setUrgency(xid, true);
+          }
+        }
+      }
+
       firetray.ChatStatusIcon.setIconBlinking(true);
-      // TODO: + gtk_window_set_urgency_hint(true)
     }
   },
 
-  stopIconBlinkingMaybe: function(xid) { // xid optional
-    log.error("acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
+  /**
+   * @param xid id of the window that MUST have initiated this event
+   */
+  stopGetAttentionMaybe: function(xid) {
+    log.debug("stopGetAttentionMaybe acknowledgeOnFocus.must="+this.acknowledgeOnFocus.must);
     if (!this.acknowledgeOnFocus.must) return;
 
     let convIsCurrentlyShown = this.isConvCurrentlyShown(
@@ -102,14 +119,13 @@ firetray.Chat = {
     log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
 
     if (this.acknowledgeOnFocus.must && convIsCurrentlyShown) {
-      // TODO: + gtk_window_set_urgency_hint(false)
+      firetray.ChatStatusIcon.setUrgency(xid, false);
       firetray.ChatStatusIcon.setIconBlinking(false);
       this.acknowledgeOnFocus.must = false;
     }
   },
 
-  isConvCurrentlyShown: function(conv, xid) {
-    let activeWin = xid || firetray.Handler.findActiveWindow();
+  isConvCurrentlyShown: function(conv, activeWin) {
     if (!firetray.Handler.windows[activeWin]) return false;
 
     let activeChatTab = this.findSelectedChatTab(activeWin);

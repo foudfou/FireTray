@@ -120,6 +120,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_widget_get_window", gdk.GdkWindow.ptr, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_get_parent_window", gdk.GdkWindow.ptr, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_window_set_decorated", ctypes.void_t, this.GtkWindow.ptr, gobject.gboolean);
+  lib.lazy_bind("gtk_window_set_urgency_hint", ctypes.void_t, this.GtkWindow.ptr, gobject.gboolean);
 
   lib.lazy_bind("gtk_widget_is_focus", gobject.gboolean, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_has_focus", gobject.gboolean, this.GtkWidget.ptr);

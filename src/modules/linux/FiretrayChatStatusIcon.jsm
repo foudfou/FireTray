@@ -81,8 +81,13 @@ firetray.ChatStatusIcon = {
     this.setIconImageFromGIcon(this.themedIcons[name]);
   },
 
+  // TODO: handle blinking ourselves (gtk_status_icon_set_blinking deprecated)
   setIconBlinking: function(blink) {
     gtk.gtk_status_icon_set_blinking(this.trayIcon, blink);
+  },
+
+  setUrgency: function(xid, urgent) {
+    gtk.gtk_window_set_urgency_hint(firetray.Handler.gtkWindows.get(xid), urgent);
   },
 
   setIconTooltip: function(txt) {
@@ -113,13 +118,14 @@ firetray.ChatStatusIcon = {
     delete this.signals['focus-in'].handler[xid];
   },
 
-  // NOTE: fluxbox issues a FocusIn event when switching workspace by hotkey :(
+  // NOTE: fluxbox issues a FocusIn event when switching workspace
+  // by hotkey, which means 2 FocusIn events when switching to a moz app :(
   // (http://sourceforge.net/tracker/index.php?func=detail&aid=3190205&group_id=35398&atid=413960)
   onFocusIn: function(widget, event, data) {
     log.debug("onFocusIn");
     let xid = firetray.Window.getXIDFromGtkWidget(widget);
     log.debug("xid="+xid);
-    firetray.Chat.stopIconBlinkingMaybe(xid);
+    firetray.Chat.stopGetAttentionMaybe(xid);
   }
 
   // FIXME: TODO: onclick/activate -> chatHandler.showCurrentConversation()
