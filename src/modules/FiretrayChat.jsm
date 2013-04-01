@@ -84,27 +84,28 @@ firetray.Chat = {
     log.debug('startGetAttentionMaybe');
     let convIsCurrentlyShown = this.isConvCurrentlyShown(conv);
     log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
-    if (!convIsCurrentlyShown) { // don't blink when conv tab already on top
-      this.acknowledgeOnFocus.must = true;
-      this.acknowledgeOnFocus.conv = conv;
+    if (convIsCurrentlyShown)   // don't blink when conv tab already on top
+      return;
 
-      /* there can potentially be multiple windows, each with a Chat tab and
-       the same conv open... so we need to handle all windows */
-      for (let xid in firetray.Handler.windows) {
-        let win = firetray.Handler.windows[xid].chromeWin;
-        let contactlist = win.document.getElementById("contactlistbox");
-        for (let i=0; i<contactlist.itemCount; ++i) {
-          let item = contactlist.getItemAtIndex(i);
-          if (item.localName !== 'imconv')
-            continue;
-          if (item.hasOwnProperty('conv') && item.conv.target === conv) {
-            firetray.ChatStatusIcon.setUrgency(xid, true);
-          }
+    this.acknowledgeOnFocus.must = true;
+    this.acknowledgeOnFocus.conv = conv;
+
+    /* there can potentially be multiple windows, each with a Chat tab and
+     the same conv open... so we need to handle all windows */
+    for (let xid in firetray.Handler.windows) {
+      let win = firetray.Handler.windows[xid].chromeWin;
+      let contactlist = win.document.getElementById("contactlistbox");
+      for (let i=0; i<contactlist.itemCount; ++i) {
+        let item = contactlist.getItemAtIndex(i);
+        if (item.localName !== 'imconv')
+          continue;
+        if (item.hasOwnProperty('conv') && item.conv.target === conv) {
+          firetray.ChatStatusIcon.setUrgency(xid, true);
         }
       }
-
-      firetray.ChatStatusIcon.startIconBlinking();
     }
+
+    firetray.ChatStatusIcon.startIconBlinking();
   },
 
   /**

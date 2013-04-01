@@ -26,6 +26,7 @@ if ("undefined" == typeof(firetray.Handler))
 
 
 firetray.StatusIcon = {
+  MIN_FONT_SIZE: 4,
   FILENAME_BLANK: null,
 
   initialized: false,

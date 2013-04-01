@@ -16,6 +16,7 @@ Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
 Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/promise.js");
 firetray.Handler.subscribeLibsForClosing([gobject, gio, gtk]);
 
 if ("undefined" == typeof(firetray.Handler))
@@ -86,6 +87,95 @@ firetray.ChatStatusIcon = {
 
   setIconVoid: function() {
     gtk.gtk_status_icon_set_from_pixbuf(this.trayIcon, null);
+  },
+
+  /**
+   * EXPERIMENTAL fancy blinking.
+   * TODO: how to wait for last fade in to restore themedIconNameCurrent
+   */
+  crossFade: function() {
+
+    /* borrowed from mozmill utils.js*/
+    function sleep(milliseconds) {
+      var timeup = false;
+      function wait() { timeup = true; }
+      let timer = Components.classes["@mozilla.org/timer;1"]
+            .createInstance(Components.interfaces.nsITimer);
+      timer.initWithCallback(wait, milliseconds, Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+
+      var thread = Components.classes["@mozilla.org/thread-manager;1"].
+        getService().currentThread;
+      while(!timeup) {
+        thread.processNextEvent(true);
+      }
+    }
+
+    let icon_theme = gtk.gtk_icon_theme_get_for_screen(gdk.gdk_screen_get_default());
+    firetray.ChatStatusIcon.timers['cross-fade'] = firetray.Utils.timer(
+      500, Ci.nsITimer.TYPE_REPEATING_SLACK, function() {
+
+        // get pixbuf
+        let arry = gobject.gchar.ptr.array()(2);
+        arry[0] = gobject.gchar.array()(firetray.ChatStatusIcon.themedIconNameCurrent);
+        arry[1] = null;
+        log.debug("theme="+icon_theme+", arry="+arry);
+        let icon_info = gtk.gtk_icon_theme_choose_icon(icon_theme, arry, 22, gtk.GTK_ICON_LOOKUP_FORCE_SIZE);
+
+        // create pixbuf
+        let pixbuf = gdk.gdk_pixbuf_copy(gtk.gtk_icon_info_load_icon(icon_info, null));
+        gtk.gtk_icon_info_free(icon_info);   // gobject.g_object_unref(icon_info) in 3.8
+
+        // checks
+        if (gdk.gdk_pixbuf_get_colorspace(pixbuf) != gdk.GDK_COLORSPACE_RGB)
+          log.error("wrong colorspace for pixbuf");
+        if (gdk.gdk_pixbuf_get_bits_per_sample(pixbuf) != 8)
+          log.error("wrong bits_per_sample for pixbuf");
+        if (!gdk.gdk_pixbuf_get_has_alpha(pixbuf))
+          log.error("pixbuf doesn't have alpha");
+        let n_channels = gdk.gdk_pixbuf_get_n_channels(pixbuf);
+        if (n_channels != 4)
+          log.error("wrong nb of channels for pixbuf");
+
+        // init transform
+        let width = gdk.gdk_pixbuf_get_width(pixbuf);
+        let height = gdk.gdk_pixbuf_get_height(pixbuf);
+        log.warn("width="+width+", height="+height);
+        let rowstride = gdk.gdk_pixbuf_get_rowstride(pixbuf);
+        log.warn("rowstride="+rowstride);
+        let length = width*height*n_channels;
+        let pixels = ctypes.cast(gdk.gdk_pixbuf_get_pixels(pixbuf),
+                                 gobject.guchar.array(length).ptr);
+        log.warn("pixels="+pixels);
+
+        // backup alpha for later fade-in
+        let buffer = new ArrayBuffer(width*height);
+        let alpha_bak = new Uint8Array(buffer);
+        for (let i=3; i<length; i+=n_channels)
+          alpha_bak[(i-3)/n_channels] = pixels.contents[i];
+
+        const ALPHA_STEP = 5;
+
+        // fade out
+        for (let a=255; a>0; a-=ALPHA_STEP) {
+          for(let i=3; i<length; i+=n_channels)
+            if (pixels.contents[i]-ALPHA_STEP>0)
+              pixels.contents[i] -= ALPHA_STEP;
+          gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, pixbuf);
+          sleep(10);
+        }
+
+        // fade in
+        for (let a=255; a>0; a-=ALPHA_STEP) {
+          for(let i=3; i<length; i+=n_channels)
+            if (pixels.contents[i]+ALPHA_STEP<=alpha_bak[(i-3)/n_channels]) {
+              pixels.contents[i] += ALPHA_STEP;
+            }
+          gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, pixbuf);
+          sleep(10);
+        }
+
+        gobject.g_object_unref(pixbuf);
+      });
   },
 
   startIconBlinking: function() { // gtk_status_icon_set_blinking() deprecated

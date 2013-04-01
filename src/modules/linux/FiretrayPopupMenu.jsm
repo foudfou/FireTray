@@ -26,7 +26,6 @@ firetray.PopupMenu = {
   menu: null,
   menuShell: null,
   menuSeparatorWindows: null,
-  MIN_FONT_SIZE: 4,
 
   init: function() {
     this.menu = gtk.gtk_menu_new();

@@ -140,6 +140,8 @@ function gdk_defines(lib) {
   this.GDK_SUBSTRUCTURE_MASK        = 1 << 20,
   this.GDK_SCROLL_MASK              = 1 << 21,
   this.GDK_ALL_EVENTS_MASK          = 0x3FFFFE
+  this.GdkColorspace = ctypes.int;     // enum
+  this.GDK_COLORSPACE_RGB = 0;
 
   this.GdkWindow = ctypes.StructType("GdkWindow");
   this.GdkByteOrder = ctypes.int; // enum
@@ -262,9 +264,21 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_screen_get_toplevel_windows", gobject.GList.ptr, this.GdkScreen.ptr);
   lib.lazy_bind("gdk_pixbuf_new_from_file", this.GdkPixbuf.ptr, gobject.gchar.ptr, glib.GError.ptr.ptr);
   lib.lazy_bind("gdk_pixbuf_copy", this.GdkPixbuf.ptr, this.GdkPixbuf.ptr);
+  lib.lazy_bind("gdk_pixbuf_composite", ctypes.void_t, this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.double, ctypes.double, ctypes.double, ctypes.double, ctypes.int, ctypes.int);
+  lib.lazy_bind("gdk_pixbuf_get_has_alpha", gobject.gboolean, this.GdkPixbuf.ptr);
+  lib.lazy_bind("gdk_pixbuf_add_alpha", this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, gobject.gboolean, gobject.guchar, gobject.guchar, gobject.guchar);
+
+  lib.lazy_bind("gdk_pixbuf_get_colorspace", this.GdkColorspace, this.GdkPixbuf.ptr);
+  lib.lazy_bind("gdk_pixbuf_get_n_channels", ctypes.int, this.GdkPixbuf.ptr);
+  lib.lazy_bind("gdk_pixbuf_get_has_alpha", gobject.gboolean, this.GdkPixbuf.ptr);
+  lib.lazy_bind("gdk_pixbuf_get_bits_per_sample", ctypes.int, this.GdkPixbuf.ptr);
+  lib.lazy_bind("gdk_pixbuf_get_pixels", gobject.guchar.ptr, this.GdkPixbuf.ptr);
   lib.lazy_bind("gdk_pixbuf_get_width", ctypes.int, this.GdkPixbuf.ptr);
   lib.lazy_bind("gdk_pixbuf_get_height", ctypes.int, this.GdkPixbuf.ptr);
-  lib.lazy_bind("gdk_pixbuf_composite", ctypes.void_t, this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.double, ctypes.double, ctypes.double, ctypes.double, ctypes.int, ctypes.int);
+  lib.lazy_bind("gdk_pixbuf_get_rowstride", ctypes.int, this.GdkPixbuf.ptr);
+  lib.lazy_bind("gdk_pixbuf_get_byte_length", gobject.gsize, this.GdkPixbuf.ptr);
+  lib.lazy_bind("gdk_pixbuf_copy", this.GdkPixbuf.ptr, this.GdkPixbuf.ptr);
+
   lib.lazy_bind("gdk_screen_get_system_colormap", this.GdkColormap.ptr, this.GdkScreen.ptr);
   lib.lazy_bind("gdk_colormap_get_visual", this.GdkVisual.ptr, this.GdkColormap.ptr);
   lib.lazy_bind("gdk_color_parse", gobject.gboolean, gobject.gchar.ptr, this.GdkColor.ptr);
