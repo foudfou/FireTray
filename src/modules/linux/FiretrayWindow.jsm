@@ -215,8 +215,10 @@ firetray.Window = {
       return false;
     }
 
-    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized)
+    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
       firetray.ChatStatusIcon.detachOnFocusInCallback(xid);
+      firetray.Chat.detachSelectListeners(firetray.Handler.windows[xid].chromeWin);
+    }
 
     if (!delete firetray.Handler.windows[xid])
       throw new DeleteError();
@@ -298,7 +300,7 @@ firetray.Window = {
       firetray.Handler.windows[xid].savedHeight,
       false); // repaint
 
-    ['savedX', 'savedX', 'savedWidth', 'savedHeight'].forEach(function(element, index, array) {
+    ['savedX', 'savedX', 'savedWidth', 'savedHeight'].forEach(function(element) {
       delete firetray.Handler.windows[xid][element];
     });
   },
@@ -658,8 +660,10 @@ firetray.Handler.registerWindow = function(win) {
     this.windows[xid].startupFilterCb = gdk.GdkFilterFunc_t(firetray.Window.startupFilter);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].startupFilterCb, null);
 
-    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized)
+    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
       firetray.ChatStatusIcon.attachOnFocusInCallback(xid);
+      firetray.Chat.attachSelectListeners(win);
+    }
 
   } catch (x) {
     firetray.Window.unregisterWindowByXID(xid);

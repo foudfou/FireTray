@@ -255,12 +255,16 @@ firetray.Handler = {
 
     if (enabled) {
       firetray.Chat.init();
-      for (let winId in firetray.Handler.windows)
+      for (let winId in firetray.Handler.windows) {
         firetray.ChatStatusIcon.attachOnFocusInCallback(winId);
+        firetray.Chat.attachSelectListeners(firetray.Handler.windows[winId].chromeWin);
+      }
 
     } else {
-      for (let winId in firetray.Handler.windows)
+      for (let winId in firetray.Handler.windows) {
         firetray.ChatStatusIcon.detachOnFocusInCallback(winId);
+        firetray.Chat.detachSelectListeners(firetray.Handler.windows[winId].chromeWin);
+      }
       firetray.Chat.shutdown();
     }
   },

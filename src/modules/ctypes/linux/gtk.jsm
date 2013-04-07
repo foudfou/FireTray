@@ -78,7 +78,7 @@ function gtk_defines(lib) {
   this.GCallbackWindowStateEvent_t = ctypes.FunctionType(
     ctypes.default_abi, gobject.gboolean,
     [this.GtkWidget.ptr, gdk.GdkEventWindowState.ptr, gobject.gpointer]).ptr;
-  this.GCallbackWidgetFocuEvent_t = ctypes.FunctionType(
+  this.GCallbackWidgetFocusEvent_t = ctypes.FunctionType(
     ctypes.default_abi, gobject.gboolean,
     [this.GtkWidget.ptr, gdk.GdkEventFocus.ptr, gobject.gpointer]).ptr;
 
