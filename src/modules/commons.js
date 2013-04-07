@@ -200,7 +200,7 @@ firetray.Utils = {
         str += "obj["+i+"]: Unavailable\n";
       }
     }
-    log.debug(str);
+    log.info(str);
   },
 
   _nsResolver: function(prefix) {

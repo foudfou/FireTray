@@ -16,6 +16,7 @@ firetray.Chat = {
   initialized: false,
   observedTopics: {},
   acknowledgeOnFocus: {},
+  _isAttentionCalling: false,
 
   init: function() {
     if (this.initialized) {
@@ -25,10 +26,10 @@ firetray.Chat = {
     log.debug("Enabling Chat");
 
     firetray.Utils.addObservers(firetray.Chat, [
-      // "*" // debugging
+      // "*", // debugging
       "account-connected", "account-disconnected", "idle-time-changed",
       "new-directed-incoming-message", "status-changed",
-      "unread-im-count-changed"
+      "unread-im-count-changed", "new-text"
     ]);
 
     firetray.ChatStatusIcon.init();
@@ -47,8 +48,27 @@ firetray.Chat = {
     this.initialized = false;
   },
 
+  // FIXME: the listener should probably attached on the conv entry in the
+  // contactlist during startGetAttentionMaybe
+  attachSelectListeners: function(win) {
+    log.debug("attachSelectListeners");
+    ["contactlistbox", "tabmail"].forEach(function(eltId) {
+      win.document.getElementById(eltId)
+        .addEventListener('select', firetray.Chat.onSelect);
+    });
+  },
+
+  detachSelectListeners: function(win) {
+    ["contactlistbox", "tabmail"].forEach(function(eltId) {
+      win.document.getElementById(eltId)
+        .removeEventListener('select', firetray.Chat.onSelect);
+    });
+  },
+
   observe: function(subject, topic, data) {
     log.debug("RECEIVED Chat: "+topic+" subject="+subject+" data="+data);
+    let conv = null;
+
     switch (topic) {
     case "account-connected":
     case "account-disconnected":
@@ -58,12 +78,25 @@ firetray.Chat = {
       break;
 
     case "new-directed-incoming-message": // when PM or cited in channel
-      let conv = subject.QueryInterface(Ci.prplIMessage).conversation;
+      conv = subject.QueryInterface(Ci.prplIMessage).conversation;
       log.debug("conversation name="+conv.name); // normalizedName shouldn't be necessary
       this.startGetAttentionMaybe(conv);
       break;
 
+    /* Twitter is obviously considered a chatroom, not a private
+     conversation. This is why we need to detect incoming messages and switch
+     to the conversation differently. The actual read should be caught by
+     focus-in-event and 'select' event on tabmail and contactlist */
+    case "new-text":
+      conv = subject.QueryInterface(Ci.prplIMessage).conversation;
+      log.info("new-text from "+conv.title);
+      let proto = conv.account.QueryInterface(Ci.imIAccount).protocol;
+      if (proto.normalizedName === 'twitter')
+        this.startGetAttentionMaybe(conv);
+      break;
+
     case "unread-im-count-changed":
+      log.debug("unread-im-count-changed");
       let unreadMsgCount = data;
       if (unreadMsgCount == 0)
         this.stopGetAttentionMaybe(firetray.Handler.findActiveWindow());
@@ -87,11 +120,14 @@ firetray.Chat = {
     if (convIsCurrentlyShown)   // don't blink when conv tab already on top
       return;
 
+    if (this._isAttentionCalling) return;
+    this._isAttentionCalling = true;
+
     this.acknowledgeOnFocus.must = true;
     this.acknowledgeOnFocus.conv = conv;
 
-    /* there can potentially be multiple windows, each with a Chat tab and
-     the same conv open... so we need to handle all windows */
+    /* there can potentially be multiple windows, each with a Chat tab and the
+     same conv open... so we need to handle urgency for all windows */
     for (let xid in firetray.Handler.windows) {
       let win = firetray.Handler.windows[xid].chromeWin;
       let contactlist = win.document.getElementById("contactlistbox");
@@ -120,23 +156,36 @@ firetray.Chat = {
     log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
 
     if (this.acknowledgeOnFocus.must && convIsCurrentlyShown) {
+      log.debug("do stop icon blinking !!!");
       firetray.ChatStatusIcon.setUrgency(xid, false);
       firetray.ChatStatusIcon.stopIconBlinking();
       this.acknowledgeOnFocus.must = false;
     }
+
+    this._isAttentionCalling = false;
+  },
+
+  onSelect: function(event) {
+    log.debug("select event ! ");
+    firetray.Chat.stopGetAttentionMaybe(firetray.Handler.findActiveWindow());
   },
 
   isConvCurrentlyShown: function(conv, activeWin) {
+    log.debug("isConvCurrentlyShown");
     if (!firetray.Handler.windows[activeWin]) return false;
+    log.debug("1 ***");
 
     let activeChatTab = this.findSelectedChatTab(activeWin);
     if (!activeChatTab) return false;
+    log.debug("2 ***");
 
-    // for now there is only one Chat tab, so we don't need to
-    // findSelectedChatTabFromTab(activeChatTab.tabNode). And, as there is only
-    // one forlderPaneBox, there will also probably be only one contactlistbox
-    // for all Chat tabs anyway
+    /* for now there is only one Chat tab, so we don't need to
+     findSelectedChatTabFromTab(activeChatTab.tabNode). And, as there is only
+     one forlderPaneBox, there will also probably be only one contactlistbox
+     for all Chat tabs anyway */
     let selectedConv = this.findSelectedConv(activeWin);
+    if (!selectedConv) return false;
+    log.debug("3 ***");
 
     log.debug("conv.title='"+conv.title+"' selectedConv.title='"+selectedConv.title+"'");
     return (conv.id == selectedConv.id);

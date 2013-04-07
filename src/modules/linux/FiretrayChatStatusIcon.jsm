@@ -76,7 +76,6 @@ firetray.ChatStatusIcon = {
   setIconImageFromGIcon: function(gicon) {
     if (!firetray.ChatStatusIcon.trayIcon || !gicon)
       log.error("Icon missing");
-    log.debug(gicon);
     gtk.gtk_status_icon_set_from_gicon(firetray.ChatStatusIcon.trayIcon, gicon);
   },
 
@@ -213,7 +212,7 @@ firetray.ChatStatusIcon = {
   attachOnFocusInCallback: function(xid) {
     log.debug("attachOnFocusInCallback xid="+xid);
     this.signals['focus-in'].callback[xid] =
-      gtk.GCallbackWidgetFocuEvent_t(firetray.ChatStatusIcon.onFocusIn);
+      gtk.GCallbackWidgetFocusEvent_t(firetray.ChatStatusIcon.onFocusIn);
     this.signals['focus-in'].handler[xid] = gobject.g_signal_connect(
       firetray.Handler.gtkWindows.get(xid), "focus-in-event",
       firetray.ChatStatusIcon.signals['focus-in'].callback[xid], null);
