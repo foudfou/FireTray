@@ -87,7 +87,7 @@
     <hr class="space"/>
 
     <div class="span-16 colborder">
- 
+
       <section id="features">
         <h2>Features</h2>
 
@@ -147,6 +147,27 @@
     <div class="span-16 colborder">
       <section id="release-notes">
         <h2>Release Notes</h2>
+
+        <article id="v0.4.6">
+          <h3>v0.4.6 &mdash; 2013-05-01</h3>
+          <p><ul>
+              <li>fix negative message count bug
+              (<a href="https://github.com/foudfou/FireTray/issues/79">#70,
+              #71, #79</a>)</li>
+              <li>fix preferences' filepickers (<a href="https://github.com/foudfou/FireTray/issues/82">#82</a>)</li>
+              <li>fix start_hidden again, and make it more accurate (<a href="https://github.com/foudfou/FireTray/issues/84">#42</a>)</li>
+              <li>display popup menu window items for all applications (not only browsers)</li>
+              <li>rework handling of attention calls (blinking icon) for chat conversations:</li>
+              <ul>
+                <li>blink on new messages for twitter accounts</li>
+                <li>implement own blinking (gtk_status_icon_set_blinking() deprecated)</li>
+                <li>support X11 urgency hint</li>
+              </ul>
+              <li>add support for Zotero (<a href="https://github.com/foudfou/FireTray/issues/85">#85</a>)</li>
+              <li>add locale sk-SK (thx Slavko slavino.sk)</li>
+              <li>minor fixes (e.g. keep long living references to timers)</li>
+          </ul></p>
+        </article>
 
         <article id="v0.4.5">
           <h3>v0.4.5 &mdash; 2013-01-25</h3>
