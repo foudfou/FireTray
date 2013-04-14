@@ -589,7 +589,8 @@ firetray.Window = {
     let xid = xany.contents.window;
 
     if (xany.contents.type === x11.MapNotify) {
-      if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
+      if (!firetray.Handler.appStarted &&
+          firetray.Utils.prefService.getBoolPref('start_hidden')) {
         log.debug("start_hidden");
         firetray.Window.startupHide(xid);
       }

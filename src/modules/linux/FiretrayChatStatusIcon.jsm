@@ -16,7 +16,6 @@ Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
 Cu.import("resource://firetray/commons.js");
-Cu.import("resource://firetray/promise.js");
 firetray.Handler.subscribeLibsForClosing([gobject, gio, gtk]);
 
 if ("undefined" == typeof(firetray.Handler))

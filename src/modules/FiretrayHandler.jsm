@@ -125,11 +125,13 @@ firetray.Handler = {
 
     firetray.Utils.addObservers(firetray.Handler,
       [ "xpcom-will-shutdown", "profile-change-teardown" ]);
-    if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
-        this.appId === FIRETRAY_APP_DB['firefox']['id']) {
-      firetray.Utils.addObservers(firetray.Handler, [ "before-first-paint" ]);
+    if (this.appId === FIRETRAY_APP_DB['thunderbird']['id']) {
+      firetray.Utils.addObservers(firetray.Handler, [ "console-api-log-event" ]);
+    } else if (this.appId === FIRETRAY_APP_DB['firefox']['id'] ||
+               this.appId === FIRETRAY_APP_DB['seamonkey']['id']) {
+      firetray.Utils.addObservers(firetray.Handler, [ "sessionstore-windows-restored" ]);
     } else {
-      firetray.Utils.addObservers(firetray.Handler, [ "xul-window-visible" ]);
+      firetray.Utils.addObservers(firetray.Handler, [ "final-ui-startup" ]);
     }
 
     this.preventWarnOnClose();
@@ -204,7 +206,7 @@ firetray.Handler = {
 
   startupDone: function() {
     firetray.Handler.timers['startup-done'] =
-      firetray.Utils.timer(FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS,
+      firetray.Utils.timer(FIRETRAY_DELAY_STARTUP_MILLISECONDS,
         Ci.nsITimer.TYPE_ONE_SHOT, function() {
           firetray.Handler.appStarted = true;
           log.debug("*** appStarted ***");
@@ -214,16 +216,16 @@ firetray.Handler = {
   observe: function(subject, topic, data) {
     switch (topic) {
 
-    case "before-first-paint":
-      if (FIRETRAY_APP_DB[this.appName.toLowerCase()]['mainXUL'] !== subject.baseURI) return;
-
-      log.debug("before-first-paint: "+subject.baseURI);
-      firetray.Utils.removeObservers(firetray.Handler, [ "before-first-paint" ]);
-      firetray.Handler.startupDone();
-      break;
-    case "xul-window-visible":
-      log.debug("xul-window-visible: "+subject+","+data);
-      firetray.Utils.removeObservers(firetray.Handler, [ "xul-window-visible" ]);
+    case "sessionstore-windows-restored":
+      // sessionstore-windows-restored does not come after the realization of
+      // all windows... so we wait a little
+    case "console-api-log-event": // one of the few events issued at later
+                                  // stage, once windows are realized
+      // second TB window also issues
+      // "mail-startup-done"/"mail-tabs-session-restored"
+    case "final-ui-startup":    // subject=ChromeWindow
+      log.debug(topic+": "+subject+","+data);
+      firetray.Utils.removeObservers(firetray.Handler, [ topic ]);
       firetray.Handler.startupDone();
       break;
 
@@ -533,7 +535,7 @@ firetray.VersionChangeHandler = {
 
     if (tabmail) {
       firetray.Handler.timers['open-mail-tab'] =
-        firetray.Utils.timer(FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS,
+        firetray.Utils.timer(FIRETRAY_DELAY_STARTUP_MILLISECONDS,
           Ci.nsITimer.TYPE_ONE_SHOT, function() {
             log.debug("openMailTab");
             tabmail.openTab("contentTab", {contentPage: url});

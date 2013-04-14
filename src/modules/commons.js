@@ -11,7 +11,7 @@ var EXPORTED_SYMBOLS =
     "FIRETRAY_IM_STATUS_AVAILABLE", "FIRETRAY_IM_STATUS_AWAY",
     "FIRETRAY_IM_STATUS_BUSY", "FIRETRAY_IM_STATUS_OFFLINE",
     "FIRETRAY_ACCOUNT_SERVER_TYPE_IM",
-    "FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS",
+    "FIRETRAY_DELAY_STARTUP_MILLISECONDS",
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS",
     "FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS",
     "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD", "FIRETRAY_MESSAGE_COUNT_TYPE_NEW",
@@ -46,45 +46,38 @@ const FIRETRAY_IM_STATUS_OFFLINE   = "user-offline";
 
 const FIRETRAY_ACCOUNT_SERVER_TYPE_IM = "im";
 
-const FIRETRAY_DELAY_BROWSER_STARTUP_MILLISECONDS = 500;
-const FIRETRAY_DELAY_NOWAIT_MILLISECONDS          = 0;
-const FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS   = 15*60*1000;
+const FIRETRAY_DELAY_STARTUP_MILLISECONDS       = 500;
+const FIRETRAY_DELAY_NOWAIT_MILLISECONDS        = 0;
+const FIRETRAY_DELAY_PREF_CLEANING_MILLISECONDS = 15*60*1000;
 
 const FIRETRAY_APP_DB = {
 
   firefox: {
     id: "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}",
-    mainXUL: "chrome://browser/content/browser.xul"
   },
 
   thunderbird: {
     id:  "{3550f703-e582-4d05-9a08-453d09bdfdc6}",
-    mainXUL: "chrome://messenger/content/msgAccountCentral.xul"
   },
 
   seamonkey: {
     id: "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}",
-    mainXUL: null
   },
 
   songbird: {
     id: "songbird@songbirdnest.com",
-    mainXUL: null
   },
 
   sunbird: {
     id: "718e30fb-e89b-41dd-9da7-e25a45638b28}",
-    mainXUL: null
   },
 
   chatzilla: {
     id: "{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}",
-    mainXUL: null
   },
 
   zotero: {
     id: "zotero@chnm.gmu.edu",
-    mainXUL: null
   }
 
 };
