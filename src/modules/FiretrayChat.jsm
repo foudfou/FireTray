@@ -15,7 +15,7 @@ let log = firetray.Logging.getLogger("firetray.Chat");
 firetray.Chat = {
   initialized: false,
   observedTopics: {},
-  shouldAcknowledgeConvs: {
+  shouldAcknowledgeConvs: {     // TODO: FOUDIL: rename to convsToAcknoledge
     ids: {},
     length: function(){return Object.keys(this.ids).length;}
   },
@@ -136,7 +136,8 @@ firetray.Chat = {
     if (this.shouldAcknowledgeConvs.length() > 1) return; // already calling attention
 
     this.setUrgencyMaybe(conv);
-    firetray.ChatStatusIcon.startIconBlinking();
+    // firetray.ChatStatusIcon.startIconBlinking();
+    firetray.ChatStatusIcon.startCrossFade();
   },
 
   /**
@@ -162,7 +163,8 @@ firetray.Chat = {
     if(this.shouldAcknowledgeConvs.length() === 0) {
       log.debug("do stop icon blinking !!!");
       firetray.ChatStatusIcon.setUrgency(xid, false);
-      firetray.ChatStatusIcon.stopIconBlinking();
+      // firetray.ChatStatusIcon.stopIconBlinking();
+      firetray.ChatStatusIcon.stopCrossFade();
     }
   },
 
