@@ -592,6 +592,9 @@ firetray.Window = {
       if (!firetray.Handler.appStarted &&
           firetray.Utils.prefService.getBoolPref('start_hidden')) {
         log.debug("start_hidden");
+        if (firetray.Handler.restoredWindowsCount &&
+            !--firetray.Handler.restoredWindowsCount)
+          firetray.Handler.startupDone();
         firetray.Window.startupHide(xid);
       }
       gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),

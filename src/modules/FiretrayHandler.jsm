@@ -125,11 +125,16 @@ firetray.Handler = {
 
     firetray.Utils.addObservers(firetray.Handler,
       [ "xpcom-will-shutdown", "profile-change-teardown" ]);
-    if (this.appId === FIRETRAY_APP_DB['thunderbird']['id']) {
-      firetray.Utils.addObservers(firetray.Handler, [ "console-api-log-event" ]);
-    } else if (this.appId === FIRETRAY_APP_DB['firefox']['id'] ||
-               this.appId === FIRETRAY_APP_DB['seamonkey']['id']) {
+    if (this.appId === FIRETRAY_APP_DB['firefox']['id'] ||
+        this.appId === FIRETRAY_APP_DB['seamonkey']['id']) {
       firetray.Utils.addObservers(firetray.Handler, [ "sessionstore-windows-restored" ]);
+    } else if (this.appId === FIRETRAY_APP_DB['thunderbird']['id']) {
+      this.restoredWindowsCount = this.readTBRestoreWindowsCount();
+      log.debug("restoredWindowsCount="+this.restoredWindowsCount);
+      if (!this.restoredWindowsCount) {
+        log.error("session file could not be read");
+        this.restoredWindowsCount = 1; // default
+      }
     } else {
       firetray.Utils.addObservers(firetray.Handler, [ "final-ui-startup" ]);
     }
@@ -188,6 +193,24 @@ firetray.Handler = {
     }
   },
 
+  readTBRestoreWindowsCount: function() {
+    Cu.import("resource:///modules/IOUtils.js");
+    let sessionFile = Services.dirsvc.get("ProfD", Ci.nsIFile);
+    sessionFile.append("session.json");
+    var initialState = null;
+    if (sessionFile.exists()) {
+      let data = IOUtils.loadFileToString(sessionFile);
+      if (!data) return null;
+      try {
+        initialState = JSON.parse(data);
+      } catch(x) {}
+      if (!initialState) return null;
+
+      return  initialState.windows.length;
+    }
+    return null;
+  },
+
   // FIXME: this should definetely be done in Chat, but IM accounts
   // seem not be initialized at early stage (Exception... "'TypeError:
   // this._items is undefined' when calling method:
@@ -219,10 +242,6 @@ firetray.Handler = {
     case "sessionstore-windows-restored":
       // sessionstore-windows-restored does not come after the realization of
       // all windows... so we wait a little
-    case "console-api-log-event": // one of the few events issued at later
-                                  // stage, once windows are realized
-      // second TB window also issues
-      // "mail-startup-done"/"mail-tabs-session-restored"
     case "final-ui-startup":    // subject=ChromeWindow
       log.debug(topic+": "+subject+","+data);
       firetray.Utils.removeObservers(firetray.Handler, [ topic ]);
