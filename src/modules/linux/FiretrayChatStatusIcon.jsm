@@ -93,14 +93,6 @@ firetray.ChatStatusIcon = {
     gtk.gtk_status_icon_set_from_pixbuf(this.trayIcon, null);
   },
 
-  /**
-   * EXPERIMENTAL fancy blinking.
-   * TODO: how to wait for last fade in to restore themedIconNameCurrent
-   */
-  startCrossFade: function() {
-    this.crossFade(this.buildPixBuf());
-  },
-
   buildPixBuf: function() {
     let icon_theme = gtk.gtk_icon_theme_get_for_screen(gdk.gdk_screen_get_default());
 
@@ -126,15 +118,10 @@ firetray.ChatStatusIcon = {
     if (n_channels != 4)
       log.error("wrong nb of channels for pixbuf");
 
-    return pixbuf;              // TO BE UNREFED WITH to g_object_unref() !!
-  },
-
-  crossFade: function(pixbuf) {
     // init transform
     let width = gdk.gdk_pixbuf_get_width(pixbuf);
     let height = gdk.gdk_pixbuf_get_height(pixbuf);
     log.debug("width="+width+", height="+height);
-    let n_channels = gdk.gdk_pixbuf_get_n_channels(pixbuf);
     let length = width*height*n_channels;
     let pixels = ctypes.cast(gdk.gdk_pixbuf_get_pixels(pixbuf),
                              gobject.guchar.array(length).ptr);
@@ -146,61 +133,83 @@ firetray.ChatStatusIcon = {
     for (let i=3; i<length; i+=n_channels)
       alpha_bak[(i-3)/n_channels] = pixels.contents[i];
 
-    const ALPHA_STEP = 5;
-    let timers = [];
+    let ret = {
+      pixbuf: pixbuf,           // TO BE UNREFED WITH to g_object_unref() !!
+      width: width,
+      height: height,
+      length: length,
+      n_channels: n_channels,
+      pixels: pixels,
+      buffer: buffer,
+      alpha_bak: alpha_bak
+    };
 
-    function fadeIn(alpha) {
-      for(let i=3; i<length; i+=n_channels)
-        if (pixels.contents[i]+ALPHA_STEP<=alpha_bak[(i-3)/n_channels]) {
-          pixels.contents[i] += ALPHA_STEP;
-        }
-      log.info("gtk_status_icon_set_from_pixbuf="+pixbuf);
-      gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, pixbuf);
-
-      if (alpha < 255) {
-        alpha += ALPHA_STEP;
-        timers.push(firetray.Utils.timer(10, Ci.nsITimer.TYPE_ONE_SHOT,
-                                         function(){fadeIn(alpha);}));
-
-      } else {
-        if (firetray.ChatStatusIcon.events['stop-cross-fade']) {
-          delete firetray.ChatStatusIcon.events['stop-cross-fade'];
-          firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
-          return;
-
-        } else if (firetray.ChatStatusIcon.events['icon-changed']) {
-          delete firetray.ChatStatusIcon.events['icon-changed'];
-          firetray.ChatStatusIcon.crossFade(firetray.ChatStatusIcon.buildPixBuf());
-          return;
-
-        } else {
-          timers.push(firetray.Utils.timer(500, Ci.nsITimer.TYPE_ONE_SHOT,
-                                           function(){fadeOut(255);}));
-        }
-      }
-    }
-
-    function fadeOut(alpha) {
-      for(let i=3; i<length; i+=n_channels)
-        if (pixels.contents[i]-ALPHA_STEP>0)
-          pixels.contents[i] -= ALPHA_STEP;
-      log.info("gtk_status_icon_set_from_pixbuf="+pixbuf);
-      gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, pixbuf);
-
-      if (alpha > 0) {
-        alpha -= ALPHA_STEP;
-        timers.push(firetray.Utils.timer(10, Ci.nsITimer.TYPE_ONE_SHOT,
-                                         function(){fadeOut(alpha);}));
-
-      } else {
-        fadeIn(0);
-      }
-    }
-
-    fadeOut(255);
-
-    gobject.g_object_unref(pixbuf); // FIXME: not sure if this shouldn't be done at 'stop-cross-fade'
+    return ret;
+  },
+  dropPixBuf: function(p) {
+    gobject.g_object_unref(p.pixbuf); // FIXME: not sure if this shouldn't be done at 'stop-cross-fade'
     log.info("pixbuf unref'd");
+  },
+
+  startCrossFade: function() {  // TODO: Foudil: rename to startFading
+    const ALPHA_STEP                    = 5;
+    const ALPHA_STEP_SLEEP_MILLISECONDS = 10;
+    const FADE_OVER_SLEEP_MILLISECONDS  = 500;
+
+    function fadeGen(p) {
+      for (let a=255; a>0; a-=ALPHA_STEP) {
+        for(let i=3; i<p.length; i+=p.n_channels)
+          if (p.pixels.contents[i]-ALPHA_STEP>0)
+            p.pixels.contents[i] -= ALPHA_STEP;
+        gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, p.pixbuf);
+        yield true;
+      }
+
+      for (let a=255; a>0; a-=ALPHA_STEP) {
+        for(let i=3; i<p.length; i+=p.n_channels)
+          if (p.pixels.contents[i]+ALPHA_STEP<=p.alpha_bak[(i-3)/p.n_channels]) {
+            p.pixels.contents[i] += ALPHA_STEP;
+          }
+        gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, p.pixbuf);
+        yield true;
+      }
+    }
+
+    function fadeLoop(p) {
+
+      let fadeOutfadeIn = fadeGen(p);
+      (function step() {
+        try {
+          if (fadeOutfadeIn.next())
+            firetray.Utils.timer(ALPHA_STEP_SLEEP_MILLISECONDS,
+                                 Ci.nsITimer.TYPE_ONE_SHOT, step);
+        } catch (e if e instanceof StopIteration) {
+
+          if (firetray.ChatStatusIcon.events['stop-cross-fade']) {
+            delete firetray.ChatStatusIcon.events['stop-cross-fade'];
+            firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
+            return;
+          }
+
+          if (firetray.ChatStatusIcon.events['icon-changed']) {
+            delete firetray.ChatStatusIcon.events['icon-changed'];
+            firetray.ChatStatusIcon.dropPixBuf(p);
+            let newPixbufObj = firetray.ChatStatusIcon.buildPixBuf();
+            firetray.Utils.timer(FADE_OVER_SLEEP_MILLISECONDS,
+                                 Ci.nsITimer.TYPE_ONE_SHOT, function(){fadeLoop(newPixbufObj);});
+
+          } else {
+            firetray.Utils.timer(FADE_OVER_SLEEP_MILLISECONDS,
+                                 Ci.nsITimer.TYPE_ONE_SHOT, function(){fadeLoop(p);});
+          }
+        };
+      })();
+
+    }
+    let pixbufObj = this.buildPixBuf();
+    fadeLoop(pixbufObj);
+
+    firetray.ChatStatusIcon.dropPixBuf(pixbufObj);
   },
 
   startIconBlinking: function() { // gtk_status_icon_set_blinking() deprecated
