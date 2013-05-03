@@ -607,8 +607,8 @@ firetray.Window = {
     if (visibilityRate < 1)
       firetray.Handler.showAllWindows();
 
-    for(var key in firetray.Handler.windows);
-    firetray.Window.activate(key);
+    for(var key in firetray.Handler.windows)
+      firetray.Window.activate(key);
   }
 
 
