@@ -22,6 +22,8 @@ pref("extensions.firetray.show_icon_on_hide", false);
 pref("extensions.firetray.scroll_hides", true);
 pref("extensions.firetray.scroll_mode", "down_hides");
 pref("extensions.firetray.chat_icon_enable", true);
+pref("extensions.firetray.chat_icon_blink", true);
+pref("extensions.firetray.chat_icon_blink_style", 0);
 
 pref("extensions.firetray.message_count_type", 0);
 pref("extensions.firetray.mail_notification_enabled", true);

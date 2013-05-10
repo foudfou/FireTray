@@ -36,9 +36,10 @@ var firetrayUIOptions = {
       this.hidePrefPane("pref-pane-mail");
     }
 
-    if (firetray.Handler.isChatProvided())
+    if (firetray.Handler.isChatProvided()) {
       Cu.import("resource://firetray/FiretrayChat.jsm");
-    else
+      this.initChatControls();
+    } else
       this.hidePrefPane("pref-pane-chat");
 
     this.updateWindowAndIconOptions();
@@ -195,6 +196,11 @@ var firetrayUIOptions = {
     this.toggleNotifications(firetray.Utils.prefService.getBoolPref("mail_notification_enabled"));
   },
 
+  initChatControls: function() {
+    this.initChatBlinkSettings();
+    this.toggleChatIcon(firetray.Utils.prefService.getBoolPref("chat_icon_enable"));
+  },
+
   initNotificationSettings: function() {
     document.getElementById("ui_radio_mail_notification_unread_count").value =
       FIRETRAY_NOTIFICATION_MESSAGE_COUNT;
@@ -222,6 +228,17 @@ var firetrayUIOptions = {
     let prefMsgCountType = firetray.Utils.prefService.getIntPref("message_count_type");
     radioMessageCountType.selectedIndex = this.radioGetIndexByValue(radioMessageCountType, prefMsgCountType);
     // this.disableMessageCountMaybe(prefMsgCountType); // done in toggleNotifications()
+  },
+
+  initChatBlinkSettings: function() {
+    document.getElementById("ui_chat_icon_blink_style_normal").value =
+      FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL;
+    document.getElementById("ui_chat_icon_blink_style_cross_fade").value =
+      FIRETRAY_CHAT_ICON_BLINK_STYLE_CROSS_FADE;
+
+    let blinkStyle = document.getElementById("ui_chat_icon_blink_style");
+    let prefBlinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");
+    blinkStyle.selectedIndex = this.radioGetIndexByValue(blinkStyle, prefBlinkStyle);
   },
 
   radioGetIndexByValue: function(radio, value) {
@@ -254,6 +271,12 @@ var firetrayUIOptions = {
     let radioMessageCountType = document.getElementById("ui_message_count_type");
     let messageCountType = +radioMessageCountType.getItemAtIndex(radioMessageCountType.selectedIndex).value;
     this.disableMessageCountMaybe(messageCountType);
+  },
+
+  updateChatBlinkSettings: function() {
+    let radioBlinkStyle = document.getElementById("ui_chat_icon_blink_style");
+    let blinkStyle = +radioBlinkStyle.getItemAtIndex(radioBlinkStyle.selectedIndex).value;
+    firetray.Utils.prefService.setIntPref("chat_icon_blink_style", blinkStyle);
   },
 
   disableNotificationMaybe: function(notificationSetting) {
@@ -305,6 +328,24 @@ var firetrayUIOptions = {
       document.getElementById("broadcaster-notification-disabled")
         .setAttribute("disabled", "true"); // UI update
     }
+  },
+
+  toggleChatIcon: function(enabled) {
+    if (enabled) {
+      document.getElementById("broadcaster-chat-icon-disabled")
+        .removeAttribute("disabled"); // UI update (enables!)
+
+      this.toggleChatIconBlink(
+        firetray.Utils.prefService.getBoolPref("chat_icon_blink"));
+
+    } else {
+      document.getElementById("broadcaster-chat-icon-disabled")
+        .setAttribute("disabled", "true"); // UI update
+    }
+  },
+
+  toggleChatIconBlink: function(enabled) {
+      this.disableElementsRecursive(document.getElementById("ui_chat_icon_blink_style"), !enabled);
   },
 
   chooseAppIconFile: function() {

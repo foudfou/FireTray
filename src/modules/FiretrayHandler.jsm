@@ -153,7 +153,7 @@ firetray.Handler = {
 
     firetray.Utils.removeAllObservers(this);
 
-    firetray.MailChatPrefListener.register(false);
+    firetray.MailChatPrefListener.unregister(false);
     firetray.PrefListener.unregister();
 
     this.appStarted = false;
@@ -209,7 +209,7 @@ firetray.Handler = {
       firetray.Utils.timer(FIRETRAY_DELAY_STARTUP_MILLISECONDS,
         Ci.nsITimer.TYPE_ONE_SHOT, function() {
           firetray.Handler.appStarted = true;
-          log.debug("*** appStarted ***");
+          log.info("*** appStarted ***");
         });
   },
 
@@ -460,6 +460,34 @@ firetray.PrefListener = new PrefListener(
 
     case 'chat_icon_enable':
       firetray.Handler.toggleChat(firetray.Handler.isChatEnabled());
+      break;
+
+    case 'chat_icon_blink':
+      if (!firetray.Utils.prefService.getBoolPref('chat_icon_blink') &&
+          firetray.Chat.isBlinking) {
+        /* FIXME: stopGetAttention() needs a window id. For now just pass the
+         active window */
+        firetray.Chat.stopGetAttention(firetray.Handler.findActiveWindow());
+      }
+      break;
+
+    case 'chat_icon_blink_style':
+      if (!(firetray.Utils.prefService.getBoolPref('chat_icon_blink') &&
+            firetray.Chat.isBlinking))
+        break;
+
+      switch (firetray.Utils.prefService.getIntPref("chat_icon_blink_style")) {
+      case FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL:
+        firetray.ChatStatusIcon.stopCrossFading();
+        firetray.ChatStatusIcon.startIconBlinking();
+        break;
+      case FIRETRAY_CHAT_ICON_BLINK_STYLE_CROSS_FADE:
+        firetray.ChatStatusIcon.stopIconBlinking();
+        firetray.ChatStatusIcon.startCrossFading();
+        break;
+      default:
+        throw new Error("Undefined chat icon blink style.");
+      }
       break;
 
     default:

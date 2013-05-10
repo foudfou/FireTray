@@ -91,7 +91,7 @@ firetray.ChatStatusIcon = {
    * EXPERIMENTAL fancy blinking.
    * TODO: how to wait for last fade in to restore themedIconNameCurrent
    */
-  crossFade: function() {
+  startCrossFading: function() {
 
     /* borrowed from mozmill utils.js*/
     function sleep(milliseconds) {
@@ -176,6 +176,11 @@ firetray.ChatStatusIcon = {
       });
   },
 
+  stopCrossFading: function() {
+    this.timers['cross-fade'].cancel();
+    this.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
+  },
+
   startIconBlinking: function() { // gtk_status_icon_set_blinking() deprecated
     this.on = true;
     firetray.ChatStatusIcon.timers['blink'] = firetray.Utils.timer(
@@ -236,6 +241,6 @@ firetray.ChatStatusIcon = {
     firetray.Chat.stopGetAttentionMaybe(xid);
   }
 
-  // FIXME: TODO: onclick/activate -> chatHandler.showCurrentConversation()
+  // TODO: onclick/activate -> chatHandler.showCurrentConversation()
 
 }; // firetray.ChatStatusIcon

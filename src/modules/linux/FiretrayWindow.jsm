@@ -607,7 +607,7 @@ firetray.Window = {
     if (visibilityRate < 1)
       firetray.Handler.showAllWindows();
 
-    for(var key in firetray.Handler.windows);
+    for(var key in firetray.Handler.windows); // FIXME: this is not the proper way for finding the last registered window !
     firetray.Window.activate(key);
   }
 
