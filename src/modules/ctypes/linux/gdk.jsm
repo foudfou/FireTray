@@ -55,7 +55,10 @@ Cu.import("resource://firetray/ctypes/linux/x11.jsm");
 
 function gdk_defines(lib) {
   this.GdkInterpType = ctypes.int; // enum
-  this.GDK_INTERP_NEAREST = 0;
+  this.GDK_INTERP_NEAREST  = 0;
+  this.GDK_INTERP_TILES    = 1;
+  this.GDK_INTERP_BILINEAR = 2;
+  this.GDK_INTERP_HYPE     = 3;
   this.GdkFilterReturn = ctypes.int; // enum
   this.GDK_FILTER_CONTINUE  = 0;
   this.GDK_FILTER_TRANSLATE = 1;

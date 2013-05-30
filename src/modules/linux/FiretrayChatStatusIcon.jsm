@@ -133,6 +133,8 @@ firetray.ChatStatusIcon = {
     for (let i=3; i<length; i+=n_channels)
       alpha_bak[(i-3)/n_channels] = pixels.contents[i];
 
+    log.debug("pixbuf created");
+
     let ret = {
       pixbuf: pixbuf,           // TO BE UNREFED WITH to g_object_unref() !!
       width: width,
@@ -143,15 +145,15 @@ firetray.ChatStatusIcon = {
       buffer: buffer,
       alpha_bak: alpha_bak
     };
-
     return ret;
   },
   dropPixBuf: function(p) {
     gobject.g_object_unref(p.pixbuf); // FIXME: not sure if this shouldn't be done at 'stop-cross-fade'
-    log.info("pixbuf unref'd");
+    log.debug("pixbuf unref'd");
   },
 
-  startCrossFade: function() {  // TODO: Foudil: rename to startFading
+  startCrossFading: function() {  // TODO: Foudil: rename to startFading
+    log.debug("startCrossFading");
     const ALPHA_STEP                    = 5;
     const ALPHA_STEP_SLEEP_MILLISECONDS = 10;
     const FADE_OVER_SLEEP_MILLISECONDS  = 500;
@@ -212,6 +214,12 @@ firetray.ChatStatusIcon = {
     firetray.ChatStatusIcon.dropPixBuf(pixbufObj);
   },
 
+  stopCrossFading: function() {
+    log.debug("stopCrossFading");
+    this.timers['cross-fade'].cancel();
+    this.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
+  },
+
   startIconBlinking: function() { // gtk_status_icon_set_blinking() deprecated
     this.on = true;
     firetray.ChatStatusIcon.timers['blink'] = firetray.Utils.timer(
@@ -230,7 +238,7 @@ firetray.ChatStatusIcon = {
     this.on = false;
   },
 
-  stopCrossFade: function() {
+  stopCrossFading: function() {
     this.events['stop-cross-fade'] = true;
   },
 
@@ -276,6 +284,6 @@ firetray.ChatStatusIcon = {
     firetray.Chat.stopGetAttentionMaybe(xid);
   }
 
-  // FIXME: TODO: onclick/activate -> chatHandler.showCurrentConversation()
+  // TODO: onclick/activate -> chatHandler.showCurrentConversation()
 
 }; // firetray.ChatStatusIcon
