@@ -54,7 +54,7 @@ firetray.Logging = {
     if (this.initialized) return;
 
     ["resource://services-common/log4moz.js", // FF
-     "resource:///modules/gloda/log4moz.js",  // TB
+     "resource:///app/modules/gloda/log4moz.js",  // TB
      "resource://firetray/log4moz.js"]        // default
       .forEach(function(file){
         try {Cu.import(file);} catch(x) {}
