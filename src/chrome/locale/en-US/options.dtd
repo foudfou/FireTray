@@ -97,4 +97,4 @@
 <!ENTITY chat_icon_blink_style.label "Blink style">
 <!ENTITY chat_icon_blink_style.accesskey "B">
 <!ENTITY chat_icon_blink_style_normal "Simple">
-<!ENTITY chat_icon_blink_style_cross_fade "Cross-fade">
+<!ENTITY chat_icon_blink_style_fade "Fade">

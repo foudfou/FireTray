@@ -333,7 +333,7 @@
           <radio id="ui_chat_icon_blink_style_normal" label="&chat_icon_blink_style_normal;"
                  oncommand="firetrayUIOptions.updateChatBlinkSettings()"
                  observes="broadcaster-chat-icon-disabled"/>
-          <radio id="ui_chat_icon_blink_style_cross_fade" label="&chat_icon_blink_style_cross_fade;"
+          <radio id="ui_chat_icon_blink_style_fade" label="&chat_icon_blink_style_fade;"
                  oncommand="firetrayUIOptions.updateChatBlinkSettings()"
                  observes="broadcaster-chat-icon-disabled"/>
         </hbox>

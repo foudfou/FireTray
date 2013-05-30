@@ -233,8 +233,8 @@ var firetrayUIOptions = {
   initChatBlinkSettings: function() {
     document.getElementById("ui_chat_icon_blink_style_normal").value =
       FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL;
-    document.getElementById("ui_chat_icon_blink_style_cross_fade").value =
-      FIRETRAY_CHAT_ICON_BLINK_STYLE_CROSS_FADE;
+    document.getElementById("ui_chat_icon_blink_style_fade").value =
+      FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE;
 
     let blinkStyle = document.getElementById("ui_chat_icon_blink_style");
     let prefBlinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");

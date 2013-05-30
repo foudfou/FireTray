@@ -145,9 +145,9 @@ firetray.Chat = {
     let blinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");
     log.debug("chat_icon_blink_style="+blinkStyle);
     if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL)
-      firetray.ChatStatusIcon.startIconBlinking();
-    else if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_CROSS_FADE)
-      firetray.ChatStatusIcon.startCrossFading();
+      firetray.ChatStatusIcon.startBlinking();
+    else if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE)
+      firetray.ChatStatusIcon.startFading();
     else
       throw new Error("Undefined chat icon blink style.");
   },
@@ -181,9 +181,9 @@ firetray.Chat = {
 
     let blinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");
     if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL)
-      firetray.ChatStatusIcon.stopIconBlinking();
-    else if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_CROSS_FADE)
-      firetray.ChatStatusIcon.stopCrossFading();
+      firetray.ChatStatusIcon.stopBlinking();
+    else if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE)
+      firetray.ChatStatusIcon.stopFading();
     else
       throw new Error("Undefined chat icon blink style.");
   },

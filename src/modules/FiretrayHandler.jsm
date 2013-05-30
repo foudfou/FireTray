@@ -497,12 +497,12 @@ firetray.PrefListener = new PrefListener(
 
       switch (firetray.Utils.prefService.getIntPref("chat_icon_blink_style")) {
       case FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL:
-        firetray.ChatStatusIcon.stopCrossFading();
-        firetray.ChatStatusIcon.startIconBlinking();
+        firetray.ChatStatusIcon.stopFading();
+        firetray.ChatStatusIcon.startBlinking();
         break;
-      case FIRETRAY_CHAT_ICON_BLINK_STYLE_CROSS_FADE:
-        firetray.ChatStatusIcon.stopIconBlinking();
-        firetray.ChatStatusIcon.startCrossFading();
+      case FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE:
+        firetray.ChatStatusIcon.stopBlinking();
+        firetray.ChatStatusIcon.startFading();
         break;
       default:
         throw new Error("Undefined chat icon blink style.");

@@ -134,8 +134,7 @@ firetray.ChatStatusIcon = {
       alpha_bak[(i-3)/n_channels] = pixels.contents[i];
 
     log.debug("pixbuf created");
-
-    let ret = {
+    return {
       pixbuf: pixbuf,           // TO BE UNREFED WITH to g_object_unref() !!
       width: width,
       height: height,
@@ -145,15 +144,14 @@ firetray.ChatStatusIcon = {
       buffer: buffer,
       alpha_bak: alpha_bak
     };
-    return ret;
   },
   dropPixBuf: function(p) {
-    gobject.g_object_unref(p.pixbuf); // FIXME: not sure if this shouldn't be done at 'stop-cross-fade'
+    gobject.g_object_unref(p.pixbuf);
     log.debug("pixbuf unref'd");
   },
 
-  startCrossFading: function() {  // TODO: Foudil: rename to startFading
-    log.debug("startCrossFading");
+  startFading: function() {
+    log.debug("startFading");
     const ALPHA_STEP                    = 5;
     const ALPHA_STEP_SLEEP_MILLISECONDS = 10;
     const FADE_OVER_SLEEP_MILLISECONDS  = 500;
@@ -187,9 +185,11 @@ firetray.ChatStatusIcon = {
                                  Ci.nsITimer.TYPE_ONE_SHOT, step);
         } catch (e if e instanceof StopIteration) {
 
-          if (firetray.ChatStatusIcon.events['stop-cross-fade']) {
-            delete firetray.ChatStatusIcon.events['stop-cross-fade'];
+          if (firetray.ChatStatusIcon.events['stop-fade']) {
+            log.debug("stop-fade");
+            delete firetray.ChatStatusIcon.events['stop-fade'];
             firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
+            firetray.ChatStatusIcon.dropPixBuf(p);
             return;
           }
 
@@ -210,17 +210,14 @@ firetray.ChatStatusIcon = {
     }
     let pixbufObj = this.buildPixBuf();
     fadeLoop(pixbufObj);
-
-    firetray.ChatStatusIcon.dropPixBuf(pixbufObj);
   },
 
-  stopCrossFading: function() {
-    log.debug("stopCrossFading");
-    this.timers['cross-fade'].cancel();
-    this.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
+  stopFading: function() {
+    log.debug("stopFading");
+    this.events['stop-fade'] = true;
   },
 
-  startIconBlinking: function() { // gtk_status_icon_set_blinking() deprecated
+  startBlinking: function() { // gtk_status_icon_set_blinking() deprecated
     this.on = true;
     firetray.ChatStatusIcon.timers['blink'] = firetray.Utils.timer(
       500, Ci.nsITimer.TYPE_REPEATING_SLACK, function() {
@@ -232,14 +229,10 @@ firetray.ChatStatusIcon = {
       });
   },
 
-  stopIconBlinking: function() {
+  stopBlinking: function() {
     this.timers['blink'].cancel();
     this.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
     this.on = false;
-  },
-
-  stopCrossFading: function() {
-    this.events['stop-cross-fade'] = true;
   },
 
   setUrgency: function(xid, urgent) {
