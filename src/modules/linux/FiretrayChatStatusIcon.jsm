@@ -74,11 +74,6 @@ firetray.ChatStatusIcon = {
   },
 
   setIconImageFromGIcon: function(gicon) {
-    if (firetray.Chat.shouldAcknowledgeConvs.length()) {
-      this.events['icon-changed'] = true;
-      return;
-    }
-
     if (!firetray.ChatStatusIcon.trayIcon || !gicon)
       log.error("Icon missing");
     gtk.gtk_status_icon_set_from_gicon(firetray.ChatStatusIcon.trayIcon, gicon);
@@ -86,6 +81,14 @@ firetray.ChatStatusIcon = {
 
   setIconImage: function(name) {
     this.themedIconNameCurrent = name;
+
+    let blinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");
+    if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE &&
+        firetray.Chat.shouldAcknowledgeConvs.length()) {
+      this.events['icon-changed'] = true;
+      return;
+    }
+
     this.setIconImageFromGIcon(this.themedIcons[name]);
   },
 
