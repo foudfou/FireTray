@@ -15,11 +15,6 @@ let log = firetray.Logging.getLogger("firetray.Chat");
 firetray.Chat = {
   initialized: false,
   observedTopics: {},
-  shouldAcknowledgeConvs: {     // TODO: FOUDIL: rename to convsToAcknoledge
-    ids: {},
-    length: function(){return Object.keys(this.ids).length;}
-  },
-  get isBlinking () {return (this.shouldAcknowledgeConvs.length() > 0);},
 
   init: function() {
     if (this.initialized) {
@@ -132,16 +127,17 @@ firetray.Chat = {
 
     this.startGetAttention(conv);
 
-    this.shouldAcknowledgeConvs.ids[conv.id] = conv;
-    log.debug(conv.id+' added to shouldAcknowledgeConvs, length='+this.shouldAcknowledgeConvs.length());
+    firetray.ChatStatusIcon.convsToAcknowledge.ids[conv.id] = conv;
+    log.debug(conv.id+' added to convsToAcknowledge, length='+firetray.ChatStatusIcon.convsToAcknowledge.length());
   },
 
   startGetAttention: function(conv) {
     log.debug("startGetAttention");
     this.setUrgencyMaybe(conv);
 
-    log.debug("this.isBlinking="+this.isBlinking);
-    if (this.isBlinking) return;
+    log.debug("firetray.ChatStatusIcon.isBlinking="+firetray.ChatStatusIcon.isBlinking);
+    if (firetray.ChatStatusIcon.isBlinking) return;
+
     let blinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");
     log.debug("chat_icon_blink_style="+blinkStyle);
     if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL)
@@ -157,21 +153,21 @@ firetray.Chat = {
    */
   stopGetAttentionMaybe: function(xid) {
     log.debug("stopGetAttentionMaybe");
-    log.debug("shouldAcknowledgeConvsLength="+this.shouldAcknowledgeConvs.length());
-    if (!this.isBlinking) return; // instead of pref chat_icon_blink — if pref was just unset
+    log.debug("convsToAcknowledgeLength="+firetray.ChatStatusIcon.convsToAcknowledge.length());
+    if (!firetray.ChatStatusIcon.isBlinking) return; // instead of pref chat_icon_blink — if pref was just unset
 
     let selectedConv = this.getSelectedConv(xid);
     if (!selectedConv) return;
 
-    for (let convId in this.shouldAcknowledgeConvs.ids) {
+    for (let convId in firetray.ChatStatusIcon.convsToAcknowledge.ids) {
       log.debug(convId+" == "+selectedConv.id);
       if (convId == selectedConv.id) {
-        delete this.shouldAcknowledgeConvs.ids[convId];
+        delete firetray.ChatStatusIcon.convsToAcknowledge.ids[convId];
         break;
       }
     }
 
-    if (this.shouldAcknowledgeConvs.length() === 0)
+    if (firetray.ChatStatusIcon.convsToAcknowledge.length() === 0)
       this.stopGetAttention(xid);
   },
 

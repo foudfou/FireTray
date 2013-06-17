@@ -483,7 +483,7 @@ firetray.PrefListener = new PrefListener(
 
     case 'chat_icon_blink':
       if (!firetray.Utils.prefService.getBoolPref('chat_icon_blink') &&
-          firetray.Chat.isBlinking) {
+          firetray.ChatStatusIcon.isBlinking) {
         /* FIXME: stopGetAttention() needs a window id. For now just pass the
          active window */
         firetray.Chat.stopGetAttention(firetray.Handler.findActiveWindow());
@@ -491,8 +491,8 @@ firetray.PrefListener = new PrefListener(
       break;
 
     case 'chat_icon_blink_style':
-      if (!(firetray.Utils.prefService.getBoolPref('chat_icon_blink') &&
-            firetray.Chat.isBlinking))
+      if (!firetray.Utils.prefService.getBoolPref('chat_icon_blink') ||
+          !firetray.ChatStatusIcon.isBlinking)
         break;
 
       switch (firetray.Utils.prefService.getIntPref("chat_icon_blink_style")) {

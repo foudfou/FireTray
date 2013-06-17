@@ -23,6 +23,10 @@ if ("undefined" == typeof(firetray.Handler))
 
 let log = firetray.Logging.getLogger("firetray.ChatStatusIcon");
 
+const ALPHA_STEP                    = 5;
+const ALPHA_STEP_SLEEP_MILLISECONDS = 10;
+const FADE_OVER_SLEEP_MILLISECONDS  = 500;
+
 
 firetray.ChatStatusIcon = {
   GTK_THEME_ICON_PATH: null,
@@ -41,6 +45,13 @@ firetray.ChatStatusIcon = {
   signals: {'focus-in': {callback: {}, handler: {}}},
   timers: {},
   events: {},
+  generators: {},
+  pixBuffer: {},
+  convsToAcknowledge: {
+    ids: {},
+    length: function(){return Object.keys(this.ids).length;}
+  },
+  get isBlinking () {return (this.convsToAcknowledge.length() > 0);},
 
   init: function() {
     if (!firetray.Handler.inMailApp) throw "ChatStatusIcon for mail app only";
@@ -84,7 +95,7 @@ firetray.ChatStatusIcon = {
 
     let blinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");
     if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE &&
-        firetray.Chat.shouldAcknowledgeConvs.length()) {
+        this.isBlinking) {
       this.events['icon-changed'] = true;
       return;
     }
@@ -137,7 +148,7 @@ firetray.ChatStatusIcon = {
       alpha_bak[(i-3)/n_channels] = pixels.contents[i];
 
     log.debug("pixbuf created");
-    return {
+    this.pixBuffer = {
       pixbuf: pixbuf,           // TO BE UNREFED WITH to g_object_unref() !!
       width: width,
       height: height,
@@ -148,71 +159,83 @@ firetray.ChatStatusIcon = {
       alpha_bak: alpha_bak
     };
   },
-  dropPixBuf: function(p) {
-    gobject.g_object_unref(p.pixbuf);
+  dropPixBuf: function() {
+    gobject.g_object_unref(this.pixBuffer.pixbuf);
     log.debug("pixbuf unref'd");
+    this.pixBuffer = {};
+  },
+
+  fadeGenerator: function() {
+    let pixbuf = firetray.ChatStatusIcon.pixBuffer;
+
+    for (let a=255; a>0; a-=ALPHA_STEP) {
+      for(let i=3; i<pixbuf.length; i+=pixbuf.n_channels)
+        if (pixbuf.pixels.contents[i]-ALPHA_STEP>0)
+          pixbuf.pixels.contents[i] -= ALPHA_STEP;
+      gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, pixbuf.pixbuf);
+      yield true;
+    }
+
+    for (let a=255; a>0; a-=ALPHA_STEP) {
+      for(let i=3; i<pixbuf.length; i+=pixbuf.n_channels)
+        if (pixbuf.pixels.contents[i]+ALPHA_STEP<=pixbuf.alpha_bak[(i-3)/pixbuf.n_channels]) {
+          pixbuf.pixels.contents[i] += ALPHA_STEP;
+        }
+      gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, pixbuf.pixbuf);
+      yield true;
+    }
+  },
+
+  fadeStep: function() {
+    try {
+      if (firetray.ChatStatusIcon.generators['fade'].next())
+        firetray.ChatStatusIcon.timers['fade-step'] = firetray.Utils.timer(
+          ALPHA_STEP_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT,
+          firetray.ChatStatusIcon.fadeStep);
+    } catch (e if e instanceof StopIteration) {
+
+      log.warn("stop-fade 1:"+firetray.ChatStatusIcon.events['stop-fade']);
+      if (firetray.ChatStatusIcon.events['stop-fade']) {
+        log.debug("stop-fade");
+        delete firetray.ChatStatusIcon.events['stop-fade'];
+        delete firetray.ChatStatusIcon.generators['fade'];
+        delete firetray.ChatStatusIcon.timers['fade-step'];
+        delete firetray.ChatStatusIcon.timers['fade-loop'];
+        firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
+        firetray.ChatStatusIcon.dropPixBuf(p);
+        return;
+      }
+
+      if (firetray.ChatStatusIcon.events['icon-changed']) {
+        delete firetray.ChatStatusIcon.events['icon-changed'];
+        firetray.ChatStatusIcon.dropPixBuf();
+        firetray.ChatStatusIcon.buildPixBuf();
+        firetray.ChatStatusIcon.timers['fade-loop'] = firetray.Utils.timer(
+          FADE_OVER_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT, function(){
+            firetray.ChatStatusIcon.fadeLoop();}
+        );
+
+      } else {
+        log.warn("fadeLoop else -> 0");
+        firetray.ChatStatusIcon.timers['fade-loop'] = firetray.Utils.timer(
+          FADE_OVER_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT, function(){
+            log.warn("fadeLoop else -> 1");
+            firetray.ChatStatusIcon.fadeLoop();}
+        );
+      }
+    };
+  },
+
+  fadeLoop: function() {
+    log.warn("stop-fade 0:"+firetray.ChatStatusIcon.events['stop-fade']);
+    firetray.ChatStatusIcon.generators['fade'] = firetray.ChatStatusIcon.fadeGenerator();
+    firetray.ChatStatusIcon.fadeStep();
   },
 
   startFading: function() {
     log.debug("startFading");
-    const ALPHA_STEP                    = 5;
-    const ALPHA_STEP_SLEEP_MILLISECONDS = 10;
-    const FADE_OVER_SLEEP_MILLISECONDS  = 500;
-
-    function fadeGen(p) {
-      for (let a=255; a>0; a-=ALPHA_STEP) {
-        for(let i=3; i<p.length; i+=p.n_channels)
-          if (p.pixels.contents[i]-ALPHA_STEP>0)
-            p.pixels.contents[i] -= ALPHA_STEP;
-        gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, p.pixbuf);
-        yield true;
-      }
-
-      for (let a=255; a>0; a-=ALPHA_STEP) {
-        for(let i=3; i<p.length; i+=p.n_channels)
-          if (p.pixels.contents[i]+ALPHA_STEP<=p.alpha_bak[(i-3)/p.n_channels]) {
-            p.pixels.contents[i] += ALPHA_STEP;
-          }
-        gtk.gtk_status_icon_set_from_pixbuf(firetray.ChatStatusIcon.trayIcon, p.pixbuf);
-        yield true;
-      }
-    }
-
-    function fadeLoop(p) {
-
-      let fadeOutfadeIn = fadeGen(p);
-      (function step() {
-        try {
-          if (fadeOutfadeIn.next())
-            firetray.Utils.timer(ALPHA_STEP_SLEEP_MILLISECONDS,
-                                 Ci.nsITimer.TYPE_ONE_SHOT, step);
-        } catch (e if e instanceof StopIteration) {
-
-          if (firetray.ChatStatusIcon.events['stop-fade']) {
-            log.debug("stop-fade");
-            delete firetray.ChatStatusIcon.events['stop-fade'];
-            firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
-            firetray.ChatStatusIcon.dropPixBuf(p);
-            return;
-          }
-
-          if (firetray.ChatStatusIcon.events['icon-changed']) {
-            delete firetray.ChatStatusIcon.events['icon-changed'];
-            firetray.ChatStatusIcon.dropPixBuf(p);
-            let newPixbufObj = firetray.ChatStatusIcon.buildPixBuf();
-            firetray.Utils.timer(FADE_OVER_SLEEP_MILLISECONDS,
-                                 Ci.nsITimer.TYPE_ONE_SHOT, function(){fadeLoop(newPixbufObj);});
-
-          } else {
-            firetray.Utils.timer(FADE_OVER_SLEEP_MILLISECONDS,
-                                 Ci.nsITimer.TYPE_ONE_SHOT, function(){fadeLoop(p);});
-          }
-        };
-      })();
-
-    }
-    let pixbufObj = this.buildPixBuf();
-    fadeLoop(pixbufObj);
+    this.buildPixBuf();
+    this.fadeLoop();
   },
 
   stopFading: function() {
