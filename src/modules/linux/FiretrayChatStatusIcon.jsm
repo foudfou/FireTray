@@ -194,7 +194,6 @@ firetray.ChatStatusIcon = {
           firetray.ChatStatusIcon.fadeStep);
     } catch (e if e instanceof StopIteration) {
 
-      log.warn("stop-fade 1:"+firetray.ChatStatusIcon.events['stop-fade']);
       if (firetray.ChatStatusIcon.events['stop-fade']) {
         log.debug("stop-fade");
         delete firetray.ChatStatusIcon.events['stop-fade'];
@@ -216,10 +215,8 @@ firetray.ChatStatusIcon = {
         );
 
       } else {
-        log.warn("fadeLoop else -> 0");
         firetray.ChatStatusIcon.timers['fade-loop'] = firetray.Utils.timer(
           FADE_OVER_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT, function(){
-            log.warn("fadeLoop else -> 1");
             firetray.ChatStatusIcon.fadeLoop();}
         );
       }
@@ -227,7 +224,6 @@ firetray.ChatStatusIcon = {
   },
 
   fadeLoop: function() {
-    log.warn("stop-fade 0:"+firetray.ChatStatusIcon.events['stop-fade']);
     firetray.ChatStatusIcon.generators['fade'] = firetray.ChatStatusIcon.fadeGenerator();
     firetray.ChatStatusIcon.fadeStep();
   },
