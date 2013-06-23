@@ -283,8 +283,8 @@ firetray.Handler = {
 
     } else {
       for (let winId in firetray.Handler.windows) {
-        firetray.ChatStatusIcon.detachOnFocusInCallback(winId);
         firetray.Chat.detachSelectListeners(firetray.Handler.windows[winId].chromeWin);
+        firetray.ChatStatusIcon.detachOnFocusInCallback(winId);
       }
       firetray.Chat.shutdown();
     }
@@ -482,11 +482,13 @@ firetray.PrefListener = new PrefListener(
       break;
 
     case 'chat_icon_blink':
-      if (!firetray.Utils.prefService.getBoolPref('chat_icon_blink') &&
-          firetray.ChatStatusIcon.isBlinking) {
-        /* FIXME: stopGetAttention() needs a window id. For now just pass the
-         active window */
-        firetray.Chat.stopGetAttention(firetray.Handler.findActiveWindow());
+      if (!firetray.ChatStatusIcon.isBlinking)
+        return;
+      let startBlinking = firetray.Utils.prefService.getBoolPref('chat_icon_blink');
+      if (startBlinking) {
+        firetray.Chat.startGetAttention();
+      } else {
+        firetray.Chat.stopGetAttention();
       }
       break;
 
@@ -495,18 +497,8 @@ firetray.PrefListener = new PrefListener(
           !firetray.ChatStatusIcon.isBlinking)
         break;
 
-      switch (firetray.Utils.prefService.getIntPref("chat_icon_blink_style")) {
-      case FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL:
-        firetray.ChatStatusIcon.stopFading();
-        firetray.ChatStatusIcon.startBlinking();
-        break;
-      case FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE:
-        firetray.ChatStatusIcon.stopBlinking();
-        firetray.ChatStatusIcon.startFading();
-        break;
-      default:
-        throw new Error("Undefined chat icon blink style.");
-      }
+      firetray.ChatStatusIcon.toggleBlinkStyle(
+        firetray.Utils.prefService.getIntPref("chat_icon_blink_style"));
       break;
 
     default:

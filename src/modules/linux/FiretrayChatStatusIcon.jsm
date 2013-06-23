@@ -23,9 +23,10 @@ if ("undefined" == typeof(firetray.Handler))
 
 let log = firetray.Logging.getLogger("firetray.ChatStatusIcon");
 
-const ALPHA_STEP                    = 5;
-const ALPHA_STEP_SLEEP_MILLISECONDS = 10;
-const FADE_OVER_SLEEP_MILLISECONDS  = 500;
+const ALPHA_STEP                       = 5;
+const ALPHA_STEP_SLEEP_MILLISECONDS    = 10;
+const FADE_OVER_SLEEP_MILLISECONDS     = 500;
+const BLINK_TOGGLE_PERIOD_MILLISECONDS = 500;
 
 
 firetray.ChatStatusIcon = {
@@ -43,15 +44,11 @@ firetray.ChatStatusIcon = {
   })(),
   themedIconNameCurrent: null,
   signals: {'focus-in': {callback: {}, handler: {}}},
-  timers: {},
+  timers: {'blink': null, 'fade-step': null, 'fade-loop': null},
   events: {},
   generators: {},
   pixBuffer: {},
-  convsToAcknowledge: {
-    ids: {},
-    length: function(){return Object.keys(this.ids).length;}
-  },
-  get isBlinking () {return (this.convsToAcknowledge.length() > 0);},
+  get isBlinking () {return (firetray.Chat.convsToAcknowledge.length() > 0);},
 
   init: function() {
     if (!firetray.Handler.inMailApp) throw "ChatStatusIcon for mail app only";
@@ -59,14 +56,16 @@ firetray.ChatStatusIcon = {
 
     this.trayIcon = gtk.gtk_status_icon_new();
     this.loadThemedIcons();
-    this.setIconImage(FIRETRAY_IM_STATUS_OFFLINE);
+    this.setIconImage(this.themedIconNameCurrent || FIRETRAY_IM_STATUS_OFFLINE); // updated in Chat anyway
     this.setIconTooltipDefault();
+    this.initTimers();
 
     this.initialized = true;
     return true;
   },
 
   shutdown: function() {
+    this.destroyTimers();
     this.destroyIcons();
     this.initialized = false;
   },
@@ -105,6 +104,19 @@ firetray.ChatStatusIcon = {
 
   setIconVoid: function() {
     gtk.gtk_status_icon_set_from_pixbuf(this.trayIcon, null);
+  },
+
+  initTimers: function() {
+    for (let tname in this.timers)
+      this.timers[tname] = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+  },
+
+  destroyTimers: function() {
+    for (let tname in this.timers) {
+      this.timers[tname].cancel();
+      this.timers[tname] = null;
+    }
+    this.events = {};
   },
 
   buildPixBuf: function() {
@@ -189,19 +201,19 @@ firetray.ChatStatusIcon = {
   fadeStep: function() {
     try {
       if (firetray.ChatStatusIcon.generators['fade'].next())
-        firetray.ChatStatusIcon.timers['fade-step'] = firetray.Utils.timer(
-          ALPHA_STEP_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT,
-          firetray.ChatStatusIcon.fadeStep);
+        firetray.ChatStatusIcon.timers['fade-step'].initWithCallback(
+          { notify: firetray.ChatStatusIcon.fadeStep },
+          ALPHA_STEP_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+
+
     } catch (e if e instanceof StopIteration) {
 
       if (firetray.ChatStatusIcon.events['stop-fade']) {
         log.debug("stop-fade");
         delete firetray.ChatStatusIcon.events['stop-fade'];
         delete firetray.ChatStatusIcon.generators['fade'];
-        delete firetray.ChatStatusIcon.timers['fade-step'];
-        delete firetray.ChatStatusIcon.timers['fade-loop'];
         firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
-        firetray.ChatStatusIcon.dropPixBuf(p);
+        firetray.ChatStatusIcon.dropPixBuf();
         return;
       }
 
@@ -209,16 +221,14 @@ firetray.ChatStatusIcon = {
         delete firetray.ChatStatusIcon.events['icon-changed'];
         firetray.ChatStatusIcon.dropPixBuf();
         firetray.ChatStatusIcon.buildPixBuf();
-        firetray.ChatStatusIcon.timers['fade-loop'] = firetray.Utils.timer(
-          FADE_OVER_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT, function(){
-            firetray.ChatStatusIcon.fadeLoop();}
-        );
+        firetray.ChatStatusIcon.timers['fade-loop'].initWithCallback(
+          { notify: firetray.ChatStatusIcon.fadeLoop },
+          FADE_OVER_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
 
       } else {
-        firetray.ChatStatusIcon.timers['fade-loop'] = firetray.Utils.timer(
-          FADE_OVER_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT, function(){
-            firetray.ChatStatusIcon.fadeLoop();}
-        );
+        firetray.ChatStatusIcon.timers['fade-loop'].initWithCallback(
+          { notify: firetray.ChatStatusIcon.fadeLoop },
+          FADE_OVER_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
       }
     };
   },
@@ -241,20 +251,37 @@ firetray.ChatStatusIcon = {
 
   startBlinking: function() { // gtk_status_icon_set_blinking() deprecated
     this.on = true;
-    firetray.ChatStatusIcon.timers['blink'] = firetray.Utils.timer(
-      500, Ci.nsITimer.TYPE_REPEATING_SLACK, function() {
+    firetray.ChatStatusIcon.timers['blink'].initWithCallback({
+      notify: function() {
         if (firetray.ChatStatusIcon.on)
           firetray.ChatStatusIcon.setIconVoid();
         else
           firetray.ChatStatusIcon.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
         firetray.ChatStatusIcon.on = !firetray.ChatStatusIcon.on;
-      });
+      }
+    }, BLINK_TOGGLE_PERIOD_MILLISECONDS, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
 
   stopBlinking: function() {
+    log.debug("stopBlinking");
     this.timers['blink'].cancel();
     this.setIconImage(firetray.ChatStatusIcon.themedIconNameCurrent);
     this.on = false;
+  },
+
+  toggleBlinkStyle: function(blinkStyle) {
+    switch (blinkStyle) {
+    case FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL:
+      this.stopFading();
+      this.startBlinking();
+      break;
+    case FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE:
+      this.stopBlinking();
+      this.startFading();
+      break;
+    default:
+      throw new Error("Undefined chat icon blink style.");
+    }
   },
 
   setUrgency: function(xid, urgent) {
