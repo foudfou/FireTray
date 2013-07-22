@@ -86,7 +86,7 @@
 <!ENTITY mail_change_trigger.label "Launch on count change :">
 <!ENTITY mail_change_trigger.accesskey "L">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
-<!ENTITY mail_change_trigger.tooltip "Absolute path of the program to run when the message count changes. The first argument is the new message count.">
+<!ENTITY mail_change_trigger.tooltip "Absolute path of the program to run when the message count changes. This program will get the new message count as the first argument.">
 
 <!ENTITY chat_icon_enable.label "Enable chat icon">
 <!ENTITY chat_icon_enable.accesskey "E">
