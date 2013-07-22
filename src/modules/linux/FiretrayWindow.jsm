@@ -407,6 +407,10 @@ firetray.Window = {
     log.debug("window raised");
   },
 
+  setUrgency: function(xid, urgent) {
+    gtk.gtk_window_set_urgency_hint(firetray.Handler.gtkWindows.get(xid), urgent);
+  },
+
   /**
    * YOU MUST x11.XFree() THE VARIABLE RETURNED BY THIS FUNCTION
    * @param xwin: a x11.Window
@@ -553,6 +557,9 @@ firetray.Window = {
         firetray.Window.updateVisibility(xid, true);
         log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
       }
+
+      if (xid === firetray.Handler.getActiveWindow())
+        firetray.Window.setUrgency(xid, false);
       break;
 
     case x11.UnmapNotify:       // for catching 'iconify'
@@ -724,25 +731,13 @@ firetray.Handler.activateLastWindowCb = function(gtkStatusIcon, gdkEvent, userDa
 };
 
 /* NOTE: gtk_window_is_active() not reliable, and _NET_ACTIVE_WINDOW may not
-   always be set before 'focus-in-event' (gnome-shell/mutter 3.4.1) */
-firetray.Handler.findActiveWindow = function() {
-  let rootWin = x11.XDefaultRootWindow(x11.current.Display);
-  let [propsFound, nitems] =
-    firetray.Window.getXWindowProperties(rootWin, x11.current.Atoms._NET_ACTIVE_WINDOW);
-
-  log.debug("ACTIVE_WINDOW propsFound, nitems="+propsFound+", "+nitems);
-  if (!propsFound) return null;
-
-  let activeWin = null;
-  if (firetray.js.strEquals(nitems.value, 0))
-    log.warn("active window not found");
-  else if (firetray.js.strEquals(nitems.value, 1))
-    activeWin = propsFound.contents[0];
-  else
-    throw new RangeError("more than one active window found");
-
-  x11.XFree(propsFound);
-
+   always be set before 'focus-in-event' (gnome-shell/mutter 3.4.1). */
+firetray.Handler.getActiveWindow = function() {
+  let gdkActiveWin = gdk.gdk_screen_get_active_window(gdk.gdk_screen_get_default()); // inspects _NET_ACTIVE_WINDOW
+  log.debug("gdkActiveWin="+gdkActiveWin);
+  if (firetray.js.strEquals(gdkActiveWin, 'GdkWindow.ptr(ctypes.UInt64("0x0"))'))
+    return null;
+  let activeWin = firetray.Window.getXIDFromGdkWindow(gdkActiveWin);
   log.debug("ACTIVE_WINDOW="+activeWin);
   return activeWin;
 };

@@ -105,10 +105,6 @@ firetray.ChatStatusIcon = {
     this.on = false;
   },
 
-  setUrgency: function(xid, urgent) {
-    gtk.gtk_window_set_urgency_hint(firetray.Handler.gtkWindows.get(xid), urgent);
-  },
-
   setIconTooltip: function(txt) {
     if (!this.trayIcon) return false;
     gtk.gtk_status_icon_set_tooltip_text(this.trayIcon, txt);
