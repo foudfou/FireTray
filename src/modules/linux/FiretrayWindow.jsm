@@ -58,6 +58,7 @@ firetray.Handler.gtkPopupMenuWindowItems = new ctypesMap(gtk.GtkImageMenuItem.pt
 
 
 firetray.Window = {
+  signals: {'focus-in': {callback: {}, handler: {}}},
 
   init: function() {
     let gtkVersionCheck = gtk.gtk_check_version(
@@ -215,8 +216,8 @@ firetray.Window = {
       return false;
     }
 
+    firetray.Window.detachOnFocusInCallback(xid);
     if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
-      firetray.ChatStatusIcon.detachOnFocusInCallback(xid);
       firetray.Chat.detachSelectListeners(firetray.Handler.windows[xid].chromeWin);
     }
 
@@ -408,6 +409,7 @@ firetray.Window = {
   },
 
   setUrgency: function(xid, urgent) {
+    log.debug("setUrgency: "+urgent);
     gtk.gtk_window_set_urgency_hint(firetray.Handler.gtkWindows.get(xid), urgent);
   },
 
@@ -557,9 +559,6 @@ firetray.Window = {
         firetray.Window.updateVisibility(xid, true);
         log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
       }
-
-      if (xid === firetray.Handler.getActiveWindow())
-        firetray.Window.setUrgency(xid, false);
       break;
 
     case x11.UnmapNotify:       // for catching 'iconify'
@@ -619,8 +618,40 @@ firetray.Window = {
 
     for(var key in firetray.Handler.windows);
     firetray.Window.activate(key);
-  }
+  },
 
+  attachOnFocusInCallback: function(xid) {
+    log.debug("attachOnFocusInCallback xid="+xid);
+    this.signals['focus-in'].callback[xid] =
+      gtk.GCallbackWidgetFocusEvent_t(firetray.Window.onFocusIn);
+    this.signals['focus-in'].handler[xid] = gobject.g_signal_connect(
+      firetray.Handler.gtkWindows.get(xid), "focus-in-event",
+      firetray.Window.signals['focus-in'].callback[xid], null);
+    log.debug("focus-in handler="+this.signals['focus-in'].handler[xid]);
+  },
+
+  detachOnFocusInCallback: function(xid) {
+    log.debug("detachOnFocusInCallback xid="+xid);
+    let gtkWin = firetray.Handler.gtkWindows.get(xid);
+    gobject.g_signal_handler_disconnect(gtkWin, this.signals['focus-in'].handler[xid]);
+    delete this.signals['focus-in'].callback[xid];
+    delete this.signals['focus-in'].handler[xid];
+  },
+
+  // NOTE: fluxbox issues a FocusIn event when switching workspace
+  // by hotkey, which means 2 FocusIn events when switching to a moz app :(
+  // (http://sourceforge.net/tracker/index.php?func=detail&aid=3190205&group_id=35398&atid=413960)
+  onFocusIn: function(widget, event, data) {
+    log.debug("onFocusIn");
+    let xid = firetray.Window.getXIDFromGtkWidget(widget);
+    log.debug("xid="+xid);
+
+    firetray.Window.setUrgency(xid, false);
+
+    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
+      firetray.Chat.stopGetAttentionMaybe(xid);
+    }
+  }
 
 }; // firetray.Window
 
@@ -671,8 +702,8 @@ firetray.Handler.registerWindow = function(win) {
     this.windows[xid].startupFilterCb = gdk.GdkFilterFunc_t(firetray.Window.startupFilter);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].startupFilterCb, null);
 
+    firetray.Window.attachOnFocusInCallback(xid);
     if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
-      firetray.ChatStatusIcon.attachOnFocusInCallback(xid);
       firetray.Chat.attachSelectListeners(win);
     }
 
