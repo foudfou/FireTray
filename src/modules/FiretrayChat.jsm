@@ -9,6 +9,7 @@ const Cu = Components.utils;
 Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://firetray/commons.js");
 Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
+Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
 
 let log = firetray.Logging.getLogger("firetray.Chat");
 
@@ -112,7 +113,7 @@ firetray.Chat = {
       log.debug("unread-im-count-changed");
       let unreadMsgCount = data;
       if (unreadMsgCount == 0)
-        this.stopGetAttentionMaybe(firetray.Handler.findActiveWindow());
+        this.stopGetAttentionMaybe(firetray.Handler.getActiveWindow());
 
       let localizedTooltip = PluralForm.get(
         unreadMsgCount,
@@ -130,7 +131,7 @@ firetray.Chat = {
     log.debug('startGetAttentionMaybe conv.id='+conv.id);
 
     let convIsCurrentlyShown =
-          this.isConvCurrentlyShown(conv, firetray.Handler.findActiveWindow());
+          this.isConvCurrentlyShown(conv, firetray.Handler.getActiveWindow());
     log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
     if (convIsCurrentlyShown) return; // don't blink when conv tab already on top
 
@@ -199,7 +200,7 @@ firetray.Chat = {
 
   onSelect: function(event) {
     log.debug("select event ! ");
-    firetray.Chat.stopGetAttentionMaybe(firetray.Handler.findActiveWindow());
+    firetray.Chat.stopGetAttentionMaybe(firetray.Handler.getActiveWindow());
   },
 
   isConvCurrentlyShown: function(conv, activeWin) {
@@ -258,7 +259,7 @@ firetray.Chat = {
           continue;
         /* item.conv is only initialized if chat tab is open */
         if (item.hasOwnProperty('conv') && item.conv.target === conv) {
-          firetray.ChatStatusIcon.setUrgency(xid, true);
+          firetray.Window.setUrgency(xid, true);
           break;
         }
       }

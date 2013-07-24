@@ -43,7 +43,6 @@ firetray.ChatStatusIcon = {
     return o;
   })(),
   themedIconNameCurrent: null,
-  signals: {'focus-in': {callback: {}, handler: {}}},
   timers: {'blink': null, 'fade-step': null, 'fade-loop': null},
   events: {},
   generators: {},
@@ -296,34 +295,6 @@ firetray.ChatStatusIcon = {
 
   setIconTooltipDefault: function() {
     this.setIconTooltip(firetray.Handler.appName+" Chat");
-  },
-
-  attachOnFocusInCallback: function(xid) {
-    log.debug("attachOnFocusInCallback xid="+xid);
-    this.signals['focus-in'].callback[xid] =
-      gtk.GCallbackWidgetFocusEvent_t(firetray.ChatStatusIcon.onFocusIn);
-    this.signals['focus-in'].handler[xid] = gobject.g_signal_connect(
-      firetray.Handler.gtkWindows.get(xid), "focus-in-event",
-      firetray.ChatStatusIcon.signals['focus-in'].callback[xid], null);
-    log.debug("focus-in handler="+this.signals['focus-in'].handler[xid]);
-  },
-
-  detachOnFocusInCallback: function(xid) {
-    log.debug("detachOnFocusInCallback xid="+xid);
-    let gtkWin = firetray.Handler.gtkWindows.get(xid);
-    gobject.g_signal_handler_disconnect(gtkWin, this.signals['focus-in'].handler[xid]);
-    delete this.signals['focus-in'].callback[xid];
-    delete this.signals['focus-in'].handler[xid];
-  },
-
-  // NOTE: fluxbox issues a FocusIn event when switching workspace
-  // by hotkey, which means 2 FocusIn events when switching to a moz app :(
-  // (http://sourceforge.net/tracker/index.php?func=detail&aid=3190205&group_id=35398&atid=413960)
-  onFocusIn: function(widget, event, data) {
-    log.debug("onFocusIn");
-    let xid = firetray.Window.getXIDFromGtkWidget(widget);
-    log.debug("xid="+xid);
-    firetray.Chat.stopGetAttentionMaybe(xid);
   }
 
   // TODO: onclick/activate -> chatHandler.showCurrentConversation()

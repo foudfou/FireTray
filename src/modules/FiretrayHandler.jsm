@@ -277,7 +277,6 @@ firetray.Handler = {
     if (enabled) {
       firetray.Chat.init();
       for (let winId in firetray.Handler.windows) {
-        firetray.ChatStatusIcon.attachOnFocusInCallback(winId);
         firetray.Chat.attachSelectListeners(firetray.Handler.windows[winId].chromeWin);
       }
 
@@ -305,7 +304,7 @@ firetray.Handler = {
   showWindow: function(winId) {},
   showHideAllWindows: function() {},
   activateLastWindowCb: function(gtkStatusIcon, gdkEvent, userData) {},
-  findActiveWindow: function() {},
+  getActiveWindow: function() {},
 
   showAllWindows: function() {
     log.debug("showAllWindows");
