@@ -158,7 +158,7 @@ firetray.Handler = {
 
     firetray.Utils.removeAllObservers(this);
 
-    firetray.MailChatPrefListener.register(false);
+    firetray.MailChatPrefListener.unregister(false);
     firetray.PrefListener.unregister();
 
     this.appStarted = false;
@@ -232,7 +232,7 @@ firetray.Handler = {
       firetray.Utils.timer(FIRETRAY_DELAY_STARTUP_MILLISECONDS,
         Ci.nsITimer.TYPE_ONE_SHOT, function() {
           firetray.Handler.appStarted = true;
-          log.debug("*** appStarted ***");
+          log.info("*** appStarted ***");
         });
   },
 
@@ -283,8 +283,8 @@ firetray.Handler = {
 
     } else {
       for (let winId in firetray.Handler.windows) {
-        firetray.ChatStatusIcon.detachOnFocusInCallback(winId);
         firetray.Chat.detachSelectListeners(firetray.Handler.windows[winId].chromeWin);
+        firetray.ChatStatusIcon.detachOnFocusInCallback(winId);
       }
       firetray.Chat.shutdown();
     }
@@ -479,6 +479,26 @@ firetray.PrefListener = new PrefListener(
 
     case 'chat_icon_enable':
       firetray.Handler.toggleChat(firetray.Handler.isChatEnabled());
+      break;
+
+    case 'chat_icon_blink':
+      if (!firetray.ChatStatusIcon.isBlinking)
+        return;
+      let startBlinking = firetray.Utils.prefService.getBoolPref('chat_icon_blink');
+      if (startBlinking) {
+        firetray.Chat.startGetAttention();
+      } else {
+        firetray.Chat.stopGetAttention();
+      }
+      break;
+
+    case 'chat_icon_blink_style':
+      if (!firetray.Utils.prefService.getBoolPref('chat_icon_blink') ||
+          !firetray.ChatStatusIcon.isBlinking)
+        break;
+
+      firetray.ChatStatusIcon.toggleBlinkStyle(
+        firetray.Utils.prefService.getIntPref("chat_icon_blink_style"));
       break;
 
     default:

@@ -15,7 +15,7 @@ let log = firetray.Logging.getLogger("firetray.Chat");
 firetray.Chat = {
   initialized: false,
   observedTopics: {},
-  shouldAcknowledgeConvs: {
+  convsToAcknowledge: {
     ids: {},
     length: function(){return Object.keys(this.ids).length;}
   },
@@ -35,6 +35,9 @@ firetray.Chat = {
     ]);
 
     firetray.ChatStatusIcon.init();
+    if (firetray.Utils.prefService.getBoolPref("chat_icon_blink") &&
+        firetray.Chat.convsToAcknowledge.length())
+      this.startGetAttention();
     this.updateIcon();
 
     this.initialized = true;
@@ -43,6 +46,9 @@ firetray.Chat = {
   shutdown: function() {
     if (!this.initialized) return;
     log.debug("Disabling Chat");
+
+    if (firetray.Chat.convsToAcknowledge.length())
+      this.stopGetAttention();
 
     firetray.ChatStatusIcon.shutdown();
     firetray.Utils.removeAllObservers(firetray.Chat);
@@ -122,21 +128,34 @@ firetray.Chat = {
 
   startGetAttentionMaybe: function(conv) {
     log.debug('startGetAttentionMaybe conv.id='+conv.id);
-    if (this.shouldAcknowledgeConvs.ids[conv.id]) return; // multiple messages
 
     let convIsCurrentlyShown =
           this.isConvCurrentlyShown(conv, firetray.Handler.findActiveWindow());
     log.debug("convIsCurrentlyShown="+convIsCurrentlyShown);
     if (convIsCurrentlyShown) return; // don't blink when conv tab already on top
 
-    this.shouldAcknowledgeConvs.ids[conv.id] = conv;
-    log.debug(conv.id+' added to shouldAcknowledgeConvs');
-    log.debug('shouldAcknowledgeConvs.length='+this.shouldAcknowledgeConvs.length());
+    log.debug("firetray.ChatStatusIcon.isBlinking="+firetray.ChatStatusIcon.isBlinking);
+    if (firetray.Utils.prefService.getBoolPref("chat_icon_blink") &&
+        !firetray.ChatStatusIcon.isBlinking)
+      this.startGetAttention(conv);
 
-    if (this.shouldAcknowledgeConvs.length() > 1) return; // already calling attention
+    this.convsToAcknowledge.ids[conv.id] = conv;
+    log.debug(conv.id+' added to convsToAcknowledge, length='+this.convsToAcknowledge.length());
+  },
 
-    this.setUrgencyMaybe(conv);
-    firetray.ChatStatusIcon.startIconBlinking();
+  startGetAttention: function(conv) {
+    log.debug("startGetAttention");
+    if (conv)
+      this.setUrgencyMaybe(conv);
+
+    let blinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");
+    log.debug("chat_icon_blink_style="+blinkStyle);
+    if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL)
+      firetray.ChatStatusIcon.startBlinking();
+    else if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE)
+      firetray.ChatStatusIcon.startFading();
+    else
+      throw new Error("Undefined chat icon blink style.");
   },
 
   /**
@@ -144,26 +163,38 @@ firetray.Chat = {
    */
   stopGetAttentionMaybe: function(xid) {
     log.debug("stopGetAttentionMaybe");
-    let shouldAcknowledgeConvsLength = this.shouldAcknowledgeConvs.length();
-    log.debug("shouldAcknowledgeConvsLength="+shouldAcknowledgeConvsLength);
-    if (!shouldAcknowledgeConvsLength) return;
+    log.debug("convsToAcknowledgeLength="+this.convsToAcknowledge.length());
+    if (!firetray.ChatStatusIcon.isBlinking) return;
 
     let selectedConv = this.getSelectedConv(xid);
     if (!selectedConv) return;
 
-    for (convId in this.shouldAcknowledgeConvs.ids) {
+    for (let convId in this.convsToAcknowledge.ids) {
       log.debug(convId+" == "+selectedConv.id);
       if (convId == selectedConv.id) {
-        delete this.shouldAcknowledgeConvs.ids[convId];
+        delete this.convsToAcknowledge.ids[convId];
         break;
       }
     }
 
-    if(this.shouldAcknowledgeConvs.length() === 0) {
-      log.debug("do stop icon blinking !!!");
+    // don't check chat_icon_blink: stopGetAttention even if it was unset
+    log.debug("convsToAcknowledge.length()="+this.convsToAcknowledge.length());
+    if (this.convsToAcknowledge.length() === 0)
+      this.stopGetAttention(xid);
+  },
+
+  stopGetAttention: function(xid) {
+    log.debug("do stop get attention !!!");
+    if (xid)
       firetray.ChatStatusIcon.setUrgency(xid, false);
-      firetray.ChatStatusIcon.stopIconBlinking();
-    }
+
+    let blinkStyle = firetray.Utils.prefService.getIntPref("chat_icon_blink_style");
+    if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL)
+      firetray.ChatStatusIcon.stopBlinking();
+    else if (blinkStyle === FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE)
+      firetray.ChatStatusIcon.stopFading();
+    else
+      throw new Error("Undefined chat icon blink style.");
   },
 
   onSelect: function(event) {

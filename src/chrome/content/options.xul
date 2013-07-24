@@ -14,6 +14,7 @@
 
   <broadcasterset>
     <broadcaster id="broadcaster-notification-disabled" disabled="false" />
+    <broadcaster id="broadcaster-chat-icon-disabled" disabled="false" />
   </broadcasterset>
 
   <prefpane id="pref-pane-windows" label="&windows_options;"
@@ -307,13 +308,36 @@
 
     <preferences>
       <preference id="pref_chat_icon_enable" name="extensions.firetray.chat_icon_enable" type="bool" />
+      <preference id="pref_chat_icon_blink" name="extensions.firetray.chat_icon_blink" type="bool" />
+      <preference id="pref_chat_icon_blink_style" name="extensions.firetray.chat_icon_blink_style" type="int" />
     </preferences>
 
     <vbox align="left" flex="1">
 
       <checkbox id="ui_chat_icon_enable" preference="pref_chat_icon_enable"
                 label="&chat_icon_enable.label;"
-                accesskey="&chat_icon_enable.accesskey;"/>
+                accesskey="&chat_icon_enable.accesskey;"
+                oncommand="firetrayUIOptions.toggleChatIcon(this.checked)"/>
+
+      <checkbox id="ui_chat_icon_blink" preference="pref_chat_icon_blink"
+                label="&chat_icon_blink.label;"
+                accesskey="&chat_icon_blink.accesskey;"
+                tooltiptext="&chat_icon_blink.tooltip;"
+                oncommand="firetrayUIOptions.toggleChatIconBlink(this.checked)"
+                observes="broadcaster-chat-icon-disabled" />
+
+      <radiogroup id="ui_chat_icon_blink_style" preference="pref_chat_icon_blink_style">
+        <hbox align="center" flex="1">
+          <label control="ui_chat_icon_blink_style" observes="broadcaster-chat-icon-disabled"
+                 value="&chat_icon_blink_style.label;" accesskey="&chat_icon_blink_style.accesskey;" />
+          <radio id="ui_chat_icon_blink_style_normal" label="&chat_icon_blink_style_normal;"
+                 oncommand="firetrayUIOptions.updateChatBlinkSettings()"
+                 observes="broadcaster-chat-icon-disabled"/>
+          <radio id="ui_chat_icon_blink_style_fade" label="&chat_icon_blink_style_fade;"
+                 oncommand="firetrayUIOptions.updateChatBlinkSettings()"
+                 observes="broadcaster-chat-icon-disabled"/>
+        </hbox>
+      </radiogroup>
 
     </vbox>
 

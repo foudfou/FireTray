@@ -90,3 +90,11 @@
 
 <!ENTITY chat_icon_enable.label "Enable chat icon">
 <!ENTITY chat_icon_enable.accesskey "E">
+<!ENTITY chat_icon_blink.label "Chat icon blinks on new messages">
+<!ENTITY chat_icon_blink.accesskey "C">
+<!ENTITY chat_icon_blink.tooltip "when private message or cited in a channel">
+
+<!ENTITY chat_icon_blink_style.label "Blink style">
+<!ENTITY chat_icon_blink_style.accesskey "B">
+<!ENTITY chat_icon_blink_style_normal "Simple">
+<!ENTITY chat_icon_blink_style_fade "Fade">
