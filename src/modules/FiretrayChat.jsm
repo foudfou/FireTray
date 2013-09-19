@@ -320,7 +320,7 @@ firetray.Chat = {
       return globalConnected;
 
     } catch (e if e instanceof Components.Exception &&
-             e.result === Components.results.NS_ERROR_XPC_JS_THREW_JS_OBJECT &&
+             e.result === Components.results.NS_ERROR_XPC_JAVASCRIPT_ERROR_WITH_DETAILS &&
              /_items is undefined/.test(e.message)) {
       return false;             // ignore
     } catch(e) {
