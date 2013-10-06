@@ -27,16 +27,40 @@ firetayCommandLineHandler.prototype = {
   /* nsICommandLineHandler */
   handle: function clh_handle(cmdLine)
   {
-    if (cmdLine.handleFlag("firetrayShowHide", false)) {
-      log.debug("*** CmdLine call -firetrayShowHide ***");
-      firetray.Handler.showHideAllWindows();
-      cmdLine.preventDefault = true;
 
-    } else if (cmdLine.handleFlag("firetrayPresent", false)) {
-      log.debug("*** CmdLine call -firetrayPresent ***");
-      firetray.Handler.showAllWindowsAndActivate();
-      cmdLine.preventDefault = true;
+    function RuntimeException(message) {
+      this.message = message;
+      this.name = "RuntimeException";
+    }
 
+    function checkAppStarted() {
+      if (!firetray.Handler.appStarted) {
+        let msg = "application not started: doing nothing.";
+        log.warn(msg);
+        throw new RuntimeException(msg);
+      }
+    }
+
+    try {
+
+      if (cmdLine.handleFlag("firetrayShowHide", false)) {
+        checkAppStarted();
+        log.debug("*** CmdLine call -firetrayShowHide ***");
+        firetray.Handler.showHideAllWindows();
+        cmdLine.preventDefault = true;
+
+      } else if (cmdLine.handleFlag("firetrayPresent", false)) {
+        checkAppStarted();
+        log.debug("*** CmdLine call -firetrayPresent ***");
+        firetray.Handler.showAllWindowsAndActivate();
+        cmdLine.preventDefault = true;
+      }
+
+    } catch(e) {
+      if (e instanceof RuntimeException) {
+        cmdLine.preventDefault = true;
+        return;
+      }
     }
   },
 

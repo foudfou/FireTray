@@ -277,24 +277,23 @@ firetray.Chat = {
 
     let iconName;
     switch (userStatus) {
-    case Ci.imIStatusInfo.STATUS_OFFLINE: // 1
+    case Ci.imIStatusInfo.STATUS_OFFLINE:     // 1
       iconName = FIRETRAY_IM_STATUS_OFFLINE;
       break;
-    case Ci.imIStatusInfo.STATUS_IDLE: // 4
-    case Ci.imIStatusInfo.STATUS_AWAY: // 5
+    case Ci.imIStatusInfo.STATUS_IDLE:        // 4
+    case Ci.imIStatusInfo.STATUS_AWAY:        // 5
       iconName = FIRETRAY_IM_STATUS_AWAY;
       break;
-    case Ci.imIStatusInfo.STATUS_AVAILABLE: // 7
+    case Ci.imIStatusInfo.STATUS_AVAILABLE:   // 7
       iconName = FIRETRAY_IM_STATUS_AVAILABLE;
       break;
     case Ci.imIStatusInfo.STATUS_UNAVAILABLE: // 6
       iconName = FIRETRAY_IM_STATUS_BUSY;
       break;
-    case Ci.imIStatusInfo.STATUS_UNKNOWN: // 0
-    case Ci.imIStatusInfo.STATUS_INVISIBLE: // 2
-    case Ci.imIStatusInfo.STATUS_MOBILE:    // 3
-    default:
-        // ignore
+    case Ci.imIStatusInfo.STATUS_UNKNOWN:     // 0
+    case Ci.imIStatusInfo.STATUS_INVISIBLE:   // 2
+    case Ci.imIStatusInfo.STATUS_MOBILE:      // 3
+    default:                                  // ignore
     }
 
     log.debug("IM status changed="+iconName);

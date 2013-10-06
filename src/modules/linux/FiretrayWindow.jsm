@@ -595,16 +595,12 @@ firetray.Window = {
     let xid = xany.contents.window;
 
     if (xany.contents.type === x11.MapNotify) {
-      if (!firetray.Handler.appStarted &&
-          firetray.Utils.prefService.getBoolPref('start_hidden')) {
+      gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),
+        firetray.Handler.windows[xid].startupFilterCb, null);
+      if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
         log.debug("start_hidden");
-        if (firetray.Handler.restoredWindowsCount &&
-            !--firetray.Handler.restoredWindowsCount)
-          firetray.Handler.startupDone();
         firetray.Window.startupHide(xid);
       }
-      gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),
-                                   firetray.Handler.windows[xid].startupFilterCb, null);
     }
 
     return gdk.GDK_FILTER_CONTINUE;
@@ -699,8 +695,10 @@ firetray.Handler.registerWindow = function(win) {
 
     this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
-    this.windows[xid].startupFilterCb = gdk.GdkFilterFunc_t(firetray.Window.startupFilter);
-    gdk.gdk_window_add_filter(gdkWin, this.windows[xid].startupFilterCb, null);
+    if (!firetray.Handler.appStarted) {
+      this.windows[xid].startupFilterCb = gdk.GdkFilterFunc_t(firetray.Window.startupFilter);
+      gdk.gdk_window_add_filter(gdkWin, this.windows[xid].startupFilterCb, null);
+    }
 
     firetray.Window.attachOnFocusInCallback(xid);
     if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {

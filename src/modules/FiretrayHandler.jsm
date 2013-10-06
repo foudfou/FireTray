@@ -135,6 +135,7 @@ firetray.Handler = {
         log.error("session file could not be read");
         this.restoredWindowsCount = 1; // default
       }
+      firetray.Utils.addObservers(firetray.Handler, [ "mail-startup-done" ]);
     } else {
       firetray.Utils.addObservers(firetray.Handler, [ "final-ui-startup" ]);
     }
@@ -246,6 +247,15 @@ firetray.Handler = {
       log.debug(topic+": "+subject+","+data);
       firetray.Utils.removeObservers(firetray.Handler, [ topic ]);
       firetray.Handler.startupDone();
+      break;
+
+    case "mail-startup-done": // or xul-window-visible, mail-tabs-session-restored ?
+      log.info(topic+": "+subject+","+data);
+      if (firetray.Handler.restoredWindowsCount &&
+          !--firetray.Handler.restoredWindowsCount) {
+        firetray.Utils.removeObservers(firetray.Handler, [ topic ]);
+        firetray.Handler.startupDone();
+      }
       break;
 
     case "xpcom-will-shutdown":
