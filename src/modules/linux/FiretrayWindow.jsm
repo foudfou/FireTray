@@ -272,8 +272,9 @@ firetray.Window = {
   startupHide: function(xid) {
     log.debug('startupHide: '+xid);
 
-    firetray.Handler.windows[xid].baseWin.visibility = false;
-    firetray.Window.updateVisibility(xid, false);
+    // also it seems cleaner, baseWin.visibility=false removes the possibility
+    // to restore the app by calling it from the command line. Not sure why...
+    firetray.Window.setVisibility(xid, false);
 
     firetray.PopupMenu.showWindowItem(xid);
     firetray.Handler.showHideIcon();
@@ -554,7 +555,9 @@ firetray.Window = {
       let gdkWinStateOnMap = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xid));
       log.debug("gdkWinState="+gdkWinStateOnMap+" for xid="+xid);
       let win = firetray.Handler.windows[xid];
-      if (firetray.Handler.appStarted && !win.visible) { // happens when hidden app called from command line
+      if (firetray.Handler.appStarted && !win.visible) {
+        // when app hidden at startup, then called from command line without
+        // any argument (not through FireTray that is)
         log.warn("window not visible, correcting visibility");
         firetray.Window.updateVisibility(xid, true);
         log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);

@@ -331,7 +331,7 @@ firetray.Handler.setIconText = function(text, color) { // FIXME: function too lo
     gdk.gdk_pixbuf_composite(bufAlpha,dest,0,0,w,h,0,0,1,1,gdk.GDK_INTERP_BILINEAR,255);
     gobject.g_object_unref(bufAlpha);
 
-    log.info("gtk_status_icon_set_from_pixbuf="+dest);
+    log.debug("gtk_status_icon_set_from_pixbuf="+dest);
     gtk.gtk_status_icon_set_from_pixbuf(firetray.StatusIcon.trayIcon, dest);
   } catch (x) {
     log.error(x);

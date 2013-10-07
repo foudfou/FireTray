@@ -130,7 +130,7 @@ firetray.Handler = {
       firetray.Utils.addObservers(firetray.Handler, [ "sessionstore-windows-restored" ]);
     } else if (this.appId === FIRETRAY_APP_DB['thunderbird']['id']) {
       this.restoredWindowsCount = this.readTBRestoreWindowsCount();
-      log.debug("restoredWindowsCount="+this.restoredWindowsCount);
+      log.info("restoredWindowsCount="+this.restoredWindowsCount);
       if (!this.restoredWindowsCount) {
         log.error("session file could not be read");
         this.restoredWindowsCount = 1; // default
@@ -250,7 +250,7 @@ firetray.Handler = {
       break;
 
     case "mail-startup-done": // or xul-window-visible, mail-tabs-session-restored ?
-      log.info(topic+": "+subject+","+data);
+      log.debug(topic+": "+subject+","+data);
       if (firetray.Handler.restoredWindowsCount &&
           !--firetray.Handler.restoredWindowsCount) {
         firetray.Utils.removeObservers(firetray.Handler, [ topic ]);

@@ -74,8 +74,7 @@
 <!ENTITY folder_count_recursive.accesskey "D">
 <!ENTITY only_favorite_folders.label "Len obľúbené zložky">
 <!ENTITY only_favorite_folders.accesskey "O">
-<!ENTITY only_favorite_folders.tooltip 
-"V zahrnutých typoch zložiek a zahrnutých účtoch, počítať len správy v obľúbených zložkách">
+<!ENTITY only_favorite_folders.tooltip "V zahrnutých typoch zložiek a zahrnutých účtoch, počítať len správy v obľúbených zložkách">
 
 <!ENTITY account_or_server_type_name "Účet">
 <!ENTITY account_or_server_type_name.tooltip "Typ alebo názov účtu">
@@ -91,3 +90,11 @@
 
 <!ENTITY chat_icon_enable.label "Zapnúť ikonu chatu">
 <!ENTITY chat_icon_enable.accesskey "E">
+<!ENTITY chat_icon_blink.label "Chat icon blinks on new messages">
+<!ENTITY chat_icon_blink.accesskey "C">
+<!ENTITY chat_icon_blink.tooltip "when private message or cited in a channel">
+
+<!ENTITY chat_icon_blink_style.label "Blink style">
+<!ENTITY chat_icon_blink_style.accesskey "B">
+<!ENTITY chat_icon_blink_style_normal "Simple">
+<!ENTITY chat_icon_blink_style_fade "Fade">
