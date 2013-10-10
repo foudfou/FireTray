@@ -23,7 +23,7 @@
 <!ENTITY show_activates.label "Activate restored windows">
 <!ENTITY show_activates.accesskey "e">
 <!ENTITY show_activates.tooltip "restored windows raise on top and get focus">
-<!ENTITY remember_desktop.label "Remember desktop (per-window)">
+<!ENTITY remember_desktop.label "Restore windows to their original desktop">
 <!ENTITY remember_desktop.accesskey "R">
 
 <!ENTITY show_icon_on_hide.label "Show tray icon only if a window is hidden">
