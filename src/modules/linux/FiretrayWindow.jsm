@@ -324,8 +324,10 @@ firetray.Window = {
       log.debug("restored minimized");
     }
 
-    /* helps prevent getting iconify event following show() */
+    /* we expect the WM to actually show the window *not* minimized once
+     restored */
     if (firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
+      // help prevent getting iconify event following show()
       firetray.Handler.windows[xid].chromeWin.restore(); // nsIDOMChromeWindow.idl
 
     if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
