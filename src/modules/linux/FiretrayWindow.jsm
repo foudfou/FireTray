@@ -566,10 +566,12 @@ firetray.Window = {
 
     case x11.UnmapNotify:       // for catching 'iconify'
       log.debug("UnmapNotify");
-      let gdkWinStateOnUnmap = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xid));
-      log.debug("gdkWinStateOnUnmap="+gdkWinStateOnUnmap+" for xid="+xid);
+
+      let winStates = firetray.Window.getXWindowStates(xid);
+      let isHidden =  winStates & FIRETRAY_XWINDOW_HIDDEN;
+      log.debug("winStates="+winStates+", isHidden="+isHidden);
       // NOTE: Gecko 8.0 provides the 'sizemodechange' event
-      if (gdkWinStateOnUnmap & gdk.GDK_WINDOW_STATE_ICONIFIED) {
+      if (isHidden) {
         log.debug("GOT ICONIFIED");
         let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
         let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
