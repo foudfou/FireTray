@@ -76,14 +76,12 @@
     <em:translator>SoftcatalàAljullu,ellibre [ca-AD]</em:translator>
     <em:translator>Sam [cz-CZ]</em:translator>
     <em:translator>bricks [de-DE]</em:translator>
-    <em:translator>profediego [es-AR]</em:translator>
     <em:translator>chuzo [es-ES]</em:translator>
     <em:translator>GµårÐïåñ [fa-IR]</em:translator>
-    <em:translator>BatBat,Jojaba,nico@nc [fr-FR]</em:translator>
+    <em:translator>BatBat [fr-FR]</em:translator>
     <em:translator>Simone 'Underpass' [it-IT]</em:translator>
     <em:translator>drry [ja-JP]</em:translator>
     <em:translator>renegade06 [mk-MK]</em:translator>
-    <em:translator>markh [nl-NL]</em:translator>
     <em:translator>Wacław Jacek [pl-PL]</em:translator>
     <em:translator>Alberto Eidh [pt-BR]</em:translator>
     <em:translator>Quicksilver tears [ru-RU]</em:translator>
@@ -94,6 +92,48 @@
     <em:translator>efecan [tr-TR]</em:translator>
     <em:translator>Sappa [uk-UA]</em:translator>
     <em:translator>xmoke [zh-CN]</em:translator>
+
+    <em:localized>
+      <Description>
+        <em:locale>es-AR</em:locale>
+        <em:translator>profediego@gmail.com</em:translator>
+        <em:description>Una extensión para la bandeja del sistema en linux.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
+        <em:locale>fr</em:locale>
+        <em:translator>Goofy</em:translator>
+        <em:translator>Jojaba - BabelZilla</em:translator>
+        <em:translator>nico@nc</em:translator>
+        <em:description>Une extension qui crée une zone de notification pour Linux.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
+        <em:locale>it</em:locale>
+        <em:translator>Underpass (mozillaitalia.org)</em:translator>
+        <em:description>Permette di ridurre l'applicazione nell'area di notifica di Linux.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
+        <em:locale>nl</em:locale>
+        <em:translator>markh van BabelZilla.org</em:translator>
+        <em:description>Een systeemvakextensie voor Linux.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
+        <em:locale>zh-TW</em:locale>
+        <em:translator>Velociraptor</em:translator>
+        <em:description>Linux 用的系統列套件。</em:description>
+      </Description>
+    </em:localized>
 
   </Description>
 </RDF>
