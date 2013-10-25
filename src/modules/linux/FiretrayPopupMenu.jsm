@@ -43,10 +43,15 @@ firetray.PopupMenu = {
       addMenuSeparator = true;
     }
 
+    var menuSeparator;
     if (addMenuSeparator) {
-      var menuSeparator = gtk.gtk_separator_menu_item_new();
+      menuSeparator = gtk.gtk_separator_menu_item_new();
       gtk.gtk_menu_shell_append(this.menuShell, ctypes.cast(menuSeparator, gtk.GtkWidget.ptr));
     }
+
+    this.addItem("Preferences", "gtk-preferences", "activate", firetray.Handler.openPrefWindow);
+    menuSeparator = gtk.gtk_separator_menu_item_new();
+    gtk.gtk_menu_shell_append(this.menuShell, ctypes.cast(menuSeparator, gtk.GtkWidget.ptr));
 
     this.addItem("Quit", "gtk-quit", "activate", firetray.Handler.quitApplication);
 
@@ -67,7 +72,7 @@ firetray.PopupMenu = {
   },
 
   addItem: function(itemName, iconName, action, callback) {
-		var menuItemLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel."+itemName); // shouldn't need to convert to utf8 later thank to js-ctypes
+    var menuItemLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel."+itemName); // shouldn't need to convert to utf8 later thank to js-ctypes
     var menuItem = gtk.gtk_image_menu_item_new_with_label(menuItemLabel);
     var menuItemIcon = gtk.gtk_image_new_from_stock(iconName, gtk.GTK_ICON_SIZE_MENU);
     gtk.gtk_image_menu_item_set_image(menuItem, menuItemIcon);

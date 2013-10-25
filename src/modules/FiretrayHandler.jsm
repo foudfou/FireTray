@@ -392,6 +392,19 @@ firetray.Handler = {
     return url;
   },
 
+  openPrefWindow: function() {
+    if (null == firetray.Handler._preferencesWindow ||
+        firetray.Handler._preferencesWindow.closed) {
+      for(var first in firetray.Handler.windows) break;
+      firetray.Handler._preferencesWindow =
+        firetray.Handler.windows[first].chromeWin.openDialog(
+          "chrome://firetray/content/options.xul", null,
+          "chrome,titlebar,toolbar,centerscreen", null);
+    }
+
+    firetray.Handler._preferencesWindow.focus();
+  },
+
   openBrowserWindow: function() {
     try {
       var home = firetray.Handler._getHomePage();
@@ -402,8 +415,8 @@ firetray.Handler = {
       firetray.Handler.timers['open-browser-window'] =
         firetray.Utils.timer(FIRETRAY_DELAY_NOWAIT_MILLISECONDS,
           Ci.nsITimer.TYPE_ONE_SHOT, function() {
-            for(var key in firetray.Handler.windows) break;
-            firetray.Handler.windows[key].chromeWin.open(home);
+            for(var first in firetray.Handler.windows) break;
+            firetray.Handler.windows[first].chromeWin.open(home);
           });
     } catch (x) { log.error(x); }
   },
