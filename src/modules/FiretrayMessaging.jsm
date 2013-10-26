@@ -7,6 +7,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource://gre/modules/iteratorUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://firetray/commons.js");
@@ -29,7 +30,6 @@ firetray.Messaging = {
   initialized: false,
   currentMsgCount: null,
   newMsgCount: null,
-  observedTopics: {},
 
   init: function() {
     if (this.initialized) {
@@ -38,7 +38,9 @@ firetray.Messaging = {
     }
     log.debug("Enabling Messaging");
 
-    firetray.Utils.addObservers(firetray.Messaging, ["account-removed"]);
+    // includes IM accounts
+    Services.prefs.addObserver("mail.accountmanager.accounts",
+                               firetray.Messaging.cleanExcludedAccounts, false);
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
@@ -53,35 +55,23 @@ firetray.Messaging = {
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
 
-    firetray.Utils.removeAllObservers(firetray.Messaging);
+    Services.prefs.removeObserver("mail.accountmanager.accounts", this);
 
     this.initialized = false;
-  },
-
-  observe: function(subject, topic, data) {
-    log.debug("RECEIVED Messaging: "+topic+" subject="+subject+" data="+data);
-    switch (topic) {
-    case "account-removed":
-      this.cleanExcludedAccounts();
-      break;
-    default:
-      log.warn("unhandled topic: "+topic);
-    }
   },
 
   /* removes removed accounts from excludedAccounts pref. NOTE: Can't be called
     at shutdown because MailServices.accounts no longer available */
   cleanExcludedAccounts: function() {
-    log.debug("* cleaning *");
+    log.info("* cleaning *");
     let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
     let excludedAccounts = mailAccounts["excludedAccounts"];
 
     // build current list of account server keys
     let accounts = MailServices.accounts.accounts;
     let accountServerKeys = [];
-    for (let i=0, len=accounts.Count(); i<len; ++i) {
-      let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
-      accountServerKeys[i] = account.incomingServer.key;
+    for (let account in fixIterator(MailServices.accounts, Ci.nsIMsgAccount)) {
+      accountServerKeys.push(account.incomingServer.key);
     }
 
     let newExcludedAccounts = [], cleaningNeeded = 0;
@@ -131,7 +121,7 @@ firetray.Messaging = {
     },
 
     OnItemEvent: function(item, event) {
-      log.debug("OnItemEvent"+event+" for folder "+item.prettyName);
+      log.debug("OnItemEvent "+event+" for folder "+item.prettyName);
     },
 
     onMsgCountChange: function(item, property, oldValue, newValue) {
@@ -361,39 +351,6 @@ firetray.Messaging.Accounts = function(sortByTypeAndName) {
   this.sortByTypeAndName = sortByTypeAndName;
 };
 
-// https://bugzilla.mozilla.org/show_bug.cgi?id=820377
-firetray.Messaging._accountsRef = MailServices.accounts.accounts;
-if (firetray.Messaging._accountsRef instanceof Ci.nsIArray) {
-
-  function _getAccountServersAsJSArray() {
-    let accountServers = [];
-    let accEnumerator = firetray.Messaging._accountsRef.enumerate();
-    while (accEnumerator.hasMoreElements()) {
-      let account = accEnumerator.getNext().QueryInterface(Ci.nsIMsgAccount);
-      log.debug("account="+account);
-      let accountServer = account.incomingServer;
-      accountServers.push(accountServer);
-    }
-    log.debug("accountServers="+accountServers.length);
-    return accountServers;
-  }
-
-} else if (firetray.Messaging._accountsRef instanceof Ci.nsISupportsArray) {
-
-  function _getAccountServersAsJSArray() {
-    let accountServers = [];
-    for (let i=0, len=firetray.Messaging._accountsRef.Count(); i<len; ++i) {
-      let account = firetray.Messaging._accountsRef.QueryElementAt(i, Ci.nsIMsgAccount);
-      let accountServer = account.incomingServer;
-      accountServers[i] = accountServer;
-    }
-    log.debug("accountServers="+accountServers.length);
-    return accountServers;
-  }
-
-} else {
-    throw TypeError("unknown type for MailServices.accounts.accounts");
-}
 
 firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   log.debug("sortByTypeAndName="+this.sortByTypeAndName);
@@ -401,7 +358,11 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   /* NOTE: sort() not provided by nsIMsgAccountManager.accounts
    (nsISupportsArray or nsIArray if xulrunner >= 20.0). Should be OK to
    re-build a JS-Array for few accounts */
-  let accountServers = _getAccountServersAsJSArray();
+  let accountServers = [];
+  for (let accountServer in fixIterator(MailServices.accounts.allServers,
+                                        Ci.nsIMsgIncomingServer)) {
+    accountServers.push(accountServer);
+  }
 
   let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
   let serverTypes = mailAccounts["serverTypes"];

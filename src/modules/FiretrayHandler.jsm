@@ -86,13 +86,6 @@ firetray.Handler = {
     log.info('inMailApp='+this.inMailApp+', inBrowserApp='+this.inBrowserApp+
       ', appHasChat='+this.appHasChat);
 
-    VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
-    VersionChange.addHook(["install", "upgrade", "reinstall"], firetray.VersionChangeHandler.showReleaseNotes);
-    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.tryEraseOldOptions);
-    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailNotificationType);
-    VersionChange.addHook(["upgrade", "reinstall"], firetray.VersionChangeHandler.correctMailServerTypes);
-    VersionChange.applyHooksAndWatchUninstall();
-
     firetray.Window.init();
     firetray.StatusIcon.init();
     firetray.Handler.showHideIcon();
@@ -141,6 +134,17 @@ firetray.Handler = {
     }
 
     this.preventWarnOnClose();
+
+    VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
+    let vc = VersionChange, vch = firetray.VersionChangeHandler;
+    vc.addHook(["install", "upgrade", "reinstall"], vch.showReleaseNotes);
+    vc.addHook(["upgrade", "reinstall"], vch.tryEraseOldOptions);
+    vc.addHook(["upgrade", "reinstall"], vch.correctMailNotificationType);
+    vc.addHook(["upgrade", "reinstall"], vch.correctMailServerTypes);
+    if (this.inMailApp) {
+      vc.addHook(["upgrade", "reinstall"], firetray.Messaging.cleanExcludedAccounts);
+    }
+    vc.applyHooksAndWatchUninstall();
 
     this.initialized = true;
     return true;
