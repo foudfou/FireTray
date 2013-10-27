@@ -6,6 +6,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/commons.js");
@@ -428,9 +429,7 @@ firetray.Handler = {
   openMailMessage: function() {
     try {
       var aURI = Services.io.newURI("mailto:", null, null);
-      var msgComposeService = Cc["@mozilla.org/messengercompose;1"]
-        .getService(Ci.nsIMsgComposeService);
-      msgComposeService.OpenComposeWindowWithURI(null, aURI);
+      MailServices.compose.OpenComposeWindowWithURI(null, aURI);
     } catch (x) { log.error(x); }
   },
 

@@ -321,8 +321,6 @@ firetray.Messaging = {
     try {
       // create a file for the process
       var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
-      if (!file.initWithPath)
-        file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile); // deprecated in Gecko 14
       file.initWithPath(filepath);
 
       // create the process
