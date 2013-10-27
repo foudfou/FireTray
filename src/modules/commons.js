@@ -25,7 +25,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION     = "0.4.6"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_VERSION     = "0.4.7"; // needed for sync call of onVersionChange() :(
 const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
 const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
 const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";

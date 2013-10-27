@@ -5,7 +5,7 @@
     <em:unpack>true</em:unpack> <!-- needed for embedded icons -->
     <em:type>2</em:type>
     <em:name>FireTray</em:name>
-    <em:version>0.4.6</em:version> <!-- change FIRETRAY_VERSION accordingly ! -->
+    <em:version>0.4.7</em:version> <!-- change FIRETRAY_VERSION accordingly ! -->
     <em:creator>Hua Luo, Francesco Solero, Foudil BRÉTEL</em:creator>
     <em:contributor>Hua Luo, Francesco Solero (Firetray original authors)</em:contributor>
     <em:homepageURL>https://github.com/foudfou/firetray</em:homepageURL>
@@ -19,7 +19,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>7.0</em:minVersion>
-        <em:maxVersion>23.0</em:maxVersion>
+        <em:maxVersion>27.0</em:maxVersion>
       </Description>
     </em:targetApplication>
 
@@ -27,7 +27,7 @@
       <Description>
         <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
         <em:minVersion>7.0</em:minVersion>
-        <em:maxVersion>23.0</em:maxVersion>
+        <em:maxVersion>27.0</em:maxVersion>
       </Description>
     </em:targetApplication>
 
@@ -35,7 +35,7 @@
       <Description>
         <em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
         <em:minVersion>2.4</em:minVersion>
-        <em:maxVersion>2.20</em:maxVersion>
+        <em:maxVersion>2.25</em:maxVersion>
       </Description>
     </em:targetApplication>
 
