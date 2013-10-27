@@ -50,7 +50,7 @@ firetray.ChatStatusIcon = {
   get isBlinking () {return (firetray.Chat.convsToAcknowledge.length() > 0);},
 
   init: function() {
-    if (!firetray.Handler.inMailApp) throw "ChatStatusIcon for mail app only";
+    if (!firetray.Handler.appHasChat) throw "ChatStatusIcon for chat app only";
     if (!firetray.GtkIcons.initialized) throw "GtkIcons should have been initialized by StatusIcon";
 
     this.trayIcon = gtk.gtk_status_icon_new();

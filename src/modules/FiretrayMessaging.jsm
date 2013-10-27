@@ -240,7 +240,7 @@ firetray.Messaging = {
 
     this.newMsgCount = 0;
     let accounts = new this.Accounts();
-    for (let accountServer in accounts) { // nsIMsgAccount
+    for (let accountServer in accounts) { // nsIMsgIncomingServer
 
       if (accountServer.type === FIRETRAY_ACCOUNT_SERVER_TYPE_IM) {
         continue;               // IM messages are counted elsewhere
@@ -337,8 +337,10 @@ firetray.Messaging = {
 
 
 /**
- * Accounts Iterator/Generator for iterating over account servers
+ * Accounts Iterator/Generator for iterating over all account servers.
+ * NOTE: MailServices.accounts.allServers exludes hidden and IM servers
  * @param sortByTypeAndName: boolean
+ * @return a generator over all nsIMsgIncomingServer including hidden and IM ones
  */
 firetray.Messaging.Accounts = function(sortByTypeAndName) {
   if (typeof(sortByTypeAndName) == "undefined") {
@@ -351,7 +353,6 @@ firetray.Messaging.Accounts = function(sortByTypeAndName) {
   this.sortByTypeAndName = sortByTypeAndName;
 };
 
-
 firetray.Messaging.Accounts.prototype.__iterator__ = function() {
   log.debug("sortByTypeAndName="+this.sortByTypeAndName);
 
@@ -359,9 +360,9 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
    (nsISupportsArray or nsIArray if xulrunner >= 20.0). Should be OK to
    re-build a JS-Array for few accounts */
   let accountServers = [];
-  for (let accountServer in fixIterator(MailServices.accounts.allServers,
-                                        Ci.nsIMsgIncomingServer)) {
-    accountServers.push(accountServer);
+  for (let accountServer in fixIterator(MailServices.accounts.accounts,
+                                        Ci.nsIMsgAccount)) {
+    accountServers.push(accountServer.incomingServer);
   }
 
   let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
