@@ -53,8 +53,8 @@ sed '/log.debug(/d' $(2) > $(1);
 endif
 
 # The target location of the build and build files.
-git_rev = -$(shell git rev-parse --short HEAD)
-build_dir := ../build$(git_rev)$(build_debug)
+SCM-REVISION = $(shell git rev-parse --short HEAD)
+build_dir := ../build-$(SCM-REVISION)$(build_debug)
 
 
 # The location of the extension profile. (this extension is intended for Linux only)
@@ -154,6 +154,10 @@ clean: clean_build
 $(build_dir)/%: %
 	@mkdir -p $(dir $@)
 	@cp -f $< $@ # -d for symlinks
+
+# Inject SCM revision stamp. This may be useful in case we mess up with tags
+$(build_dir)/$(install_rdf): $(install_rdf)
+	@sed 's/\/\* SCM-REVISION:/\/* SCM-REVISION: $(SCM-REVISION) /' $< > $@
 
 # Debug calls are removed for performance.
 # NOTE: we could also use m4 for filtering source files...
