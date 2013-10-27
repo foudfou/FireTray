@@ -57,31 +57,7 @@
     </div>
 
     <div class="span-7 last">
-      <aside id="social">
-
-        <div id="follow">
-	  <ul>
-	    <li><a href="http://twitter.com/#!/f10l">@f10l</a></li>
-	  </ul>
-        </div>
-        <div id="share">
-          <div class="g-plusone" data-annotation="inline" data-href="http://foudfou.github.com/FireTray/"></div>
-	  <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
-
-	  <a href="http://twitter.com/share" class="twitter-share-button"
-	     data-url="http://foudfou.github.com/FireTray/" data-count="horizontal"
-	     data-via="f10l" data-related="foudfou:Creator of firetray">Tweet</a>
-	  <script type="text/javascript"
-		  src="http://platform.twitter.com/widgets.js"></script>
-
-          <div class="fb-like" data-href="http://foudfou.github.com/FireTray/"
-               data-send="true" data-width="450" data-show-faces="true"></div>
-	  <script type="text/javascript"
-		  src="http://connect.facebook.net/fr_FR/all.js#xfbml=1"></script>
-
-        </div>
-
-      </aside>
+      <aside id="social" />
     </div>
 
     <hr class="space"/>
@@ -105,12 +81,15 @@
                 <li>GTK-themable icons</li>
                 <li>customizable tray icons</li>
                 <li>popup menu (show/hide individual windows, open new windows, quit)</li>
-                <li>adds <code>-firetrayShowHide</code> option (useful for window manager's keyboard shortcuts)</li>
+                <li>adds <code>-firetrayShowHide</code>
+                and <code>-firetrayPresent</code> options (useful for window
+                manager's keyboard shortcuts)</li>
                 <li>middle click on the tray icon activates last registered window</li></ul></li>
 
             <li><p>for mail applications:</p>
               <ul><li>display unread message count in tray icon</li>
                 <li>display biff in tray icon for new messages</li>
+                <li>set X11 urgency hint on new messages</li>
                 <li>include/exclude mail accounts to/from messages count</li>
                 <li>include/exclude folders types to/from messages count</li>
                 <li>count in sub-folders recursively</li>
@@ -119,7 +98,9 @@
                 <li>trigger external program on message count change</li></ul></li>
 
             <li><p>for applications embedding chat (currently only Thunderbird)</p>
-              <ul><li>display additional system tray status icon</li></ul></li>
+              <ul><li>display additional system tray status icon</li>
+                <li>status icon can blink or <b>fade</b></li>
+                <li>set X11 urgency hint on new messages</li></ul></li>
 
           </ul></p>
       </section>
@@ -129,10 +110,10 @@
     <div class="span-7 last">
       <aside id="related_links">
         <h4>related links</h4>
-        <p><a href="https://addons.mozilla.org/fr/firefox/addon/firetray/">Firetray
+        <p><a href="https://addons.mozilla.org/fr/firefox/addon/firetray/">FireTray
         on Mozilla</a></p>
-        <p><a href="https://github.com/foudfou/FireTray">Firetray development</a></p>
-        <p><a href="http://code.google.com/p/firetray/">Firetray-XPCOM development</a></p>
+        <p><a href="https://github.com/foudfou/FireTray">FireTray development</a></p>
+        <p><a href="http://code.google.com/p/firetray/">FireTray-XPCOM development</a></p>
       </aside>
 
       <hr class="space" />
@@ -147,6 +128,20 @@
     <div class="span-16 colborder">
       <section id="release-notes">
         <h2>Release Notes</h2>
+
+        <article id="v0.4.7">
+          <h3>v0.4.7 &mdash; 2013-11-12</h3>
+          <p><ul>
+              <li>new <i>fade</i> option for icon blinking</li>
+              <li>set X11 urgency hint on new messages (IM and mail messages) (<a href="https://github.com/foudfou/FireTray/issues/82">#96</a>)</li>
+              <li>new locales es-AR fr it nl zh-TW (thx BabelZillians!)</li>
+              <li>add preferences to icon menu</li>
+              <li>fix startup event for Thunderbird (thus fixing start_hidden) (<a href="https://github.com/foudfou/FireTray/issues/82">#95</a>)</li>
+              <li>fix detection of the iconify event</li>
+              <li>fix detection of account addition/deletion</li>
+          </ul></p>
+        </article>
+
 
         <article id="v0.4.6">
           <h3>v0.4.6 &mdash; 2013-06-28</h3>
@@ -304,8 +299,10 @@
           </form>
         </p>
 
-        <p><iframe src="http://tools.flattr.net/widgets/thing.html?thing=1114491"
-        width="292" height="420"></iframe></p>
+        <p><a href="http://flattr.com/thing/1114491/FireTray-Mozilla-addon"
+              target="_blank">
+            <img src="http://api.flattr.com/button/flattr-badge-large.png"
+                 alt="Flattr this" title="Flattr this" border="0" /></a></p>
 
       </aside>
     </div>
@@ -315,20 +312,6 @@
 
 <script src="js/libs/jquery-1.7.1.min.js"></script>
 <script src="js/script.js"></script>
-
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-28638818-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
 
 </body>
 </html>
