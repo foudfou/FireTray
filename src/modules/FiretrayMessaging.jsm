@@ -23,6 +23,8 @@ const FLDRS_UNINTERESTING = {
   Virtual:   Ci.nsMsgFolderFlags.Virtual
 };
 
+const ACCOUNTS_PREF_BRANCH = "mail.accountmanager.accounts";
+
 let log = firetray.Logging.getLogger("firetray.Messaging");
 
 
@@ -38,9 +40,9 @@ firetray.Messaging = {
     }
     log.debug("Enabling Messaging");
 
-    // includes IM accounts
-    Services.prefs.addObserver("mail.accountmanager.accounts",
-                               firetray.Messaging.cleanExcludedAccounts, false);
+    /* addPrefObserver() called after appStarted because it's hazardous to
+     clean our excludedAccounts while mail.accountmanager.accounts is being
+     built dynamically at startup */
 
     let that = this;
     MailServices.mailSession.AddFolderListener(that.mailSessionListener,
@@ -55,9 +57,27 @@ firetray.Messaging = {
 
     MailServices.mailSession.RemoveFolderListener(this.mailSessionListener);
 
-    Services.prefs.removeObserver("mail.accountmanager.accounts", this);
+    this.removePrefObserver();
 
     this.initialized = false;
+  },
+
+  addPrefObserver: function() {
+    // includes IM accounts
+    Services.prefs.addObserver(ACCOUNTS_PREF_BRANCH, this, false);
+    log.debug("PrefObserver added");
+  },
+  removePrefObserver: function() {
+    Services.prefs.removeObserver(ACCOUNTS_PREF_BRANCH, this);
+  },
+
+  /* could also use a PrefListener, but let's keep it simple for now */
+  observe: function(subject, topic, data) {
+    if (topic === "nsPref:changed" &&
+        data === ACCOUNTS_PREF_BRANCH) {
+      log.debug(ACCOUNTS_PREF_BRANCH+"="+subject.QueryInterface(Ci.nsIPrefBranch).getCharPref(ACCOUNTS_PREF_BRANCH));
+      this.cleanExcludedAccounts();
+    }
   },
 
   /* removes removed accounts from excludedAccounts pref. NOTE: Can't be called

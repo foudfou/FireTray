@@ -239,6 +239,10 @@ firetray.Handler = {
         Ci.nsITimer.TYPE_ONE_SHOT, function() {
           firetray.Handler.appStarted = true;
           log.info("*** appStarted ***");
+
+          if (firetray.Handler.inMailApp) {
+            firetray.Messaging.addPrefObserver();
+          }
         });
   },
 
