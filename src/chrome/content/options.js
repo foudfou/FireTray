@@ -48,6 +48,8 @@ var firetrayUIOptions = {
     this.initAppIconNames();
     if (firetray.Handler.inMailApp)
       this.initNewMailIconNames();
+
+    window.sizeToContent();
   },
 
   onQuit: function(e) {
@@ -715,10 +717,10 @@ var firetrayUIOptions = {
 window.addEventListener(
   'load', function (e) {
     removeEventListener('load', arguments.callee, true);
-    firetrayUIOptions.onLoad(); },
+    firetrayUIOptions.onLoad(e); },
   false);
 window.addEventListener(
   'unload', function (e) {
     removeEventListener('unload', arguments.callee, true);
-    firetrayUIOptions.onQuit(); },
+    firetrayUIOptions.onQuit(e); },
   false);

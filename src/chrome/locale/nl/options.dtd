@@ -77,6 +77,8 @@
 <!ENTITY mail_change_trigger.accesskey "S">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
 <!ENTITY mail_change_trigger.tooltip "Absoluut pad van het uit te voeren programma wanneer het aantal wijzigt. Dit programma krijgt het aantal nieuwe berichten als het eerste argument.">
+<!ENTITY mail_urgency_hint.label "Set X11 urgency hint">
+<!ENTITY mail_urgency_hint.accesskey "X">
 <!ENTITY chat_icon_enable.label "Chatpictogram inschakelen">
 <!ENTITY chat_icon_enable.accesskey "s">
 <!ENTITY chat_icon_blink.label "Chatpictogram knippert bij nieuwe berichten">

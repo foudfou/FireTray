@@ -136,6 +136,7 @@
       <preference id="pref_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
       <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
       <preference id="pref_only_favorite_folders" name="extensions.firetray.only_favorite_folders" type="bool" />
+      <preference id="pref_mail_urgency_hint" name="extensions.firetray.mail_urgency_hint" type="bool" />
     </preferences>
 
     <vbox align="left" flex="1">
@@ -298,6 +299,12 @@
                  tooltiptext="&mail_change_trigger.tooltip;"
                  observes="broadcaster-notification-disabled" />
       </hbox>
+
+      <checkbox id="ui_mail_urgency_hint"
+                label="&mail_urgency_hint.label;"
+                accesskey="&mail_urgency_hint.accesskey;"
+                preference="pref_mail_urgency_hint"
+                observes="broadcaster-notification-disabled"/>
 
     </vbox>
 

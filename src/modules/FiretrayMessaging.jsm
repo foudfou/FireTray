@@ -183,7 +183,8 @@ firetray.Messaging = {
           if (mailChangeTriggerFile)
             firetray.Messaging.runProcess(mailChangeTriggerFile, [newMsgCount.toString()]);
 
-          if (newMsgCount > currentMsgCount)
+          let setUrgency = firetray.Utils.prefService.getBoolPref("mail_urgency_hint");
+          if (setUrgency && (newMsgCount > currentMsgCount))
             for (let winId in firetray.Handler.windows)
               firetray.Window.setUrgency(winId, true);
         }
