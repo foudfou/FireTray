@@ -57,7 +57,11 @@
     </div>
 
     <div class="span-7 last">
-      <aside id="social" />
+      <aside id="social">
+        <div id="contribute">
+          <p id="twitter"><a href="http://twitter.com/#!/f10l">@f10l</a></p>
+        </div>
+      </aside>
     </div>
 
     <hr class="space"/>
@@ -129,19 +133,31 @@
       <section id="release-notes">
         <h2>Release Notes</h2>
 
+        <article id="v0.4.8">
+          <h3>v0.4.8 &mdash; 2013-11-12</h3>
+          <p><strong>Beta-testers
+          wanted</strong>. <a href="mailto:firetray-request@ml.free.fr?subject=subscribe">Join
+          our new mailing list</a>. Release candidates will be announced there so
+          Beta-testers can help testing them in their specific environment.</p>
+          <p><ul>
+              <li>hotfix for Firefox (bogus import) (<a href="https://github.com/foudfou/FireTray/issues/110">#110</a>)</li>
+              <li>hotfix for Seamonkey (accounts scrambling) (<a href="https://github.com/foudfou/FireTray/issues/106">#106</a>)</li>
+              <li>new preference for X11 urgency hint in mail applications (<a href="https://github.com/foudfou/FireTray/issues/111">#111</a>)</li>
+          </ul></p>
+        </article>
+
         <article id="v0.4.7">
-          <h3>v0.4.7 &mdash; 2013-11-12</h3>
+          <h3>v0.4.7 &mdash; 2013-10-30</h3>
           <p><ul>
               <li>new <i>fade</i> option for icon blinking</li>
-              <li>set X11 urgency hint on new messages (IM and mail messages) (<a href="https://github.com/foudfou/FireTray/issues/82">#96</a>)</li>
+              <li>set X11 urgency hint on new messages (IM and mail messages) (<a href="https://github.com/foudfou/FireTray/issues/96">#96</a>)</li>
               <li>new locales es-AR fr it nl zh-TW (thx BabelZillians!)</li>
               <li>add preferences to icon menu</li>
-              <li>fix startup event for Thunderbird (thus fixing start_hidden) (<a href="https://github.com/foudfou/FireTray/issues/82">#95</a>)</li>
+              <li>fix startup event for Thunderbird (thus fixing start_hidden) (<a href="https://github.com/foudfou/FireTray/issues/95">#95</a>)</li>
               <li>fix detection of the iconify event</li>
               <li>fix detection of account addition/deletion</li>
           </ul></p>
         </article>
-
 
         <article id="v0.4.6">
           <h3>v0.4.6 &mdash; 2013-06-28</h3>
@@ -150,7 +166,7 @@
               (<a href="https://github.com/foudfou/FireTray/issues/79">#70,
               #71, #79</a>)</li>
               <li>fix preferences' filepickers (<a href="https://github.com/foudfou/FireTray/issues/82">#82</a>)</li>
-              <li>fix start_hidden again, and make it more accurate (<a href="https://github.com/foudfou/FireTray/issues/84">#42</a>)</li>
+              <li>fix start_hidden again, and make it more accurate (<a href="https://github.com/foudfou/FireTray/issues/84">#84</a>)</li>
               <li>display popup menu window items for all applications (not only browsers)</li>
               <li>rework handling of attention calls (blinking icon) for chat conversations:</li>
               <ul>
@@ -285,6 +301,15 @@
       <aside id="donations">
         <p>&nbsp;</p> <!-- same level as Release Notes -->
 
+        <h4>Get involved</h4>
+        <p><a href="https://github.com/foudfou/FireTray/issues">Report a
+            bug</a></p>
+        <p><a href="mailto:firetray-request@ml.free.fr?subject=subscribe beta">Become
+            a beta-tester</a></p>
+        <p><a href="mailto:firetray-request@ml.free.fr?subject=subscribe">Join
+            the mailing list</a></p>
+
+        <h4>Donate</h4>
         <a href="javascript:void(0);" onclick="javascript:window.prompt('Bitcoin donations welcome', '18KQNWztCCAz9CsfdmisPcYS7HQsNdooT1');">
           <img src="http://www.ecogex.com/bitcoin/pack/ribbonDonateBitcoin.svg" width="104" height="26" alt="Donate Bitcoin" />
         </a>

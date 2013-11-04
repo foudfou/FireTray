@@ -271,23 +271,7 @@ h4{
     font-size: 20px;
 }
 
-#follow{
-	clear:right;
-	padding-top:4px;
-	margin-bottom:10px;
-}
-
-#follow ul{
-	list-style-type:none;
-	padding-left:0px;
-	margin-left:0;
-}
-
-#follow ul li{
-	display:inline;
-}
-
-#follow ul a{
+#twitter a{
 	display:inline;
 	color:#bbb;
 	font-size:20px;
@@ -297,7 +281,7 @@ h4{
 	margin-right:30px;
 }
 
-#follow ul a:hover{
+#twitter a:hover{
 	color:#0b3752;
 }
 
