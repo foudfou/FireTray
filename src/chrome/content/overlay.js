@@ -18,6 +18,29 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   winId: null,
 
   onLoad: function(win) {
+    try {
+          // Firefox 20+
+          Components.utils.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
+          if (PrivateBrowsingUtils.isWindowPrivate(window)) {
+            firetray_log.debug("Private window detected skipping");
+            return true;
+          }
+        } catch(e) {
+          // pre Firefox 20 (if you do not have access to a doc. 
+          // might use doc.hasAttribute("privatebrowsingmode") then instead)
+          try {
+            var inPrivateBrowsing = Components.classes["@mozilla.org/privatebrowsing;1"].
+                                    getService(Components.interfaces.nsIPrivateBrowsingService).
+                                    privateBrowsingEnabled;
+            if (inPrivateBrowsing) {
+              firetray_log.debug("Private window detected skipping");
+              return true;
+            }
+          } catch(e) {
+            Components.utils.reportError(e);
+            return;
+          }
+        }
     this.strings = document.getElementById("firetray-strings"); // chrome-specific
 
     firetray_log.debug("Handler initialized: "+firetray.Handler.initialized);
