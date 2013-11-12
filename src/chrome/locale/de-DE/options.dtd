@@ -1,0 +1,101 @@
+<!-- if you need multiline/carriage return, use a .properties -->
+<!ENTITY prefwindow.title "Einstellungen von FireTray">
+
+<!ENTITY NOT_IMPLEMENTED_YET "NOCH NICHT IMPLEMENTIERT">
+
+<!ENTITY windows_options "Windows">
+<!ENTITY icon_options "Icon">
+<!ENTITY mail_options "Mail">
+<!ENTITY chat_options "Chat">
+
+<!ENTITY hides_on_close.label "Fenster verstecken, wenn es geschlossen wird">
+<!ENTITY hides_on_close.accesskey "G">
+<!ENTITY hides_on_minimize.label "Fenster verstecken, wenn es minimiert wird">
+<!ENTITY hides_on_minimize.accesskey "M">
+<!ENTITY hides_single_window.label "Jedes Fenster einzeln verstecken">
+<!ENTITY hides_single_window.tooltip "nicht alle Fenster auf einmal">
+<!ENTITY hides_single_window.accesskey "E">
+<!ENTITY hides_last_only.label "Nur letztes Fenster verstecken">
+<!ENTITY hides_last_only.tooltip "ander Fenster werden geschlossen">
+<!ENTITY hides_last_only.accesskey "L">
+<!ENTITY start_hidden.label "Anwendung versteckt starten">
+<!ENTITY start_hidden.accesskey "S">
+<!ENTITY show_activates.label "Wiederhergestellte Fenster aktivieren">
+<!ENTITY show_activates.tooltip "wiederhergestellte Fenster in den Vordergund stellen und Fokus darauf legen">
+<!ENTITY show_activates.accesskey "A">
+<!ENTITY remember_desktop.label "Fenster zu ihrer ursprünglichen Arbeitsfläche wiederherstellen">
+<!ENTITY remember_desktop.accesskey "W">
+
+<!ENTITY app_icon_type "Tray-Icon">
+<!ENTITY app_icon_themed.label "Entsprechend dem Desktop-Theme">
+<!ENTITY app_icon_themed.accesskey "T">
+<!ENTITY app_icon_themed_name "icon-name">
+<!ENTITY icon_themed.tooltip "Icon-Namen, wie sie von Desktop bereitgestellt werden">
+<!ENTITY app_icon_custom.label "Beliebig">
+<!ENTITY app_icon_custom.accesskey "B">
+<!ENTITY show_icon_on_hide.label "Tray-Icon nur anzeigen, falls Fenster versteckt">
+<!ENTITY show_icon_on_hide.accesskey "V">
+<!ENTITY mouse_wheel_options "Mausrad-Optionen" >
+<!ENTITY enable_mouse_scroll.label "Tray-Icon reagiert auf Mausrad" >
+<!ENTITY enable_mouse_scroll.accesskey "M">
+<!ENTITY up "↑" >
+<!ENTITY down "↓" >
+<!ENTITY hide "verstecken" >
+<!ENTITY restore "wiederherstellen" >
+
+<!ENTITY mail_notification_enabled.label "Mailbenachrichtigung">
+<!ENTITY mail_notification_enabled.accesskey "M">
+<!ENTITY message_count_type.label "Berichtete Anzahl:">
+<!ENTITY message_count_type.accesskey "B">
+<!ENTITY message_count_type_unread "ungelesene Mails">
+<!ENTITY message_count_type_new "neue Mails">
+<!ENTITY message_count_type_new.tooltip "neue Mails, seit ein Mailordner das letzte Mal betreten worden ist">
+<!ENTITY mail_notification_type.label "Inhalt der Benachrichtigung">
+<!ENTITY mail_notification_type.tooltip "auch »Biff« genannt">
+<!ENTITY mail_notification_unread_count.label "Anzahl">
+<!ENTITY mail_notification_unread_count.accesskey "A">
+<!ENTITY mail_notification_newmail_icon.label "Icon aus dem Desktop-Theme">
+<!ENTITY mail_notification_newmail_icon.accesskey "T">
+<!ENTITY mail_notification_custom_mail_icon.label "Beliebiges Icon">
+<!ENTITY mail_notification_custom_mail_icon.accesskey "I">
+<!ENTITY icon_text_color "Textfarbe">
+<!ENTITY icon_text_color.accesskey "F">
+<!ENTITY choose "Auswählen">
+<!ENTITY choose.accesskey "w">
+
+<!ENTITY unread_count_folder_exceptions.label "Besondere Mailordner einbeziehen">
+<!ENTITY unread_count_folder_exceptions.tooltip "Besondere Mailordner, die beim Zählen berücksichtigt werden">
+<!ENTITY excluded_folders_list.tooltip "Mailordner mit STRG + linke Maustaste wählen und abwählen">
+
+<!ENTITY unread_count_account_exceptions.label "Einbezogene Mailkonten">
+<!ENTITY unread_count_account_exceptions.tooltip "Mailkonten, die beim Zählen berücksichtigt werden">
+<!ENTITY folder_count_recursive.label "Unterordner einbeziehen">
+<!ENTITY folder_count_recursive.accesskey "U">
+<!ENTITY only_favorite_folders.label "Nur Favoritenordner">
+<!ENTITY only_favorite_folders.accesskey "F">
+<!ENTITY only_favorite_folders.tooltip "nur Mails in Favoritenordnern zählen (innerhalb der ausgewählten Typen und Ordner)">
+
+<!ENTITY account_or_server_type_name "Konto">
+<!ENTITY account_or_server_type_name.tooltip "Kontoname oder -typ">
+<!ENTITY account_or_server_type_excluded "Ausgewählt">
+<!ENTITY account_or_server_type_excluded.tooltip "Kontoname oder Kontotyp wird beim Zählen berücksichtigt">
+<!ENTITY account_or_server_type_order "Reihenfolge">
+<!ENTITY account_or_server_type_order.tooltip "Reihenfolge, in der Kontentypen angezeigt werden; bearbeiten mit Doppel-Klick">
+
+<!ENTITY mail_change_trigger.label "Bei Benachrichtigung ausführen:">
+<!ENTITY mail_change_trigger.accesskey "A">
+<!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
+<!ENTITY mail_change_trigger.tooltip "absoluter Pfad eines Executables, das aufgerufen wird, falls sich die Anzahl der Mails ändert; die (neue) Anzahl der Mails wird als Argument übergeben.">
+<!ENTITY mail_urgency_hint.label "»X11 urgency hint« absetzen">
+<!ENTITY mail_urgency_hint.accesskey "X">
+
+<!ENTITY chat_icon_enable.label "Chat-Icon aktivieren">
+<!ENTITY chat_icon_enable.accesskey "A">
+<!ENTITY chat_icon_blink.label "Chat-Icon blinkt bei neuen Nachrichten">
+<!ENTITY chat_icon_blink.accesskey "C">
+<!ENTITY chat_icon_blink.tooltip "bei privater Nachricht oder Zitat in einem Channel">
+
+<!ENTITY chat_icon_blink_style.label "Art des Blinkens">
+<!ENTITY chat_icon_blink_style.accesskey "B">
+<!ENTITY chat_icon_blink_style_normal "Einfach">
+<!ENTITY chat_icon_blink_style_fade "Ausblenden">
