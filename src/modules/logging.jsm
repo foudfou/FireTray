@@ -6,7 +6,9 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-const FIRETRAY_LOG_LEVEL = "Warn"; // "All" for debugging
+Cu.import("resource://gre/modules/Services.jsm");
+
+const FIRETRAY_LOG_LEVEL = "All"; // "All" for debugging
 
 const COLOR_NORMAL          = "";
 const COLOR_RESET           = "\033[m";
@@ -77,24 +79,9 @@ firetray.Logging = {
   setupLogging: function(loggerName) {
 
     // lifted from log4moz.js
-    function SimpleFormatter(dateFormat) {
-      if (dateFormat)
-        this.dateFormat = dateFormat;
-    }
+    function SimpleFormatter() {}
     SimpleFormatter.prototype = {
       __proto__: Log4Moz.Formatter.prototype,
-
-      _dateFormat: null,
-
-      get dateFormat() {
-        if (!this._dateFormat)
-          this._dateFormat = "%Y-%m-%d %H:%M:%S";
-        return this._dateFormat;
-      },
-
-      set dateFormat(format) {
-        this._dateFormat = format;
-      },
 
       format: function(message) {
         let messageString = "";
@@ -108,7 +95,9 @@ firetray.Logging = {
                       ([,mo] in Iterator(message.messageObjects))].join(" ");
 
         let date = new Date(message.time);
-        let stringLog = date.toLocaleFormat(this.dateFormat) + " " +
+        let dateStr = date.getHours() + ":" + date.getMinutes() + ":" +
+              date.getSeconds() + "." + date.getMilliseconds();
+        let stringLog = dateStr + " " +
           message.levelDesc + " " + message.loggerName + " " +
           messageString + "\n";
 
@@ -119,10 +108,7 @@ firetray.Logging = {
       }
     };
 
-    function ColorTermFormatter(dateFormat) {
-      if (dateFormat)
-        this.dateFormat = dateFormat;
-    }
+    function ColorTermFormatter() {}
     ColorTermFormatter.prototype = {
       __proto__: SimpleFormatter.prototype,
 
@@ -141,15 +127,19 @@ firetray.Logging = {
     this._logger.level = Log4Moz.Level[FIRETRAY_LOG_LEVEL];
 
     // A console appender outputs to the JS Error Console
-    let dateFormat = "%T";
-    let simpleFormatter = new SimpleFormatter(dateFormat);
+    let simpleFormatter = new SimpleFormatter();
     let capp = new Log4Moz.ConsoleAppender(simpleFormatter);
     capp.level = Log4Moz.Level["Debug"];
     this._logger.addAppender(capp);
 
     // A dump appender outputs to standard out
-    let colorFormatter = new ColorTermFormatter(dateFormat);
-    let dapp = new Log4Moz.DumpAppender(colorFormatter);
+    let dumpFormatter;
+    if (Services.appinfo.OS.match(/(^Linux|^Darwin|BSD$)/)) {
+      dumpFormatter = new ColorTermFormatter();
+    } else {
+      dumpFormatter = new SimpleFormatter();
+    }
+    let dapp = new Log4Moz.DumpAppender(dumpFormatter);
     dapp.level = Log4Moz.Level["Debug"];
     this._logger.addAppender(dapp);
   },

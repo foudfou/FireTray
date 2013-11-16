@@ -69,8 +69,15 @@ firetray.Handler = {
       Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
       log.debug('FiretrayWindow imported');
       break;
+    case "WINNT":
+      Cu.import("resource://firetray/winnt/FiretrayStatusIcon.jsm");
+      log.debug('FiretrayStatusIcon imported');
+      Cu.import("resource://firetray/winnt/FiretrayWindow.jsm");
+      log.debug('FiretrayWindow imported');
+      break;
     default:
-      log.error("FIRETRAY: only Linux platform supported at this time. Firetray not loaded");
+      log.error("FIRETRAY: only Linux and WINNT platforms supported at this"
+                + "time. Firetray not loaded");
       return false;
     }
 

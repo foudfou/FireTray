@@ -14,7 +14,8 @@
     <em:optionsURL>chrome://firetray/content/options.xul</em:optionsURL>
     <em:iconURL>chrome://firetray/skin/firetray48.png</em:iconURL>
     <em:icon64URL>chrome://firetray/skin/firetray64.png</em:icon64URL>
-    <em:targetPlatform>Linux</em:targetPlatform> <!-- only Linux supported for now -->
+    <em:targetPlatform>Linux</em:targetPlatform>
+    <em:targetPlatform>WINNT</em:targetPlatform>
 
     <em:targetApplication>
       <Description>
