@@ -7,30 +7,39 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
-Cu.import("resource://firetray/ctypes/winnt/types.jsm");
+Cu.import("resource://firetray/ctypes/winnt/win32.jsm");
 
 function kernel32_defines(lib) {
 
   this.OSVERSIONINFOEXW = ctypes.StructType("OSVERSIONINFOEXW", [
-    { "dwOSVersionInfoSize": win_t.DWORD },
-    { "dwMajorVersion": win_t.DWORD },
-    { "dwMinorVersion": win_t.DWORD },
-    { "dwBuildNumber": win_t.DWORD },
-    { "dwPlatformId": win_t.DWORD },
-    { "szCSDVersion": ctypes.ArrayType(win_t.TCHAR, 128) },
-    { "wServicePackMajor": win_t.WORD },
-    { "wServicePackMinor": win_t.WORD },
-    { "wSuiteMask": win_t.WORD },
-    { "wProductType": win_t.BYTE },
-    { "wReserved": win_t.BYTE }
+    { "dwOSVersionInfoSize": win32.DWORD },
+    { "dwMajorVersion": win32.DWORD },
+    { "dwMinorVersion": win32.DWORD },
+    { "dwBuildNumber": win32.DWORD },
+    { "dwPlatformId": win32.DWORD },
+    { "szCSDVersion": ctypes.ArrayType(win32.TCHAR, 128) },
+    { "wServicePackMajor": win32.WORD },
+    { "wServicePackMinor": win32.WORD },
+    { "wSuiteMask": win32.WORD },
+    { "wProductType": win32.BYTE },
+    { "wReserved": win32.BYTE }
   ]);
 
-  // lib.lazy_bind("GetLastError", win_t.DWORD); // use ctypes.winLastError instead
-  lib.lazy_bind("GetVersionExW", win_t.BOOL, this.OSVERSIONINFOEXW.ptr);
-  lib.lazy_bind("GetConsoleWindow", win_t.HWND);
-  lib.lazy_bind("GetConsoleTitleW", win_t.DWORD, win_t.LPTSTR, win_t.DWORD);
-  lib.lazy_bind("GetModuleHandleW", win_t.HMODULE, win_t.LPCTSTR);
+  // lib.lazy_bind("GetLastError", win32.DWORD); // use ctypes.winLastError instead
+  lib.lazy_bind("GetVersionExW", win32.BOOL, this.OSVERSIONINFOEXW.ptr);
+  lib.lazy_bind("GetConsoleWindow", win32.HWND);
+  lib.lazy_bind("GetConsoleTitleW", win32.DWORD, win32.LPTSTR, win32.DWORD);
+  lib.lazy_bind("GetModuleHandleW", win32.HMODULE, win32.LPCTSTR);
 
 }
 
 new ctypes_library(KERNEL32_LIBNAME, KERNEL32_ABIS, kernel32_defines, this);
+
+
+let osvi = new kernel32.OSVERSIONINFOEXW();
+osvi.dwOSVersionInfoSize = kernel32.OSVERSIONINFOEXW.size;
+if (kernel32.GetVersionExW(osvi.address())) {
+  win32.WINVER = osvi.dwMajorVersion*10 + osvi.dwMinorVersion;
+} else {
+  Cu.ReportError("win version not found");
+}

@@ -7,29 +7,47 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
-Cu.import("resource://firetray/ctypes/winnt/types.jsm");
+Cu.import("resource://firetray/ctypes/winnt/win32.jsm");
 
 function user32_defines(lib) {
 
-  lib.lazy_bind("GetWindowTextW", ctypes.int, win_t.HWND, win_t.LPTSTR, ctypes.int);
-  lib.lazy_bind("FindWindowW", win_t.HWND, win_t.LPCTSTR, win_t.LPCTSTR);
+  this.CHANGEFILTERSTRUCT = ctypes.StructType("CHANGEFILTERSTRUCT", [
+    { "cbSize": win32.DWORD },
+    { "ExtStatus": win32.DWORD }
+  ]);
+  this.MSGFLTINFO_NONE                     = 0;
+  this.MSGFLTINFO_ALLOWED_HIGHER           = 3;
+  this.MSGFLTINFO_ALREADYALLOWED_FORWND    = 1;
+  this.MSGFLTINFO_ALREADYDISALLOWED_FORWND = 2;
 
-  lib.lazy_bind("SendMessageW", win_t.LRESULT, win_t.HWND, win_t.UINT, win_t.WPARAM, win_t.WPARAM);
+  lib.lazy_bind("ChangeWindowMessageFilter", win32.BOOL, win32.UINT, win32.DWORD);
+  this.MSGFLT_ADD    = 1;
+  this.MSGFLT_REMOVE = 2;
+  lib.lazy_bind("ChangeWindowMessageFilterEx", win32.BOOL, win32.HWND, win32.UINT, win32.DWORD, this.CHANGEFILTERSTRUCT.ptr);
+  this.MSGFLT_ALLOW    = 1;
+  this.MSGFLT_DISALLOW = 2;
+  this.MSGFLT_RESET    = 0;
+
+  lib.lazy_bind("RegisterWindowMessageW", win32.UINT, win32.LPCTSTR);
+  lib.lazy_bind("GetWindowTextW", ctypes.int, win32.HWND, win32.LPTSTR, ctypes.int);
+  lib.lazy_bind("FindWindowW", win32.HWND, win32.LPCTSTR, win32.LPCTSTR);
+
+  lib.lazy_bind("SendMessageW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.WPARAM);
   this.WM_GETICON = 0x007F;
   this.ICON_SMALL  = 0;
   this.ICON_BIG    = 1;
   this.ICON_SMALL2 = 2;
 
-  lib.lazy_bind("GetClassLongPtrW", win_t.ULONG_PTR, win_t.HWND, ctypes.int);
-  lib.lazy_bind("GetClassLongW", win_t.DWORD, win_t.HWND, ctypes.int); // 32-bits
+  lib.lazy_bind("GetClassLongPtrW", win32.ULONG_PTR, win32.HWND, ctypes.int);
+  lib.lazy_bind("GetClassLongW", win32.DWORD, win32.HWND, ctypes.int); // 32-bits
   this.GetClassLong = is64bit ? this.GetClassLongPtrW : this.GetClassLongW;
   this.GCLP_HICONSM = -34;
 
-  lib.lazy_bind("LoadIconW", win_t.HICON, win_t.HINSTANCE, win_t.LPCTSTR); // superseeded by LoadImage
+  lib.lazy_bind("LoadIconW", win32.HICON, win32.HINSTANCE, win32.LPCTSTR); // superseeded by LoadImage
   this.IDI_APPLICATION = 32512;
 
-  lib.lazy_bind("LoadImageW", win_t.HANDLE, win_t.HINSTANCE, win_t.LPCTSTR,
-                win_t.UINT, ctypes.int, ctypes.int, win_t.UINT);
+  lib.lazy_bind("LoadImageW", win32.HANDLE, win32.HINSTANCE, win32.LPCTSTR,
+                win32.UINT, ctypes.int, ctypes.int, win32.UINT);
   this.LR_CREATEDIBSECTION = 0x00002000;
   this.LR_DEFAULTCOLOR     = 0x00000000;
   this.LR_DEFAULTSIZE      = 0x00000040;
@@ -39,6 +57,23 @@ function user32_defines(lib) {
   this.LR_MONOCHROME       = 0x00000001;
   this.LR_SHARED           = 0x00008000;
   this.LR_VGACOLOR         = 0x00000080;
+
+  lib.lazy_bind("SetWindowLongPtrW", win32.LONG_PTR , win32.HWND, ctypes.int, win32.LONG_PTR);
+  lib.lazy_bind("SetWindowLongW", win32.LONG , win32.HWND, ctypes.int, win32.LONG);
+  this.SetWindowLong = is64bit ? this.SetWindowLongPtrW : this.SetWindowLongW;
+  this.GWL_EXSTYLE = -20;
+  this.GWLP_HINSTANCE = -6;
+  this.GWLP_ID = -12;
+  this.GWL_STYLE = -16;
+  this.GWLP_USERDATA = -21;
+  this.GWLP_WNDPROC = -4;
+
+  this.WNDPROC = ctypes.FunctionType(
+    WinCbABI, win32.LRESULT,
+    [win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM]).ptr;
+
+  lib.lazy_bind("CallWindowProcW", win32.LRESULT, this.WNDPROC, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
+  lib.lazy_bind("DefWindowProcW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
 
 }
 

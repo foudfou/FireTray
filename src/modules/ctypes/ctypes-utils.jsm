@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var EXPORTED_SYMBOLS  = [ "ctypes_library", "is64bit" ];
+var EXPORTED_SYMBOLS  = [ "ctypes_library", "is64bit", "WinCbABI" ];
 
 const Cu = Components.utils;
 

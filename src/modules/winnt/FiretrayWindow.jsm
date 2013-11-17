@@ -17,7 +17,7 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
-Cu.import("resource://firetray/ctypes/winnt/types.jsm");
+Cu.import("resource://firetray/ctypes/winnt/win32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/kernel32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/shell32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/user32.jsm");
@@ -88,140 +88,81 @@ firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeW
 firetray.Handler.registerWindow = function(win) {
   log.debug("register window");
 
-  // TESTING
   let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
-  let nativeHandle = baseWin.nativeHandle; // Moz' private pointer to the GdkWindow
-  log.info("nativeHandle="+nativeHandle);
+  let nativeHandle = baseWin.nativeHandle;
+  let hwnd = nativeHandle ?
+        new ctypes.voidptr_t(ctypes.UInt64(nativeHandle)) :
+        user32.FindWindowW("MozillaWindowClass", win.document.title);
+  log.debug("=== hwnd="+hwnd);
 
-  log.info("size="+ctypes.size_t.size);
-  log.info("psize="+ctypes.voidptr_t.size);
-  log.info("osvi size="+kernel32.OSVERSIONINFOEXW.size);
+  // Get TaskbarCreated
+  const WM_TASKBARCREATED = user32.RegisterWindowMessageW("TaskbarCreated");
+  // We register this as well, as we cannot know which WM_USER values are already taken
+  const kTrayMessage  = "_MINTRAYR_TrayMessageW";
+  const kTrayCallback = "_MINTRAYR_TrayCallbackW";
+  const WM_TRAYMESSAGE  = user32.RegisterWindowMessageW(kTrayMessage);
+  const WM_TRAYCALLBACK = user32.RegisterWindowMessageW(kTrayCallback);
+  log.debug("WM_*="+WM_TASKBARCREATED+" "+WM_TRAYMESSAGE+" "+WM_TRAYCALLBACK);
 
-  let osvi = new kernel32.OSVERSIONINFOEXW();
-  osvi.dwOSVersionInfoSize = kernel32.OSVERSIONINFOEXW.size;
-  if (kernel32.GetVersionExW(osvi.address())) {
-    log.debug("osvi.dwMajorVersion="+osvi.dwMajorVersion);
-    log.debug("osvi.dwMinorVersion="+osvi.dwMinorVersion);
+  /* if Administrator, accept messages from applications running in a lower
+   privilege level */
+  let rv;
+  if (win32.WINVER >= win32.WIN_VERSIONS["7"]) {
+    rv = user32.ChangeWindowMessageFilterEx(hwnd, WM_TASKBARCREATED, user32.MSGFLT_ALLOW, null);
+    log.debug("ChangeWindowMessageFilterEx res="+rv+" winLastError="+ctypes.winLastError);
+  } else if (win32.WINVER >= win32.WINVER["Vista"]) {
+    rv = user32.ChangeWindowMessageFilter(WM_TASKBARCREATED, user32.MSGFLT_ADD);
+    log.debug("ChangeWindowMessageFilter res="+rv+" winLastError="+ctypes.winLastError);
+  } else {
+    log.error("Unsupported windoz version "+win32.WINVER);
   }
-
-  /*
-   * Windows 8	6.2
-   * Windows 7	6.1
-   * Windows Vista	6.0
-   * Windows XP	5.1
-   */
-  let version = osvi.dwMajorVersion*10 + osvi.dwMinorVersion; // if (version >= 51)
 
   let nid = new shell32.NOTIFYICONDATAW();
+  // FIXME: We should check WINVER for NOTIFYICONDATA_*_SIZE
   nid.cbSize = shell32.NOTIFYICONDATAW.size;
 
-  let hwnd = user32.FindWindowW("MozillaWindowClass", win.document.title);
-  log.debug("hwnd FindWindow="+hwnd);
-
-/*
-  let hwnd = new ctypes.voidptr_t(ctypes.UInt64(nativeHandle));
-  log.debug("hwnd nativeHandle="+hwnd);
-*/
-
-  const BUF_SIZE = 255;
-  let buffer_t = ctypes.jschar.array(BUF_SIZE); // LPTSTR
-
-  let title = new buffer_t();
-  let len = user32.GetWindowTextW(hwnd, title, BUF_SIZE);
+  /* string is truncate to size of buffer and null-terminated. nid.szTip is
+   initialized automatically by ctypes */
+  let nMaxCount = 127;
+  let len = user32.GetWindowTextW(hwnd, nid.szTip, nMaxCount);
   log.error("errno="+ctypes.errno+" winLastError="+ctypes.winLastError);
-  if (len) {
-    log.info("title="+title.readString());
+  if (len != 0) {
+    log.info("nid.szTip="+nid.szTip.readString());
   }
 
-/*
-  let consoleWin = kernel32.GetConsoleWindow();
-  log.error("errno="+ctypes.errno+" winLastError="+ctypes.winLastError);
-  log.info("consoleWin="+consoleWin);
-  len = user32.GetWindowTextW(consoleWin, title, 127);
-  log.error("errno="+ctypes.errno+" winLastError="+ctypes.winLastError);
-  log.debug("len="+len);
-  log.info("title="+title.readString());
-
-  len = kernel32.GetConsoleTitleW(title, win_t.DWORD(127));
-  log.error("errno="+ctypes.errno+" winLastError="+ctypes.winLastError);
-  log.debug("len="+len);
-  log.debug("len type="+typeof(len)); // "object" ???
-  if (len) {
-    log.info("consoleTitle="+title.readString());
-  }
-*/
-
-  let result = user32.SendMessageW(hwnd, user32.WM_GETICON, user32.ICON_SMALL, 0);
+  rv = user32.SendMessageW(hwnd, user32.WM_GETICON, user32.ICON_SMALL, 0);
   // result is a ctypes.Int64. So we need to create a CData from it before
-  // casting it.
-  let icon = ctypes.cast(win_t.LRESULT(result), win_t.HICON);
-  let NULL = win_t.HICON(null);
+  // casting it to a HICON.
+  let icon = ctypes.cast(win32.LRESULT(rv), win32.HICON);
+  let NULL = win32.HICON(null); // for comparison only
   log.debug("SendMessageW winLastError="+ctypes.winLastError);
-  if (firetray.js.strEquals(icon, NULL)) { // OS default icon
-    result = user32.GetClassLong(hwnd, user32.GCLP_HICONSM);
-    icon = ctypes.cast(win_t.ULONG_PTR(result), win_t.HICON);
+  if (firetray.js.strEquals(icon, NULL)) { // from the window class
+    rv = user32.GetClassLong(hwnd, user32.GCLP_HICONSM);
+    icon = ctypes.cast(win32.ULONG_PTR(rv), win32.HICON);
     log.debug("GetClassLong winLastError="+ctypes.winLastError);
   }
   if (firetray.js.strEquals(icon, NULL)) { // from the first resource -> ERROR_RESOURCE_TYPE_NOT_FOUND(1813)
     icon = user32.LoadIconW(kernel32.GetModuleHandleW(null),
-                              win_t.MAKEINTRESOURCE(0));
+                              win32.MAKEINTRESOURCE(0));
     log.debug("LoadIconW module winLastError="+ctypes.winLastError);
   }
   if (firetray.js.strEquals(icon, NULL)) { // OS default icon
-    icon = user32.LoadIconW(null, win_t.MAKEINTRESOURCE(user32.IDI_APPLICATION));
+    icon = user32.LoadIconW(null, win32.MAKEINTRESOURCE(user32.IDI_APPLICATION));
     log.debug("LoadIconW default winLastError="+ctypes.winLastError);
   }
-  log.debug("icon="+icon);
+  log.debug("=== icon="+icon);
+  nid.hIcon = icon;
 
-// BOOL mintrayr_CreateIcon(void *handle, mouseevent_callback_t callback)
-// {
-//   HWND hwnd = (HWND)handle;
-//   if (!hwnd) {
-//     return FALSE;
-//   }
+  nid.hwnd = hwnd;
+  nid.uCallbackMessage = WM_TRAYMESSAGE;
+  nid.uFlags = shell32.NIF_ICON | shell32.NIF_MESSAGE | shell32.NIF_TIP;
+  nid.uVersion = shell32.NOTIFYICON_VERSION_4; // 5 ?! niels
 
-//   SetupWnd(hwnd);
-
-//   NOTIFYICONDATAW *iconData = new(std::nothrow) NOTIFYICONDATAW;
-//   if (!iconData) {
-//     return FALSE;
-//   }
-//   // Init the icon data according to MSDN
-//   iconData->cbSize = sizeof(NOTIFYICONDATAW);
-
-//   // Copy the title
-//   if (GetWindowText(hwnd, iconData->szTip, 127)) {
-//     iconData->szTip[127] = '\0'; // Better be safe than sorry :p
-//   }
-//   else{
-//     iconData->szTip[0] = '\0';
-//   }
-
-//   // Get the window icon
-//   HICON icon = reinterpret_cast<HICON>(::SendMessageW(hwnd, WM_GETICON, ICON_SMALL, 0));
-//   if (icon == 0) {
-//     // Alternative method. Get from the window class
-//     icon = reinterpret_cast<HICON>(::GetClassLongPtrW(hwnd, GCLP_HICONSM));
-//   }
-//   // Alternative method: get the first icon from the main module (executable image of the process)
-//   if (icon == 0) {
-//     icon = ::LoadIcon(GetModuleHandleW(0), MAKEINTRESOURCE(0));
-//   }
-//   // Alternative method. Use OS default icon
-//   if (icon == 0) {
-//     icon = ::LoadIcon(0, IDI_APPLICATION);
-//   }
-//   iconData->hIcon = icon;
-
-//   // Set the rest of the members
-//   iconData->hWnd = hwnd;
-//   iconData->uCallbackMessage = WM_TRAYMESSAGE;
-//   iconData->uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-//   iconData->uVersion = 5;
-
-//   // Install the icon
-//   ::Shell_NotifyIconW(NIM_ADD, iconData);
-//   ::Shell_NotifyIconW(NIM_SETVERSION, iconData);
+  // Install the icon
+  rv = shell32.Shell_NotifyIconW(shell32.NIM_ADD, nid.address());
+  log.debug("Shell_NotifyIcon ADD="+rv+" winLastError="+ctypes.winLastError); // ERROR_INVALID_WINDOW_HANDLE(1400)
+  shell32.Shell_NotifyIconW(shell32.NIM_SETVERSION, nid.address());
+  log.debug("Shell_NotifyIcon SETVERSION="+rv+" winLastError="+ctypes.winLastError);
 
 //   SetupWnd(hwnd);
 //   ::SetPropW(hwnd, kIconData, reinterpret_cast<HANDLE>(iconData));
