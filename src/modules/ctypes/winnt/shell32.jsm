@@ -18,7 +18,7 @@ function shell32_defines(lib) {
     { "uFlags": win32.UINT },
     { "uCallbackMessage": win32.UINT },
     { "hIcon": win32.HICON },
-    { "szTip": ctypes.ArrayType(win32.TCHAR, 64) }, // 128 on win2k+
+    { "szTip": ctypes.ArrayType(win32.TCHAR, 128) },
     { "dwState": win32.DWORD },
     { "dwStateMask": win32.DWORD },
     { "szInfo": ctypes.ArrayType(win32.TCHAR, 256) },
@@ -30,9 +30,29 @@ function shell32_defines(lib) {
   ]);
   this.NOTIFY_VERSION       = 3; // 2K+
   this.NOTIFYICON_VERSION_4 = 4; // Vista+
-  this.NOTIFYICONDATA_V1_SIZE = 88;
-  this.NOTIFYICONDATA_V2_SIZE = 488; // 2K
-  this.NOTIFYICONDATA_V3_SIZE = 504; // XP
+
+  // #define FIELD_OFFSET(t,f) ((LONG)&(((t*)0)->f))
+  function FIELD_OFFSET(aType, aField, aPos) {
+    function addr2nb(a) {
+      return ctypes.cast(a, ctypes.unsigned_long).value;
+    }
+
+    // 'would be nice to use aType.ptr(1) (0 raises null pointer error) but we
+    // can't access fields (or their size) from a StructType.
+    let s = new aType();
+    let addr_base = addr2nb(s.address());
+    let addr_field;
+    if (typeof(aPos) == "undefined") {
+      addr_field = addr2nb(s.addressOfField(aField)); // s[aField].address() also fine
+    } else {
+      addr_field = addr2nb(s[aField].addressOfElement(aPos)); // pfew! nice feature!
+    }
+    return  addr_field - addr_base;
+  }
+
+  this.NOTIFYICONDATAW_V1_SIZE = FIELD_OFFSET(this.NOTIFYICONDATAW, 'szTip', 64); // FIELD_OFFSET(NOTIFYICONDATAW, szTip[64])
+  this.NOTIFYICONDATAW_V2_SIZE = FIELD_OFFSET(this.NOTIFYICONDATAW, 'guidItem'); // 2K
+  this.NOTIFYICONDATAW_V3_SIZE = FIELD_OFFSET(this.NOTIFYICONDATAW, 'hBalloonIcon'); // XP
 
   lib.lazy_bind("Shell_NotifyIconW", win32.BOOL, win32.DWORD, this.NOTIFYICONDATAW.ptr);
 

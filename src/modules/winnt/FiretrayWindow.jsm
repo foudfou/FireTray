@@ -118,11 +118,20 @@ firetray.Handler.registerWindow = function(win) {
   }
 
   let nid = new shell32.NOTIFYICONDATAW();
-  // FIXME: We should check WINVER for NOTIFYICONDATA_*_SIZE
-  nid.cbSize = shell32.NOTIFYICONDATAW.size;
 
-  /* string is truncate to size of buffer and null-terminated. nid.szTip is
-   initialized automatically by ctypes */
+  if (win32.WINVER >= win32.WIN_VERSIONS["Vista"]) {
+    nid.cbSize = shell32.NOTIFYICONDATAW.size;
+  } else if (win32.WINVER >= win32.WIN_VERSIONS["XP"]) {
+    nid.cbSize = shell32.NOTIFYICONDATAW_V3_SIZE;
+  } else if (win32.WINVER >= win32.WIN_VERSIONS["2K"]) {
+    nid.cbSize = shell32.NOTIFYICONDATAW_V2_SIZE;
+  } else {
+    nid.cbSize = shell32.NOTIFYICONDATAW_V1_SIZE;
+  }
+  log.debug("SIZE="+nid.cbSize);
+
+  // string is truncate to size of buffer and null-terminated. nid.szTip is
+  // initialized automatically by ctypes
   let nMaxCount = 127;
   let len = user32.GetWindowTextW(hwnd, nid.szTip, nMaxCount);
   log.error("errno="+ctypes.errno+" winLastError="+ctypes.winLastError);
