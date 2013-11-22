@@ -54,6 +54,22 @@ function shell32_defines(lib) {
   this.NOTIFYICONDATAW_V2_SIZE = FIELD_OFFSET(this.NOTIFYICONDATAW, 'guidItem'); // 2K
   this.NOTIFYICONDATAW_V3_SIZE = FIELD_OFFSET(this.NOTIFYICONDATAW, 'hBalloonIcon'); // XP
 
+  this.NOTIFYICONDATAW_SIZE = function() {
+    let cbSize = this.NOTIFYICONDATAW.size;
+    if (!win32.WINVER) {
+      Cu.reportError("WINVER not defined! shell32 should be initialized before using WINVER.");
+    } else if (win32.WINVER >= win32.WIN_VERSIONS["Vista"]) {
+      cbSize = this.NOTIFYICONDATAW.size;
+    } else if (win32.WINVER >= win32.WIN_VERSIONS["XP"]) {
+      cbSize = this.NOTIFYICONDATAW_V3_SIZE;
+    } else if (win32.WINVER >= win32.WIN_VERSIONS["2K"]) {
+      cbSize = this.NOTIFYICONDATAW_V2_SIZE;
+    } else {
+      cbSize = this.NOTIFYICONDATAW_V1_SIZE;
+    }
+    return cbSize;
+  };
+
   lib.lazy_bind("Shell_NotifyIconW", win32.BOOL, win32.DWORD, this.NOTIFYICONDATAW.ptr);
 
   // notify icon message

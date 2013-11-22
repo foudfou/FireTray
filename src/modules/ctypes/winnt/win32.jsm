@@ -5,10 +5,12 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
 
+const INT_PTR_T   = is64bit ? ctypes.int64_t  : ctypes.int;
 const UINT_PTR_T  = is64bit ? ctypes.uint64_t : ctypes.unsigned_int;
 const LONG_PTR_T  = is64bit ? ctypes.int64_t  : ctypes.long;
 const ULONG_PTR_T = is64bit ? ctypes.uint64_t : ctypes.unsigned_long;
 const HANDLE_T    = ctypes.voidptr_t; // oder ctypes.intptr_t, ctypes.size_t, ctypes.int32_t ?
+const WORD_T      = ctypes.unsigned_short;
 
 var win32 = {
 
@@ -24,17 +26,22 @@ var win32 = {
   BOOL: ctypes.bool,
   BYTE: ctypes.unsigned_char,
   UINT: ctypes.unsigned_int,
-  WORD: ctypes.unsigned_short,
+  WORD: WORD_T,
   DWORD: ctypes.unsigned_long,
   PVOID: ctypes.voidptr_t,
+  LPVOID: ctypes.voidptr_t,
   LONG: ctypes.long,
   LONG_PTR: LONG_PTR_T,
   ULONG_PTR: ULONG_PTR_T,
   SIZE_T: ULONG_PTR_T,
+  ATOM: WORD_T,
   HWND: HANDLE_T,
   HICON: HANDLE_T,
   HINSTANCE: HANDLE_T,
   HMODULE: HANDLE_T,
+  HMENU: HANDLE_T,
+  HBRUSH: HANDLE_T,             // HICON
+  HCURSOR: HANDLE_T,
   TCHAR: ctypes.jschar, // Mozilla compiled with UNICODE/_UNICODE macros and wchar_t: jschar
   LPSTR: ctypes.char.ptr,
   LPCSTR: ctypes.char.ptr,
@@ -45,6 +52,7 @@ var win32 = {
   LRESULT: LONG_PTR_T,
   WPARAM: UINT_PTR_T,
   LPARAM: LONG_PTR_T,
+  FARPROC: ctypes.voidptr_t,    // typedef INT_PTR (FAR WINAPI *FARPROC)();
 
   GUID: ctypes.StructType("GUID", [
     { "Data1": ctypes.unsigned_long },
@@ -58,6 +66,10 @@ var win32 = {
    * #define MAKEINTRESOURCEW(i) ((LPWSTR)((ULONG_PTR)((WORD)(i))))
    */
   MAKEINTRESOURCE: function(i) {return this.LPWSTR(i); },
+
+  _T: function(str) {
+    return ctypes.jschar.array()(str);
+  },
 
   ERROR_INVALID_WINDOW_HANDLE: 1400,
   ERROR_RESOURCE_TYPE_NOT_FOUND: 1813,

@@ -70,6 +70,8 @@ firetray.Handler = {
       log.debug('FiretrayWindow imported');
       break;
     case "WINNT":
+      Cu.import("resource://firetray/winnt/FiretrayWin32.jsm");
+      log.debug('FiretrayWin32 imported');
       Cu.import("resource://firetray/winnt/FiretrayStatusIcon.jsm");
       log.debug('FiretrayStatusIcon imported');
       Cu.import("resource://firetray/winnt/FiretrayWindow.jsm");

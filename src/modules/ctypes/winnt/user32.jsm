@@ -46,8 +46,7 @@ function user32_defines(lib) {
   lib.lazy_bind("LoadIconW", win32.HICON, win32.HINSTANCE, win32.LPCTSTR); // superseeded by LoadImage
   this.IDI_APPLICATION = 32512;
 
-  lib.lazy_bind("LoadImageW", win32.HANDLE, win32.HINSTANCE, win32.LPCTSTR,
-                win32.UINT, ctypes.int, ctypes.int, win32.UINT);
+  lib.lazy_bind("LoadImageW", win32.HANDLE, win32.HINSTANCE, win32.LPCTSTR, win32.UINT, ctypes.int, ctypes.int, win32.UINT);
   this.LR_CREATEDIBSECTION = 0x00002000;
   this.LR_DEFAULTCOLOR     = 0x00000000;
   this.LR_DEFAULTSIZE      = 0x00000040;
@@ -58,9 +57,9 @@ function user32_defines(lib) {
   this.LR_SHARED           = 0x00008000;
   this.LR_VGACOLOR         = 0x00000080;
 
-  lib.lazy_bind("SetWindowLongPtrW", win32.LONG_PTR , win32.HWND, ctypes.int, win32.LONG_PTR);
-  lib.lazy_bind("SetWindowLongW", win32.LONG , win32.HWND, ctypes.int, win32.LONG);
-  this.SetWindowLong = is64bit ? this.SetWindowLongPtrW : this.SetWindowLongW;
+  // SetWindowLongPtrW aliases SetWindowLongW with the correct signature thank
+  // win32.LONG_PTR
+  lib.lazy_bind("SetWindowLongW", win32.LONG_PTR , win32.HWND, ctypes.int, win32.LONG_PTR);
   this.GWL_EXSTYLE = -20;
   this.GWLP_HINSTANCE = -6;
   this.GWLP_ID = -12;
@@ -74,6 +73,58 @@ function user32_defines(lib) {
 
   lib.lazy_bind("CallWindowProcW", win32.LRESULT, this.WNDPROC, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
   lib.lazy_bind("DefWindowProcW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
+
+  this.WNDCLASSEXW = ctypes.StructType("WNDCLASSEXW", [
+    { "cbSize": win32.UINT },
+    { "style": win32.UINT },
+    { "lpfnWndProc": this.WNDPROC },
+    { "cbClsExtra": ctypes.int },
+    { "cbWndExtra": ctypes.int },
+    { "hInstance": win32.HINSTANCE },
+    { "hIcon": win32.HICON },
+    { "hCursor": win32.HCURSOR },
+    { "hbrBackground": win32.HBRUSH },
+    { "lpszMenuName": win32.LPCTSTR },
+    { "lpszClassName": win32.LPCTSTR },
+    { "hIconSm": win32.HICON }
+  ]);
+
+  lib.lazy_bind("RegisterClassExW", win32.ATOM, this.WNDCLASSEXW.ptr);
+  lib.lazy_bind("CreateWindowExW", win32.HWND, win32.DWORD, win32.LPCTSTR, win32.LPCTSTR, win32.DWORD, ctypes.int, ctypes.int, ctypes.int, ctypes.int, win32.HWND, win32.HMENU, win32.HINSTANCE, win32.LPVOID);
+
+  this.CW_USEDEFAULT = ctypes.int(0x80000000); // -2147483648
+
+  this.HWND_BROADCAST = win32.HWND(0xffff);
+  this.HWND_MESSAGE   = win32.HWND(-3); // WINVER >= 0x0500
+
+  // need to be win32.DWORD()'d after binray operations are applied !
+  this.WS_BORDER           = 0x00800000;
+  this.WS_CAPTION          = 0x00C00000;
+  this.WS_CHILD            = 0x40000000;
+  this.WS_CHILDWINDOW      = 0x40000000;
+  this.WS_CLIPCHILDREN     = 0x02000000;
+  this.WS_CLIPSIBLINGS     = 0x04000000;
+  this.WS_DISABLED         = 0x08000000;
+  this.WS_DLGFRAME         = 0x00400000;
+  this.WS_GROUP            = 0x00020000;
+  this.WS_HSCROLL          = 0x00100000;
+  this.WS_ICONIC           = 0x20000000;
+  this.WS_MAXIMIZE         = 0x01000000;
+  this.WS_MAXIMIZEBOX      = 0x00010000;
+  this.WS_MINIMIZE         = 0x20000000;
+  this.WS_MINIMIZEBOX      = 0x00020000;
+  this.WS_OVERLAPPED       = 0x00000000;
+  this.WS_POPUP            = 0x80000000;
+  this.WS_SIZEBOX          = 0x00040000;
+  this.WS_SYSMENU          = 0x00080000;
+  this.WS_TABSTOP          = 0x00010000;
+  this.WS_THICKFRAME       = 0x00040000;
+  this.WS_TILED            = 0x00000000;
+  this.WS_VISIBLE          = 0x10000000;
+  this.WS_VSCROLL          = 0x00200000;
+  this.WS_POPUPWINDOW      = (this.WS_POPUP | this.WS_BORDER | this.WS_SYSMENU);
+  this.WS_OVERLAPPEDWINDOW = (this.WS_OVERLAPPED | this.WS_CAPTION | this.WS_SYSMENU | this.WS_THICKFRAME | this.WS_MINIMIZEBOX | this.WS_MAXIMIZEBOX);
+  this.WS_TILEDWINDOW      = (this.WS_OVERLAPPED | this.WS_CAPTION | this.WS_SYSMENU | this.WS_THICKFRAME | this.WS_MINIMIZEBOX | this.WS_MAXIMIZEBOX);
 
 }
 

@@ -1,12 +1,5 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-/* GdkWindow and GtkWindow are totally different things. A GtkWindow is a
- "standalone" window. A GdkWindow is just a region on the screen that can
- capture events and has certain attributes (such as a cursor, and a coordinate
- system). Basically a GdkWindow is an X window, in the Xlib sense, and
- GtkWindow is a widget used for a particular UI effect.
- (http://mail.gnome.org/archives/gtk-app-devel-list/1999-January/msg00138.html) */
-
 var EXPORTED_SYMBOLS = [ "firetray" ];
 
 const Cc = Components.classes;
@@ -18,11 +11,10 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
 Cu.import("resource://firetray/ctypes/winnt/win32.jsm");
-Cu.import("resource://firetray/ctypes/winnt/kernel32.jsm");
-Cu.import("resource://firetray/ctypes/winnt/shell32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/user32.jsm");
+Cu.import("resource://firetray/winnt/FiretrayWin32.jsm");
 Cu.import("resource://firetray/commons.js");
-firetray.Handler.subscribeLibsForClosing([kernel32, shell32, user32]);
+firetray.Handler.subscribeLibsForClosing([user32]);
 
 let log = firetray.Logging.getLogger("firetray.Window");
 
@@ -72,6 +64,22 @@ firetray.Window = {
   setVisibility: function(xid, visibility) {
   },
 
+  /* if Administrator, accept messages from applications running in a lower
+   privilege level */
+  acceptAllMessages: function(hwnd) {
+    let rv = null;
+    if (win32.WINVER >= win32.WIN_VERSIONS["7"]) {
+      rv = user32.ChangeWindowMessageFilterEx(hwnd, WM_TASKBARCREATED, user32.MSGFLT_ALLOW, null);
+      log.debug("ChangeWindowMessageFilterEx res="+rv+" winLastError="+ctypes.winLastError);
+    } else if (win32.WINVER >= win32.WINVER["Vista"]) {
+      rv = user32.ChangeWindowMessageFilter(WM_TASKBARCREATED, user32.MSGFLT_ADD);
+      log.debug("ChangeWindowMessageFilter res="+rv+" winLastError="+ctypes.winLastError);
+    } else {
+      log.error("Unsupported windoz version "+win32.WINVER);
+    }
+    return rv;
+  }
+
 }; // firetray.Window
 
 
@@ -94,84 +102,6 @@ firetray.Handler.registerWindow = function(win) {
         new ctypes.voidptr_t(ctypes.UInt64(nativeHandle)) :
         user32.FindWindowW("MozillaWindowClass", win.document.title);
   log.debug("=== hwnd="+hwnd);
-
-  // Get TaskbarCreated
-  const WM_TASKBARCREATED = user32.RegisterWindowMessageW("TaskbarCreated");
-  // We register this as well, as we cannot know which WM_USER values are already taken
-  const kTrayMessage  = "_MINTRAYR_TrayMessageW";
-  const kTrayCallback = "_MINTRAYR_TrayCallbackW";
-  const WM_TRAYMESSAGE  = user32.RegisterWindowMessageW(kTrayMessage);
-  const WM_TRAYCALLBACK = user32.RegisterWindowMessageW(kTrayCallback);
-  log.debug("WM_*="+WM_TASKBARCREATED+" "+WM_TRAYMESSAGE+" "+WM_TRAYCALLBACK);
-
-  /* if Administrator, accept messages from applications running in a lower
-   privilege level */
-  let rv;
-  if (win32.WINVER >= win32.WIN_VERSIONS["7"]) {
-    rv = user32.ChangeWindowMessageFilterEx(hwnd, WM_TASKBARCREATED, user32.MSGFLT_ALLOW, null);
-    log.debug("ChangeWindowMessageFilterEx res="+rv+" winLastError="+ctypes.winLastError);
-  } else if (win32.WINVER >= win32.WINVER["Vista"]) {
-    rv = user32.ChangeWindowMessageFilter(WM_TASKBARCREATED, user32.MSGFLT_ADD);
-    log.debug("ChangeWindowMessageFilter res="+rv+" winLastError="+ctypes.winLastError);
-  } else {
-    log.error("Unsupported windoz version "+win32.WINVER);
-  }
-
-  let nid = new shell32.NOTIFYICONDATAW();
-
-  if (win32.WINVER >= win32.WIN_VERSIONS["Vista"]) {
-    nid.cbSize = shell32.NOTIFYICONDATAW.size;
-  } else if (win32.WINVER >= win32.WIN_VERSIONS["XP"]) {
-    nid.cbSize = shell32.NOTIFYICONDATAW_V3_SIZE;
-  } else if (win32.WINVER >= win32.WIN_VERSIONS["2K"]) {
-    nid.cbSize = shell32.NOTIFYICONDATAW_V2_SIZE;
-  } else {
-    nid.cbSize = shell32.NOTIFYICONDATAW_V1_SIZE;
-  }
-  log.debug("SIZE="+nid.cbSize);
-
-  // string is truncate to size of buffer and null-terminated. nid.szTip is
-  // initialized automatically by ctypes
-  let nMaxCount = 127;
-  let len = user32.GetWindowTextW(hwnd, nid.szTip, nMaxCount);
-  log.error("errno="+ctypes.errno+" winLastError="+ctypes.winLastError);
-  if (len != 0) {
-    log.info("nid.szTip="+nid.szTip.readString());
-  }
-
-  rv = user32.SendMessageW(hwnd, user32.WM_GETICON, user32.ICON_SMALL, 0);
-  // result is a ctypes.Int64. So we need to create a CData from it before
-  // casting it to a HICON.
-  let icon = ctypes.cast(win32.LRESULT(rv), win32.HICON);
-  let NULL = win32.HICON(null); // for comparison only
-  log.debug("SendMessageW winLastError="+ctypes.winLastError);
-  if (firetray.js.strEquals(icon, NULL)) { // from the window class
-    rv = user32.GetClassLong(hwnd, user32.GCLP_HICONSM);
-    icon = ctypes.cast(win32.ULONG_PTR(rv), win32.HICON);
-    log.debug("GetClassLong winLastError="+ctypes.winLastError);
-  }
-  if (firetray.js.strEquals(icon, NULL)) { // from the first resource -> ERROR_RESOURCE_TYPE_NOT_FOUND(1813)
-    icon = user32.LoadIconW(kernel32.GetModuleHandleW(null),
-                              win32.MAKEINTRESOURCE(0));
-    log.debug("LoadIconW module winLastError="+ctypes.winLastError);
-  }
-  if (firetray.js.strEquals(icon, NULL)) { // OS default icon
-    icon = user32.LoadIconW(null, win32.MAKEINTRESOURCE(user32.IDI_APPLICATION));
-    log.debug("LoadIconW default winLastError="+ctypes.winLastError);
-  }
-  log.debug("=== icon="+icon);
-  nid.hIcon = icon;
-
-  nid.hwnd = hwnd;
-  nid.uCallbackMessage = WM_TRAYMESSAGE;
-  nid.uFlags = shell32.NIF_ICON | shell32.NIF_MESSAGE | shell32.NIF_TIP;
-  nid.uVersion = shell32.NOTIFYICON_VERSION_4; // 5 ?! niels
-
-  // Install the icon
-  rv = shell32.Shell_NotifyIconW(shell32.NIM_ADD, nid.address());
-  log.debug("Shell_NotifyIcon ADD="+rv+" winLastError="+ctypes.winLastError); // ERROR_INVALID_WINDOW_HANDLE(1400)
-  shell32.Shell_NotifyIconW(shell32.NIM_SETVERSION, nid.address());
-  log.debug("Shell_NotifyIcon SETVERSION="+rv+" winLastError="+ctypes.winLastError);
 
 //   SetupWnd(hwnd);
 //   ::SetPropW(hwnd, kIconData, reinterpret_cast<HANDLE>(iconData));
