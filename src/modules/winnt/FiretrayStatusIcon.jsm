@@ -61,7 +61,7 @@ firetray.StatusIcon = {
     log.debug("SIZE="+nid.cbSize);
     nid.szTip = firetray.Handler.appName;
     nid.hIcon = this.getIconFromWindow(hwnd_hidden_moz);
-    nid.hwnd = hwnd_hidden;
+    nid.hWnd = hwnd_hidden;
     nid.uCallbackMessage = firetray.Win32.WM_TRAYMESSAGE;
     nid.uFlags = shell32.NIF_ICON | shell32.NIF_MESSAGE | shell32.NIF_TIP;
     nid.uVersion = shell32.NOTIFYICON_VERSION_4;
@@ -89,7 +89,7 @@ firetray.StatusIcon = {
     log.debug("CreateWindow="+!hwnd_hidden.isNull()+" winLastError="+ctypes.winLastError);
 
     let procPrev = user32.SetWindowLongW(hwnd_hidden, user32.GWLP_WNDPROC,
-                                         ctypes.cast(this.callbacks.hiddenWinProc, win32.LONG_PTR));
+      ctypes.cast(this.callbacks.hiddenWinProc, win32.LONG_PTR));
     log.debug("procPrev="+procPrev+" winLastError="+ctypes.winLastError);
 
     firetray.Win32.acceptAllMessages(hwnd_hidden);
