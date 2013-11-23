@@ -64,22 +64,6 @@ firetray.Window = {
   setVisibility: function(xid, visibility) {
   },
 
-  /* if Administrator, accept messages from applications running in a lower
-   privilege level */
-  acceptAllMessages: function(hwnd) {
-    let rv = null;
-    if (win32.WINVER >= win32.WIN_VERSIONS["7"]) {
-      rv = user32.ChangeWindowMessageFilterEx(hwnd, WM_TASKBARCREATED, user32.MSGFLT_ALLOW, null);
-      log.debug("ChangeWindowMessageFilterEx res="+rv+" winLastError="+ctypes.winLastError);
-    } else if (win32.WINVER >= win32.WINVER["Vista"]) {
-      rv = user32.ChangeWindowMessageFilter(WM_TASKBARCREATED, user32.MSGFLT_ADD);
-      log.debug("ChangeWindowMessageFilter res="+rv+" winLastError="+ctypes.winLastError);
-    } else {
-      log.error("Unsupported windoz version "+win32.WINVER);
-    }
-    return rv;
-  }
-
 }; // firetray.Window
 
 

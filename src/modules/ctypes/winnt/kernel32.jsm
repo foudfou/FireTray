@@ -42,7 +42,7 @@ new ctypes_library(KERNEL32_LIBNAME, KERNEL32_ABIS, kernel32_defines, this);
 let osvi = new kernel32.OSVERSIONINFOEXW();
 osvi.dwOSVersionInfoSize = kernel32.OSVERSIONINFOEXW.size;
 if (kernel32.GetVersionExW(osvi.address())) {
-  win32.WINVER = osvi.dwMajorVersion*10 + osvi.dwMinorVersion;
+  win32.WINVER = (+osvi.dwMajorVersion)*10 + (+osvi.dwMinorVersion); // ctypes.UInt64 objects!
 } else {
   Cu.ReportError("win version not found");
 }

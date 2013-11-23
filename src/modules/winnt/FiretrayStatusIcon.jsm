@@ -26,13 +26,10 @@ if ("undefined" == typeof(firetray.Handler))
 firetray.StatusIcon = {
   initialized: false,
   callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
-  trayIcon: null,
-  themedIconApp: null,
-  themedIconNewMail: null,
-  prefAppIconNames: null,
-  prefNewMailIconNames: null,
-  defaultAppIconName: null,
-  defaultNewMailIconName: null,
+  notifyIconData: null,
+  hwndHidden: null,
+  WNDCLASS_NAME: "FireTrayHiddenWindowClass",
+  WNDCLASS_ATOM: null,
 
   init: function() {
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
@@ -46,6 +43,9 @@ firetray.StatusIcon = {
 
   shutdown: function() {
     log.debug("Disabling StatusIcon");
+
+    this.destroy();
+
     this.initialized = false;
   },
 
@@ -56,8 +56,7 @@ firetray.StatusIcon = {
     let hwnd_hidden_moz = user32.FindWindowW("MozillaHiddenWindowClass", null);
     log.debug("=== hwnd_hidden_moz="+hwnd_hidden_moz);
 
-    let nid = new shell32.NOTIFYICONDATAW();
-
+    nid = new shell32.NOTIFYICONDATAW();
     nid.cbSize = shell32.NOTIFYICONDATAW_SIZE();
     log.debug("SIZE="+nid.cbSize);
     nid.szTip = firetray.Handler.appName;
@@ -67,29 +66,23 @@ firetray.StatusIcon = {
     nid.uFlags = shell32.NIF_ICON | shell32.NIF_MESSAGE | shell32.NIF_TIP;
     nid.uVersion = shell32.NOTIFYICON_VERSION_4;
 
-/*
-    // string is truncate to size of buffer and null-terminated. nid.szTip is
-    // initialized automatically by ctypes
-    let nMaxCount = 127;
-    let len = user32.GetWindowTextW(hwnd, nid.szTip, nMaxCount);
-    log.debug("errno="+ctypes.errno+" winLastError="+ctypes.winLastError);
-    if (len != 0) {
-      log.info("nid.szTip="+nid.szTip.readString());
-    }
-*/
-
     // Install the icon
     rv = shell32.Shell_NotifyIconW(shell32.NIM_ADD, nid.address());
     log.debug("Shell_NotifyIcon ADD="+rv+" winLastError="+ctypes.winLastError); // ERROR_INVALID_WINDOW_HANDLE(1400)
-    shell32.Shell_NotifyIconW(shell32.NIM_SETVERSION, nid.address());
+    rv = shell32.Shell_NotifyIconW(shell32.NIM_SETVERSION, nid.address());
     log.debug("Shell_NotifyIcon SETVERSION="+rv+" winLastError="+ctypes.winLastError);
+
+    this.notifyIconData = nid;
+    this.hwndHidden = hwnd_hidden;
   },
 
   createHiddenWindow: function() {
+    this.registerWindowClass();
+
     this.callbacks.hiddenWinProc = user32.WNDPROC(firetray.StatusIcon.hiddenWindowProc);
 
     let hwnd_hidden = user32.CreateWindowExW(
-      0, win32.LPCTSTR(firetray.Win32.WNDCLASS_ATOM), // lpClassName can also be _T(WNDCLASS_NAME)
+      0, win32.LPCTSTR(this.WNDCLASS_ATOM), // lpClassName can also be _T(WNDCLASS_NAME)
       "Firetray Message Window", 0,
       user32.CW_USEDEFAULT, user32.CW_USEDEFAULT, user32.CW_USEDEFAULT, user32.CW_USEDEFAULT,
       null, null, firetray.Win32.hInstance, null);
@@ -99,11 +92,23 @@ firetray.StatusIcon = {
                                          ctypes.cast(this.callbacks.hiddenWinProc, win32.LONG_PTR));
     log.debug("procPrev="+procPrev+" winLastError="+ctypes.winLastError);
 
+    firetray.Win32.acceptAllMessages(hwnd_hidden);
+
     return hwnd_hidden;
   },
 
-  hiddenWindowProc: function(hWnd, uMsg, wParam, lParam) {
+  registerWindowClass: function() {
+    let wndClass = new user32.WNDCLASSEXW();
+    wndClass.cbSize = user32.WNDCLASSEXW.size;
+    wndClass.lpfnWndProc = ctypes.cast(user32.DefWindowProcW, user32.WNDPROC);
+    wndClass.hInstance = firetray.Win32.hInstance;
+    wndClass.lpszClassName = win32._T(this.WNDCLASS_NAME);
+    this.WNDCLASS_ATOM = user32.RegisterClassExW(wndClass.address());
+    log.debug("WNDCLASS_ATOM="+this.WNDCLASS_ATOM);
+  },
 
+  hiddenWindowProc: function(hWnd, uMsg, wParam, lParam) {
+    log.debug("HiddenWindowProc CALLED: hWnd="+hWnd+", uMsg="+uMsg+", wParam="+wParam+", lParam="+lParam);
     // ... do something smart with this event!
 
     return user32.DefWindowProcW(hWnd, uMsg, wParam, lParam);
@@ -131,6 +136,23 @@ firetray.StatusIcon = {
     }
     log.debug("=== icon="+icon);
     return icon;
+  },
+
+  destroyHiddenWindow: function() {
+    let rv = user32.DestroyWindow(this.hwndHidden);
+
+    rv = this.unregisterWindowClass();
+    log.debug("Hidden window removed");
+  },
+
+  unregisterWindowClass: function() {
+    return user32.UnregisterClassW(win32.LPCTSTR(this.WNDCLASS_ATOM), firetray.Win32.hInstance);
+  },
+
+  destroy: function() {
+    let rv = shell32.Shell_NotifyIconW(shell32.NIM_DELETE, this.notifyIconData.address());
+    log.debug("Shell_NotifyIcon DELETE="+rv+" winLastError="+ctypes.winLastError);
+    this.destroyHiddenWindow();
   }
 
 }; // firetray.StatusIcon

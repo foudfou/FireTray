@@ -32,21 +32,23 @@ function Win32Env() {
   this.hInstance = kernel32.GetModuleHandleW("xul"); // ordinary windows are created from xul.dll
   log.debug("hInstance="+this.hInstance);
 
-/*
-  let hUser = kernel32.LoadLibraryW("user32");
-  let defWindowProcW = kernel32.GetProcAddress(hUser, "DefWindowProcW");
-  log.debug("defWindowProcW="+defWindowProcW);
-  log.debug("_______________DefWindowProcW="+user32.DefWindowProcW);
-*/
+  /* if Administrator, accept messages from applications running in a lower
+   privilege level */
+  this.acceptAllMessages = function(hwnd) {
+    let rv = null;
+    log.info(win32.WINVER+" >= "+win32.WIN_VERSIONS["7"]);
+    if (win32.WINVER >= win32.WIN_VERSIONS["7"]) {
+      rv = user32.ChangeWindowMessageFilterEx(hwnd, firetray.Win32.WM_TASKBARCREATED, user32.MSGFLT_ALLOW, null);
+      log.debug("ChangeWindowMessageFilterEx res="+rv+" winLastError="+ctypes.winLastError);
+    } else if (win32.WINVER >= win32.WINVER["Vista"]) {
+      rv = user32.ChangeWindowMessageFilter(firetray.Win32.WM_TASKBARCREATED, user32.MSGFLT_ADD);
+      log.debug("ChangeWindowMessageFilter res="+rv+" winLastError="+ctypes.winLastError);
+    } else {
+        // no UIPI
+    }
+    return rv;
+  };
 
-  this.WNDCLASS_NAME = "FireTrayHiddenWindowClass";
-  let wndClass = new user32.WNDCLASSEXW();
-  wndClass.cbSize = user32.WNDCLASSEXW.size;
-  wndClass.lpfnWndProc = ctypes.cast(user32.DefWindowProcW, user32.WNDPROC);
-  wndClass.hInstance = this.hInstance;
-  wndClass.lpszClassName = win32._T(this.WNDCLASS_NAME);
-  this.WNDCLASS_ATOM = user32.RegisterClassExW(wndClass.address());
-  log.debug("WNDCLASS_ATOM="+this.WNDCLASS_ATOM);
 }
 
 firetray.Win32 = new Win32Env();

@@ -90,7 +90,9 @@ function user32_defines(lib) {
   ]);
 
   lib.lazy_bind("RegisterClassExW", win32.ATOM, this.WNDCLASSEXW.ptr);
+  lib.lazy_bind("UnregisterClassW", win32.BOOL, win32.LPCTSTR, win32.HINSTANCE);
   lib.lazy_bind("CreateWindowExW", win32.HWND, win32.DWORD, win32.LPCTSTR, win32.LPCTSTR, win32.DWORD, ctypes.int, ctypes.int, ctypes.int, ctypes.int, win32.HWND, win32.HMENU, win32.HINSTANCE, win32.LPVOID);
+  lib.lazy_bind("DestroyWindow", win32.BOOL, win32.HWND);
 
   this.CW_USEDEFAULT = ctypes.int(0x80000000); // -2147483648
 
