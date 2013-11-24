@@ -22,6 +22,7 @@ Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/libc.jsm");
 Cu.import("resource://firetray/ctypes/linux/x11.jsm");
+Cu.import("resource://firetray/FiretrayWindow.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gobject, gdk, gtk, libc, x11, glib]);
 
@@ -57,606 +58,594 @@ firetray.Handler.gdkWindows              = new ctypesMap(gdk.GdkWindow.ptr),
 firetray.Handler.gtkPopupMenuWindowItems = new ctypesMap(gtk.GtkImageMenuItem.ptr),
 
 
-firetray.Window = {
-  signals: {'focus-in': {callback: {}, handler: {}}},
+firetray.Window = new FiretrayWindow();
 
-  init: function() {
-    let gtkVersionCheck = gtk.gtk_check_version(
-      gtk.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION,
-      gtk.FIRETRAY_REQUIRED_GTK_MINOR_VERSION,
-      gtk.FIRETRAY_REQUIRED_GTK_MICRO_VERSION
-    );
-    if (!gtkVersionCheck.isNull())
-      log.error("gtk_check_version="+gtkVersionCheck.readString());
+firetray.Window.signals = {'focus-in': {callback: {}, handler: {}}};
 
-    if (firetray.Handler.isChatEnabled()) {
-      Cu.import("resource://firetray/FiretrayChat.jsm");
-      Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
-    }
+firetray.Window.init = function() {
+  let gtkVersionCheck = gtk.gtk_check_version(
+    gtk.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION,
+    gtk.FIRETRAY_REQUIRED_GTK_MINOR_VERSION,
+    gtk.FIRETRAY_REQUIRED_GTK_MICRO_VERSION
+  );
+  if (!gtkVersionCheck.isNull())
+    log.error("gtk_check_version="+gtkVersionCheck.readString());
 
-    this.initialized = true;
-  },
+  if (firetray.Handler.isChatEnabled()) {
+    Cu.import("resource://firetray/FiretrayChat.jsm");
+    Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
+  }
 
-  shutdown: function() {
-    this.initialized = false;
-  },
+  this.initialized = true;
+};
 
-  /**
-   * Iterate over all Gtk toplevel windows to find a window. We rely on
-   * Service.wm to watch windows correctly: we should find only one window.
-   *
-   * @author Nils Maier (stolen from MiniTrayR)
-   * @param window nsIDOMWindow from Services.wm
-   * @return a gtk.GtkWindow.ptr
-   */
-  getGtkWindowFromChromeWindow: function(window) {
-    let baseWindow = window
-          .QueryInterface(Ci.nsIInterfaceRequestor)
-          .getInterface(Ci.nsIWebNavigation)
-          .QueryInterface(Ci.nsIBaseWindow);
+firetray.Window.shutdown = function() {
+  this.initialized = false;
+};
 
-    // Tag the base window
-    let oldTitle = baseWindow.title;
-    log.debug("oldTitle="+oldTitle);
-    baseWindow.title = Services2.uuid.generateUUID().toString();
+/**
+ * Iterate over all Gtk toplevel windows to find a window. We rely on
+ * Service.wm to watch windows correctly: we should find only one window.
+ *
+ * @author Nils Maier (stolen from MiniTrayR)
+ * @param window nsIDOMWindow from Services.wm
+ * @return a gtk.GtkWindow.ptr
+ */
+firetray.Window.getGtkWindowFromChromeWindow = function(window) {
+  let baseWindow = window
+        .QueryInterface(Ci.nsIInterfaceRequestor)
+        .getInterface(Ci.nsIWebNavigation)
+        .QueryInterface(Ci.nsIBaseWindow);
 
-    try {
-      // Search the window by the *temporary* title
-      let widgets = gtk.gtk_window_list_toplevels();
-      let that = this;
-      let findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle);
-      var userData = new _find_data_t(
-        ctypes.char.array()(baseWindow.title),
-        null
-      ).address();
-      log.debug("userData="+userData);
-      gobject.g_list_foreach(widgets, findGtkWindowByTitleCb, userData);
-      gobject.g_list_free(widgets);
+  // Tag the base window
+  let oldTitle = baseWindow.title;
+  log.debug("oldTitle="+oldTitle);
+  baseWindow.title = Services2.uuid.generateUUID().toString();
 
-      if (userData.contents.outWindow.isNull())
-        throw new Error("Window not found!");
+  try {
+    // Search the window by the *temporary* title
+    let widgets = gtk.gtk_window_list_toplevels();
+    let that = this;
+    let findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle);
+    var userData = new _find_data_t(
+      ctypes.char.array()(baseWindow.title),
+      null
+    ).address();
+    log.debug("userData="+userData);
+    gobject.g_list_foreach(widgets, findGtkWindowByTitleCb, userData);
+    gobject.g_list_free(widgets);
 
-      log.debug("found window: "+userData.contents.outWindow);
-    } catch (x) {
-      log.error(x);
-    } finally {
-      // Restore
-      baseWindow.title = oldTitle;
-    }
+    if (userData.contents.outWindow.isNull())
+      throw new Error("Window not found!");
 
-    return userData.contents.outWindow;
-  },
+    log.debug("found window: "+userData.contents.outWindow);
+  } catch (x) {
+    log.error(x);
+  } finally {
+    // Restore
+    baseWindow.title = oldTitle;
+  }
 
-  /**
-   * compares a GtkWindow's title with a string passed in userData
-   * @param gtkWidget: GtkWidget from gtk_window_list_toplevels()
-   * @param userData: _find_data_t
-   */
-  _findGtkWindowByTitle: function(gtkWidget, userData) {
-    let data = ctypes.cast(userData, _find_data_t.ptr);
-    let inTitle = data.contents.inTitle;
+  return userData.contents.outWindow;
+};
 
-    let gtkWin = ctypes.cast(gtkWidget, gtk.GtkWindow.ptr);
-    let winTitle = gtk.gtk_window_get_title(gtkWin);
+/**
+ * compares a GtkWindow's title with a string passed in userData
+ * @param gtkWidget: GtkWidget from gtk_window_list_toplevels()
+ * @param userData: _find_data_t
+ */
+firetray.Window._findGtkWindowByTitle = function(gtkWidget, userData) {
+  let data = ctypes.cast(userData, _find_data_t.ptr);
+  let inTitle = data.contents.inTitle;
 
-    if (!winTitle.isNull()) {
-      log.debug(inTitle+" = "+winTitle);
-      if (libc.strcmp(inTitle, winTitle) == 0)
-        data.contents.outWindow = gtkWin;
-    }
-  },
+  let gtkWin = ctypes.cast(gtkWidget, gtk.GtkWindow.ptr);
+  let winTitle = gtk.gtk_window_get_title(gtkWin);
 
-  getGdkWindowFromGtkWindow: function(gtkWin) {
-    try {
-      let gtkWid = ctypes.cast(gtkWin, gtk.GtkWidget.ptr);
-      return gtk.gtk_widget_get_window(gtkWid);
-    } catch (x) {
-      log.error(x);
-    }
+  if (!winTitle.isNull()) {
+    log.debug(inTitle+" = "+winTitle);
+    if (libc.strcmp(inTitle, winTitle) == 0)
+      data.contents.outWindow = gtkWin;
+  }
+};
+
+firetray.Window.getGdkWindowFromGtkWindow = function(gtkWin) {
+  try {
+    let gtkWid = ctypes.cast(gtkWin, gtk.GtkWidget.ptr);
+    return gtk.gtk_widget_get_window(gtkWid);
+  } catch (x) {
+    log.error(x);
+  }
+  return null;
+};
+
+firetray.Window.getXIDFromGdkWindow = function(gdkWin) {
+  return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
+};
+
+firetray.Window.getXIDFromGtkWidget = function(gtkWid) {
+  let gdkWin = gtk.gtk_widget_get_window(gtkWid);
+  return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
+};
+
+firetray.Window.addrPointedByInHex = function(ptr) {
+  return "0x"+ctypes.cast(ptr, ctypes.uintptr_t.ptr).contents.toString(16);
+};
+
+firetray.Window.getGdkWindowFromNativeHandle = function(nativeHandle) {
+  let gdkw = new gdk.GdkWindow.ptr(ctypes.UInt64(nativeHandle)); // a new pointer to the GdkWindow
+  gdkw = gdk.gdk_window_get_toplevel(gdkw);
+  log.debug("gdkw="+gdkw+" *gdkw="+this.addrPointedByInHex(gdkw));
+  return gdkw;
+};
+
+firetray.Window.getGtkWindowFromGdkWindow = function(gdkWin) {
+  let gptr = new gobject.gpointer;
+  gdk.gdk_window_get_user_data(gdkWin, gptr.address());
+  log.debug("gptr="+gptr+" *gptr="+this.addrPointedByInHex(gptr));
+  let gtkw = ctypes.cast(gptr, gtk.GtkWindow.ptr);
+  log.debug("gtkw="+gtkw+" *gtkw="+this.addrPointedByInHex(gtkw));
+  return gtkw;
+};
+
+/* consider using getXIDFromChromeWindow() if you only need the XID */
+firetray.Window.getWindowsFromChromeWindow = function(win) {
+  let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
+  let nativeHandle = baseWin.nativeHandle; // Moz' private pointer to the GdkWindow
+  log.debug("nativeHandle="+nativeHandle);
+  let gtkWin, gdkWin;
+  if (nativeHandle) { // Gecko 17+
+    gdkWin = firetray.Window.getGdkWindowFromNativeHandle(nativeHandle);
+    gtkWin = firetray.Window.getGtkWindowFromGdkWindow(gdkWin);
+  } else {
+    gtkWin = firetray.Window.getGtkWindowFromChromeWindow(win);
+    gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWin);
+  }
+  let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
+  log.debug("XID="+xid);
+  return [baseWin, gtkWin, gdkWin, xid];
+};
+
+firetray.Window.getXIDFromChromeWindow = function(win) {
+  for (let xid in firetray.Handler.windows)
+    if (firetray.Handler.windows[xid].chromeWin === win) return xid;
+  log.error("unknown window while lookup");
+  return null;
+};
+
+firetray.Window.unregisterWindowByXID = function(xid) {
+  if (!firetray.Handler.windows.hasOwnProperty(xid)) {
+    log.error("can't unregister unknown window "+xid);
+    return false;
+  }
+
+  firetray.Window.detachOnFocusInCallback(xid);
+  if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
+    firetray.Chat.detachSelectListeners(firetray.Handler.windows[xid].chromeWin);
+  }
+
+  if (!delete firetray.Handler.windows[xid])
+    throw new DeleteError();
+  firetray.Handler.gtkWindows.remove(xid);
+  firetray.Handler.gdkWindows.remove(xid);
+  firetray.Handler.windowsCount -= 1;
+  firetray.Handler.visibleWindowsCount -= 1;
+
+  firetray.PopupMenu.removeWindowItem(xid);
+
+  log.debug("window "+xid+" unregistered");
+  return true;
+};
+
+firetray.Window.show = function(xid) {
+  log.debug("show xid="+xid);
+
+  // try to restore previous state. TODO: z-order respected ?
+  firetray.Window.restorePositionAndSize(xid);
+  firetray.Window.restoreStates(xid);
+
+  // better visual effect if visibility set after restorePosition, but some
+  // WMs like compiz seem not to honor position setting if window not visible
+  firetray.Window.setVisibility(xid, true);
+
+  // after show
+  firetray.Window.restoreDesktop(xid);
+  if (firetray.Utils.prefService.getBoolPref('show_activates'))
+    firetray.Window.activate(xid);
+
+  firetray.PopupMenu.hideWindowItemAndSeparatorMaybe(xid);
+  firetray.Handler.showHideIcon();
+};
+
+/* FIXME: hiding windows should also hide child windows, like message windows
+ in Thunderbird */
+firetray.Window.hide = function(xid) {
+  log.debug("hide");
+
+  firetray.Window.savePositionAndSize(xid);
+  firetray.Window.saveStates(xid);
+  firetray.Window.saveDesktop(xid);
+
+  firetray.Window.setVisibility(xid, false);
+
+  firetray.PopupMenu.showWindowItem(xid);
+  firetray.Handler.showHideIcon();
+};
+
+firetray.Window.startupHide = function(xid) {
+  log.debug('startupHide: '+xid);
+
+  // also it seems cleaner, baseWin.visibility=false removes the possibility
+  // to restore the app by calling it from the command line. Not sure why...
+  firetray.Window.setVisibility(xid, false);
+
+  firetray.PopupMenu.showWindowItem(xid);
+  firetray.Handler.showHideIcon();
+};
+
+firetray.Window.savePositionAndSize = function(xid) {
+  let gx = {}, gy = {}, gwidth = {}, gheight = {};
+  firetray.Handler.windows[xid].baseWin.getPositionAndSize(gx, gy, gwidth, gheight);
+  firetray.Handler.windows[xid].savedX = gx.value;
+  firetray.Handler.windows[xid].savedY = gy.value;
+  firetray.Handler.windows[xid].savedWidth = gwidth.value;
+  firetray.Handler.windows[xid].savedHeight = gheight.value;
+  log.debug("save: gx="+gx.value+", gy="+gy.value+", gwidth="+gwidth.value+", gheight="+gheight.value);
+};
+
+firetray.Window.restorePositionAndSize = function(xid) {
+  if ("undefined" === typeof(firetray.Handler.windows[xid].savedX))
+    return; // windows[xid].saved* may not be initialized
+
+  log.debug("restore: x="+firetray.Handler.windows[xid].savedX+", y="+firetray.Handler.windows[xid].savedY+", w="+firetray.Handler.windows[xid].savedWidth+", h="+firetray.Handler.windows[xid].savedHeight);
+  firetray.Handler.windows[xid].baseWin.setPositionAndSize(
+    firetray.Handler.windows[xid].savedX,
+    firetray.Handler.windows[xid].savedY,
+    firetray.Handler.windows[xid].savedWidth,
+    firetray.Handler.windows[xid].savedHeight,
+    false); // repaint
+
+  ['savedX', 'savedX', 'savedWidth', 'savedHeight'].forEach(function(element) {
+    delete firetray.Handler.windows[xid][element];
+  });
+};
+
+firetray.Window.saveStates = function(xid) {
+  let winStates = firetray.Window.getXWindowStates(x11.Window(xid));
+  firetray.Handler.windows[xid].savedStates = winStates;
+  log.debug("save: windowStates="+winStates);
+};
+
+// NOTE: fluxbox bug probably: if hidden and restored iconified, then
+// switching to desktop de-iconifies it ?!
+firetray.Window.restoreStates = function(xid) {
+  let winStates = firetray.Handler.windows[xid].savedStates;
+  log.debug("restored WindowStates: " + winStates);
+
+  if (winStates & FIRETRAY_XWINDOW_HIDDEN) {
+    firetray.Handler.windows[xid].chromeWin.minimize();
+    log.debug("restored minimized");
+  }
+
+  /* we expect the WM to actually show the window *not* minimized once
+   restored */
+  if (firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
+    // help prevent getting iconify event following show()
+    firetray.Handler.windows[xid].chromeWin.restore(); // nsIDOMChromeWindow.idl
+
+  if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
+    firetray.Handler.windows[xid].chromeWin.maximize();
+    log.debug("restored maximized");
+  }
+
+  delete firetray.Handler.windows[xid].savedStates;
+};
+
+firetray.Window.saveDesktop = function(xid) {
+  if (!firetray.Utils.prefService.getBoolPref('remember_desktop'))
+    return;
+
+  let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
+  firetray.Handler.windows[xid].savedDesktop = winDesktop;
+  log.debug("save: windowDesktop="+winDesktop);
+};
+
+firetray.Window.restoreDesktop = function(xid) {
+  if (!firetray.Utils.prefService.getBoolPref('remember_desktop'))
+    return;
+
+  let desktopDest = firetray.Handler.windows[xid].savedDesktop;
+  if (desktopDest === null || "undefined" === typeof(desktopDest)) return;
+
+  let dataSize = 1;
+  let data = ctypes.long(dataSize);
+  data[0] = desktopDest;
+  this.xSendClientMessgeEvent(xid, x11.current.Atoms._NET_WM_DESKTOP, data, dataSize);
+
+  log.debug("restored to desktop: "+desktopDest);
+  delete firetray.Handler.windows[xid].savedDesktop;
+};
+
+firetray.Window.setVisibility = function(xid, visibility) {
+  log.debug("setVisibility="+visibility);
+  let gtkWidget = ctypes.cast(firetray.Handler.gtkWindows.get(xid), gtk.GtkWidget.ptr);
+  if (visibility)
+    gtk.gtk_widget_show_all(gtkWidget);
+  else
+    gtk.gtk_widget_hide(gtkWidget);
+
+  this.updateVisibility(xid, visibility);
+};
+// firetray.Window.updateVisibility inherited
+
+firetray.Window.xSendClientMessgeEvent = function(xid, atom, data, dataSize) {
+  let xev = new x11.XClientMessageEvent;
+  xev.type = x11.ClientMessage;
+  xev.window = x11.Window(xid);
+  xev.message_type = atom;
+  xev.format = 32;
+  for (let i=0; i<dataSize; ++i)
+    xev.data[i] = data[i];
+
+  let rootWin = x11.XDefaultRootWindow(x11.current.Display);
+  let propagate = false;
+  let mask = ctypes.long(x11.SubstructureNotifyMask|x11.SubstructureRedirectMask);
+  // fortunately, it's OK not to cast xev. ctypes.cast to a void_t doesn't work (length pb)
+  let status = x11.XSendEvent(x11.current.Display, rootWin, propagate, mask, xev.address());
+  // always returns 1 (BadRequest as a coincidence)
+};
+
+/**
+ * raises window on top and give focus.
+ */
+firetray.Window.activate = function(xid) {
+  gtk.gtk_window_present(firetray.Handler.gtkWindows.get(xid));
+  log.debug("window raised");
+};
+
+firetray.Window.setUrgency = function(xid, urgent) {
+  log.debug("setUrgency: "+urgent);
+  gtk.gtk_window_set_urgency_hint(firetray.Handler.gtkWindows.get(xid), urgent);
+};
+
+/**
+ * YOU MUST x11.XFree() THE VARIABLE RETURNED BY THIS FUNCTION
+ * @param xwin: a x11.Window
+ * @param prop: a x11.Atom
+ */
+firetray.Window.getXWindowProperties = function(xwin, prop) {
+  // infos returned by XGetWindowProperty() - FIXME: should be freed ?
+  let actual_type = new x11.Atom;
+  let actual_format = new ctypes.int;
+  let nitems = new ctypes.unsigned_long;
+  let bytes_after = new ctypes.unsigned_long;
+  let prop_value = new ctypes.unsigned_char.ptr;
+
+  let bufSize = XATOMS_EWMH_WM_STATES.length*ctypes.unsigned_long.size;
+  let offset = 0;
+  let res = x11.XGetWindowProperty(
+    x11.current.Display, xwin, prop, offset, bufSize, 0, x11.AnyPropertyType,
+    actual_type.address(), actual_format.address(), nitems.address(),
+    bytes_after.address(), prop_value.address());
+  log.debug("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
+
+  if (!firetray.js.strEquals(res, x11.Success)) {
+    log.error("XGetWindowProperty failed");
+    return [null, null];
+  }
+  if (firetray.js.strEquals(actual_type.value, x11.None)) {
+    log.debug("property not found");
+    return [null, null];
+  }
+
+  log.debug("prop_value="+prop_value+", size="+prop_value.constructor.size);
+  /* If the returned format is 32, the property data will be stored as an
+   array of longs (which in a 64-bit application will be 64-bit values
+   that are padded in the upper 4 bytes). [man XGetWindowProperty] */
+  if (actual_format.value !== 32) {
+    log.error("unsupported format: "+actual_format.value);
+  }
+  log.debug("format OK");
+  var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
+  log.debug("props="+props+", size="+props.constructor.size);
+
+  return [props, nitems];
+};
+
+/**
+ * check the state of a window by its EWMH window state. This is more
+ * accurate than the chromeWin.windowState or the GdkWindowState which are
+ * based on WM_STATE. For instance, WM_STATE becomes 'Iconic' on virtual
+ * desktop change...
+ */
+firetray.Window.getXWindowStates = function(xwin) {
+  let winStates = 0;
+
+  let [propsFound, nitems] =
+        firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_STATE);
+  log.debug("propsFound, nitems="+propsFound+", "+nitems);
+  if (!propsFound) return 0;
+
+  let maximizedHorz = maximizedVert = false;
+  for (let i=0, len=nitems.value; i<len; ++i) {
+    log.debug("i: "+propsFound.contents[i]);
+    let currentProp = propsFound.contents[i];
+    if (firetray.js.strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_HIDDEN']))
+      winStates |= FIRETRAY_XWINDOW_HIDDEN;
+    else if (firetray.js.strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_HORZ']))
+      maximizedHorz = true;
+    else if (firetray.js.strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_VERT']))
+      maximizedVert = true;
+  }
+
+  if (maximizedHorz && maximizedVert)
+    winStates |= FIRETRAY_XWINDOW_MAXIMIZED;
+
+  x11.XFree(propsFound);
+
+  return winStates;
+};
+
+firetray.Window.getXWindowDesktop = function(xwin) {
+  let desktop = null;
+
+  let [propsFound, nitems] =
+        firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_DESKTOP);
+  log.debug("DESKTOP propsFound, nitems="+propsFound+", "+nitems);
+  if (!propsFound) return null;
+
+  if (firetray.js.strEquals(nitems.value, 0))
+    log.warn("desktop number not found");
+  else if (firetray.js.strEquals(nitems.value, 1))
+    desktop = propsFound.contents[0];
+  else
+    throw new RangeError("more than one desktop found");
+
+  x11.XFree(propsFound);
+
+  return desktop;
+};
+
+firetray.Window.getWindowTitle = function(xid) {
+  let title = firetray.Handler.windows[xid].baseWin.title;
+  log.debug("|baseWin.title="+title+"|");
+  let tailIndex;
+  tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
+  if (tailIndex === -1)
+    tailIndex = title.indexOf(" - "+firetray.Handler.appName);
+
+  if (tailIndex !== -1)
+    return title.substring(0, tailIndex);
+  else if (title === "Mozilla "+firetray.Handler.appName)
+    return title;
+  else
     return null;
-  },
+};
 
-  getXIDFromGdkWindow: function(gdkWin) {
-    return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
-  },
+firetray.Window.checkSubscribedEventMasks = function(xid) {
+  let xWindowAttributes = new x11.XWindowAttributes;
+  let status = x11.XGetWindowAttributes(x11.current.Display, xid, xWindowAttributes.address());
+  log.debug("xWindowAttributes: "+xWindowAttributes);
+  let xEventMask = xWindowAttributes.your_event_mask;
+  let xEventMaskNeeded = x11.VisibilityChangeMask|x11.StructureNotifyMask|
+        x11.FocusChangeMask|x11.PropertyChangeMask;
+  log.debug("xEventMask="+xEventMask+" xEventMaskNeeded="+xEventMaskNeeded);
+  if ((xEventMask & xEventMaskNeeded) !== xEventMaskNeeded) {
+    log.error("missing mandatory event-masks"); // change with gdk_window_set_events()
+  }
+};
 
-  getXIDFromGtkWidget: function(gtkWid) {
-    let gdkWin = gtk.gtk_widget_get_window(gtkWid);
-    return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
-  },
+firetray.Window.filterWindow = function(xev, gdkEv, data) {
+  if (!xev)
+    return gdk.GDK_FILTER_CONTINUE;
 
-  addrPointedByInHex: function(ptr) {
-    return "0x"+ctypes.cast(ptr, ctypes.uintptr_t.ptr).contents.toString(16);
-  },
+  let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
+  let xid = xany.contents.window;
 
-  getGdkWindowFromNativeHandle: function(nativeHandle) {
-    let gdkw = new gdk.GdkWindow.ptr(ctypes.UInt64(nativeHandle)); // a new pointer to the GdkWindow
-    gdkw = gdk.gdk_window_get_toplevel(gdkw);
-    log.debug("gdkw="+gdkw+" *gdkw="+this.addrPointedByInHex(gdkw));
-    return gdkw;
-  },
+  switch (xany.contents.type) {
 
-  getGtkWindowFromGdkWindow: function(gdkWin) {
-    let gptr = new gobject.gpointer;
-    gdk.gdk_window_get_user_data(gdkWin, gptr.address());
-    log.debug("gptr="+gptr+" *gptr="+this.addrPointedByInHex(gptr));
-    let gtkw = ctypes.cast(gptr, gtk.GtkWindow.ptr);
-    log.debug("gtkw="+gtkw+" *gtkw="+this.addrPointedByInHex(gtkw));
-    return gtkw;
-  },
-
-  /* consider using getXIDFromChromeWindow() if you only need the XID */
-  getWindowsFromChromeWindow: function(win) {
-    let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
-    let nativeHandle = baseWin.nativeHandle; // Moz' private pointer to the GdkWindow
-    log.debug("nativeHandle="+nativeHandle);
-    let gtkWin, gdkWin;
-    if (nativeHandle) { // Gecko 17+
-      gdkWin = firetray.Window.getGdkWindowFromNativeHandle(nativeHandle);
-      gtkWin = firetray.Window.getGtkWindowFromGdkWindow(gdkWin);
-    } else {
-      gtkWin = firetray.Window.getGtkWindowFromChromeWindow(win);
-      gdkWin = firetray.Window.getGdkWindowFromGtkWindow(gtkWin);
-    }
-    let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
-    log.debug("XID="+xid);
-    return [baseWin, gtkWin, gdkWin, xid];
-  },
-
-  getXIDFromChromeWindow: function(win) {
-    for (let xid in firetray.Handler.windows)
-      if (firetray.Handler.windows[xid].chromeWin === win) return xid;
-    log.error("unknown window while lookup");
-    return null;
-  },
-
-  unregisterWindowByXID: function(xid) {
-    if (!firetray.Handler.windows.hasOwnProperty(xid)) {
-      log.error("can't unregister unknown window "+xid);
-      return false;
-    }
-
-    firetray.Window.detachOnFocusInCallback(xid);
-    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
-      firetray.Chat.detachSelectListeners(firetray.Handler.windows[xid].chromeWin);
-    }
-
-    if (!delete firetray.Handler.windows[xid])
-      throw new DeleteError();
-    firetray.Handler.gtkWindows.remove(xid);
-    firetray.Handler.gdkWindows.remove(xid);
-    firetray.Handler.windowsCount -= 1;
-    firetray.Handler.visibleWindowsCount -= 1;
-
-    firetray.PopupMenu.removeWindowItem(xid);
-
-    log.debug("window "+xid+" unregistered");
-    return true;
-  },
-
-  show: function(xid) {
-    log.debug("show xid="+xid);
-
-    // try to restore previous state. TODO: z-order respected ?
-    firetray.Window.restorePositionAndSize(xid);
-    firetray.Window.restoreStates(xid);
-
-    // better visual effect if visibility set after restorePosition, but some
-    // WMs like compiz seem not to honor position setting if window not visible
-    firetray.Window.setVisibility(xid, true);
-
-    // after show
-    firetray.Window.restoreDesktop(xid);
-    if (firetray.Utils.prefService.getBoolPref('show_activates'))
-      firetray.Window.activate(xid);
-
-    firetray.PopupMenu.hideWindowItemAndSeparatorMaybe(xid);
-    firetray.Handler.showHideIcon();
-  },
-
-  /* FIXME: hiding windows should also hide child windows, like message windows
-   in Thunderbird */
-  hide: function(xid) {
-    log.debug("hide");
-
-    firetray.Window.savePositionAndSize(xid);
-    firetray.Window.saveStates(xid);
-    firetray.Window.saveDesktop(xid);
-
-    firetray.Window.setVisibility(xid, false);
-
-    firetray.PopupMenu.showWindowItem(xid);
-    firetray.Handler.showHideIcon();
-  },
-
-  startupHide: function(xid) {
-    log.debug('startupHide: '+xid);
-
-    // also it seems cleaner, baseWin.visibility=false removes the possibility
-    // to restore the app by calling it from the command line. Not sure why...
-    firetray.Window.setVisibility(xid, false);
-
-    firetray.PopupMenu.showWindowItem(xid);
-    firetray.Handler.showHideIcon();
-  },
-
-  savePositionAndSize: function(xid) {
-    let gx = {}, gy = {}, gwidth = {}, gheight = {};
-    firetray.Handler.windows[xid].baseWin.getPositionAndSize(gx, gy, gwidth, gheight);
-    firetray.Handler.windows[xid].savedX = gx.value;
-    firetray.Handler.windows[xid].savedY = gy.value;
-    firetray.Handler.windows[xid].savedWidth = gwidth.value;
-    firetray.Handler.windows[xid].savedHeight = gheight.value;
-    log.debug("save: gx="+gx.value+", gy="+gy.value+", gwidth="+gwidth.value+", gheight="+gheight.value);
-  },
-
-  restorePositionAndSize: function(xid) {
-    if ("undefined" === typeof(firetray.Handler.windows[xid].savedX))
-      return; // windows[xid].saved* may not be initialized
-
-    log.debug("restore: x="+firetray.Handler.windows[xid].savedX+", y="+firetray.Handler.windows[xid].savedY+", w="+firetray.Handler.windows[xid].savedWidth+", h="+firetray.Handler.windows[xid].savedHeight);
-    firetray.Handler.windows[xid].baseWin.setPositionAndSize(
-      firetray.Handler.windows[xid].savedX,
-      firetray.Handler.windows[xid].savedY,
-      firetray.Handler.windows[xid].savedWidth,
-      firetray.Handler.windows[xid].savedHeight,
-      false); // repaint
-
-    ['savedX', 'savedX', 'savedWidth', 'savedHeight'].forEach(function(element) {
-      delete firetray.Handler.windows[xid][element];
-    });
-  },
-
-  saveStates: function(xid) {
-    let winStates = firetray.Window.getXWindowStates(x11.Window(xid));
-    firetray.Handler.windows[xid].savedStates = winStates;
-    log.debug("save: windowStates="+winStates);
-  },
-
-  // NOTE: fluxbox bug probably: if hidden and restored iconified, then
-  // switching to desktop de-iconifies it ?!
-  restoreStates: function(xid) {
-    let winStates = firetray.Handler.windows[xid].savedStates;
-    log.debug("restored WindowStates: " + winStates);
-
-    if (winStates & FIRETRAY_XWINDOW_HIDDEN) {
-      firetray.Handler.windows[xid].chromeWin.minimize();
-      log.debug("restored minimized");
-    }
-
-    /* we expect the WM to actually show the window *not* minimized once
-     restored */
-    if (firetray.Utils.prefService.getBoolPref('hides_on_minimize'))
-      // help prevent getting iconify event following show()
-      firetray.Handler.windows[xid].chromeWin.restore(); // nsIDOMChromeWindow.idl
-
-    if (winStates & FIRETRAY_XWINDOW_MAXIMIZED) {
-      firetray.Handler.windows[xid].chromeWin.maximize();
-      log.debug("restored maximized");
-    }
-
-    delete firetray.Handler.windows[xid].savedStates;
-  },
-
-  saveDesktop: function(xid) {
-    if (!firetray.Utils.prefService.getBoolPref('remember_desktop'))
-      return;
-
-    let winDesktop = firetray.Window.getXWindowDesktop(x11.Window(xid));
-    firetray.Handler.windows[xid].savedDesktop = winDesktop;
-    log.debug("save: windowDesktop="+winDesktop);
-  },
-
-  restoreDesktop: function(xid) {
-    if (!firetray.Utils.prefService.getBoolPref('remember_desktop'))
-      return;
-
-    let desktopDest = firetray.Handler.windows[xid].savedDesktop;
-    if (desktopDest === null || "undefined" === typeof(desktopDest)) return;
-
-    let dataSize = 1;
-    let data = ctypes.long(dataSize);
-    data[0] = desktopDest;
-    this.xSendClientMessgeEvent(xid, x11.current.Atoms._NET_WM_DESKTOP, data, dataSize);
-
-    log.debug("restored to desktop: "+desktopDest);
-    delete firetray.Handler.windows[xid].savedDesktop;
-  },
-
-  setVisibility: function(xid, visibility) {
-    log.debug("setVisibility="+visibility);
-    let gtkWidget = ctypes.cast(firetray.Handler.gtkWindows.get(xid), gtk.GtkWidget.ptr);
-    if (visibility)
-      gtk.gtk_widget_show_all(gtkWidget);
-    else
-      gtk.gtk_widget_hide(gtkWidget);
-
-    this.updateVisibility(xid, visibility);
-  },
-
-  updateVisibility: function(xid, visibility) {
+  case x11.MapNotify:
+    log.debug("MapNotify");
+    let gdkWinStateOnMap = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xid));
+    log.debug("gdkWinState="+gdkWinStateOnMap+" for xid="+xid);
     let win = firetray.Handler.windows[xid];
-    if (win.visible === visibility)
-      log.warn("window (xid="+xid+") was already visible="+win.visible);
-
-    firetray.Handler.visibleWindowsCount = visibility ?
-      firetray.Handler.visibleWindowsCount + 1 :
-      firetray.Handler.visibleWindowsCount - 1 ;
-
-    win.visible = visibility; // nsIBaseWin.visibility always true :-(
-  },
-
-  xSendClientMessgeEvent: function(xid, atom, data, dataSize) {
-    let xev = new x11.XClientMessageEvent;
-    xev.type = x11.ClientMessage;
-    xev.window = x11.Window(xid);
-    xev.message_type = atom;
-    xev.format = 32;
-    for (let i=0; i<dataSize; ++i)
-      xev.data[i] = data[i];
-
-    let rootWin = x11.XDefaultRootWindow(x11.current.Display);
-    let propagate = false;
-    let mask = ctypes.long(x11.SubstructureNotifyMask|x11.SubstructureRedirectMask);
-    // fortunately, it's OK not to cast xev. ctypes.cast to a void_t doesn't work (length pb)
-    let status = x11.XSendEvent(x11.current.Display, rootWin, propagate, mask, xev.address());
-    // always returns 1 (BadRequest as a coincidence)
-  },
-
-  /**
-   * raises window on top and give focus.
-   */
-  activate: function(xid) {
-    gtk.gtk_window_present(firetray.Handler.gtkWindows.get(xid));
-    log.debug("window raised");
-  },
-
-  setUrgency: function(xid, urgent) {
-    log.debug("setUrgency: "+urgent);
-    gtk.gtk_window_set_urgency_hint(firetray.Handler.gtkWindows.get(xid), urgent);
-  },
-
-  /**
-   * YOU MUST x11.XFree() THE VARIABLE RETURNED BY THIS FUNCTION
-   * @param xwin: a x11.Window
-   * @param prop: a x11.Atom
-   */
-  getXWindowProperties: function(xwin, prop) {
-    // infos returned by XGetWindowProperty() - FIXME: should be freed ?
-    let actual_type = new x11.Atom;
-    let actual_format = new ctypes.int;
-    let nitems = new ctypes.unsigned_long;
-    let bytes_after = new ctypes.unsigned_long;
-    let prop_value = new ctypes.unsigned_char.ptr;
-
-    let bufSize = XATOMS_EWMH_WM_STATES.length*ctypes.unsigned_long.size;
-    let offset = 0;
-    let res = x11.XGetWindowProperty(
-      x11.current.Display, xwin, prop, offset, bufSize, 0, x11.AnyPropertyType,
-      actual_type.address(), actual_format.address(), nitems.address(),
-      bytes_after.address(), prop_value.address());
-    log.debug("XGetWindowProperty res="+res+", actual_type="+actual_type.value+", actual_format="+actual_format.value+", bytes_after="+bytes_after.value+", nitems="+nitems.value);
-
-    if (!firetray.js.strEquals(res, x11.Success)) {
-      log.error("XGetWindowProperty failed");
-      return [null, null];
+    if (firetray.Handler.appStarted && !win.visible) {
+      // when app hidden at startup, then called from command line without
+      // any argument (not through FireTray that is)
+      log.warn("window not visible, correcting visibility");
+      firetray.Window.updateVisibility(xid, true);
+      log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
     }
-    if (firetray.js.strEquals(actual_type.value, x11.None)) {
-      log.debug("property not found");
-      return [null, null];
-    }
+    break;
 
-    log.debug("prop_value="+prop_value+", size="+prop_value.constructor.size);
-    /* If the returned format is 32, the property data will be stored as an
-     array of longs (which in a 64-bit application will be 64-bit values
-     that are padded in the upper 4 bytes). [man XGetWindowProperty] */
-    if (actual_format.value !== 32) {
-      log.error("unsupported format: "+actual_format.value);
-    }
-    log.debug("format OK");
-    var props = ctypes.cast(prop_value, ctypes.unsigned_long.array(nitems.value).ptr);
-    log.debug("props="+props+", size="+props.constructor.size);
+  case x11.UnmapNotify:       // for catching 'iconify'
+    log.debug("UnmapNotify");
 
-    return [props, nitems];
-  },
-
-  /**
-   * check the state of a window by its EWMH window state. This is more
-   * accurate than the chromeWin.windowState or the GdkWindowState which are
-   * based on WM_STATE. For instance, WM_STATE becomes 'Iconic' on virtual
-   * desktop change...
-   */
-  getXWindowStates: function(xwin) {
-    let winStates = 0;
-
-    let [propsFound, nitems] =
-      firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_STATE);
-    log.debug("propsFound, nitems="+propsFound+", "+nitems);
-    if (!propsFound) return 0;
-
-    let maximizedHorz = maximizedVert = false;
-    for (let i=0, len=nitems.value; i<len; ++i) {
-      log.debug("i: "+propsFound.contents[i]);
-      let currentProp = propsFound.contents[i];
-      if (firetray.js.strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_HIDDEN']))
-        winStates |= FIRETRAY_XWINDOW_HIDDEN;
-      else if (firetray.js.strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_HORZ']))
-        maximizedHorz = true;
-      else if (firetray.js.strEquals(currentProp, x11.current.Atoms['_NET_WM_STATE_MAXIMIZED_VERT']))
-        maximizedVert = true;
-    }
-
-    if (maximizedHorz && maximizedVert)
-      winStates |= FIRETRAY_XWINDOW_MAXIMIZED;
-
-    x11.XFree(propsFound);
-
-    return winStates;
-  },
-
-  getXWindowDesktop: function(xwin) {
-    let desktop = null;
-
-    let [propsFound, nitems] =
-      firetray.Window.getXWindowProperties(xwin, x11.current.Atoms._NET_WM_DESKTOP);
-    log.debug("DESKTOP propsFound, nitems="+propsFound+", "+nitems);
-    if (!propsFound) return null;
-
-    if (firetray.js.strEquals(nitems.value, 0))
-      log.warn("desktop number not found");
-    else if (firetray.js.strEquals(nitems.value, 1))
-      desktop = propsFound.contents[0];
-    else
-      throw new RangeError("more than one desktop found");
-
-    x11.XFree(propsFound);
-
-    return desktop;
-  },
-
-  getWindowTitle: function(xid) {
-    let title = firetray.Handler.windows[xid].baseWin.title;
-    log.debug("|baseWin.title="+title+"|");
-    let tailIndex;
-    tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
-    if (tailIndex === -1)
-      tailIndex = title.indexOf(" - "+firetray.Handler.appName);
-
-    if (tailIndex !== -1)
-      return title.substring(0, tailIndex);
-    else if (title === "Mozilla "+firetray.Handler.appName)
-      return title;
-    else
-      return null;
-  },
-
-  checkSubscribedEventMasks: function(xid) {
-    let xWindowAttributes = new x11.XWindowAttributes;
-    let status = x11.XGetWindowAttributes(x11.current.Display, xid, xWindowAttributes.address());
-    log.debug("xWindowAttributes: "+xWindowAttributes);
-    let xEventMask = xWindowAttributes.your_event_mask;
-    let xEventMaskNeeded = x11.VisibilityChangeMask|x11.StructureNotifyMask|
-      x11.FocusChangeMask|x11.PropertyChangeMask;
-    log.debug("xEventMask="+xEventMask+" xEventMaskNeeded="+xEventMaskNeeded);
-    if ((xEventMask & xEventMaskNeeded) !== xEventMaskNeeded) {
-      log.error("missing mandatory event-masks"); // change with gdk_window_set_events()
-    }
-  },
-
-  filterWindow: function(xev, gdkEv, data) {
-    if (!xev)
-      return gdk.GDK_FILTER_CONTINUE;
-
-    let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
-    let xid = xany.contents.window;
-
-    switch (xany.contents.type) {
-
-    case x11.MapNotify:
-      log.debug("MapNotify");
-      let gdkWinStateOnMap = gdk.gdk_window_get_state(firetray.Handler.gdkWindows.get(xid));
-      log.debug("gdkWinState="+gdkWinStateOnMap+" for xid="+xid);
-      let win = firetray.Handler.windows[xid];
-      if (firetray.Handler.appStarted && !win.visible) {
-        // when app hidden at startup, then called from command line without
-        // any argument (not through FireTray that is)
-        log.warn("window not visible, correcting visibility");
-        firetray.Window.updateVisibility(xid, true);
-        log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
+    let winStates = firetray.Window.getXWindowStates(xid);
+    let isHidden =  winStates & FIRETRAY_XWINDOW_HIDDEN;
+    log.debug("winStates="+winStates+", isHidden="+isHidden);
+    // NOTE: Gecko 8.0 provides the 'sizemodechange' event
+    if (isHidden) {
+      log.debug("GOT ICONIFIED");
+      let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+      let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+      if (hides_on_minimize) {
+        if (hides_single_window)
+          firetray.Handler.hideWindow(xid);
+        else
+          firetray.Handler.hideAllWindows();
       }
-      break;
-
-    case x11.UnmapNotify:       // for catching 'iconify'
-      log.debug("UnmapNotify");
-
-      let winStates = firetray.Window.getXWindowStates(xid);
-      let isHidden =  winStates & FIRETRAY_XWINDOW_HIDDEN;
-      log.debug("winStates="+winStates+", isHidden="+isHidden);
-      // NOTE: Gecko 8.0 provides the 'sizemodechange' event
-      if (isHidden) {
-        log.debug("GOT ICONIFIED");
-        let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-        let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-        if (hides_on_minimize) {
-          if (hides_single_window)
-            firetray.Handler.hideWindow(xid);
-          else
-            firetray.Handler.hideAllWindows();
-        }
-      }
-      break;
-
-      // default:
-      //   log.debug("xany.type="+xany.contents.type);
-      //   break;
     }
+    break;
 
+    // default:
+    //   log.debug("xany.type="+xany.contents.type);
+    //   break;
+  }
+
+  return gdk.GDK_FILTER_CONTINUE;
+};
+
+firetray.Window.startupFilter = function(xev, gdkEv, data) {
+  if (!xev)
     return gdk.GDK_FILTER_CONTINUE;
-  },
 
-  startupFilter: function(xev, gdkEv, data) {
-    if (!xev)
-      return gdk.GDK_FILTER_CONTINUE;
+  let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
+  let xid = xany.contents.window;
 
-    let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
-    let xid = xany.contents.window;
-
-    if (xany.contents.type === x11.MapNotify) {
-      gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),
-        firetray.Handler.windows[xid].startupFilterCb, null);
-      if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
-        log.debug("start_hidden");
-        firetray.Window.startupHide(xid);
-      }
-    }
-
-    return gdk.GDK_FILTER_CONTINUE;
-  },
-
-  showAllWindowsAndActivate: function() {
-    let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
-    log.debug("visibilityRate="+visibilityRate);
-    if (visibilityRate < 1)
-      firetray.Handler.showAllWindows();
-
-    for(var key in firetray.Handler.windows); // FIXME: this is not the proper way for finding the last registered window !
-    firetray.Window.activate(key);
-  },
-
-  attachOnFocusInCallback: function(xid) {
-    log.debug("attachOnFocusInCallback xid="+xid);
-    this.signals['focus-in'].callback[xid] =
-      gtk.GCallbackWidgetFocusEvent_t(firetray.Window.onFocusIn);
-    this.signals['focus-in'].handler[xid] = gobject.g_signal_connect(
-      firetray.Handler.gtkWindows.get(xid), "focus-in-event",
-      firetray.Window.signals['focus-in'].callback[xid], null);
-    log.debug("focus-in handler="+this.signals['focus-in'].handler[xid]);
-  },
-
-  detachOnFocusInCallback: function(xid) {
-    log.debug("detachOnFocusInCallback xid="+xid);
-    let gtkWin = firetray.Handler.gtkWindows.get(xid);
-    gobject.g_signal_handler_disconnect(gtkWin, this.signals['focus-in'].handler[xid]);
-    delete this.signals['focus-in'].callback[xid];
-    delete this.signals['focus-in'].handler[xid];
-  },
-
-  // NOTE: fluxbox issues a FocusIn event when switching workspace
-  // by hotkey, which means 2 FocusIn events when switching to a moz app :(
-  // (http://sourceforge.net/tracker/index.php?func=detail&aid=3190205&group_id=35398&atid=413960)
-  onFocusIn: function(widget, event, data) {
-    log.debug("onFocusIn");
-    let xid = firetray.Window.getXIDFromGtkWidget(widget);
-    log.debug("xid="+xid);
-
-    firetray.Window.setUrgency(xid, false);
-
-    if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
-      firetray.Chat.stopGetAttentionMaybe(xid);
+  if (xany.contents.type === x11.MapNotify) {
+    gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),
+                                 firetray.Handler.windows[xid].startupFilterCb, null);
+    if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
+      log.debug("start_hidden");
+      firetray.Window.startupHide(xid);
     }
   }
 
-}; // firetray.Window
+  return gdk.GDK_FILTER_CONTINUE;
+};
+
+firetray.Window.showAllWindowsAndActivate = function() {
+  let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
+  log.debug("visibilityRate="+visibilityRate);
+  if (visibilityRate < 1)
+    firetray.Handler.showAllWindows();
+
+  for(var key in firetray.Handler.windows); // FIXME: this is not the proper way for finding the last registered window !
+  firetray.Window.activate(key);
+};
+
+firetray.Window.attachOnFocusInCallback = function(xid) {
+  log.debug("attachOnFocusInCallback xid="+xid);
+  this.signals['focus-in'].callback[xid] =
+    gtk.GCallbackWidgetFocusEvent_t(firetray.Window.onFocusIn);
+  this.signals['focus-in'].handler[xid] = gobject.g_signal_connect(
+    firetray.Handler.gtkWindows.get(xid), "focus-in-event",
+    firetray.Window.signals['focus-in'].callback[xid], null);
+  log.debug("focus-in handler="+this.signals['focus-in'].handler[xid]);
+};
+
+firetray.Window.detachOnFocusInCallback = function(xid) {
+  log.debug("detachOnFocusInCallback xid="+xid);
+  let gtkWin = firetray.Handler.gtkWindows.get(xid);
+  gobject.g_signal_handler_disconnect(gtkWin, this.signals['focus-in'].handler[xid]);
+  delete this.signals['focus-in'].callback[xid];
+  delete this.signals['focus-in'].handler[xid];
+};
+
+// NOTE: fluxbox issues a FocusIn event when switching workspace
+// by hotkey, which means 2 FocusIn events when switching to a moz app :(
+// (http://sourceforge.net/tracker/index.php?func=detail&aid=3190205&group_id=35398&atid=413960)
+firetray.Window.onFocusIn = function(widget, event, data) {
+  log.debug("onFocusIn");
+  let xid = firetray.Window.getXIDFromGtkWidget(widget);
+  log.debug("xid="+xid);
+
+  firetray.Window.setUrgency(xid, false);
+
+  if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
+    firetray.Chat.stopGetAttentionMaybe(xid);
+  }
+};
 
 
 ///////////////////////// firetray.Handler overriding /////////////////////////

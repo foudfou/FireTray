@@ -18,16 +18,7 @@ let log = firetray.Logging.getLogger("firetray.Win32");
 if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");
 
-const kMessageTray     = "_FIRETRAY_TrayMessage";
-const kMessageCallback = "_FIRETRAY_TrayCallback";
-
 function Win32Env() {
-  this.WM_TASKBARCREATED = user32.RegisterWindowMessageW("TaskbarCreated");
-  // We register this as well, as we cannot know which WM_USER values are
-  // already taken
-  this.WM_TRAYMESSAGE  = user32.RegisterWindowMessageW(kMessageTray);
-  this.WM_TRAYCALLBACK = user32.RegisterWindowMessageW(kMessageCallback);
-  log.debug("WM_*="+this.WM_TASKBARCREATED+" "+this.WM_TRAYMESSAGE+" "+this.WM_TRAYCALLBACK);
 
   this.hInstance = kernel32.GetModuleHandleW("xul"); // ordinary windows are created from xul.dll
   log.debug("hInstance="+this.hInstance);

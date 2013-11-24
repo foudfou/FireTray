@@ -13,6 +13,7 @@ Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
 Cu.import("resource://firetray/ctypes/winnt/win32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/user32.jsm");
 Cu.import("resource://firetray/winnt/FiretrayWin32.jsm");
+Cu.import("resource://firetray/FiretrayWindow.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([user32]);
 
@@ -32,47 +33,42 @@ XPCOMUtils.defineLazyServiceGetter(
 const FIRETRAY_XWINDOW_HIDDEN    = 1 << 0; // when minimized also
 const FIRETRAY_XWINDOW_MAXIMIZED = 1 << 1;
 
-// // NOTE: storing ctypes pointers into a JS object doesn't work: pointers are
-// // "evolving" after a while (maybe due to back and forth conversion). So we
-// // need to store them into a real ctypes array !
-// firetray.Handler.gtkWindows              = new ctypesMap(gtk.GtkWindow.ptr),
 
+firetray.Window = new FiretrayWindow();
 
-firetray.Window = {
-  signals: {'focus-in': {callback: {}, handler: {}}},
-
-  init: function() {
+firetray.Window.init = function() {
     this.initialized = true;
-  },
+  };
 
-  shutdown: function() {
-    this.initialized = false;
-  },
+firetray.Window.shutdown = function() {
+  this.initialized = false;
+};
 
-  show: function(xid) {
-    log.debug("show xid="+xid);
-  },
+firetray.Window.show = function(xid) {
+  log.debug("show xid="+xid);
+};
 
-  hide: function(xid) {
-    log.debug("hide");
-  },
+firetray.Window.hide = function(xid) {
+  log.debug("hide");
+};
 
-  startupHide: function(xid) {
-    log.debug('startupHide: '+xid);
-  },
+firetray.Window.startupHide = function(xid) {
+  log.debug('startupHide: '+xid);
+};
 
-  setVisibility: function(xid, visibility) {
-  },
-
-}; // firetray.Window
+firetray.Window.setVisibility = function(xid, visibility) {
+};
 
 
 ///////////////////////// firetray.Handler overriding /////////////////////////
 
 /** debug facility */
 firetray.Handler.dumpWindows = function() {
-  log.debug(firetray.Handler.windowsCount);
-  for (let winId in firetray.Handler.windows) log.info(winId+"="+firetray.Handler.gtkWindows.get(winId));
+  let dumpStr = ""+firetray.Handler.windowsCount;
+  for (let wid in firetray.Handler.windows) {
+    dumpStr += " 0x"+wid;
+  }
+  log.info(dumpStr);
 };
 
 firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeWindow;
@@ -85,38 +81,33 @@ firetray.Handler.registerWindow = function(win) {
   let hwnd = nativeHandle ?
         new ctypes.voidptr_t(ctypes.UInt64(nativeHandle)) :
         user32.FindWindowW("MozillaWindowClass", win.document.title);
-  log.debug("=== hwnd="+hwnd);
+  // wid will be used as a string most of the time (through f.Handler.windows mainly)
+  let wid = ctypes.cast(hwnd, ctypes.uintptr_t).value.toString(16);
+  log.debug("=== hwnd="+hwnd+" wid="+wid+" win.document.title: "+win.document.title);
+
+  if (this.windows.hasOwnProperty(wid)) {
+    let msg = "Window ("+wid+") already registered.";
+    log.error(msg);
+    Cu.reportError(msg);
+    return false;
+  }
+  this.windows[wid] = {};
+  this.windows[wid].chromeWin = win;
+  this.windows[wid].baseWin = baseWin;
 
 //   SetupWnd(hwnd);
 //   ::SetPropW(hwnd, kIconData, reinterpret_cast<HANDLE>(iconData));
 //   ::SetPropW(hwnd, kIconMouseEventProc, reinterpret_cast<HANDLE>(callback));
 //   ::SetPropW(hwnd, kIcon, reinterpret_cast<HANDLE>(0x1));
 
-  return;
-
-  // register
-  let [whndbaseWin, gtkWin, gdkWin, xid] = firetray.Window.getWindowsFromChromeWindow(win);
-  this.windows[xid] = {};
-  this.windows[xid].chromeWin = win;
-  this.windows[xid].baseWin = baseWin;
-  firetray.Window.checkSubscribedEventMasks(xid);
-  try {
-    this.gtkWindows.insert(xid, gtkWin);
-    this.gdkWindows.insert(xid, gdkWin);
-    firetray.PopupMenu.addWindowItem(xid);
-  } catch (x) {
-    if (x.name === "RangeError") // instanceof not working :-(
-      win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
-                +" windows open. This breaks FireTray and most probably "
-                +firetray.Handler.appName+".");
-  }
   this.windowsCount += 1;
   // NOTE: no need to check for window state to set visibility because all
   // windows *are* shown at startup
-  firetray.Window.updateVisibility(xid, true);
-  log.debug("window "+xid+" registered");
+  firetray.Window.updateVisibility(wid, true);
+  log.debug("window 0x"+wid+" registered");
   // NOTE: shouldn't be necessary to gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK);
 
+/*
   try {
      // NOTE: we could try to catch the "delete-event" here and block
      // delete_event_cb (in gtk2/nsWindow.cpp), but we prefer to use the
@@ -139,9 +130,10 @@ firetray.Handler.registerWindow = function(win) {
     log.error(x);
     return null;
   }
+*/
 
   log.debug("AFTER"); firetray.Handler.dumpWindows();
-  return xid;
+  return wid;
 };
 
 firetray.Handler.unregisterWindow = function(win) {
