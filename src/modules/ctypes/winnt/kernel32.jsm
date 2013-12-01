@@ -33,6 +33,8 @@ function kernel32_defines(lib) {
 
   lib.lazy_bind("LoadLibraryW", win32.HMODULE, win32.LPCTSTR);
   lib.lazy_bind("GetProcAddress", win32.FARPROC, win32.HMODULE, win32.LPCSTR);
+  lib.lazy_bind("GetCurrentThreadId", win32.DWORD);
+
 
 }
 

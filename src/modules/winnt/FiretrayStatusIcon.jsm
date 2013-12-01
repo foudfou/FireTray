@@ -124,11 +124,15 @@ firetray.StatusIcon = {
     if (uMsg === firetray.Win32.WM_TASKBARCREATED) {
       log.info("____________TASKBARCREATED");
 
+    } else if (uMsg === firetray.Win32.WM_TRAYMESSAGEFWD) {
+      log.debug("ProxyWindowProc WM_TRAYMESSAGEFWD reached!");
+
     } else if (uMsg === firetray.Win32.WM_TRAYMESSAGE) {
 
       switch (+lParam) {
       case win32.WM_LBUTTONUP:
         log.debug("WM_LBUTTONUP");
+        let rv = user32.SendMessageW(hWnd, firetray.Win32.WM_TRAYMESSAGEFWD, 0, 1);
         break;
       case win32.WM_RBUTTONUP:
         log.debug("WM_RBUTTONUP");
@@ -142,27 +146,30 @@ firetray.StatusIcon = {
       default:
       }
 
-    }
+try {
 
-/*
-    // CallWindowProcW() on a non-moz window works fine
-    let procPrev = firetray.StatusIcon.callbacks.procPrev;
-    log.debug("  procPrev="+procPrev);
-    let rv = user32.CallWindowProcW(procPrev, hWnd, uMsg, wParam, lParam);
-    log.debug("  CallWindowProc="+rv);
-    return rv;
-*/
+      for (let wid in firetray.Handler.windows) {
+        let hwnd = firetray.Win32.hexStrToHwnd(wid);
+        let rv = user32.SendMessageW(hwnd, firetray.Win32.WM_TRAYMESSAGEFWD, 0, 1);
+        log.debug("SendMessageW WM_TRAYMESSAGEFWD rv="+rv+" winLastError="+ctypes.winLastError);
+      }
+
+  } catch(error) {
+log.error(error);
+  }
+
+    }
 
     return user32.DefWindowProcW(hWnd, uMsg, wParam, lParam);
   },
 
   getIconFromWindow: function(hwnd) {
-    rv = user32.SendMessageW(hwnd, user32.WM_GETICON, user32.ICON_SMALL, 0);
+    let rv = user32.SendMessageW(hwnd, user32.WM_GETICON, user32.ICON_SMALL, 0);
+    log.debug("SendMessageW winLastError="+ctypes.winLastError);
     // result is a ctypes.Int64. So we need to create a CData from it before
     // casting it to a HICON.
     let icon = ctypes.cast(win32.LRESULT(rv), win32.HICON);
     let NULL = win32.HICON(null); // for comparison only
-    log.debug("SendMessageW winLastError="+ctypes.winLastError);
     if (firetray.js.strEquals(icon, NULL)) { // from the window class
       rv = user32.GetClassLong(hwnd, user32.GCLP_HICONSM);
       icon = ctypes.cast(win32.ULONG_PTR(rv), win32.HICON);

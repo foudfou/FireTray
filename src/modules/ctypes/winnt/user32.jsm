@@ -134,6 +134,55 @@ function user32_defines(lib) {
   this.WS_OVERLAPPEDWINDOW = (this.WS_OVERLAPPED | this.WS_CAPTION | this.WS_SYSMENU | this.WS_THICKFRAME | this.WS_MINIMIZEBOX | this.WS_MAXIMIZEBOX);
   this.WS_TILEDWINDOW      = (this.WS_OVERLAPPED | this.WS_CAPTION | this.WS_SYSMENU | this.WS_THICKFRAME | this.WS_MINIMIZEBOX | this.WS_MAXIMIZEBOX);
 
+  this.CWPSTRUCT = ctypes.StructType("CWPSTRUCT", [
+    { "lParam": win32.LPARAM },
+    { "wParam": win32.WPARAM },
+    { "message": win32.UINT },
+    { "hwnd": win32.HWND }
+  ]);
+
+  this.CWPRETSTRUCT = ctypes.StructType("CWPRETSTRUCT", [
+    { "lResult": win32.LRESULT },
+    { "lParam": win32.LPARAM },
+    { "wParam": win32.WPARAM },
+    { "message": win32.UINT },
+    { "hwnd": win32.HWND }
+  ]);
+
+  this.HOOKPROC = ctypes.FunctionType(
+    WinCbABI, win32.LRESULT,
+    [ctypes.int, win32.WPARAM, win32.LPARAM]).ptr;
+
+  lib.lazy_bind("SetWindowsHookExW", win32.HHOOK, ctypes.int, this.HOOKPROC, win32.HINSTANCE, win32.DWORD);
+  lib.lazy_bind("CallNextHookEx", win32.LRESULT, win32.HHOOK, ctypes.int, win32.WPARAM, win32.LPARAM);
+  lib.lazy_bind("UnhookWindowsHookEx", win32.BOOL, win32.HHOOK);
+
+  this.WH_MIN             = (-1);
+  this.WH_MSGFILTER       = (-1);
+  this.WH_JOURNALRECORD   = 0;
+  this.WH_JOURNALPLAYBACK = 1;
+  this.WH_KEYBOARD        = 2;
+  this.WH_GETMESSAGE      = 3;
+  this.WH_CALLWNDPROC     = 4;
+  this.WH_CBT             = 5;
+  this.WH_SYSMSGFILTER    = 6;
+  this.WH_MOUSE           = 7;
+  this.WH_HARDWARE        = 8;
+  this.WH_DEBUG           = 9;
+  this.WH_SHELL           = 10;
+  this.WH_FOREGROUNDIDLE  = 11;
+  this.WH_CALLWNDPROCRET  = 12;
+  this.WH_KEYBOARD_LL     = 13;
+  this.WH_MOUSE_LL        = 14;
+
+  this.HC_ACTION      = 0;
+  this.HC_GETNEXT     = 1;
+  this.HC_SKIP        = 2;
+  this.HC_NOREMOVE    = 3;
+  this.HC_NOREM       = this.HC_NOREMOVE;
+  this.HC_SYSMODALON  = 4;
+  this.HC_SYSMODALOFF = 5;
+
 }
 
 new ctypes_library(USER32_LIBNAME, USER32_ABIS, user32_defines, this);

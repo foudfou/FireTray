@@ -39,6 +39,7 @@ var win32 = new function() {
   this.HMENU     = this.HANDLE;
   this.HBRUSH    = this.HICON;
   this.HCURSOR   = this.HANDLE;
+  this.HHOOK     = this.HANDLE;
   this.TCHAR     = ctypes.jschar, // Mozilla compiled with UNICODE/_UNICODE macros and wchar_t = jschar
   this.LPSTR     = ctypes.char.ptr;
   this.LPCSTR    = ctypes.char.ptr;

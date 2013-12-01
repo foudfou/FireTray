@@ -9,11 +9,12 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
 Cu.import("resource://firetray/ctypes/winnt/win32.jsm");
+Cu.import("resource://firetray/ctypes/winnt/kernel32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/user32.jsm");
 Cu.import("resource://firetray/winnt/FiretrayWin32.jsm");
 Cu.import("resource://firetray/FiretrayWindow.jsm");
 Cu.import("resource://firetray/commons.js");
-firetray.Handler.subscribeLibsForClosing([user32]);
+firetray.Handler.subscribeLibsForClosing([kernel32, user32]);
 
 let log = firetray.Logging.getLogger("firetray.Window");
 
@@ -28,8 +29,7 @@ const kPropProcPrev = "_FIRETRAY_OLD_PROC";
 // NOTE: storing ctypes pointers into a JS object doesn't work: pointers are
 // "evolving" after a while (maybe due to back and forth conversion). So we
 // need to store them into a real ctypes array !
-firetray.Handler.wndProcs     = new ctypesMap(user32.WNDPROC);
-firetray.Handler.wndProcsOrig = new ctypesMap(user32.WNDPROC);
+firetray.Handler.callProcHooks     = new ctypesMap(win32.HHOOK);
 
 
 firetray.Window = new FiretrayWindow();
@@ -57,11 +57,6 @@ firetray.Window.startupHide = function(xid) {
 firetray.Window.setVisibility = function(xid, visibility) {
 };
 
-// wid will be used as a string most of the time (through f.Handler.windows mainly)
-firetray.Window.hwndToHexStr = function(hWnd) {
-  return "0x" + ctypes.cast(hWnd, ctypes.uintptr_t).value.toString(16);
-};
-
 firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
   log.debug("wndProc CALLED: hWnd="+hWnd+", uMsg="+uMsg+", wParam="+wParam+", lParam="+lParam);
 
@@ -70,16 +65,12 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
 
 try {
 
-  let wid = firetray.Window.hwndToHexStr(hWnd);
+  let wid = firetray.Win32.hwndToHexStr(hWnd);
   // let procPrev = firetray.Handler.wndProcsOrig.get(wid);
   // let procPrev = ctypes.cast(user32.GetPropW(hWnd, win32._T(kPropProcPrev)), user32.WNDPROC);
   // let procPrev = user32.GetPropW(hWnd, win32._T(kPropProcPrev));
   log.debug("  wid="+wid+" prev="+procPrev);
 
-  /*
-   * https://bugzilla.mozilla.org/show_bug.cgi?id=598679
-   * https://bugzilla.mozilla.org/show_bug.cgi?id=671266
-   */
   // let rv = user32.CallWindowProcW(procPrev, hWnd, uMsg, wParam, lParam);
   let rv = procPrev(hWnd, uMsg, wParam, lParam);
   log.debug("  CallWindowProc="+rv);
@@ -98,6 +89,34 @@ log.error(error);
   // }
 
   // return user32.DefWindowProcW(hWnd, uMsg, wParam, lParam);
+};
+
+firetray.Window.callProcHook = function(nCode, wParam, lParam) { // WH_CALLWNDPROC, WH_GETMESSAGE
+  // log.debug("callProcHook CALLED: nCode="+nCode+", wParam="+wParam+", lParam="+lParam);
+  let cwpstruct = ctypes.cast(win32.LPARAM(lParam), user32.CWPSTRUCT.ptr).contents;
+  let uMsg = cwpstruct.message;
+
+  if (uMsg === firetray.Win32.WM_TRAYMESSAGEFWD) {
+    log.debug("WM_TRAYMESSAGEFWD received!");
+
+    if (wParam != 0) {
+      log.debug("message was sent by the current thread");
+    }
+
+    let hWnd = cwpstruct.hwnd;
+    log.debug("hWnd="+hWnd);
+    let wid = firetray.Win32.hwndToHexStr(hWnd);
+    log.debug("wid="+wid);
+
+    if (nCode === user32.HC_ACTION) {
+      log.warn("*** must process the message ***");
+    } else if (nCode < 0) {
+      log.warn("*** must pass the message to the CallNextHookEx function without further processing ***");
+    }
+
+  }
+
+  return user32.CallNextHookEx(null, nCode, wParam, lParam);
 };
 
 
@@ -121,7 +140,7 @@ firetray.Handler.registerWindow = function(win) {
   let hwnd = nativeHandle ?
         new ctypes.voidptr_t(ctypes.UInt64(nativeHandle)) :
         user32.FindWindowW("MozillaWindowClass", win.document.title);
-  let wid = firetray.Window.hwndToHexStr(hwnd);
+  let wid = firetray.Win32.hwndToHexStr(hwnd);
   log.debug("=== hwnd="+hwnd+" wid="+wid+" win.document.title: "+win.document.title);
 
   if (this.windows.hasOwnProperty(wid)) {
@@ -144,39 +163,28 @@ firetray.Handler.registerWindow = function(win) {
   // windows *are* shown at startup
   firetray.Window.updateVisibility(wid, true);
   log.debug("window "+wid+" registered");
-  // NOTE: shouldn't be necessary to gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK);
 
 /*
-  // try {
-try {
-    let wndProc = user32.WNDPROC(firetray.Window.wndProc);
-    log.debug("proc="+wndProc);
-    this.wndProcs.insert(wid, wndProc);
-    let procPrev = user32.WNDPROC(
-      user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC, ctypes.cast(wndProc, win32.LONG_PTR))
-    );
-    log.debug("procPrev="+procPrev+" winLastError="+ctypes.winLastError);
-    this.wndProcsOrig.insert(wid, procPrev); // could be set as a window prop (SetPropW)
+  try {
+    let callProcHook = user32.HOOKPROC(firetray.Window.callProcHook);
+    log.debug("callhk="+callProcHook);
+    // Global hooks must reside in a dll (hence hInst). This is important for
+    // the scope of variables.
+    let hhook = user32.SetWindowsHookExW(
+      user32.WH_CALLWNDPROC, callProcHook, null, kernel32.GetCurrentThreadId());
+    log.debug("  hhook="+hhook+" winLastError="+ctypes.winLastError);
+    this.callProcHooks.insert(wid, hhook);
 
-    procPrev = ctypes.cast(procPrev, win32.HANDLE);
-    user32.SetPropW(hwnd, win32._T(kPropProcPrev), procPrev);
-    log.debug("SetPropW: "+procPrev+" winLastError="+ctypes.winLastError);
-  } catch(error) {
-log.error(error);
+    firetray.Win32.acceptAllMessages(hwnd);
+
+  } catch (x) {
+    if (x.name === "RangeError") // instanceof not working :-(
+      win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
+                +" windows open. This breaks FireTray and most probably "
+                +firetray.Handler.appName+".");
+    else win.alert(x);
   }
 */
-    // firetray.Win32.acceptAllMessages(hwnd);
-
-  // } catch (x) {
-  //   if (x.name === "RangeError") // instanceof not working :-(
-  //     win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
-  //               +" windows open. This breaks FireTray and most probably "
-  //               +firetray.Handler.appName+".");
-  //   else win.alert(x);
-  // }
-
-  // TODO: check wndproc chaining http://stackoverflow.com/a/8835843/421846 if
-  // needed for startupFilter
 
   log.debug("AFTER"); firetray.Handler.dumpWindows();
   return wid;
@@ -194,8 +202,10 @@ firetray.Handler.unregisterWindow = function(win) {
 
   if (!delete firetray.Handler.windows[wid])
     throw new DeleteError();
-  // firetray.Handler.wndProcs.remove(wid);
-  // firetray.Handler.wndProcsOrig.remove(wid);
+/*
+  user32.UnhookWindowsHookEx(firetray.Handler.callProcHooks.get(wid));
+  firetray.Handler.callProcHooks.remove(wid);
+*/
   firetray.Handler.windowsCount -= 1;
   firetray.Handler.visibleWindowsCount -= 1;
 
