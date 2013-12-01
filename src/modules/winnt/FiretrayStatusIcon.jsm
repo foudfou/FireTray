@@ -20,9 +20,6 @@ Cu.import("resource://firetray/winnt/FiretrayWin32.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([kernel32, shell32, user32]);
 
-const kMessageTray     = "_FIRETRAY_TrayMessage";
-const kMessageCallback = "_FIRETRAY_TrayCallback";
-
 let log = firetray.Logging.getLogger("firetray.StatusIcon");
 
 if ("undefined" == typeof(firetray.Handler))
@@ -33,7 +30,6 @@ firetray.StatusIcon = {
   initialized: false,
   callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
   notifyIconData: null,
-  msg: {WM_TASKBARCREATED:null, WM_TRAYMESSAGE:null, WM_TRAYCALLBACK:null},
   hwndProxy: null,
   WNDCLASS_NAME: "FireTrayHiddenWindowClass",
   WNDCLASS_ATOM: null,
@@ -42,7 +38,6 @@ firetray.StatusIcon = {
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
       "chrome://firetray/skin/blank-icon.png");
 
-    this.registerMessages();
     this.create();
 
     this.initialized = true;
@@ -55,17 +50,6 @@ firetray.StatusIcon = {
     this.destroy();
 
     this.initialized = false;
-  },
-
-  registerMessages: function() {
-    this.msg.WM_TASKBARCREATED = user32.RegisterWindowMessageW("TaskbarCreated");
-    this.msg.WM_TRAYMESSAGE  = user32.RegisterWindowMessageW(kMessageTray);
-    this.msg.WM_TRAYCALLBACK = user32.RegisterWindowMessageW(kMessageCallback);
-    log.debug("WM_*="+this.msg.WM_TASKBARCREATED+" "+this.msg.WM_TRAYMESSAGE+" "+this.msg.WM_TRAYCALLBACK);
-  },
-
-  unregisterMessages: function() {
-    // FIXME: TODO:
   },
 
   create: function() {
@@ -81,7 +65,7 @@ firetray.StatusIcon = {
     nid.szTip = firetray.Handler.appName;
     nid.hIcon = this.getIconFromWindow(hwnd_hidden_moz);
     nid.hWnd = hwnd_hidden;
-    nid.uCallbackMessage = this.msg.WM_TRAYMESSAGE;
+    nid.uCallbackMessage = firetray.Win32.WM_TRAYMESSAGE;
     nid.uFlags = shell32.NIF_ICON | shell32.NIF_MESSAGE | shell32.NIF_TIP;
     nid.uVersion = shell32.NOTIFYICON_VERSION_4;
 
@@ -98,8 +82,6 @@ firetray.StatusIcon = {
   createProxyWindow: function() {
     this.registerWindowClass();
 
-    this.callbacks.hiddenWinProc = user32.WNDPROC(firetray.StatusIcon.proxyWindowProc);
-
     let hwnd_hidden = user32.CreateWindowExW(
       0, win32.LPCTSTR(this.WNDCLASS_ATOM), // lpClassName can also be _T(WNDCLASS_NAME)
       "Firetray Message Window", 0,
@@ -107,8 +89,18 @@ firetray.StatusIcon = {
       null, null, firetray.Win32.hInstance, null);
     log.debug("CreateWindow="+!hwnd_hidden.isNull()+" winLastError="+ctypes.winLastError);
 
+    this.callbacks.proxyWndProc = user32.WNDPROC(firetray.StatusIcon.proxyWndProc);
+/*
+    // TESTING
+    let proc = user32.GetWindowLongW(hwnd_hidden, user32.GWLP_WNDPROC);
+    log.debug("  proc="+proc.toString(16)+" winLastError="+ctypes.winLastError);
+    this.callbacks.procPrev = user32.WNDPROC(
+      user32.SetWindowLongW(hwnd_hidden, user32.GWLP_WNDPROC,
+        ctypes.cast(this.callbacks.proxyWndProc, win32.LONG_PTR))
+    );
+*/
     let procPrev = user32.SetWindowLongW(hwnd_hidden, user32.GWLP_WNDPROC,
-      ctypes.cast(this.callbacks.hiddenWinProc, win32.LONG_PTR));
+      ctypes.cast(this.callbacks.proxyWndProc, win32.LONG_PTR));
     log.debug("procPrev="+procPrev+" winLastError="+ctypes.winLastError);
 
     firetray.Win32.acceptAllMessages(hwnd_hidden);
@@ -126,13 +118,13 @@ firetray.StatusIcon = {
     log.debug("WNDCLASS_ATOM="+this.WNDCLASS_ATOM);
   },
 
-  proxyWindowProc: function(hWnd, uMsg, wParam, lParam) {
+  proxyWndProc: function(hWnd, uMsg, wParam, lParam) {
     // log.debug("ProxyWindowProc CALLED: hWnd="+hWnd+", uMsg="+uMsg+", wParam="+wParam+", lParam="+lParam);
 
-    if (uMsg === firetray.StatusIcon.msg.WM_TASKBARCREATED) {
+    if (uMsg === firetray.Win32.WM_TASKBARCREATED) {
       log.info("____________TASKBARCREATED");
 
-    } else if (uMsg === firetray.StatusIcon.msg.WM_TRAYMESSAGE) {
+    } else if (uMsg === firetray.Win32.WM_TRAYMESSAGE) {
 
       switch (+lParam) {
       case win32.WM_LBUTTONUP:
@@ -151,6 +143,15 @@ firetray.StatusIcon = {
       }
 
     }
+
+/*
+    // CallWindowProcW() on a non-moz window works fine
+    let procPrev = firetray.StatusIcon.callbacks.procPrev;
+    log.debug("  procPrev="+procPrev);
+    let rv = user32.CallWindowProcW(procPrev, hWnd, uMsg, wParam, lParam);
+    log.debug("  CallWindowProc="+rv);
+    return rv;
+*/
 
     return user32.DefWindowProcW(hWnd, uMsg, wParam, lParam);
   },

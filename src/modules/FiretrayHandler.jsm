@@ -327,7 +327,6 @@ firetray.Handler = {
   setIconVisibility: function(visible) {},
   registerWindow: function(win) {},
   unregisterWindow: function(win) {},
-  getWindowIdFromChromeWindow: function(win) {},
   hideWindow: function(winId) {},
   showWindow: function(winId) {},
   showHideAllWindows: function() {},

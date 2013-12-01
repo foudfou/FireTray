@@ -57,6 +57,11 @@ function user32_defines(lib) {
   this.LR_SHARED           = 0x00008000;
   this.LR_VGACOLOR         = 0x00000080;
 
+  lib.lazy_bind("GetPropW", win32.HANDLE, win32.HWND, win32.LPCTSTR);
+  lib.lazy_bind("SetPropW", win32.BOOL, win32.HWND, win32.LPCTSTR, win32.HANDLE);
+
+  lib.lazy_bind("GetWindowLongW", win32.LONG_PTR, win32.HWND, ctypes.int);
+  lib.lazy_bind("SetWindowLongW", win32.LONG_PTR , win32.HWND, ctypes.int, win32.LONG_PTR);
   // SetWindowLongPtrW aliases SetWindowLongW with the correct signature thank
   // win32.LONG_PTR
   lib.lazy_bind("SetWindowLongW", win32.LONG_PTR , win32.HWND, ctypes.int, win32.LONG_PTR);
@@ -71,7 +76,8 @@ function user32_defines(lib) {
     WinCbABI, win32.LRESULT,
     [win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM]).ptr;
 
-  lib.lazy_bind("CallWindowProcW", win32.LRESULT, this.WNDPROC, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
+  // lib.lazy_bind("CallWindowProcW", win32.LRESULT, this.WNDPROC, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
+  lib.lazy_bind("CallWindowProcW", win32.LRESULT, ctypes.voidptr_t, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
   lib.lazy_bind("DefWindowProcW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
 
   this.WNDCLASSEXW = ctypes.StructType("WNDCLASSEXW", [

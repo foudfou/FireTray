@@ -53,13 +53,12 @@ var _find_data_t = ctypes.StructType("_find_data_t", [
 // NOTE: storing ctypes pointers into a JS object doesn't work: pointers are
 // "evolving" after a while (maybe due to back and forth conversion). So we
 // need to store them into a real ctypes array !
-firetray.Handler.gtkWindows              = new ctypesMap(gtk.GtkWindow.ptr),
-firetray.Handler.gdkWindows              = new ctypesMap(gdk.GdkWindow.ptr),
-firetray.Handler.gtkPopupMenuWindowItems = new ctypesMap(gtk.GtkImageMenuItem.ptr),
+firetray.Handler.gtkWindows              = new ctypesMap(gtk.GtkWindow.ptr);
+firetray.Handler.gdkWindows              = new ctypesMap(gdk.GdkWindow.ptr);
+firetray.Handler.gtkPopupMenuWindowItems = new ctypesMap(gtk.GtkImageMenuItem.ptr);
 
 
 firetray.Window = new FiretrayWindow();
-
 firetray.Window.signals = {'focus-in': {callback: {}, handler: {}}};
 
 firetray.Window.init = function() {
@@ -187,7 +186,7 @@ firetray.Window.getGtkWindowFromGdkWindow = function(gdkWin) {
   return gtkw;
 };
 
-/* consider using getXIDFromChromeWindow() if you only need the XID */
+/* consider using getRegisteredWinIdFromChromeWindow() if you only need the XID */
 firetray.Window.getWindowsFromChromeWindow = function(win) {
   let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
   let nativeHandle = baseWin.nativeHandle; // Moz' private pointer to the GdkWindow
@@ -203,13 +202,6 @@ firetray.Window.getWindowsFromChromeWindow = function(win) {
   let xid = firetray.Window.getXIDFromGdkWindow(gdkWin);
   log.debug("XID="+xid);
   return [baseWin, gtkWin, gdkWin, xid];
-};
-
-firetray.Window.getXIDFromChromeWindow = function(win) {
-  for (let xid in firetray.Handler.windows)
-    if (firetray.Handler.windows[xid].chromeWin === win) return xid;
-  log.error("unknown window while lookup");
-  return null;
 };
 
 firetray.Window.unregisterWindowByXID = function(xid) {
@@ -656,8 +648,6 @@ firetray.Handler.dumpWindows = function() {
   for (let winId in firetray.Handler.windows) log.info(winId+"="+firetray.Handler.gtkWindows.get(winId));
 };
 
-firetray.Handler.getWindowIdFromChromeWindow = firetray.Window.getXIDFromChromeWindow;
-
 firetray.Handler.registerWindow = function(win) {
   log.debug("register window");
 
@@ -713,7 +703,7 @@ firetray.Handler.registerWindow = function(win) {
 
 firetray.Handler.unregisterWindow = function(win) {
   log.debug("unregister window");
-  let xid = firetray.Window.getXIDFromChromeWindow(win);
+  let xid = firetray.Window.getRegisteredWinIdFromChromeWindow(win);
   return firetray.Window.unregisterWindowByXID(xid);
 };
 

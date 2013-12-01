@@ -29,4 +29,11 @@ FiretrayWindow.prototype = {
     win.visible = visibility; // nsIBaseWin.visibility always true :-(
   },
 
+  getRegisteredWinIdFromChromeWindow: function(win) {
+    for (let wid in firetray.Handler.windows)
+      if (firetray.Handler.windows[wid].chromeWin === win) return wid;
+    log.error("unknown window while lookup");
+    return null;
+  },
+
 };
