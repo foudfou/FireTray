@@ -32,7 +32,7 @@ function user32_defines(lib) {
   lib.lazy_bind("GetWindowTextW", ctypes.int, win32.HWND, win32.LPTSTR, ctypes.int);
   lib.lazy_bind("FindWindowW", win32.HWND, win32.LPCTSTR, win32.LPCTSTR);
 
-  lib.lazy_bind("SendMessageW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.WPARAM);
+  lib.lazy_bind("SendMessageW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
   this.WM_GETICON = 0x007F;
   this.ICON_SMALL  = 0;
   this.ICON_BIG    = 1;
@@ -182,6 +182,8 @@ function user32_defines(lib) {
   this.HC_NOREM       = this.HC_NOREMOVE;
   this.HC_SYSMODALON  = 4;
   this.HC_SYSMODALOFF = 5;
+
+  lib.lazy_bind("GetWindowThreadProcessId", win32.DWORD, win32.HWND, win32.LPDWORD);
 
 }
 

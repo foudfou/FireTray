@@ -132,19 +132,6 @@ firetray.StatusIcon = {
       switch (+lParam) {
       case win32.WM_LBUTTONUP:
         log.debug("WM_LBUTTONUP");
-        let rv = user32.SendMessageW(hWnd, firetray.Win32.WM_TRAYMESSAGEFWD, 0, 1);
-        break;
-      case win32.WM_RBUTTONUP:
-        log.debug("WM_RBUTTONUP");
-        break;
-      case win32.WM_CONTEXTMENU:
-        log.debug("WM_CONTEXTMENU");
-        break;
-      case win32.NIN_KEYSELECT:
-        log.debug("NIN_KEYSELECT");
-        break;
-      default:
-      }
 
 try {
 
@@ -157,6 +144,19 @@ try {
   } catch(error) {
 log.error(error);
   }
+
+        break;
+      case win32.WM_RBUTTONUP:
+        log.debug("WM_RBUTTONUP");
+        break;
+      case win32.WM_CONTEXTMENU:
+        log.debug("WM_CONTEXTMENU");
+        break;
+      case win32.NIN_KEYSELECT:
+        log.debug("NIN_KEYSELECT");
+        break;
+      default:
+      }
 
     }
 

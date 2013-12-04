@@ -164,7 +164,6 @@ firetray.Handler.registerWindow = function(win) {
   firetray.Window.updateVisibility(wid, true);
   log.debug("window "+wid+" registered");
 
-/*
   try {
     let callProcHook = user32.HOOKPROC(firetray.Window.callProcHook);
     log.debug("callhk="+callProcHook);
@@ -184,7 +183,6 @@ firetray.Handler.registerWindow = function(win) {
                 +firetray.Handler.appName+".");
     else win.alert(x);
   }
-*/
 
   log.debug("AFTER"); firetray.Handler.dumpWindows();
   return wid;
@@ -202,10 +200,8 @@ firetray.Handler.unregisterWindow = function(win) {
 
   if (!delete firetray.Handler.windows[wid])
     throw new DeleteError();
-/*
   user32.UnhookWindowsHookEx(firetray.Handler.callProcHooks.get(wid));
   firetray.Handler.callProcHooks.remove(wid);
-*/
   firetray.Handler.windowsCount -= 1;
   firetray.Handler.visibleWindowsCount -= 1;
 

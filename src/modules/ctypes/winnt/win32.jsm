@@ -24,6 +24,7 @@ var win32 = new function() {
   this.UINT_PTR  = is64bit ? ctypes.uint64_t : ctypes.unsigned_int;
   this.WORD      = ctypes.unsigned_short;
   this.DWORD     = ctypes.unsigned_long;
+  this.LPDWORD   = this.DWORD.ptr;
   this.PVOID     = ctypes.voidptr_t;
   this.LPVOID    = ctypes.voidptr_t;
   this.LONG      = ctypes.long;

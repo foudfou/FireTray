@@ -35,7 +35,6 @@ function kernel32_defines(lib) {
   lib.lazy_bind("GetProcAddress", win32.FARPROC, win32.HMODULE, win32.LPCSTR);
   lib.lazy_bind("GetCurrentThreadId", win32.DWORD);
 
-
 }
 
 new ctypes_library(KERNEL32_LIBNAME, KERNEL32_ABIS, kernel32_defines, this);
