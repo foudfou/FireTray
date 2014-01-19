@@ -291,6 +291,12 @@ firetray.js = {
   // https://developer.mozilla.org/en/js-ctypes/Using_js-ctypes/Working_with_data#Quirks_in_equality
   strEquals: function(obj1, obj2) {
     return obj1.toString() === obj2.toString();
+  },
+
+  assert: function(condition, message) {
+    if (!condition) {
+      throw message || "Assertion failed";
+    }
   }
 };
 

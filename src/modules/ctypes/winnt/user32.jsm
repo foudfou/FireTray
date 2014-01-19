@@ -59,6 +59,7 @@ function user32_defines(lib) {
 
   lib.lazy_bind("GetPropW", win32.HANDLE, win32.HWND, win32.LPCTSTR);
   lib.lazy_bind("SetPropW", win32.BOOL, win32.HWND, win32.LPCTSTR, win32.HANDLE);
+  lib.lazy_bind("RemovePropW", win32.HANDLE, win32.HWND, win32.LPCTSTR);
 
   lib.lazy_bind("GetWindowLongW", win32.LONG_PTR, win32.HWND, ctypes.int);
   lib.lazy_bind("SetWindowLongW", win32.LONG_PTR , win32.HWND, ctypes.int, win32.LONG_PTR);
