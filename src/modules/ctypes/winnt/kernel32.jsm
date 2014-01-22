@@ -45,5 +45,5 @@ osvi.dwOSVersionInfoSize = kernel32.OSVERSIONINFOEXW.size;
 if (kernel32.GetVersionExW(osvi.address())) {
   win32.WINVER = (+osvi.dwMajorVersion)*10 + (+osvi.dwMinorVersion); // ctypes.UInt64 objects!
 } else {
-  Cu.ReportError("win version not found");
+  Cu.reportError("win version not found");
 }
