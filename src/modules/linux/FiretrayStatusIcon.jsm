@@ -135,7 +135,7 @@ firetray.StatusIcon = {
 
     log.debug("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
     this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
-      firetray.Handler.showHideAllWindows);
+      firetray.StatusIcon.onClick);
     let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
       "activate", firetray.StatusIcon.callbacks.iconActivate, null);
     log.debug("g_connect activate="+handlerId);
@@ -174,6 +174,12 @@ firetray.StatusIcon = {
     default:
       log.error("SCROLL UNKNOWN");
     }
+  },
+
+  onClick: function(gtkStatusIcon, userData) {
+    firetray.Handler.showHideAllWindows();
+    let stopPropagation = true;
+    return stopPropagation;
   },
 
   setIconImageFromFile: function(filename) {

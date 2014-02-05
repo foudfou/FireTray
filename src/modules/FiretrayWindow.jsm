@@ -17,18 +17,6 @@ if ("undefined" == typeof(firetray.Handler))
 function FiretrayWindow () {}
 FiretrayWindow.prototype = {
 
-  updateVisibility: function(winId, visibility) {
-    let win = firetray.Handler.windows[winId];
-    if (win.visible === visibility)
-      log.warn("window (winId="+winId+") was already visible="+win.visible);
-
-    firetray.Handler.visibleWindowsCount = visibility ?
-      firetray.Handler.visibleWindowsCount + 1 :
-      firetray.Handler.visibleWindowsCount - 1 ;
-
-    win.visible = visibility; // nsIBaseWin.visibility always true :-(
-  },
-
   getRegisteredWinIdFromChromeWindow: function(win) {
     for (let wid in firetray.Handler.windows)
       if (firetray.Handler.windows[wid].chromeWin === win) return wid;

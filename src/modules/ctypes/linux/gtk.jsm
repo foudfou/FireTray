@@ -145,6 +145,7 @@ function gtk_defines(lib) {
 
   lib.lazy_bind("gtk_widget_is_focus", gobject.gboolean, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_has_focus", gobject.gboolean, this.GtkWidget.ptr);
+  lib.lazy_bind("gtk_widget_get_visible", gobject.gboolean, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_hide_on_delete", gobject.gboolean, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_hide", ctypes.void_t, this.GtkWidget.ptr);
   lib.lazy_bind("gtk_widget_show", ctypes.void_t, this.GtkWidget.ptr);

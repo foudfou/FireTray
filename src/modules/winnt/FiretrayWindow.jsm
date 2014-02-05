@@ -39,22 +39,19 @@ firetray.Window.shutdown = function() {
   this.initialized = false;
 };
 
-firetray.Window.getVisibility = function(hwnd) {
+firetray.Window.getVisibility = function(wid) {
+  let hwnd = firetray.Win32.hexStrToHwnd(wid);
   let style = user32.GetWindowLongW(hwnd, user32.GWL_STYLE);
-  let visible = ((style & user32.WS_VISIBLE) != 0); // user32.IsWindowVisible(hwnd);
-  log.debug("visible="+visible);
-  return visible;
+  return ((style & user32.WS_VISIBLE) != 0); // user32.IsWindowVisible(hwnd);
 };
 
-// firetray.Window.{show,hide} useless
+// firetray.Window.{show,hide} useless as we don't need to restore position and size
 firetray.Window.setVisibility = function(wid, visible) {
   log.debug("setVisibility="+visible);
   let hwnd = firetray.Win32.hexStrToHwnd(wid);
   let ret = user32.ShowWindow(hwnd, visible ? user32.SW_SHOW : user32.SW_HIDE);
   log.debug("  ShowWindow="+ret+" winLastError="+ctypes.winLastError);
-  this.updateVisibility(wid, visible);
 };
-// firetray.Window.updateVisibility inherited
 
 firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
   // log.debug("wndProc CALLED: hWnd="+hWnd+", uMsg="+uMsg+", wParam="+wParam+", lParam="+lParam);
@@ -120,14 +117,15 @@ firetray.Handler.registerWindow = function(win) {
   this.windows[wid] = {};
   this.windows[wid].chromeWin = win;
   this.windows[wid].baseWin = baseWin;
+  Object.defineProperties(this.windows[wid], {
+    "visible": { get: function(){return firetray.Window.getVisibility(wid);} }
+  });
+
+  log.debug("window "+wid+" registered");
 
 //   SetupWnd(hwnd);
 
   try {
-    this.windowsCount += 1;
-    firetray.Window.updateVisibility(wid, true); // windows *are* visible at startup
-    log.debug("window "+wid+" registered");
-
     let wndProc = user32.WNDPROC(firetray.Window.wndProc);
     log.debug("proc="+wndProc);
     this.wndProcs.insert(wid, wndProc);
@@ -167,8 +165,6 @@ firetray.Handler.unregisterWindow = function(win) {
 
   if (!delete firetray.Handler.windows[wid])
     throw new DeleteError();
-  firetray.Handler.windowsCount -= 1;
-  firetray.Handler.visibleWindowsCount -= 1;
 
   log.debug("window "+wid+" unregistered");
   return true;
@@ -179,19 +175,4 @@ firetray.Handler.showWindow = function(wid) {
 };
 firetray.Handler.hideWindow = function(wid) {
   return firetray.Window.setVisibility(wid, false);
-};
-
-firetray.Handler.showHideAllWindows = function() {
-  log.debug("showHideAllWindows");
-
-  log.debug("  visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
-  log.debug("  windowsCount="+firetray.Handler.windowsCount);
-  let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
-  log.debug("  visibilityRate="+visibilityRate);
-  if ((0.5 < visibilityRate) && (visibilityRate < 1)
-      || visibilityRate === 0) { // TODO: should be configurable
-    firetray.Handler.showAllWindows();
-  } else {
-    firetray.Handler.hideAllWindows();
-  }
 };

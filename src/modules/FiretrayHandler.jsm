@@ -1,4 +1,5 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+"use strict";
 
 var EXPORTED_SYMBOLS = [ "firetray" ];
 
@@ -36,13 +37,15 @@ firetray.Handler = {
   inMailApp: false,
   appHasChat: false,
   appStarted: false,
-  /* TODO: we should rewrite firetray.Handler[wid].visible,
-   firetray.Handler.windowsCount, firetray.Handler.visibleWindowsCount as
-   getters. They mainly serve as a cache for computing the visibilityRate but
-   tend to be a bit heavy to handle. */
   windows: {},
-  windowsCount: 0,
-  visibleWindowsCount: 0,
+  get windowsCount() {return Object.keys(this.windows).length;},
+  get visibleWindowsCount() {
+    let count = 0;
+    for (let wid in firetray.Handler.windows) {
+      if (firetray.Handler.windows[wid].visible) count += 1;
+    }
+    return count;
+  },
   observedTopics: {},
   ctypesLibs: {},               // {"lib1": lib1, "lib2": lib2}
 
@@ -69,17 +72,17 @@ firetray.Handler = {
     switch (this.runtimeOS) {
     case "Linux":
       Cu.import("resource://firetray/linux/FiretrayStatusIcon.jsm");
-      log.debug('FiretrayStatusIcon imported');
+      log.debug('FiretrayStatusIcon Linux imported');
       Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
-      log.debug('FiretrayWindow imported');
+      log.debug('FiretrayWindow Linux imported');
       break;
     case "WINNT":
       Cu.import("resource://firetray/winnt/FiretrayWin32.jsm");
       log.debug('FiretrayWin32 imported');
       Cu.import("resource://firetray/winnt/FiretrayStatusIcon.jsm");
-      log.debug('FiretrayStatusIcon imported');
+      log.debug('FiretrayStatusIcon WINNT imported');
       Cu.import("resource://firetray/winnt/FiretrayWindow.jsm");
-      log.debug('FiretrayWindow imported');
+      log.debug('FiretrayWindow WINNT imported');
       break;
     default:
       log.error("FIRETRAY: only Linux and WINNT platforms supported at this"
@@ -196,7 +199,7 @@ firetray.Handler = {
 
   tryCloseLibs: function() {
     try {
-      for (libName in this.ctypesLibs) {
+      for (let libName in this.ctypesLibs) {
         let lib = this.ctypesLibs[libName];
         if (lib.available())
           lib.close();
@@ -333,7 +336,6 @@ firetray.Handler = {
   unregisterWindow: function(win) {},
   hideWindow: function(winId) {},
   showWindow: function(winId) {},
-  showHideAllWindows: function() {},
   activateLastWindowCb: function(gtkStatusIcon, gdkEvent, userData) {},
   getActiveWindow: function() {},
 
@@ -349,6 +351,21 @@ firetray.Handler = {
     for (let winId in firetray.Handler.windows) {
       if (firetray.Handler.windows[winId].visible)
         firetray.Handler.hideWindow(winId);
+    }
+  },
+
+  showHideAllWindows: function() {
+    log.debug("showHideAllWindows");
+    log.debug("  visibleWindowsCount="+firetray.Handler.visibleWindowsCount +
+      " / windowsCount="+firetray.Handler.windowsCount);
+    let visibilityRate = firetray.Handler.visibleWindowsCount /
+          firetray.Handler.windowsCount;
+    log.debug("  visibilityRate="+visibilityRate);
+    if ((0.5 < visibilityRate) && (visibilityRate < 1)
+        || visibilityRate === 0) { // TODO: should be configurable
+      firetray.Handler.showAllWindows();
+    } else {
+      firetray.Handler.hideAllWindows();
     }
   },
 

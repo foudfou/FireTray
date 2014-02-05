@@ -219,8 +219,6 @@ firetray.Window.unregisterWindowByXID = function(xid) {
     throw new DeleteError();
   firetray.Handler.gtkWindows.remove(xid);
   firetray.Handler.gdkWindows.remove(xid);
-  firetray.Handler.windowsCount -= 1;
-  firetray.Handler.visibleWindowsCount -= 1;
 
   firetray.PopupMenu.removeWindowItem(xid);
 
@@ -357,6 +355,12 @@ firetray.Window.restoreDesktop = function(xid) {
   delete firetray.Handler.windows[xid].savedDesktop;
 };
 
+firetray.Window.getVisibility = function(xid) {
+  let gtkWidget = ctypes.cast(firetray.Handler.gtkWindows.get(xid), gtk.GtkWidget.ptr);
+  // nsIBaseWin.visibility always true
+  return gtk.gtk_widget_get_visible(gtkWidget);
+};
+
 firetray.Window.setVisibility = function(xid, visibility) {
   log.debug("setVisibility="+visibility);
   let gtkWidget = ctypes.cast(firetray.Handler.gtkWindows.get(xid), gtk.GtkWidget.ptr);
@@ -364,10 +368,7 @@ firetray.Window.setVisibility = function(xid, visibility) {
     gtk.gtk_widget_show_all(gtkWidget);
   else
     gtk.gtk_widget_hide(gtkWidget);
-
-  this.updateVisibility(xid, visibility);
 };
-// firetray.Window.updateVisibility inherited
 
 firetray.Window.xSendClientMessgeEvent = function(xid, atom, data, dataSize) {
   let xev = new x11.XClientMessageEvent;
@@ -544,7 +545,6 @@ firetray.Window.filterWindow = function(xev, gdkEv, data) {
       // when app hidden at startup, then called from command line without
       // any argument (not through FireTray that is)
       log.warn("window not visible, correcting visibility");
-      firetray.Window.updateVisibility(xid, true);
       log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
     }
     break;
@@ -656,6 +656,9 @@ firetray.Handler.registerWindow = function(win) {
   this.windows[xid] = {};
   this.windows[xid].chromeWin = win;
   this.windows[xid].baseWin = baseWin;
+  Object.defineProperties(this.windows[xid], {
+    "visible": { get: function(){return firetray.Window.getVisibility(xid);} }
+  });
   firetray.Window.checkSubscribedEventMasks(xid);
   try {
     this.gtkWindows.insert(xid, gtkWin);
@@ -667,10 +670,6 @@ firetray.Handler.registerWindow = function(win) {
                 +" windows open. This breaks FireTray and most probably "
                 +firetray.Handler.appName+".");
   }
-  this.windowsCount += 1;
-  // NOTE: no need to check for window state to set visibility because all
-  // windows *are* shown at startup
-  firetray.Window.updateVisibility(xid, true);
   log.debug("window "+xid+" registered");
   // NOTE: shouldn't be necessary to gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK);
 
@@ -709,26 +708,6 @@ firetray.Handler.unregisterWindow = function(win) {
 
 firetray.Handler.showWindow = firetray.Window.show;
 firetray.Handler.hideWindow = firetray.Window.hide;
-
-firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
-  log.debug("showHideAllWindows: "+userData);
-  // NOTE: showHideAllWindows being a callback, we need to use
-  // 'firetray.Handler' explicitely instead of 'this'
-
-  log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
-  log.debug("windowsCount="+firetray.Handler.windowsCount);
-  let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
-  log.debug("visibilityRate="+visibilityRate);
-  if ((0.5 < visibilityRate) && (visibilityRate < 1)
-      || visibilityRate === 0) { // TODO: should be configurable
-    firetray.Handler.showAllWindows();
-  } else {
-    firetray.Handler.hideAllWindows();
-  }
-
-  let stopPropagation = true;
-  return stopPropagation;
-};
 
 firetray.Handler.showAllWindowsAndActivate = firetray.Window.showAllWindowsAndActivate;
 firetray.Handler.activateLastWindowCb = function(gtkStatusIcon, gdkEvent, userData) {
