@@ -90,15 +90,6 @@ firetray.StatusIcon = {
     log.debug("CreateWindow="+!hwnd_hidden.isNull()+" winLastError="+ctypes.winLastError);
 
     this.callbacks.proxyWndProc = user32.WNDPROC(firetray.StatusIcon.proxyWndProc);
-/*
-    // TESTING
-    let proc = user32.GetWindowLongW(hwnd_hidden, user32.GWLP_WNDPROC);
-    log.debug("  proc="+proc.toString(16)+" winLastError="+ctypes.winLastError);
-    this.callbacks.procPrev = user32.WNDPROC(
-      user32.SetWindowLongW(hwnd_hidden, user32.GWLP_WNDPROC,
-        ctypes.cast(this.callbacks.proxyWndProc, win32.LONG_PTR))
-    );
-*/
     let procPrev = user32.SetWindowLongW(hwnd_hidden, user32.GWLP_WNDPROC,
       ctypes.cast(this.callbacks.proxyWndProc, win32.LONG_PTR));
     log.debug("procPrev="+procPrev+" winLastError="+ctypes.winLastError);
@@ -132,19 +123,7 @@ firetray.StatusIcon = {
       switch (+lParam) {
       case win32.WM_LBUTTONUP:
         log.debug("WM_LBUTTONUP");
-
-try {
-
-      for (let wid in firetray.Handler.windows) {
-        let hwnd = firetray.Win32.hexStrToHwnd(wid);
-        let rv = user32.SendMessageW(hwnd, firetray.Win32.WM_TRAYMESSAGEFWD, 0, 1);
-        log.debug("SendMessageW WM_TRAYMESSAGEFWD rv="+rv+" winLastError="+ctypes.winLastError);
-      }
-
-  } catch(error) {
-log.error(error);
-  }
-
+        firetray.Handler.showHideAllWindows();
         break;
       case win32.WM_RBUTTONUP:
         log.debug("WM_RBUTTONUP");

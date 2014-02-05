@@ -32,7 +32,6 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     return true;
   },
 
-
   /* NOTE: don't do firetray.Handler.initialized=false here, otherwise after a
    window close, a new window will create a new handler (and hence, a new tray
    icon) */

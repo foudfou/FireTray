@@ -36,6 +36,10 @@ firetray.Handler = {
   inMailApp: false,
   appHasChat: false,
   appStarted: false,
+  /* TODO: we should rewrite firetray.Handler[wid].visible,
+   firetray.Handler.windowsCount, firetray.Handler.visibleWindowsCount as
+   getters. They mainly serve as a cache for computing the visibilityRate but
+   tend to be a bit heavy to handle. */
   windows: {},
   windowsCount: 0,
   visibleWindowsCount: 0,

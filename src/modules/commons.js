@@ -25,7 +25,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION     = "0.4.8"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_VERSION     = "0.4.99"; // needed for sync call of onVersionChange() :(
 const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
 const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
 const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
@@ -189,11 +189,11 @@ firetray.Utils = {
 
   dumpObj: function(obj) {
     let str = "";
-    for(i in obj) {
+    for(let prop in firetray.js.listAllProperties(obj)) {
       try {
-        str += "obj["+i+"]: " + obj[i] + "\n";
+        str += "obj["+prop+"]: " + obj[prop] + "\n";
       } catch(e) {
-        str += "obj["+i+"]: Unavailable\n";
+        str += "obj["+prop+"]: Unavailable\n";
       }
     }
     log.info(str);
@@ -297,6 +297,16 @@ firetray.js = {
     if (!condition) {
       throw message || "Assertion failed";
     }
+  },
+
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects#Enumerating_all_properties_of_an_object
+  listAllProperties: function(obj){
+    var objectToInspect;
+    var result = [];
+    for(objectToInspect = obj; objectToInspect !== null; objectToInspect = Object.getPrototypeOf(objectToInspect)){
+      result = result.concat(Object.getOwnPropertyNames(objectToInspect));
+    }
+    return result;
   }
 };
 

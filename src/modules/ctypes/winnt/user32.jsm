@@ -100,6 +100,24 @@ function user32_defines(lib) {
   lib.lazy_bind("UnregisterClassW", win32.BOOL, win32.LPCTSTR, win32.HINSTANCE);
   lib.lazy_bind("CreateWindowExW", win32.HWND, win32.DWORD, win32.LPCTSTR, win32.LPCTSTR, win32.DWORD, ctypes.int, ctypes.int, ctypes.int, ctypes.int, win32.HWND, win32.HMENU, win32.HINSTANCE, win32.LPVOID);
   lib.lazy_bind("DestroyWindow", win32.BOOL, win32.HWND);
+  lib.lazy_bind("ShowWindow", win32.BOOL, win32.HWND, ctypes.int);
+  lib.lazy_bind("IsWindowVisible", win32.BOOL, win32.HWND);
+
+  this.SW_HIDE            = 0;
+  this.SW_SHOWNORMAL      = 1;
+  this.SW_NORMAL          = 1;
+  this.SW_SHOWMINIMIZED   = 2;
+  this.SW_SHOWMAXIMIZED   = 3;
+  this.SW_MAXIMIZE        = 3;
+  this.SW_SHOWNOACTIVATE  = 4;
+  this.SW_SHOW            = 5;
+  this.SW_MINIMIZE        = 6;
+  this.SW_SHOWMINNOACTIVE = 7;
+  this.SW_SHOWNA          = 8;
+  this.SW_RESTORE         = 9;
+  this.SW_SHOWDEFAULT     = 10;
+  this.SW_FORCEMINIMIZE   = 11;
+  this.SW_MAX             = 11;
 
   this.CW_USEDEFAULT = ctypes.int(0x80000000); // -2147483648
 

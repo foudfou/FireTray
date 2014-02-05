@@ -39,20 +39,22 @@ firetray.Window.shutdown = function() {
   this.initialized = false;
 };
 
-firetray.Window.show = function(xid) {
-  log.debug("show xid="+xid);
+firetray.Window.getVisibility = function(hwnd) {
+  let style = user32.GetWindowLongW(hwnd, user32.GWL_STYLE);
+  let visible = ((style & user32.WS_VISIBLE) != 0); // user32.IsWindowVisible(hwnd);
+  log.debug("visible="+visible);
+  return visible;
 };
 
-firetray.Window.hide = function(xid) {
-  log.debug("hide");
+// firetray.Window.{show,hide} useless
+firetray.Window.setVisibility = function(wid, visible) {
+  log.debug("setVisibility="+visible);
+  let hwnd = firetray.Win32.hexStrToHwnd(wid);
+  let ret = user32.ShowWindow(hwnd, visible ? user32.SW_SHOW : user32.SW_HIDE);
+  log.debug("  ShowWindow="+ret+" winLastError="+ctypes.winLastError);
+  this.updateVisibility(wid, visible);
 };
-
-firetray.Window.startupHide = function(xid) {
-  log.debug('startupHide: '+xid);
-};
-
-firetray.Window.setVisibility = function(xid, visibility) {
-};
+// firetray.Window.updateVisibility inherited
 
 firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
   // log.debug("wndProc CALLED: hWnd="+hWnd+", uMsg="+uMsg+", wParam="+wParam+", lParam="+lParam);
@@ -74,7 +76,7 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
 
 firetray.Window.restoreWndProc = function(wid) {
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
-  let hwnd = new win32.HWND(ctypes.UInt64(wid));
+  let hwnd = firetray.Win32.hexStrToHwnd(wid);
   log.debug("hwnd="+hwnd);
   let proc = user32.WNDPROC(
     user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC,
@@ -120,15 +122,10 @@ firetray.Handler.registerWindow = function(win) {
   this.windows[wid].baseWin = baseWin;
 
 //   SetupWnd(hwnd);
-//   ::SetPropW(hwnd, kIconData, reinterpret_cast<HANDLE>(iconData));
-//   ::SetPropW(hwnd, kIconMouseEventProc, reinterpret_cast<HANDLE>(callback));
-//   ::SetPropW(hwnd, kIcon, reinterpret_cast<HANDLE>(0x1));
 
   try {
     this.windowsCount += 1;
-    // NOTE: no need to check for window state to set visibility because all
-    // windows *are* shown at startup
-    firetray.Window.updateVisibility(wid, true);
+    firetray.Window.updateVisibility(wid, true); // windows *are* visible at startup
     log.debug("window "+wid+" registered");
 
     let wndProc = user32.WNDPROC(firetray.Window.wndProc);
@@ -177,25 +174,24 @@ firetray.Handler.unregisterWindow = function(win) {
   return true;
 };
 
-firetray.Handler.showWindow = firetray.Window.show;
-firetray.Handler.hideWindow = firetray.Window.hide;
+firetray.Handler.showWindow = function(wid) {
+  return firetray.Window.setVisibility(wid, true);
+};
+firetray.Handler.hideWindow = function(wid) {
+  return firetray.Window.setVisibility(wid, false);
+};
 
-firetray.Handler.showHideAllWindows = function(gtkStatusIcon, userData) {
-  log.debug("showHideAllWindows: "+userData);
-  // NOTE: showHideAllWindows being a callback, we need to use
-  // 'firetray.Handler' explicitely instead of 'this'
+firetray.Handler.showHideAllWindows = function() {
+  log.debug("showHideAllWindows");
 
-  log.debug("visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
-  log.debug("windowsCount="+firetray.Handler.windowsCount);
+  log.debug("  visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
+  log.debug("  windowsCount="+firetray.Handler.windowsCount);
   let visibilityRate = firetray.Handler.visibleWindowsCount/firetray.Handler.windowsCount;
-  log.debug("visibilityRate="+visibilityRate);
+  log.debug("  visibilityRate="+visibilityRate);
   if ((0.5 < visibilityRate) && (visibilityRate < 1)
       || visibilityRate === 0) { // TODO: should be configurable
     firetray.Handler.showAllWindows();
   } else {
     firetray.Handler.hideAllWindows();
   }
-
-  let stopPropagation = true;
-  return stopPropagation;
 };

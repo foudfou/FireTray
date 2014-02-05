@@ -144,7 +144,7 @@ $(xpi_built): check_version check_loglevel $(build_dir) $(build_includes)
 .PHONY: build
 build: $(xpi_built)
 	@echo
-	@echo "Build finished successfully."
+	@echo "Build finished successfully in $(build_dir)."
 	@echo
 
 # This cleans all temporary files and directories created by 'make'.
