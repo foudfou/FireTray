@@ -71,7 +71,30 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
   return user32.CallWindowProcW(procPrev, hWnd, uMsg, wParam, lParam);
 };
 
-firetray.Window.restoreWndProc = function(wid) {
+firetray.Window.attachWndProc = function(wid) {
+  try {
+    let wndProc = user32.WNDPROC(firetray.Window.wndProc);
+    log.debug("proc="+wndProc);
+    this.wndProcs.insert(wid, wndProc);
+    let procPrev = user32.WNDPROC(
+      user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC,
+                            ctypes.cast(wndProc, win32.LONG_PTR))
+    );
+    log.debug("procPrev="+procPrev+" winLastError="+ctypes.winLastError);
+    // we can't store WNDPROC callbacks (JS ctypes objects) with SetPropW(), as
+    // we need long-living refs.
+    this.wndProcsOrig.insert(wid, procPrev);
+
+  } catch (x) {
+    if (x.name === "RangeError") // instanceof not working :-(
+      win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
+                +" windows open. This breaks FireTray and most probably "
+                +firetray.Handler.appName+".");
+    else win.alert(x);
+  }
+}
+
+firetray.Window.detachWndProc = function(wid) {
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
   let hwnd = firetray.Win32.hexStrToHwnd(wid);
   log.debug("hwnd="+hwnd);
@@ -123,28 +146,7 @@ firetray.Handler.registerWindow = function(win) {
 
   log.debug("window "+wid+" registered");
 
-//   SetupWnd(hwnd);
-
-  try {
-    let wndProc = user32.WNDPROC(firetray.Window.wndProc);
-    log.debug("proc="+wndProc);
-    this.wndProcs.insert(wid, wndProc);
-    let procPrev = user32.WNDPROC(
-      user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC,
-                            ctypes.cast(wndProc, win32.LONG_PTR))
-    );
-    log.debug("procPrev="+procPrev+" winLastError="+ctypes.winLastError);
-    // we can't store WNDPROC callbacks (JS ctypes objects) with SetPropW(), as
-    // we need long-living refs.
-    this.wndProcsOrig.insert(wid, procPrev);
-
-  } catch (x) {
-    if (x.name === "RangeError") // instanceof not working :-(
-      win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
-                +" windows open. This breaks FireTray and most probably "
-                +firetray.Handler.appName+".");
-    else win.alert(x);
-  }
+  this.attachWndProc(wid);
 
   firetray.Win32.acceptAllMessages(hwnd);
 
@@ -161,7 +163,7 @@ firetray.Handler.unregisterWindow = function(win) {
     return false;
   }
 
-  firetray.Window.restoreWndProc(wid);
+  this.detachWndProc(wid);
 
   if (!delete firetray.Handler.windows[wid])
     throw new DeleteError();

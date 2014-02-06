@@ -356,8 +356,7 @@ firetray.Handler = {
 
   showHideAllWindows: function() {
     log.debug("showHideAllWindows");
-    log.debug("  visibleWindowsCount="+firetray.Handler.visibleWindowsCount +
-      " / windowsCount="+firetray.Handler.windowsCount);
+    log.debug("  visibleWindowsCount="+firetray.Handler.visibleWindowsCount+" / windowsCount="+firetray.Handler.windowsCount);
     let visibilityRate = firetray.Handler.visibleWindowsCount /
           firetray.Handler.windowsCount;
     log.debug("  visibilityRate="+visibilityRate);
