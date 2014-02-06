@@ -85,7 +85,7 @@ firetray.Handler = {
       log.debug('FiretrayWindow WINNT imported');
       break;
     default:
-      log.error("FIRETRAY: only Linux and WINNT platforms supported at this"
+      log.error("Only Linux and WINNT platforms supported at this"
                 + "time. Firetray not loaded");
       return false;
     }

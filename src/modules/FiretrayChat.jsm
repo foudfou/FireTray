@@ -8,8 +8,6 @@ const Cu = Components.utils;
 
 Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://firetray/commons.js");
-Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
-Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
 
 let log = firetray.Logging.getLogger("firetray.Chat");
 
@@ -24,9 +22,20 @@ firetray.Chat = {
   init: function() {
     if (this.initialized) {
       log.warn("Chat already initialized");
-      return;
+      return true;
     }
     log.debug("Enabling Chat");
+
+    switch (firetray.Handler.runtimeOS) {
+    case "Linux":
+      Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
+      Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
+      break;
+    default:
+      log.error("Only Linux platforms supported at this time. " +
+                "Chat not loaded");
+      return false;
+    }
 
     firetray.Utils.addObservers(firetray.Chat, [
       // "*", // debugging
@@ -42,10 +51,11 @@ firetray.Chat = {
     this.updateIcon();
 
     this.initialized = true;
+    return true;
   },
 
   shutdown: function() {
-    if (!this.initialized) return;
+    if (!this.initialized) return false;
     log.debug("Disabling Chat");
 
     if (firetray.Chat.convsToAcknowledge.length())
@@ -55,6 +65,7 @@ firetray.Chat = {
     firetray.Utils.removeAllObservers(firetray.Chat);
 
     this.initialized = false;
+    return true;
   },
 
   // FIXME: the listener should probably attached on the conv entry in the
