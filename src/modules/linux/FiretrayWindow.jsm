@@ -749,6 +749,10 @@ x11.init = function() {
 
   this.current = {};
   try {
+/* When using GTK3 (gdk.jsm, gtk.jsm) crashes with:
+(firefox:8250): GLib-GObject-WARNING **: cannot register existing type `GdkDisplayManager'
+0x00007fffd62a54b0 in gdk_display_manager_get_default_display () from /lib64/libgdk-3.so.0
+Not sure we can mix mozilla-gtk2 with firetray-gtk3... */
     let gdkDisplay = gdk.gdk_display_get_default();
     this.current.Display = gdk.gdk_x11_display_get_xdisplay(gdkDisplay);
     this.current.Atoms = {};
