@@ -2,7 +2,7 @@
 
 var EXPORTED_SYMBOLS = [ "gtk" ];
 
-const GTK_LIBNAME = "gtk-3";
+const GTK_LIBNAME = "gtk-x11-2.0";
 const GTK_ABIS    = [ 0 ];
 
 const Cu = Components.utils;
@@ -17,8 +17,8 @@ Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 
 function gtk_defines(lib) {
-  this.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION = 3;
-  this.FIRETRAY_REQUIRED_GTK_MINOR_VERSION = 0;
+  this.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION = 2;
+  this.FIRETRAY_REQUIRED_GTK_MINOR_VERSION = 20;
   this.FIRETRAY_REQUIRED_GTK_MICRO_VERSION = 0;
 
   this.GtkIconSize = ctypes.int; // enum
