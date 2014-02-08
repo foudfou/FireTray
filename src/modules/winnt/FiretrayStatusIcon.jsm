@@ -36,14 +36,13 @@ firetray.StatusIcon = {
   notifyIconData: null,
   hwndProxy: null,
   icons: null,
-  iconsPaths: {},
   WNDCLASS_NAME: "FireTrayHiddenWindowClass",
   WNDCLASS_ATOM: null,
 
   init: function() {
     this.loadIcons();
+    // this.defineIconNames();     // FIXME: linux-only
     this.create();
-    firetray.Handler.setIconImageNewMail(); // TESTING
 
     this.initialized = true;
     return true;
@@ -56,16 +55,37 @@ firetray.StatusIcon = {
     this.destroyIcons();
 
     this.initialized = false;
+    return true;
+  },
+
+  defineIconNames: function() { // FIXME: linux-only
+    this.prefAppIconNames = (function() {
+      if (firetray.Handler.inMailApp) {
+        return "app_mail_icon_names";
+      } else if (firetray.Handler.inBrowserApp) {
+        return "app_browser_icon_names";
+      } else {
+        return "app_default_icon_names";
+      }
+    })();
+    this.defaultAppIconName = firetray.Handler.appName.toLowerCase();
+
+    this.prefNewMailIconNames = "new_mail_icon_names";
+    this.defaultNewMailIconName = "mail-unread";
   },
 
   loadIcons: function() {
     this.icons = new ctypesMap(win32.HICON);
 
+    // the Mozilla hidden window has the default Mozilla icon
+    let hwnd_hidden_moz = user32.FindWindowW("MozillaHiddenWindowClass", null);
+    log.debug("=== hwnd_hidden_moz="+hwnd_hidden_moz);
+    this.icons.insert('app', this.getIconFromWindow(hwnd_hidden_moz));
+
     /* we'll take the first icon in the .ico file. To get the icon count in the
      file, pass ctypes.cast(ctypes.int(-1), win32.UINT); */
     for (let ico_name in FIRETRAY_ICON_CHROME_PATHS) {
       let path = firetray.Utils.chromeToPath(FIRETRAY_ICON_CHROME_PATHS[ico_name]);
-      this.iconsPaths[ico_name] = path;
       let hicon = shell32.ExtractIconW(null, path, 0);
       // ERROR_INVALID_HANDLE(6) ignored (_Reserved_ HINSTANCE hInst ?)
       this.icons.insert(ico_name, hicon);
@@ -76,6 +96,11 @@ firetray.StatusIcon = {
   destroyIcons: function() {
     let success = true, errors = [];
     let keys = this.icons.keys;
+
+    // 'app' must not get DestroyIcon'd
+    var idx_app = keys.indexOf('app');
+    if (idx_app > -1) keys.splice(idx_app, 1);
+
     for (let i=0, len=keys.length; i<len; ++i) {
       let ico_name = keys[i];
       let res = user32.DestroyIcon(this.icons.get(ico_name));
@@ -85,6 +110,8 @@ firetray.StatusIcon = {
         errors.push(ctypes.winLastError);
       success = success && res;
     }
+    this.icons.remove('app');
+
     if (!success) {
       log.error("Couldn't destroy all icons: "+errors);
     } else {
@@ -95,15 +122,11 @@ firetray.StatusIcon = {
   create: function() {
     let hwnd_hidden = this.createProxyWindow();
 
-    // the Mozilla hidden window has the default Mozilla icon
-    let hwnd_hidden_moz = user32.FindWindowW("MozillaHiddenWindowClass", null);
-    log.debug("=== hwnd_hidden_moz="+hwnd_hidden_moz);
-
     nid = new shell32.NOTIFYICONDATAW();
     nid.cbSize = shell32.NOTIFYICONDATAW_SIZE();
     log.debug("SIZE="+nid.cbSize);
     nid.szTip = firetray.Handler.appName;
-    nid.hIcon = this.getIconFromWindow(hwnd_hidden_moz);
+    nid.hIcon = this.icons.get('app');
     nid.hWnd = hwnd_hidden;
     nid.uCallbackMessage = firetray.Win32.WM_TRAYMESSAGE;
     nid.uFlags = shell32.NIF_ICON | shell32.NIF_MESSAGE | shell32.NIF_TIP;
@@ -167,6 +190,7 @@ firetray.StatusIcon = {
         break;
       case win32.WM_RBUTTONUP:
         log.debug("WM_RBUTTONUP");
+        firetray.Handler.windowGetAttention(); // TESTING
         break;
       case win32.WM_CONTEXTMENU:
         log.debug("WM_CONTEXTMENU");
@@ -221,19 +245,24 @@ firetray.StatusIcon = {
     let rv = shell32.Shell_NotifyIconW(shell32.NIM_DELETE, this.notifyIconData.address());
     log.debug("Shell_NotifyIcon DELETE="+rv+" winLastError="+ctypes.winLastError);
     this.destroyProxyWindow();
+  },
+
+  setImageFromIcon: function(icoName) {
+    let nid = firetray.StatusIcon.notifyIconData;
+    nid.hIcon = firetray.StatusIcon.icons.get(icoName);
+    rv = shell32.Shell_NotifyIconW(shell32.NIM_MODIFY, nid.address());
+    log.debug("Shell_NotifyIcon MODIFY="+rv+" winLastError="+ctypes.winLastError);
   }
 
 }; // firetray.StatusIcon
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
+  firetray.StatusIcon.setImageFromIcon('app');
 };
 
 firetray.Handler.setIconImageNewMail = function() {
-  let nid = firetray.StatusIcon.notifyIconData;
-  nid.hIcon = firetray.StatusIcon.icons.get('mail-unread');
-  rv = shell32.Shell_NotifyIconW(shell32.NIM_MODIFY, nid.address());
-  log.debug("Shell_NotifyIcon MODIFY="+rv+" winLastError="+ctypes.winLastError);
+  firetray.StatusIcon.setImageFromIcon('mail-unread');
 };
 
 // firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;
@@ -244,7 +273,7 @@ firetray.Handler.setIconTooltip = function(toolTipStr) {
 firetray.Handler.setIconTooltipDefault = function() {
 };
 
-firetray.Handler.setIconText = function(text, color) { // FIXME: function too long
+firetray.Handler.setIconText = function(text, color) {
 };
 
 firetray.Handler.setIconVisibility = function(visible) {

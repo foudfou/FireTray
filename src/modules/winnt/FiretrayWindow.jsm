@@ -183,3 +183,27 @@ firetray.Handler.showWindow = function(wid) {
 firetray.Handler.hideWindow = function(wid) {
   return firetray.Window.setVisibility(wid, false);
 };
+
+firetray.Handler.windowGetAttention = function(wid) { // see nsWindow.cpp
+  for (var first in this.windows) break;
+  wid = wid || first;
+  let hwnd = firetray.Win32.hexStrToHwnd(wid);
+  let fgWnd = user32.GetForegroundWindow();
+  log.debug(hwnd+" === "+fgWnd);
+  if (firetray.js.strEquals(hwnd, fgWnd) ||
+      !this.windows[wid].visible)
+    return;
+
+  let defaultCycleCount = new win32.DWORD;
+  user32.SystemParametersInfoW(user32.SPI_GETFOREGROUNDFLASHCOUNT, 0,
+                               defaultCycleCount.address(), 0);
+  log.debug("defaultCycleCount="+defaultCycleCount);
+
+  let flashInfo = new user32.FLASHWINFO;
+  flashInfo.cbSize = user32.FLASHWINFO.size;
+  flashInfo.hwnd = hwnd;
+  flashInfo.dwFlags = user32.FLASHW_ALL;
+  flashInfo.uCount = defaultCycleCount;
+  flashInfo.dwTimeout = 0;
+  user32.FlashWindowEx(flashInfo.address());
+};

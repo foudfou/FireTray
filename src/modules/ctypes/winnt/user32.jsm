@@ -218,6 +218,29 @@ function user32_defines(lib) {
 
   lib.lazy_bind("GetWindowThreadProcessId", win32.DWORD, win32.HWND, win32.LPDWORD);
 
+  this.FLASHWINFO = ctypes.StructType("FLASHWINFO", [
+    { "cbSize": win32.UINT },
+    { "hwnd": win32.HWND },
+    { "dwFlags": win32.DWORD },
+    { "uCount": win32.UINT },
+    { "dwTimeout": win32.DWORD }
+  ]);
+  this.PFLASHWINFO = this.FLASHWINFO.ptr;
+
+  lib.lazy_bind("FlashWindow", win32.BOOL, win32.HWND, win32.BOOL);
+  lib.lazy_bind("FlashWindowEx", win32.BOOL, this.PFLASHWINFO);
+
+  this.FLASHW_STOP      = 0;
+  this.FLASHW_CAPTION   = 0x00000001;
+  this.FLASHW_TRAY      = 0x00000002;
+  this.FLASHW_ALL       =(this.FLASHW_CAPTION | this.FLASHW_TRAY);
+  this.FLASHW_TIMER     = 0x00000004;
+  this.FLASHW_TIMERNOFG = 0x0000000C;
+
+  lib.lazy_bind("SystemParametersInfoW", win32.BOOL, win32.UINT, win32.UINT, win32.PVOID, win32.UINT);
+  this.SPI_GETFOREGROUNDFLASHCOUNT = 0x2004;
+  lib.lazy_bind("GetForegroundWindow", win32.HWND);
+
 }
 
 new ctypes_library(USER32_LIBNAME, USER32_ABIS, user32_defines, this);

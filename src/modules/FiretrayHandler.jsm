@@ -113,7 +113,7 @@ firetray.Handler = {
     let chatIsProvided = this.isChatProvided();
     log.info('isChatProvided='+chatIsProvided);
     if (chatIsProvided) {
-      if (FIRETRAY_CHAT_SUPPORTED_OS.indexOf(this.runtimeOS) > -1) {
+      if (this.isChatSupported()) {
         Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
         Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayChat.jsm");
         firetray.Utils.addObservers(firetray.Handler, [
@@ -163,7 +163,8 @@ firetray.Handler = {
 
   shutdown: function() {
     log.debug("Disabling Handler");
-    if (firetray.Handler.isChatProvided() && firetray.Chat.initialized)
+    if (firetray.Handler.isChatProvided() && firetray.Handler.isChatSupported()
+        && firetray.Chat.initialized)
       firetray.Chat.shutdown();
 
     if (this.inMailApp)
@@ -189,6 +190,10 @@ firetray.Handler = {
 
   isChatProvided: function() {
     return this.appHasChat && Services.prefs.getBoolPref("mail.chat.enabled");
+  },
+
+  isChatSupported: function() {
+    return FIRETRAY_CHAT_SUPPORTED_OS.indexOf(this.runtimeOS) > -1;
   },
 
   tryCloseLibs: function() {
@@ -332,6 +337,7 @@ firetray.Handler = {
   showWindow: function(winId) {},
   activateLastWindowCb: function(gtkStatusIcon, gdkEvent, userData) {},
   getActiveWindow: function() {},
+  windowGetAttention: function(winId) {},
 
   showAllWindows: function() {
     log.debug("showAllWindows");
@@ -565,7 +571,7 @@ firetray.MailChatPrefListener = new PrefListener(
       let enableChatCond =
             (firetray.Handler.appHasChat &&
              firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
-             FIRETRAY_CHAT_SUPPORTED_OS.indexOf(this.runtimeOS) > -1);
+             firetray.Handler.isChatSupported());
       if (!enableChatCond) return;
 
       if (Services.prefs.getBoolPref("mail.chat.enabled")) {

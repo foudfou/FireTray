@@ -736,6 +736,10 @@ firetray.Handler.getActiveWindow = function() {
   return activeWin;
 };
 
+firetray.Handler.windowGetAttention = function(winId) {
+  firetray.Window.setUrgency(winId, true);
+};
+
 
 /**
  * init X11 Display and handled XAtoms.
