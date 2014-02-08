@@ -8,6 +8,8 @@ const Cu = Components.utils;
 
 Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
+Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
 
 let log = firetray.Logging.getLogger("firetray.Chat");
 
@@ -25,17 +27,6 @@ firetray.Chat = {
       return true;
     }
     log.debug("Enabling Chat");
-
-    switch (firetray.Handler.runtimeOS) {
-    case "Linux":
-      Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
-      Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
-      break;
-    default:
-      log.error("Only Linux platforms supported at this time. " +
-                "Chat not loaded");
-      return false;
-    }
 
     firetray.Utils.addObservers(firetray.Chat, [
       // "*", // debugging

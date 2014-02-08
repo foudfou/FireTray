@@ -36,11 +36,12 @@ var firetrayUIOptions = {
       this.hidePrefPane("pref-pane-mail");
     }
 
-    if (firetray.Handler.isChatProvided()) {
-      Cu.import("resource://firetray/FiretrayChat.jsm");
+    if (firetray.Handler.isChatProvided() &&
+        FIRETRAY_CHAT_SUPPORTED_OS.indexOf(firetray.Handler.runtimeOS) > -1) {
+      Cu.import("resource://firetray/"+firetray.Handler.runtimeOS+"/FiretrayChat.jsm");
       this.initChatControls();
     } else
-      this.hidePrefPane("pref-pane-chat");
+    this.hidePrefPane("pref-pane-chat");
 
     this.updateWindowAndIconOptions();
     this.updateScrollOptions();

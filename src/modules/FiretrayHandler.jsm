@@ -53,7 +53,7 @@ firetray.Handler = {
   appName:    (function(){return Services.appinfo.name;})(),
   xulVer:     (function(){return Services.appinfo.platformVersion;})(), // Services.vc.compare(xulVer,"2.0a")>=0
   runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
-  runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
+  runtimeOS:  (function(){return Services.appinfo.OS.toLowerCase();})(), // "WINNT", "Linux", "Darwin"
   addonRootDir: (function(){
     let uri = Services.io.newURI(Components.stack.filename, null, null);
     if (uri instanceof Ci.nsIFileURL) {
@@ -69,26 +69,15 @@ firetray.Handler = {
 
     // version checked during install, so we shouldn't need to care
     log.info("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + this.xulVer);
-    switch (this.runtimeOS) {
-    case "Linux":
-      Cu.import("resource://firetray/linux/FiretrayStatusIcon.jsm");
-      log.debug('FiretrayStatusIcon Linux imported');
-      Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
-      log.debug('FiretrayWindow Linux imported');
-      break;
-    case "WINNT":
-      Cu.import("resource://firetray/winnt/FiretrayWin32.jsm");
-      log.debug('FiretrayWin32 imported');
-      Cu.import("resource://firetray/winnt/FiretrayStatusIcon.jsm");
-      log.debug('FiretrayStatusIcon WINNT imported');
-      Cu.import("resource://firetray/winnt/FiretrayWindow.jsm");
-      log.debug('FiretrayWindow WINNT imported');
-      break;
-    default:
-      log.error("Only Linux and WINNT platforms supported at this"
-                + "time. Firetray not loaded");
+    if (FIRETRAY_SUPPORTED_OS.indexOf(this.runtimeOS) < 0) {
+      let platforms = FIRETRAY_SUPPORTED_OS.join(", ");
+      log.error("Only "+platforms+" platform(s) supported at this time. Firetray not loaded");
       return false;
     }
+    Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayStatusIcon.jsm");
+    log.debug("FiretrayStatusIcon "+this.runtimeOS+" imported");
+    Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayWindow.jsm");
+    log.debug("FiretrayWindow "+this.runtimeOS+" imported");
 
     if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
         this.appId === FIRETRAY_APP_DB['seamonkey']['id'])
@@ -124,13 +113,18 @@ firetray.Handler = {
     let chatIsProvided = this.isChatProvided();
     log.info('isChatProvided='+chatIsProvided);
     if (chatIsProvided) {
-      Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
-      Cu.import("resource://firetray/FiretrayChat.jsm");
-      firetray.Utils.addObservers(firetray.Handler, [
-        "account-added", "account-removed"]);
-      if (firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
-          this.existsChatAccount())
-        firetray.Chat.init();
+      if (FIRETRAY_CHAT_SUPPORTED_OS.indexOf(this.runtimeOS) > -1) {
+        Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
+        Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayChat.jsm");
+        firetray.Utils.addObservers(firetray.Handler, [
+          "account-added", "account-removed"]);
+        if (firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
+            this.existsChatAccount())
+          firetray.Chat.init();
+      } else {
+        let platforms = FIRETRAY_CHAT_SUPPORTED_OS.join(", ");
+        log.error("Only "+platforms+" platform(s) supported at this time. Firetray not loaded");
+      }
     }
 
     firetray.Utils.addObservers(firetray.Handler,
@@ -570,13 +564,14 @@ firetray.MailChatPrefListener = new PrefListener(
     case 'enabled':
       let enableChatCond =
             (firetray.Handler.appHasChat &&
-             firetray.Utils.prefService.getBoolPref("chat_icon_enable"));
+             firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
+             FIRETRAY_CHAT_SUPPORTED_OS.indexOf(this.runtimeOS) > -1);
       if (!enableChatCond) return;
 
       if (Services.prefs.getBoolPref("mail.chat.enabled")) {
         if (!firetray.Chat) {
           Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
-          Cu.import("resource://firetray/FiretrayChat.jsm");
+          Cu.import("resource://firetray/linux/FiretrayChat.jsm");
           firetray.Utils.addObservers(firetray.Handler, [
             "account-added", "account-removed"]);
         }

@@ -71,7 +71,7 @@ firetray.Window.init = function() {
     log.error("gtk_check_version="+gtkVersionCheck.readString());
 
   if (firetray.Handler.isChatEnabled()) {
-    Cu.import("resource://firetray/FiretrayChat.jsm");
+    Cu.import("resource://firetray/linux/FiretrayChat.jsm");
     Cu.import("resource://firetray/linux/FiretrayChatStatusIcon.jsm");
   }
 

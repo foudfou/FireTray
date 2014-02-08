@@ -3,20 +3,18 @@
 /* for now, logging facilities (imported from logging.jsm) and Services are
    automatically provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "FIRETRAY_ID", "FIRETRAY_VERSION", "FIRETRAY_PREF_BRANCH",
+  [ "firetray", "FIRETRAY_VERSION", "FIRETRAY_SUPPORTED_OS",
+    "FIRETRAY_CHAT_SUPPORTED_OS", "FIRETRAY_ID", "FIRETRAY_PREF_BRANCH",
     "FIRETRAY_SPLASH_PAGE", "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
     "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
     "FIRETRAY_NOTIFICATION_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_IM_STATUS_AVAILABLE", "FIRETRAY_IM_STATUS_AWAY",
     "FIRETRAY_IM_STATUS_BUSY", "FIRETRAY_IM_STATUS_OFFLINE",
-    "FIRETRAY_ACCOUNT_SERVER_TYPE_IM",
-    "FIRETRAY_DELAY_STARTUP_MILLISECONDS",
-    "FIRETRAY_DELAY_NOWAIT_MILLISECONDS",
-    "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD", "FIRETRAY_MESSAGE_COUNT_TYPE_NEW",
-    "FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL",
-    "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE",
-    "FIRETRAY_APP_DB" ];
+    "FIRETRAY_ACCOUNT_SERVER_TYPE_IM", "FIRETRAY_DELAY_STARTUP_MILLISECONDS",
+    "FIRETRAY_DELAY_NOWAIT_MILLISECONDS", "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD",
+    "FIRETRAY_MESSAGE_COUNT_TYPE_NEW", "FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL",
+    "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE", "FIRETRAY_APP_DB" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -25,10 +23,12 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION     = "0.4.99"; // needed for sync call of onVersionChange() :(
-const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
-const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
-const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
+const FIRETRAY_VERSION           = "0.4.99"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_SUPPORTED_OS      = ['linux', 'winnt']; // install.rdf sync :(
+const FIRETRAY_CHAT_SUPPORTED_OS = ['linux'];
+const FIRETRAY_ID                = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
+const FIRETRAY_PREF_BRANCH       = "extensions.firetray.";
+const FIRETRAY_SPLASH_PAGE       = "http://foudfou.github.com/FireTray/";
 
 const FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
 const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM = 1;
@@ -144,11 +144,13 @@ firetray.Utils = {
 
   getArrayPref: function(prefStr) {
     let arrayPref = this.getObjPref(prefStr);
-    if (!firetray.js.isArray(arrayPref)) throw new TypeError();
+    if (!firetray.js.isArray(arrayPref))
+      throw new TypeError("'"+prefStr+"' preference is not array.");
     return arrayPref;
   },
   setArrayPref: function(prefStr, aArray) {
-    if (!firetray.js.isArray(aArray)) throw new TypeError();
+    if (!firetray.js.isArray(aArray))
+      throw new TypeError("'"+aArray+"' is not array.");
     this.setObjPref(prefStr, aArray);
   },
 
