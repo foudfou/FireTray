@@ -34,6 +34,7 @@ function user32_defines(lib) {
 
   lib.lazy_bind("SendMessageW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
   this.WM_GETICON = 0x007F;
+  this.WM_SETICON = 0x0080;
   this.ICON_SMALL  = 0;
   this.ICON_BIG    = 1;
   this.ICON_SMALL2 = 2;
@@ -44,8 +45,11 @@ function user32_defines(lib) {
   this.GCLP_HICONSM = -34;
 
   lib.lazy_bind("LoadIconW", win32.HICON, win32.HINSTANCE, win32.LPCTSTR); // superseeded by LoadImage
-  this.IDI_APPLICATION = 32512;
-
+  this.IDI_APPLICATION = win32.MAKEINTRESOURCE(32512);
+  this.IDI_HAND        = win32.MAKEINTRESOURCE(32513);
+  this.IDI_QUESTION    = win32.MAKEINTRESOURCE(32514);
+  this.IDI_EXCLAMATION = win32.MAKEINTRESOURCE(32515);
+  this.IDI_ASTERISK    = win32.MAKEINTRESOURCE(32516);
   lib.lazy_bind("LoadImageW", win32.HANDLE, win32.HINSTANCE, win32.LPCTSTR, win32.UINT, ctypes.int, ctypes.int, win32.UINT);
   this.LR_CREATEDIBSECTION = 0x00002000;
   this.LR_DEFAULTCOLOR     = 0x00000000;
@@ -56,6 +60,7 @@ function user32_defines(lib) {
   this.LR_MONOCHROME       = 0x00000001;
   this.LR_SHARED           = 0x00008000;
   this.LR_VGACOLOR         = 0x00000080;
+  lib.lazy_bind("DestroyIcon", win32.BOOL, win32.HICON);
 
   lib.lazy_bind("GetPropW", win32.HANDLE, win32.HWND, win32.LPCTSTR);
   lib.lazy_bind("SetPropW", win32.BOOL, win32.HWND, win32.LPCTSTR, win32.HANDLE);
@@ -65,13 +70,22 @@ function user32_defines(lib) {
   lib.lazy_bind("SetWindowLongW", win32.LONG_PTR , win32.HWND, ctypes.int, win32.LONG_PTR);
   // SetWindowLongPtrW aliases SetWindowLongW with the correct signature thank
   // win32.LONG_PTR
-  lib.lazy_bind("SetWindowLongW", win32.LONG_PTR , win32.HWND, ctypes.int, win32.LONG_PTR);
-  this.GWL_EXSTYLE = -20;
+  this.GWLP_WNDPROC   = -4;
   this.GWLP_HINSTANCE = -6;
-  this.GWLP_ID = -12;
-  this.GWL_STYLE = -16;
-  this.GWLP_USERDATA = -21;
-  this.GWLP_WNDPROC = -4;
+  this.GWLP_ID        = -12;
+  this.GWL_STYLE      = -16;
+  this.GWL_EXSTYLE    = -20;
+  this.GWLP_USERDATA  = -21;
+  lib.lazy_bind("SetClassLongW", win32.DWORD , win32.HWND, ctypes.int, win32.LONG); // superseeded by SetClassLongPtrW
+  this.GCL_MENUNAME      = -8;
+  this.GCL_HBRBACKGROUND = -10;
+  this.GCL_HCURSOR       = -12;
+  this.GCL_HICON         = -14;
+  this.GCL_HMODULE       = -16;
+  this.GCL_CBWNDEXTRA    = -18;
+  this.GCL_CBCLSEXTRA    = -20;
+  this.GCL_WNDPROC       = -24;
+  this.GCL_HICONSM       = -34;
 
   this.WNDPROC = ctypes.FunctionType(
     WinCbABI, win32.LRESULT,

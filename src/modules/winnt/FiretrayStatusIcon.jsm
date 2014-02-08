@@ -12,6 +12,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
+Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
 Cu.import("resource://firetray/ctypes/winnt/win32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/kernel32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/shell32.jsm");
@@ -25,20 +26,24 @@ let log = firetray.Logging.getLogger("firetray.StatusIcon");
 if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");
 
+FIRETRAY_ICON_CHROME_PATHS = {
+  'mail-unread': "chrome://firetray/skin/winnt/mail-unread.ico",
+};
 
 firetray.StatusIcon = {
   initialized: false,
   callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
   notifyIconData: null,
   hwndProxy: null,
+  icons: null,
+  iconsPaths: {},
   WNDCLASS_NAME: "FireTrayHiddenWindowClass",
   WNDCLASS_ATOM: null,
 
   init: function() {
-    this.FILENAME_BLANK = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/blank-icon.png");
-
+    this.loadIcons();
     this.create();
+    firetray.Handler.setIconImageNewMail(); // TESTING
 
     this.initialized = true;
     return true;
@@ -48,8 +53,43 @@ firetray.StatusIcon = {
     log.debug("Disabling StatusIcon");
 
     this.destroy();
+    this.destroyIcons();
 
     this.initialized = false;
+  },
+
+  loadIcons: function() {
+    this.icons = new ctypesMap(win32.HICON);
+
+    /* we'll take the first icon in the .ico file. To get the icon count in the
+     file, pass ctypes.cast(ctypes.int(-1), win32.UINT); */
+    for (let ico_name in FIRETRAY_ICON_CHROME_PATHS) {
+      let path = firetray.Utils.chromeToPath(FIRETRAY_ICON_CHROME_PATHS[ico_name]);
+      this.iconsPaths[ico_name] = path;
+      let hicon = shell32.ExtractIconW(null, path, 0);
+      // ERROR_INVALID_HANDLE(6) ignored (_Reserved_ HINSTANCE hInst ?)
+      this.icons.insert(ico_name, hicon);
+      log.debug("icon '"+ico_name+"'="+this.icons.get(ico_name)+" winLastError="+ctypes.winLastError);
+    }
+  },
+
+  destroyIcons: function() {
+    let success = true, errors = [];
+    let keys = this.icons.keys;
+    for (let i=0, len=keys.length; i<len; ++i) {
+      let ico_name = keys[i];
+      let res = user32.DestroyIcon(this.icons.get(ico_name));
+      if (res)
+        this.icons.remove(ico_name);
+      else
+        errors.push(ctypes.winLastError);
+      success = success && res;
+    }
+    if (!success) {
+      log.error("Couldn't destroy all icons: "+errors);
+    } else {
+      log.debug("Icons destroyed");
+    }
   },
 
   create: function() {
@@ -190,6 +230,10 @@ firetray.Handler.setIconImageDefault = function() {
 };
 
 firetray.Handler.setIconImageNewMail = function() {
+  let nid = firetray.StatusIcon.notifyIconData;
+  nid.hIcon = firetray.StatusIcon.icons.get('mail-unread');
+  rv = shell32.Shell_NotifyIconW(shell32.NIM_MODIFY, nid.address());
+  log.debug("Shell_NotifyIcon MODIFY="+rv+" winLastError="+ctypes.winLastError);
 };
 
 // firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;

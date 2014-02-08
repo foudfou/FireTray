@@ -97,7 +97,7 @@ firetray.Window.attachWndProc = function(wid, hwnd) {
       Cu.reportError(x);
     }
   }
-}
+};
 
 firetray.Window.detachWndProc = function(wid) {
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
@@ -131,7 +131,7 @@ firetray.Handler.registerWindow = function(win) {
   let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
   let nativeHandle = baseWin.nativeHandle;
   let hwnd = nativeHandle ?
-        new win32.HWND(ctypes.UInt64(nativeHandle)) :
+        firetray.Win32.hexStrToHwnd(nativeHandle) :
         user32.FindWindowW("MozillaWindowClass", win.document.title);
   let wid = firetray.Win32.hwndToHexStr(hwnd);
   log.debug("=== hwnd="+hwnd+" wid="+wid+" win.document.title: "+win.document.title);
