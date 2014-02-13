@@ -14,6 +14,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
 Cu.import("resource://firetray/ctypes/winnt/win32.jsm");
+Cu.import("resource://firetray/ctypes/winnt/gdi32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/kernel32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/shell32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/user32.jsm");
@@ -27,6 +28,7 @@ if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");
 
 FIRETRAY_ICON_CHROME_PATHS = {
+  'blank-icon': "chrome://firetray/skin/winnt/blank-icon.bmp",
   'mail-unread': "chrome://firetray/skin/winnt/mail-unread.ico",
 };
 
@@ -36,11 +38,12 @@ firetray.StatusIcon = {
   notifyIconData: null,
   hwndProxy: null,
   icons: null,
+  bitmaps: null,
   WNDCLASS_NAME: "FireTrayHiddenWindowClass",
   WNDCLASS_ATOM: null,
 
   init: function() {
-    this.loadIcons();
+    this.loadImages();
     // this.defineIconNames();     // FIXME: linux-only
     this.create();
 
@@ -52,7 +55,7 @@ firetray.StatusIcon = {
     log.debug("Disabling StatusIcon");
 
     this.destroy();
-    this.destroyIcons();
+    this.destroyImages();
 
     this.initialized = false;
     return true;
@@ -74,8 +77,9 @@ firetray.StatusIcon = {
     this.defaultNewMailIconName = "mail-unread";
   },
 
-  loadIcons: function() {
+  loadImages: function() {
     this.icons = new ctypesMap(win32.HICON);
+    this.bitmaps = new ctypesMap(win32.HBITMAP);
 
     // the Mozilla hidden window has the default Mozilla icon
     let hwnd_hidden_moz = user32.FindWindowW("MozillaHiddenWindowClass", null);
@@ -84,39 +88,39 @@ firetray.StatusIcon = {
 
     /* we'll take the first icon in the .ico file. To get the icon count in the
      file, pass ctypes.cast(ctypes.int(-1), win32.UINT); */
-    for (let ico_name in FIRETRAY_ICON_CHROME_PATHS) {
-      let path = firetray.Utils.chromeToPath(FIRETRAY_ICON_CHROME_PATHS[ico_name]);
-      let hicon = shell32.ExtractIconW(null, path, 0);
-      // ERROR_INVALID_HANDLE(6) ignored (_Reserved_ HINSTANCE hInst ?)
-      this.icons.insert(ico_name, hicon);
-      log.debug("icon '"+ico_name+"'="+this.icons.get(ico_name)+" winLastError="+ctypes.winLastError);
+    for (let imgName in FIRETRAY_ICON_CHROME_PATHS) {
+      let path = firetray.Utils.chromeToPath(FIRETRAY_ICON_CHROME_PATHS[imgName]);
+      let imgType = path.substr(-3, 3);
+      let imgTypeDict = {
+        ico: { win_t: win32.HICON,   load_const: user32.IMAGE_ICON,   map: this.icons },
+        bmp: { win_t: win32.HBITMAP, load_const: user32.IMAGE_BITMAP, map: this.bitmaps }
+      };
+      if (!(imgType in imgTypeDict)) {
+        throw Error("Unrecognized type '"+imgType+"'");
+      }
+      let imgTypeRec = imgTypeDict[imgType];
+      let himg = ctypes.cast(
+        user32.LoadImageW(null, path, imgTypeRec['load_const'], 0, 0,
+                          user32.LR_LOADFROMFILE|user32.LR_SHARED),
+        imgTypeRec['win_t']);
+      if (himg.isNull()) {
+        log.error("Could not load '"+imgName+"'="+himg+" winLastError="+ctypes.winLastError);
+        continue;
+      }
+      imgTypeRec['map'].insert(imgName, himg);
     }
   },
 
-  destroyIcons: function() {
-    let success = true, errors = [];
-    let keys = this.icons.keys;
-
-    // 'app' must not get DestroyIcon'd
-    var idx_app = keys.indexOf('app');
-    if (idx_app > -1) keys.splice(idx_app, 1);
-
-    for (let i=0, len=keys.length; i<len; ++i) {
-      let ico_name = keys[i];
-      let res = user32.DestroyIcon(this.icons.get(ico_name));
-      if (res)
-        this.icons.remove(ico_name);
-      else
-        errors.push(ctypes.winLastError);
-      success = success && res;
-    }
-    this.icons.remove('app');
-
-    if (!success) {
-      log.error("Couldn't destroy all icons: "+errors);
-    } else {
-      log.debug("Icons destroyed");
-    }
+  // images loaded with LR_SHARED need't be destroyed
+  destroyImages: function() {
+    [this.icons, this.bitmaps].forEach(function(map, idx, ary) {
+      let keys = map.keys;
+      for (let i=0, len=keys.length; i<len; ++i) {
+        let imgName = keys[i];
+        map.remove(imgName);
+      }
+    });
+    log.debug("Icons destroyed");
   },
 
   create: function() {
@@ -190,7 +194,9 @@ firetray.StatusIcon = {
         break;
       case win32.WM_RBUTTONUP:
         log.debug("WM_RBUTTONUP");
-        firetray.Handler.windowGetAttention(); // TESTING
+        let hicon = firetray.StatusIcon.createSmallIcon(hWnd, "100", "#990000");
+        log.debug("%%%%%%%%%% ICON="+hicon);
+        firetray.StatusIcon.setImageFromIcon(hicon);
         break;
       case win32.WM_CONTEXTMENU:
         log.debug("WM_CONTEXTMENU");
@@ -212,17 +218,16 @@ firetray.StatusIcon = {
     // result is a ctypes.Int64. So we need to create a CData from it before
     // casting it to a HICON.
     let icon = ctypes.cast(win32.LRESULT(rv), win32.HICON);
-    let NULL = win32.HICON(null); // for comparison only
-    if (firetray.js.strEquals(icon, NULL)) { // from the window class
+    if (icon.isNull()) { // from the window class
       rv = user32.GetClassLong(hwnd, user32.GCLP_HICONSM);
       icon = ctypes.cast(win32.ULONG_PTR(rv), win32.HICON);
       log.debug("GetClassLong winLastError="+ctypes.winLastError);
     }
-    if (firetray.js.strEquals(icon, NULL)) { // from the first resource -> ERROR_RESOURCE_TYPE_NOT_FOUND(1813)
+    if (icon.isNull()) { // from the first resource -> ERROR_RESOURCE_TYPE_NOT_FOUND(1813)
       icon = user32.LoadIconW(firetray.Win32.hInstance, win32.MAKEINTRESOURCE(0));
       log.debug("LoadIconW module winLastError="+ctypes.winLastError);
     }
-    if (firetray.js.strEquals(icon, NULL)) { // OS default icon
+    if (icon.isNull()) { // OS default icon
       icon = user32.LoadIconW(null, win32.MAKEINTRESOURCE(user32.IDI_APPLICATION));
       log.debug("LoadIconW default winLastError="+ctypes.winLastError);
     }
@@ -247,22 +252,75 @@ firetray.StatusIcon = {
     this.destroyProxyWindow();
   },
 
-  setImageFromIcon: function(icoName) {
+  setImageFromIcon: function(hicon) {
     let nid = firetray.StatusIcon.notifyIconData;
-    nid.hIcon = firetray.StatusIcon.icons.get(icoName);
+    nid.hIcon = hicon;
     rv = shell32.Shell_NotifyIconW(shell32.NIM_MODIFY, nid.address());
     log.debug("Shell_NotifyIcon MODIFY="+rv+" winLastError="+ctypes.winLastError);
+  },
+
+  // rgb colors encoded in *bbggrr*
+  cssColorToCOLORREF: function(csscolor) {
+    let rgb = csscolor.substr(1);
+    let rr = rgb.substr(0, 2);
+    let gg = rgb.substr(2, 2);
+    let bb = rgb.substr(4, 2);
+    return parseInt("0x"+bb+gg+rr);
+  },
+
+  // http://stackoverflow.com/questions/457050/how-to-display-text-in-system-tray-icon-with-win32-api
+  createSmallIcon: function(hWnd, text, color) {
+    let hdc = user32.GetDC(hWnd); // get device context (DC) for hWnd
+    let hdcMem = gdi32.CreateCompatibleDC(hdc); // creates a memory device context (DC) compatible with hdc (need a bitmap)
+    let hBitmap = this.bitmaps.get('blank-icon');
+    let hBitmapMask = gdi32.CreateCompatibleBitmap(hdc, 32, 32);
+    user32.ReleaseDC(hWnd, hdc);
+
+    let hOldBitmap = ctypes.cast(gdi32.SelectObject(hdcMem, hBitmap), // replace bitmap in hdcMem by hBitmap
+                                 win32.HBITMAP);
+    // gdi32.PatBlt(hdcMem, 0, 0, 16, 16, gdi32.BLACKNESS); // paint black rectangle
+
+    let nHeight = 32, fnWeight = gdi32.FW_BOLD;
+    let hFont = gdi32.CreateFontW(nHeight, 0, 0, 0, fnWeight, 0, 0, 0,
+      gdi32.ANSI_CHARSET, 0, 0, 0, gdi32.FF_SWISS, "Sans"); // get font
+    hFont = ctypes.cast(gdi32.SelectObject(hdcMem, hFont), win32.HFONT); // replace font in bitmap by hFont
+    gdi32.SetTextColor(hdcMem, win32.COLORREF(this.cssColorToCOLORREF(color)));
+    // gdi32.SetBkMode(hdcMem, gdi32.TRANSPARENT); // VERY IMPORTANT
+    // gdi32.SetTextAlign(hdcMem, gdi32.GetTextAlign(hdcMem) & (~gdi32.TA_CENTER));
+    // gdi32.SetTextAlign(hdcMem, gdi32.TA_CENTER);
+    log.debug("   ___ALIGN=(winLastError="+ctypes.winLastError+") "+gdi32.GetTextAlign(hdcMem));
+    gdi32.TextOutW(hdcMem, 0, 0, text, text.length);
+
+    gdi32.SelectObject(hdcMem, hOldBitmap); // always replace new hBitmap with original one
+
+    let iconInfo = win32.ICONINFO();
+    iconInfo.fIcon = true;
+    iconInfo.xHotspot = 0;
+    iconInfo.yHotspot = 0;
+    iconInfo.hbmMask = hBitmapMask;
+    iconInfo.hbmColor = hBitmap;
+
+    let hIcon = user32.CreateIconIndirect(iconInfo.address());
+
+    gdi32.DeleteObject(gdi32.SelectObject(hdcMem, hFont));
+    gdi32.DeleteDC(hdcMem);
+    // gdi32.DeleteDC(hdc); // already ReleaseDC's
+    gdi32.DeleteObject(hBitmap);
+    gdi32.DeleteObject(hBitmapMask);
+
+    return hIcon;               // to be destroyed (DestroyIcon)
   }
 
 }; // firetray.StatusIcon
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
-  firetray.StatusIcon.setImageFromIcon('app');
+  firetray.StatusIcon.setImageFromIcon(firetray.StatusIcon.icons.get('app'));
 };
 
 firetray.Handler.setIconImageNewMail = function() {
-  firetray.StatusIcon.setImageFromIcon('mail-unread');
+  log.debug("setIconImageDefault");
+  firetray.StatusIcon.setImageFromIcon(firetray.StatusIcon.icons.get('mail-unread'));
 };
 
 // firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;

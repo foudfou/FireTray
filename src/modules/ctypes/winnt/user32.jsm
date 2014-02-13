@@ -51,6 +51,9 @@ function user32_defines(lib) {
   this.IDI_EXCLAMATION = win32.MAKEINTRESOURCE(32515);
   this.IDI_ASTERISK    = win32.MAKEINTRESOURCE(32516);
   lib.lazy_bind("LoadImageW", win32.HANDLE, win32.HINSTANCE, win32.LPCTSTR, win32.UINT, ctypes.int, ctypes.int, win32.UINT);
+  this.IMAGE_BITMAP        = 0;
+  this.IMAGE_ICON          = 1;
+  this.IMAGE_CURSOR        = 2;
   this.LR_CREATEDIBSECTION = 0x00002000;
   this.LR_DEFAULTCOLOR     = 0x00000000;
   this.LR_DEFAULTSIZE      = 0x00000040;
@@ -240,6 +243,10 @@ function user32_defines(lib) {
   lib.lazy_bind("SystemParametersInfoW", win32.BOOL, win32.UINT, win32.UINT, win32.PVOID, win32.UINT);
   this.SPI_GETFOREGROUNDFLASHCOUNT = 0x2004;
   lib.lazy_bind("GetForegroundWindow", win32.HWND);
+
+  lib.lazy_bind("GetDC", win32.HDC, win32.HWND);
+  lib.lazy_bind("ReleaseDC", ctypes.int, win32.HWND, win32.HDC);
+  lib.lazy_bind("CreateIconIndirect", win32.HICON, win32.PICONINFO);
 
 }
 

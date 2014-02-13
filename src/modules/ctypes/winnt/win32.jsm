@@ -41,6 +41,10 @@ var win32 = new function() {
   this.HBRUSH    = this.HICON;
   this.HCURSOR   = this.HANDLE;
   this.HHOOK     = this.HANDLE;
+  this.HDC       = this.HANDLE;
+  this.HGDIOBJ   = this.HANDLE;
+  this.HBITMAP   = this.HANDLE;
+  this.HFONT     = this.HANDLE;
   this.TCHAR     = ctypes.jschar, // Mozilla compiled with UNICODE/_UNICODE macros and wchar_t = jschar
   this.LPSTR     = ctypes.char.ptr;
   this.LPCSTR    = ctypes.char.ptr;
@@ -52,6 +56,7 @@ var win32 = new function() {
   this.WPARAM    = this.UINT_PTR;
   this.LPARAM    = this.LONG_PTR;
   this.FARPROC   = ctypes.voidptr_t; // typedef INT_PTR (FAR WINAPI *FARPROC)();
+  this.COLORREF  = this.DWORD;       // 0x00bbggrr
 
   this.GUID = ctypes.StructType("GUID", [
     { "Data1": ctypes.unsigned_long },
@@ -97,10 +102,18 @@ var win32 = new function() {
   this.WM_MOUSELAST     = 0x020D;
   this.WM_MOUSELAST     = 0x020A;
 
+  this.ICONINFO = ctypes.StructType("ICONINFO", [
+    { "fIcon": this.BOOL },
+    { "xHotspot": this.DWORD },
+    { "yHotspot": this.DWORD },
+    { "hbmMask": this.HBITMAP },
+    { "hbmColor": this.HBITMAP }
+  ]);
+  this.PICONINFO = this.ICONINFO.ptr;
 };
 
 // ShellAPI.h
 let nin_select = win32.WM_USER + 0;
-win32.NIN_SELECT = nin_select;
-win32.NINF_KEY = 0x1;
+win32.NIN_SELECT    = nin_select;
+win32.NINF_KEY      = 0x1;
 win32.NIN_KEYSELECT = (win32.NIN_SELECT | win32.NINF_KEY);
