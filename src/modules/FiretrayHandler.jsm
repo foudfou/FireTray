@@ -123,7 +123,7 @@ firetray.Handler = {
           firetray.Chat.init();
       } else {
         let platforms = FIRETRAY_CHAT_SUPPORTED_OS.join(", ");
-        log.error("Only "+platforms+" platform(s) supported at this time. Firetray not loaded");
+        log.error("Only "+platforms+" platform(s) supported at this time. Chat not loaded");
       }
     }
 
@@ -515,6 +515,9 @@ firetray.PrefListener = new PrefListener(
         firetray.Messaging.shutdown();
         firetray.Handler.setIconImageDefault();
       }
+      break;
+    case 'mail_notification_type':
+      firetray.Messaging.updateIcon();
       break;
     case 'new_mail_icon_names':
       firetray.StatusIcon.loadThemedIcons();

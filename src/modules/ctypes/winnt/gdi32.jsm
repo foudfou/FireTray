@@ -24,7 +24,42 @@ function gdi32_defines(lib) {
 
   lib.lazy_bind("CreateCompatibleDC", win32.HDC, win32.HDC);
   lib.lazy_bind("DeleteDC", win32.BOOL, win32.HDC);
+  lib.lazy_bind("BitBlt", win32.BOOL, win32.HDC, ctypes.int, ctypes.int, ctypes.int, ctypes.int, win32.HDC, ctypes.int, ctypes.int, win32.DWORD);
+  this.SRCCOPY        = win32.DWORD(0x00CC0020); /* dest = source                   */
+  this.SRCPAINT       = win32.DWORD(0x00EE0086); /* dest = source OR dest           */
+  this.SRCAND         = win32.DWORD(0x008800C6); /* dest = source AND dest          */
+  this.SRCINVERT      = win32.DWORD(0x00660046); /* dest = source XOR dest          */
+  this.SRCERASE       = win32.DWORD(0x00440328); /* dest = source AND (NOT dest )   */
+  this.NOTSRCCOPY     = win32.DWORD(0x00330008); /* dest = (NOT source)             */
+  this.NOTSRCERASE    = win32.DWORD(0x001100A6); /* dest = (NOT src) AND (NOT dest) */
+  this.MERGECOPY      = win32.DWORD(0x00C000CA); /* dest = (source AND pattern)     */
+  this.MERGEPAINT     = win32.DWORD(0x00BB0226); /* dest = (NOT source) OR dest     */
+  this.PATCOPY        = win32.DWORD(0x00F00021); /* dest = pattern                  */
+  this.PATPAINT       = win32.DWORD(0x00FB0A09); /* dest = DPSnoo                   */
+  this.PATINVERT      = win32.DWORD(0x005A0049); /* dest = pattern XOR dest         */
+  this.DSTINVERT      = win32.DWORD(0x00550009); /* dest = (NOT dest)               */
+  this.BLACKNESS      = win32.DWORD(0x00000042); /* dest = BLACK                    */
+  this.WHITENESS      = win32.DWORD(0x00FF0062); /* dest = WHITE                    */
+  this.NOMIRRORBITMAP = win32.DWORD(0x80000000); /* Do not Mirror the bitmap in this call */
+  this.CAPTUREBLT     = win32.DWORD(0x40000000); /* Include layered windows */
   lib.lazy_bind("CreateCompatibleBitmap", win32.HBITMAP, win32.HDC, ctypes.int, ctypes.int);
+  lib.lazy_bind("CreateBitmapIndirect", win32.HBITMAP, win32.BITMAP.ptr);
+  lib.lazy_bind("GetObjectW", ctypes.int, win32.HGDIOBJ, ctypes.int, win32.LPVOID);
+  lib.lazy_bind("GetCurrentObject", win32.HGDIOBJ, win32.HDC, win32.UINT);
+  this.OBJ_PEN         = 1;
+  this.OBJ_BRUSH       = 2;
+  this.OBJ_DC          = 3;
+  this.OBJ_METADC      = 4;
+  this.OBJ_PAL         = 5;
+  this.OBJ_FONT        = 6;
+  this.OBJ_BITMAP      = 7;
+  this.OBJ_REGION      = 8;
+  this.OBJ_METAFILE    = 9;
+  this.OBJ_MEMDC       = 10;
+  this.OBJ_EXTPEN      = 11;
+  this.OBJ_ENHMETADC   = 12;
+  this.OBJ_ENHMETAFILE = 13;
+  this.OBJ_COLORSPACE  = 14;
   lib.lazy_bind("SelectObject", win32.HGDIOBJ, win32.HDC, win32.HGDIOBJ);
   lib.lazy_bind("DeleteObject", win32.BOOL, win32.HGDIOBJ);
   lib.lazy_bind("PatBlt", win32.BOOL, win32.HDC, ctypes.int, ctypes.int, ctypes.int, ctypes.int, win32.DWORD);
@@ -77,6 +112,13 @@ function gdi32_defines(lib) {
 
   lib.lazy_bind("TextOutW", win32.BOOL, win32.HDC, ctypes.int, ctypes.int, win32.LPCTSTR, ctypes.int);
 
+  this.SIZE = ctypes.StructType("SIZE", [
+    { "cx": win32.LONG },
+    { "cy": win32.LONG }
+  ]);
+  this.LPSIZE = this.SIZE.ptr;
+  lib.lazy_bind("GetTextExtentPoint32W", win32.BOOL, win32.HDC, win32.LPCTSTR, ctypes.int, this.LPSIZE);
+
   lib.lazy_bind("GetTextAlign", win32.UINT, win32.HDC);
   lib.lazy_bind("SetTextAlign", win32.UINT, win32.HDC, win32.UINT);
   this.TA_LEFT       = 0;
@@ -87,6 +129,33 @@ function gdi32_defines(lib) {
   this.TA_BASELINE   = 24;
   this.TA_RTLREADING = 256;
   this.TA_MASK       =(this.TA_BASELINE+this.TA_CENTER+this.TA_UPDATECP+this.TA_RTLREADING);
+
+  this.BITMAPINFOHEADER = ctypes.StructType("BITMAPINFOHEADER", [
+    { "biSize": win32.DWORD },
+    { "biWidth": win32.LONG },
+    { "biHeight": win32.LONG },
+    { "biPlanes": win32.WORD },
+    { "biBitCount": win32.WORD },
+    { "biCompression": win32.DWORD },
+    { "biSizeImage": win32.DWORD },
+    { "biXPelsPerMeter": win32.LONG },
+    { "biYPelsPerMeter": win32.LONG },
+    { "biClrUsed": win32.DWORD },
+    { "biClrImportant": win32.DWORD }
+  ]);
+  this.PBITMAPINFOHEADER = this.BITMAPINFOHEADER.ptr;
+  this.RGBQUAD = ctypes.StructType("RGBQUAD", [
+    { "rgbBlue": win32.BYTE },
+    { "rgbGreen": win32.BYTE },
+    { "rgbRed": win32.BYTE },
+    { "rgbReserved": win32.BYTE }
+  ]);
+  this.BITMAPINFO = ctypes.StructType("BITMAPINFO", [
+    { "bmiHeader": this.BITMAPINFOHEADER },
+    { "bmiColors": this.RGBQUAD.array(1) }
+  ]);
+  this.PBITMAPINFO = this.BITMAPINFO.ptr;
+  lib.lazy_bind("SetDIBits", ctypes.int, win32.HDC, win32.HBITMAP, win32.UINT, win32.UINT, ctypes.voidptr_t, this.BITMAPINFO.ptr, win32.UINT);
 
 }
 

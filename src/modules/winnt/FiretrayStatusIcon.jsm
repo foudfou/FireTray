@@ -20,7 +20,7 @@ Cu.import("resource://firetray/ctypes/winnt/shell32.jsm");
 Cu.import("resource://firetray/ctypes/winnt/user32.jsm");
 Cu.import("resource://firetray/winnt/FiretrayWin32.jsm");
 Cu.import("resource://firetray/commons.js");
-firetray.Handler.subscribeLibsForClosing([kernel32, shell32, user32]);
+firetray.Handler.subscribeLibsForClosing([gdi32, kernel32, shell32, user32]);
 
 let log = firetray.Logging.getLogger("firetray.StatusIcon");
 
@@ -194,9 +194,6 @@ firetray.StatusIcon = {
         break;
       case win32.WM_RBUTTONUP:
         log.debug("WM_RBUTTONUP");
-        let hicon = firetray.StatusIcon.createSmallIcon(hWnd, "100", "#990000");
-        log.debug("%%%%%%%%%% ICON="+hicon);
-        firetray.StatusIcon.setImageFromIcon(hicon);
         break;
       case win32.WM_CONTEXTMENU:
         log.debug("WM_CONTEXTMENU");
@@ -269,29 +266,50 @@ firetray.StatusIcon = {
   },
 
   // http://stackoverflow.com/questions/457050/how-to-display-text-in-system-tray-icon-with-win32-api
-  createSmallIcon: function(hWnd, text, color) {
+  createTextIcon: function(hWnd, text, color) {
+    log.debug("createTextIcon hWnd="+hWnd+" text="+text+" color="+color);
+
+    let blank = this.bitmaps.get('blank-icon');
+    let bitmap = new win32.BITMAP();
+    let err = gdi32.GetObjectW(blank, win32.BITMAP.size, bitmap.address()); // get bitmap info
+    let width = bitmap.bmWidth, height = bitmap.bmHeight;
+
     let hdc = user32.GetDC(hWnd); // get device context (DC) for hWnd
     let hdcMem = gdi32.CreateCompatibleDC(hdc); // creates a memory device context (DC) compatible with hdc (need a bitmap)
-    let hBitmap = this.bitmaps.get('blank-icon');
-    let hBitmapMask = gdi32.CreateCompatibleBitmap(hdc, 32, 32);
+    let hBitmap = user32.CopyImage(blank, user32.IMAGE_BITMAP, width, height, 0);
+    let hBitmapMask = gdi32.CreateCompatibleBitmap(hdc, width, height);
     user32.ReleaseDC(hWnd, hdc);
 
-    let hOldBitmap = ctypes.cast(gdi32.SelectObject(hdcMem, hBitmap), // replace bitmap in hdcMem by hBitmap
-                                 win32.HBITMAP);
+    let hBitmapOrig = gdi32.SelectObject(hdcMem, hBitmap);
     // gdi32.PatBlt(hdcMem, 0, 0, 16, 16, gdi32.BLACKNESS); // paint black rectangle
+
+// http://forums.codeguru.com/showthread.php?379565-Windows-SDK-GDI-How-do-I-choose-a-font-size-to-exactly-fit-a-string-in-a
 
     let nHeight = 32, fnWeight = gdi32.FW_BOLD;
     let hFont = gdi32.CreateFontW(nHeight, 0, 0, 0, fnWeight, 0, 0, 0,
       gdi32.ANSI_CHARSET, 0, 0, 0, gdi32.FF_SWISS, "Sans"); // get font
     hFont = ctypes.cast(gdi32.SelectObject(hdcMem, hFont), win32.HFONT); // replace font in bitmap by hFont
     gdi32.SetTextColor(hdcMem, win32.COLORREF(this.cssColorToCOLORREF(color)));
-    // gdi32.SetBkMode(hdcMem, gdi32.TRANSPARENT); // VERY IMPORTANT
+    gdi32.SetBkMode(hdcMem, gdi32.TRANSPARENT); // VERY IMPORTANT
     // gdi32.SetTextAlign(hdcMem, gdi32.GetTextAlign(hdcMem) & (~gdi32.TA_CENTER));
     // gdi32.SetTextAlign(hdcMem, gdi32.TA_CENTER);
     log.debug("   ___ALIGN=(winLastError="+ctypes.winLastError+") "+gdi32.GetTextAlign(hdcMem));
-    gdi32.TextOutW(hdcMem, 0, 0, text, text.length);
 
-    gdi32.SelectObject(hdcMem, hOldBitmap); // always replace new hBitmap with original one
+    let size = new gdi32.SIZE();
+    // GetTextExtentPoint32 is known as more reliable than DrawText(DT_CALCRECT)
+    gdi32.GetTextExtentPoint32W(hdcMem, text, text.length, size.address());
+    let nWidth = size.cx;
+    log.debug("   WIDTH="+nWidth);
+
+    // let rect = new win32.RECT();
+    // let height = user32.DrawTextW(hdcMem, text, text.length, rect.address(), user32.DT_SINGLELINE | user32.DT_CENTER | user32.DT_VCENTER | user32.DT_CALCRECT);
+    // log.debug("   HEIGHT="+height+", rect="+rect);
+
+    let nXStart = firetray.js.floatToInt((width - nWidth)/2),
+        nYStart = firetray.js.floatToInt((height - nHeight)/2);
+    gdi32.TextOutW(hdcMem, nXStart, nYStart, text, text.length); // ref point for alignment
+
+    gdi32.SelectObject(hdcMem, hBitmapOrig);
 
     let iconInfo = win32.ICONINFO();
     iconInfo.fIcon = true;
@@ -301,6 +319,7 @@ firetray.StatusIcon = {
     iconInfo.hbmColor = hBitmap;
 
     let hIcon = user32.CreateIconIndirect(iconInfo.address());
+    log.debug("   CreateIconIndirect hIcon="+hIcon+" lastError="+ctypes.winLastError);
 
     gdi32.DeleteObject(gdi32.SelectObject(hdcMem, hFont));
     gdi32.DeleteDC(hdcMem);
@@ -332,6 +351,12 @@ firetray.Handler.setIconTooltipDefault = function() {
 };
 
 firetray.Handler.setIconText = function(text, color) {
+  let hicon = firetray.StatusIcon.createTextIcon(
+    firetray.StatusIcon.hwndProxy, text, color);
+  log.debug("setIconText icon="+hicon);
+  if (hicon.isNull())
+    log.error("Could not create hicon");
+  firetray.StatusIcon.setImageFromIcon(hicon);
 };
 
 firetray.Handler.setIconVisibility = function(visible) {

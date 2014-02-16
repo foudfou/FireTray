@@ -50,6 +50,7 @@ function user32_defines(lib) {
   this.IDI_QUESTION    = win32.MAKEINTRESOURCE(32514);
   this.IDI_EXCLAMATION = win32.MAKEINTRESOURCE(32515);
   this.IDI_ASTERISK    = win32.MAKEINTRESOURCE(32516);
+  lib.lazy_bind("DestroyIcon", win32.BOOL, win32.HICON);
   lib.lazy_bind("LoadImageW", win32.HANDLE, win32.HINSTANCE, win32.LPCTSTR, win32.UINT, ctypes.int, ctypes.int, win32.UINT);
   this.IMAGE_BITMAP        = 0;
   this.IMAGE_ICON          = 1;
@@ -63,7 +64,7 @@ function user32_defines(lib) {
   this.LR_MONOCHROME       = 0x00000001;
   this.LR_SHARED           = 0x00008000;
   this.LR_VGACOLOR         = 0x00000080;
-  lib.lazy_bind("DestroyIcon", win32.BOOL, win32.HICON);
+  lib.lazy_bind("CopyImage", win32.HANDLE, win32.HANDLE, win32.UINT, ctypes.int, ctypes.int, win32.UINT);
 
   lib.lazy_bind("GetPropW", win32.HANDLE, win32.HWND, win32.LPCTSTR);
   lib.lazy_bind("SetPropW", win32.BOOL, win32.HWND, win32.LPCTSTR, win32.HANDLE);
@@ -247,6 +248,23 @@ function user32_defines(lib) {
   lib.lazy_bind("GetDC", win32.HDC, win32.HWND);
   lib.lazy_bind("ReleaseDC", ctypes.int, win32.HWND, win32.HDC);
   lib.lazy_bind("CreateIconIndirect", win32.HICON, win32.PICONINFO);
+  lib.lazy_bind("GetClientRect", win32.BOOL, win32.HWND, win32.PRECT);
+  lib.lazy_bind("DrawTextW", ctypes.int, win32.HDC, win32.LPCTSTR, ctypes.int, win32.PRECT, win32.UINT);
+  this.DT_TOP             = 0x00000000;
+  this.DT_LEFT            = 0x00000000;
+  this.DT_CENTER          = 0x00000001;
+  this.DT_RIGHT           = 0x00000002;
+  this.DT_VCENTER         = 0x00000004;
+  this.DT_BOTTOM          = 0x00000008;
+  this.DT_WORDBREAK       = 0x00000010;
+  this.DT_SINGLELINE      = 0x00000020;
+  this.DT_EXPANDTABS      = 0x00000040;
+  this.DT_TABSTOP         = 0x00000080;
+  this.DT_NOCLIP          = 0x00000100;
+  this.DT_EXTERNALLEADING = 0x00000200;
+  this.DT_CALCRECT        = 0x00000400;
+  this.DT_NOPREFIX        = 0x00000800;
+  this.DT_INTERNAL        = 0x00001000;
 
 }
 

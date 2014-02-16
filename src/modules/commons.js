@@ -309,7 +309,10 @@ firetray.js = {
       result = result.concat(Object.getOwnPropertyNames(objectToInspect));
     }
     return result;
-  }
+  },
+
+  floatToInt: function(nb) { return nb >> 0; } // bitwise ops on signed int
+
 };
 
 // http://stackoverflow.com/questions/18912/how-to-find-keys-of-a-hash

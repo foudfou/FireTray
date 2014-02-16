@@ -102,6 +102,16 @@ var win32 = new function() {
   this.WM_MOUSELAST     = 0x020D;
   this.WM_MOUSELAST     = 0x020A;
 
+  this.BITMAP = ctypes.StructType("BITMAP", [
+    { "bmType": this.LONG },
+    { "bmWidth": this.LONG },
+    { "bmHeight": this.LONG },
+    { "bmWidthBytes": this.LONG },
+    { "bmPlanes": this.WORD },
+    { "bmBitsPixel": this.WORD },
+    { "bmBits": this.LPVOID }
+  ]);
+
   this.ICONINFO = ctypes.StructType("ICONINFO", [
     { "fIcon": this.BOOL },
     { "xHotspot": this.DWORD },
@@ -110,6 +120,15 @@ var win32 = new function() {
     { "hbmColor": this.HBITMAP }
   ]);
   this.PICONINFO = this.ICONINFO.ptr;
+
+  this.RECT = ctypes.StructType("RECT", [
+    { "left": this.LONG },
+    { "top": this.LONG },
+    { "right": this.LONG },
+    { "bottom": this.LONG }
+  ]);
+  this.PRECT = this.RECT.ptr;
+
 };
 
 // ShellAPI.h
