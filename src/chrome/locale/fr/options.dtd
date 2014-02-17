@@ -77,10 +77,10 @@
 <!ENTITY mail_change_trigger.accesskey "L">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
 <!ENTITY mail_change_trigger.tooltip "Chemin absolu du programme à lancer lorsque le compte des messages a changé. Ce programme prendra pour base le nouveau décompte de messages">
-<!ENTITY mail_urgency_hint.label "Activer l'indice d'urgence X11">
-<!ENTITY mail_urgency_hint.accesskey "X">
+<!ENTITY mail_get_attention.label "La fenêtre attire l'attention lors de nouveaux messages">
+<!ENTITY mail_get_attention.accesskey "e">
 <!ENTITY chat_icon_enable.label "Activer l'icône du chat">
-<!ENTITY chat_icon_enable.accesskey "A">
+<!ENTITY chat_icon_enable.accesskey "h">
 <!ENTITY chat_icon_blink.label "L'icône du chat clignote à l'arrivée de nouveaux messages">
 <!ENTITY chat_icon_blink.accesskey "i">
 <!ENTITY chat_icon_blink.tooltip "quand un message privé est cité sur un canal">

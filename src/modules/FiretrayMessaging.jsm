@@ -183,7 +183,7 @@ firetray.Messaging = {
           if (mailChangeTriggerFile)
             firetray.Messaging.runProcess(mailChangeTriggerFile, [newMsgCount.toString()]);
 
-          let getAttention = firetray.Utils.prefService.getBoolPref("mail_urgency_hint"); // FIXME: rename!
+          let getAttention = firetray.Utils.prefService.getBoolPref("mail_get_attention");
           if (getAttention && (newMsgCount > currentMsgCount))
             for (let winId in firetray.Handler.windows)
               firetray.Handler.windowGetAttention(winId);

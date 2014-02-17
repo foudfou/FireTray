@@ -77,8 +77,8 @@
 <!ENTITY mail_change_trigger.accesskey "L">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
 <!ENTITY mail_change_trigger.tooltip "Ruta absoluta del programa para correr cuando la cuenta de mensajes cambia. Este programa obtendrá recibira el contador de nuevos mensajes como primer argumento.">
-<!ENTITY mail_urgency_hint.label "Set X11 urgency hint">
-<!ENTITY mail_urgency_hint.accesskey "X">
+<!ENTITY mail_get_attention.label "Window draws attention on new messages">
+<!ENTITY mail_get_attention.accesskey "g">
 <!ENTITY chat_icon_enable.label "Habilitar ícono de chat">
 <!ENTITY chat_icon_enable.accesskey "H">
 <!ENTITY chat_icon_blink.label "Icono de chat parpadea con mensajes nuevos.">

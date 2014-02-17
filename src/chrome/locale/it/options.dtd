@@ -77,8 +77,8 @@
 <!ENTITY mail_change_trigger.accesskey "L">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
 <!ENTITY mail_change_trigger.tooltip "Percorso assoluto del programma da lanciare quando viene incrementato il contatore dei messaggi non letti. Il programma utilizzerà il contatore dei nuovi messaggi come primo argomento.">
-<!ENTITY mail_urgency_hint.label "Set X11 urgency hint">
-<!ENTITY mail_urgency_hint.accesskey "X">
+<!ENTITY mail_get_attention.label "Window draws attention on new messages">
+<!ENTITY mail_get_attention.accesskey "g">
 <!ENTITY chat_icon_enable.label "Attiva icona della chat">
 <!ENTITY chat_icon_enable.accesskey "E">
 <!ENTITY chat_icon_blink.label "Lampeggiamento dell'icona della chat per nuovi messaggi">

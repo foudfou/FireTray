@@ -685,7 +685,8 @@ firetray.VersionChangeHandler = {
       "text_color", "scroll_to_hide", "scroll_action", "grab_multimedia_keys",
       "hide_show_mm_key", "accounts_to_exclude" ];
     let v040b2Options = [ 'mail_notification' ];
-    let oldOptions = v03Options.concat(v040b2Options);
+    let v050Options = [ 'mail_urgency_hint' ];
+    let oldOptions = v03Options.concat(v040b2Options).concat(v050Options);
 
     for (let i = 0, length = oldOptions.length; i<length; ++i) {
       try {
