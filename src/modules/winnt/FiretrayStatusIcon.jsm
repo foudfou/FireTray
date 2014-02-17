@@ -249,9 +249,12 @@ firetray.StatusIcon = {
     this.destroyProxyWindow();
   },
 
-  setImageFromIcon: function(hicon) {
+  setIcon: function(iconinfo) {
     let nid = firetray.StatusIcon.notifyIconData;
-    nid.hIcon = hicon;
+    if (iconinfo.hicon)
+      nid.hIcon = iconinfo.hicon;
+    if (iconinfo.tip)
+      nid.szTip = iconinfo.tip;
     rv = shell32.Shell_NotifyIconW(shell32.NIM_MODIFY, nid.address());
     log.debug("Shell_NotifyIcon MODIFY="+rv+" winLastError="+ctypes.winLastError);
   },
@@ -342,20 +345,24 @@ firetray.StatusIcon = {
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
-  firetray.StatusIcon.setImageFromIcon(firetray.StatusIcon.icons.get('app'));
+  firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.icons.get('app')});
 };
 
 firetray.Handler.setIconImageNewMail = function() {
   log.debug("setIconImageDefault");
-  firetray.StatusIcon.setImageFromIcon(firetray.StatusIcon.icons.get('mail-unread'));
+  firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.icons.get('mail-unread')});
 };
 
 // firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;
 
 firetray.Handler.setIconTooltip = function(toolTipStr) {
+  log.debug("setIconTooltip");
+  firetray.StatusIcon.setIcon({tip:toolTipStr});
 };
 
 firetray.Handler.setIconTooltipDefault = function() {
+  log.debug("setIconTooltipDefault");
+  firetray.StatusIcon.setIcon({tip:this.appName});
 };
 
 firetray.Handler.setIconText = function(text, color) {
@@ -364,7 +371,7 @@ firetray.Handler.setIconText = function(text, color) {
   log.debug("setIconText icon="+hicon);
   if (hicon.isNull())
     log.error("Could not create hicon");
-  firetray.StatusIcon.setImageFromIcon(hicon);
+  firetray.StatusIcon.setIcon({hicon:hicon});
 };
 
 firetray.Handler.setIconVisibility = function(visible) {
