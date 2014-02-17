@@ -104,6 +104,15 @@ function gdi32_defines(lib) {
   this.THAI_CHARSET        = 222;
   this.EASTEUROPE_CHARSET  = 238;
   this.RUSSIAN_CHARSET     = 204;
+  this.DEFAULT_QUALITY           = 0;
+  this.DRAFT_QUALITY             = 1;
+  this.PROOF_QUALITY             = 2;
+  this.NONANTIALIASED_QUALITY    = 3;
+  this.ANTIALIASED_QUALITY       = 4;
+  this.CLEARTYPE_QUALITY         = 5;
+  this.CLEARTYPE_NATURAL_QUALITY = 6;
+
+  lib.lazy_bind("GetTextFaceW", ctypes.int, win32.HDC, ctypes.int, win32.LPTSTR);
   lib.lazy_bind("SetTextColor", win32.COLORREF, win32.HDC, win32.COLORREF);
   lib.lazy_bind("SetBkMode", ctypes.int, win32.HDC, ctypes.int);
   this.TRANSPARENT = 1;

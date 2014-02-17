@@ -285,29 +285,37 @@ firetray.StatusIcon = {
 
 // http://forums.codeguru.com/showthread.php?379565-Windows-SDK-GDI-How-do-I-choose-a-font-size-to-exactly-fit-a-string-in-a
 
-    let nHeight = 32, fnWeight = gdi32.FW_BOLD;
-    let hFont = gdi32.CreateFontW(nHeight, 0, 0, 0, fnWeight, 0, 0, 0,
+    let fnHeight = firetray.js.floatToInt(height);
+    let hFont = gdi32.CreateFontW(fnHeight, 0, 0, 0, gdi32.FW_MEDIUM, 0, 0, 0,
       gdi32.ANSI_CHARSET, 0, 0, 0, gdi32.FF_SWISS, "Sans"); // get font
-    hFont = ctypes.cast(gdi32.SelectObject(hdcMem, hFont), win32.HFONT); // replace font in bitmap by hFont
-    gdi32.SetTextColor(hdcMem, win32.COLORREF(this.cssColorToCOLORREF(color)));
-    gdi32.SetBkMode(hdcMem, gdi32.TRANSPARENT); // VERY IMPORTANT
-    // gdi32.SetTextAlign(hdcMem, gdi32.GetTextAlign(hdcMem) & (~gdi32.TA_CENTER));
-    // gdi32.SetTextAlign(hdcMem, gdi32.TA_CENTER);
-    log.debug("   ___ALIGN=(winLastError="+ctypes.winLastError+") "+gdi32.GetTextAlign(hdcMem));
+    ctypes.cast(gdi32.SelectObject(hdcMem, hFont), win32.HFONT); // replace font in bitmap by hFont
+    let faceName = ctypes.jschar.array()(32);
+    gdi32.GetTextFaceW(hdcMem, 32, faceName);
+    log.debug("    font="+faceName);
 
     let size = new gdi32.SIZE();
-    // GetTextExtentPoint32 is known as more reliable than DrawText(DT_CALCRECT)
+    gdi32.GetTextExtentPoint32W(hdcMem, text, text.length, size.address()); // more reliable than DrawText(DT_CALCRECT)
+
+    while (size.cx > width - 6 || size.cy > height - 4) {
+      fnHeight -= 1;
+      hFont = gdi32.CreateFontW(fnHeight, 0, 0, 0, gdi32.FW_SEMIBOLD, 0, 0, 0,
+                                gdi32.ANSI_CHARSET, 0, 0, gdi32.PROOF_QUALITY,
+                                gdi32.FF_SWISS, "Arial");
+      ctypes.cast(gdi32.SelectObject(hdcMem, hFont), win32.HFONT);
+
+      gdi32.GetTextExtentPoint32W(hdcMem, text, text.length, size.address()); // more reliable than DrawText(DT_CALCRECT)
+      log.debug("    fnHeight="+fnHeight+" width="+size.cx);
+    }
     gdi32.GetTextExtentPoint32W(hdcMem, text, text.length, size.address());
-    let nWidth = size.cx;
-    log.debug("   WIDTH="+nWidth);
 
-    // let rect = new win32.RECT();
-    // let height = user32.DrawTextW(hdcMem, text, text.length, rect.address(), user32.DT_SINGLELINE | user32.DT_CENTER | user32.DT_VCENTER | user32.DT_CALCRECT);
-    // log.debug("   HEIGHT="+height+", rect="+rect);
+    gdi32.SetTextColor(hdcMem, win32.COLORREF(this.cssColorToCOLORREF(color)));
+    gdi32.SetBkMode(hdcMem, gdi32.TRANSPARENT); // VERY IMPORTANT
+    gdi32.SetTextAlign(hdcMem, gdi32.TA_TOP|gdi32.TA_CENTER);
+    log.debug("   ___ALIGN=(winLastError="+ctypes.winLastError+") "+gdi32.GetTextAlign(hdcMem));
 
-    let nXStart = firetray.js.floatToInt((width - nWidth)/2),
-        nYStart = firetray.js.floatToInt((height - nHeight)/2);
-    gdi32.TextOutW(hdcMem, nXStart, nYStart, text, text.length); // ref point for alignment
+    let nXStart = firetray.js.floatToInt((width - size.cx)/2),
+        nYStart = firetray.js.floatToInt((height - size.cy)/2);
+    gdi32.TextOutW(hdcMem, width/2, nYStart+2, text, text.length); // ref point for alignment
 
     gdi32.SelectObject(hdcMem, hBitmapOrig);
 

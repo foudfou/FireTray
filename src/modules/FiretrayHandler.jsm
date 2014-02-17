@@ -517,6 +517,7 @@ firetray.PrefListener = new PrefListener(
       }
       break;
     case 'mail_notification_type':
+    case 'icon_text_color':
       firetray.Messaging.updateIcon();
       break;
     case 'new_mail_icon_names':
