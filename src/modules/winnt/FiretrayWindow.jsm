@@ -107,7 +107,7 @@ firetray.Window.detachWndProc = function(wid) {
     user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC,
                           ctypes.cast(procPrev, win32.LONG_PTR))
   );
-  firetray.js.assert(proc == firetray.Handler.wndProcs.get(wid),
+  firetray.js.assert(firetray.js.strEquals(proc, firetray.Handler.wndProcs.get(wid)),
                      "Wrong WndProc replaced.");
   firetray.Handler.wndProcs.remove(wid);
   firetray.Handler.wndProcsOrig.remove(wid);
@@ -173,6 +173,7 @@ firetray.Handler.unregisterWindow = function(win) {
   if (!delete firetray.Handler.windows[wid])
     throw new DeleteError();
 
+  firetray.Handler.dumpWindows();
   log.debug("window "+wid+" unregistered");
   return true;
 };
