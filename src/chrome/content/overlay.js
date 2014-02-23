@@ -41,6 +41,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     firetray_log.debug('Firetray UNLOADED !');
   },
 
+    // BUG: CLOSE not emitted on TB (24, 27) win32 (XP, 7) ?!
   /* until we find a fix (TODO), we need to set browser.tabs.warnOnClose=false
    to prevent the popup when closing a window with multiple tabs and when
    hides_on_close is set (we are not actually closing the tabs!). There is no

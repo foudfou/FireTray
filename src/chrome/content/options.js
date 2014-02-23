@@ -1,5 +1,13 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
+/* FIXME: instantApply pref defaults to false on Windows. But the Firetray pref
+window was originaly crafted for instantApply platforms: some UI changes do
+also change prefs programmaticaly. For a consistant behaviour across all
+instantApply cases, we should probably not set prefs dynamically, that is leave
+it all to the UI. See:
+http://forums.mozillazine.org/viewtopic.php?f=19&t=2743643
+https://groups.google.com/forum/#!topic/mozilla.dev.extensions/SBGIogdIiwE */
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
@@ -15,7 +23,6 @@ const TREELEVEL_EXCLUDED_ACCOUNTS = 1;
 
 const PREF_DEFAULT_PANE = "pref-pane-windows";
 
-
 let log = firetray.Logging.getLogger("firetray.UIOptions");
 
 var firetrayUIOptions = {
@@ -23,6 +30,7 @@ var firetrayUIOptions = {
   prefwindow: null,
 
   onLoad: function(e) {
+    log.debug("FULL FEATURED="+firetray.Handler.support['full_feat']);
     this.strings = document.getElementById("firetray-options-strings");
     this.prefwindow = document.getElementById("firetray-preferences");
     if (!this.prefwindow)
@@ -40,15 +48,20 @@ var firetrayUIOptions = {
         FIRETRAY_CHAT_SUPPORTED_OS.indexOf(firetray.Handler.runtimeOS) > -1) {
       Cu.import("resource://firetray/"+firetray.Handler.runtimeOS+"/FiretrayChat.jsm");
       this.initChatControls();
-    } else
-    this.hidePrefPane("pref-pane-chat");
+    } else {
+      this.hidePrefPane("pref-pane-chat");
+    };
 
     this.updateWindowAndIconOptions();
     this.updateScrollOptions();
     this.initAppIconType();
-    this.initAppIconNames();
-    if (firetray.Handler.inMailApp)
-      this.initNewMailIconNames();
+    if (firetray.Handler.support['full_feat']) {
+      this.initAppIconNames();
+      if (firetray.Handler.inMailApp)
+        this.initNewMailIconNames();
+    } else {
+      this.hideUnsupportedOptions();
+    };
 
     window.sizeToContent();
   },
@@ -74,6 +87,28 @@ var firetrayUIOptions = {
     }
   },
 
+  hideUnsupportedOptions: function() { // full_feat
+    // windows prefs
+    ['ui_hides_last_only', 'ui_start_hidden', 'ui_show_activates',
+     'ui_remember_desktop'].forEach(function(id){
+       document.getElementById(id).hidden = true;
+     });
+
+    // icon prefs
+    ['app_icon_default', 'ui_show_icon_on_hide', 'ui_scroll_hides',
+     'ui_radiogroup_scroll'].forEach(function(id){
+       document.getElementById(id).hidden = true;
+     });
+    document.getElementById("ui_scroll_hides").setAttribute("oncommand", void(0));
+
+    // mail prefs
+    document.getElementById("newmail_icon_names").hidden = true;
+    for (let i=1; i<4; ++i) {
+      document.getElementById("radio_mail_notification_newmail_icon_name"+i).
+        setAttribute("observes", void(0));
+    }
+  },
+
   hidePrefPane: function(name){
     let radio = document.getAnonymousElementByAttribute(this.prefwindow, "pane", name);
     if (radio.selected)
@@ -81,8 +116,10 @@ var firetrayUIOptions = {
     radio.hidden = true;
   },
 
-  hideElement: function(targetNode, hiddenval) {
-    targetNode.hidden = hiddenval;
+  hideChildren: function(group, hiddenval) {
+    let children = group.childNodes;
+    for (let i=0, len=children.length; i<len ; ++i)
+      children[i].hidden = hiddenval;
   },
 
   disableChildren: function(group, disableval) {
@@ -120,8 +157,9 @@ var firetrayUIOptions = {
   },
 
   updateScrollOptions: function() {
-    let scroll_hides = document.getElementById("ui_scroll_hides").checked;
-    this.disableChildren(document.getElementById("ui_radiogroup_scroll"), !scroll_hides);
+    let ui_scroll_hides = document.getElementById("ui_scroll_hides");
+    this.disableChildren(document.getElementById("ui_radiogroup_scroll"),
+                         !ui_scroll_hides.checked);
   },
 
   initAppIconType: function() {
@@ -179,13 +217,15 @@ var firetrayUIOptions = {
   },
 
   disableIconTypeMaybe: function(appIconType) {
+    if (firetray.Handler.support['full_feat']) {
+      let appIconDefaultGroup = document.getElementById("app_icon_default");
+      this.disableNChildren(appIconDefaultGroup, 2,
+        (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_THEMED));
+    }
+
     let appIconCustomGroup = document.getElementById("app_icon_custom");
     this.disableChildren(appIconCustomGroup,
       (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM));
-
-    let appIconDefaultGroup = document.getElementById("app_icon_default");
-    this.disableNChildren(appIconDefaultGroup, 2,
-      (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_THEMED));
   },
 
   initMailControls: function() {
@@ -289,9 +329,11 @@ var firetrayUIOptions = {
     this.disableChildren(iconTextColor,
       (notificationSetting !== FIRETRAY_NOTIFICATION_MESSAGE_COUNT));
 
-    let newMailIconNames = document.getElementById("newmail_icon_names");
-    this.disableNChildren(newMailIconNames, 2,
-      (notificationSetting !== FIRETRAY_NOTIFICATION_NEWMAIL_ICON));
+    if (firetray.Handler.support['full_feat']) {
+      let newMailIconNames = document.getElementById("newmail_icon_names");
+      this.disableNChildren(newMailIconNames, 2,
+        (notificationSetting !== FIRETRAY_NOTIFICATION_NEWMAIL_ICON));
+    }
 
     let customIconGroup = document.getElementById("custom_mail_icon");
     this.disableChildren(customIconGroup,
@@ -309,8 +351,10 @@ var firetrayUIOptions = {
     let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
     if (msgCountTypeIsNewMessages && (mailNotificationType === FIRETRAY_NOTIFICATION_MESSAGE_COUNT)) {
       radioMailNotify.selectedIndex = this.radioGetIndexByValue(radioMailNotify, FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
-      let newMailIconNames = document.getElementById("newmail_icon_names");
-      this.disableNChildren(newMailIconNames, 2, false);
+      if (firetray.Handler.support['full_feat']) {
+        let newMailIconNames = document.getElementById("newmail_icon_names");
+        this.disableNChildren(newMailIconNames, 2, false);
+      }
       firetray.Utils.prefService.setIntPref("mail_notification_type", FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
     }
   },

@@ -15,6 +15,8 @@ var win32 = new function() {
     'XP':    51,    // 2001
     '2K':    50,    // 2000
   };
+  // could also parse Cc["@mozilla.org/network/protocol;1?name=http"].
+  //   getService(Ci.nsIHttpProtocolHandler).oscpu
   this.WINVER = null;                 // initialized in kernel32.jsm
 
   this.BOOL      = ctypes.bool;

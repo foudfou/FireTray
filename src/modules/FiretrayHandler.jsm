@@ -62,6 +62,7 @@ firetray.Handler = {
     }
     throw new Error("not resolved");
   })(),
+  support: {chat: false, full_feat: false},
 
   init: function() {            // does creates icon
     firetray.PrefListener.register(false);
@@ -78,6 +79,11 @@ firetray.Handler = {
     log.debug("FiretrayStatusIcon "+this.runtimeOS+" imported");
     Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayWindow.jsm");
     log.debug("FiretrayWindow "+this.runtimeOS+" imported");
+
+    this.support['chat'] = FIRETRAY_CHAT_SUPPORTED_OS
+      .indexOf(this.runtimeOS) > -1;
+    this.support['full_feat']  = FIRETRAY_FULL_FEAT_SUPPORTED_OS
+      .indexOf(firetray.Handler.runtimeOS) > -1;
 
     if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
         this.appId === FIRETRAY_APP_DB['seamonkey']['id'])
@@ -113,7 +119,7 @@ firetray.Handler = {
     let chatIsProvided = this.isChatProvided();
     log.info('isChatProvided='+chatIsProvided);
     if (chatIsProvided) {
-      if (this.isChatSupported()) {
+      if (this.support['chat']) {
         Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
         Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayChat.jsm");
         firetray.Utils.addObservers(firetray.Handler, [
@@ -163,7 +169,7 @@ firetray.Handler = {
 
   shutdown: function() {
     log.debug("Disabling Handler");
-    if (firetray.Handler.isChatProvided() && firetray.Handler.isChatSupported()
+    if (firetray.Handler.isChatProvided() && firetray.Handler.support['chat']
         && firetray.Chat.initialized)
       firetray.Chat.shutdown();
 
@@ -190,10 +196,6 @@ firetray.Handler = {
 
   isChatProvided: function() {
     return this.appHasChat && Services.prefs.getBoolPref("mail.chat.enabled");
-  },
-
-  isChatSupported: function() {
-    return FIRETRAY_CHAT_SUPPORTED_OS.indexOf(this.runtimeOS) > -1;
   },
 
   tryCloseLibs: function() {
@@ -575,7 +577,7 @@ firetray.MailChatPrefListener = new PrefListener(
       let enableChatCond =
             (firetray.Handler.appHasChat &&
              firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
-             firetray.Handler.isChatSupported());
+             firetray.Handler.support['chat']);
       if (!enableChatCond) return;
 
       if (Services.prefs.getBoolPref("mail.chat.enabled")) {
