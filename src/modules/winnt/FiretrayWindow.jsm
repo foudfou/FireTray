@@ -55,6 +55,7 @@ firetray.Window.setVisibility = function(wid, visible) {
 
 firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
   // log.debug("wndProc CALLED: hWnd="+hWnd+", uMsg="+uMsg+", wParam="+wParam+", lParam="+lParam);
+  let wid = firetray.Win32.hwndToHexStr(hWnd);
 
   if (uMsg === firetray.Win32.WM_TRAYMESSAGE) {
     log.debug("wndProc CALLED with WM_TRAYMESSAGE");
@@ -64,9 +65,20 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
 
   } else if (uMsg === win32.WM_USER) {
     log.debug("wndProc CALLED with WM_USER");
+
+  } else if (uMsg === win32.WM_CLOSE) {
+    log.debug("wndProc CALLED with WM_CLOSE");
+
+  } else if (uMsg === win32.WM_DESTROY) {
+    log.debug("wndProc CALLED with WM_DESTROY "+wid);
+
+  } else if (uMsg === win32.WM_MOVE) {
+    log.debug("wndProc CALLED with WM_MOVE "+wid);
+
+  } else if (uMsg === win32.WM_ACTIVATE) {
+    log.debug("wndProc CALLED with WM_ACTIVATE "+wid);
   }
 
-  let wid = firetray.Win32.hwndToHexStr(hWnd);
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
   return user32.CallWindowProcW(procPrev, hWnd, uMsg, wParam, lParam);
 };
