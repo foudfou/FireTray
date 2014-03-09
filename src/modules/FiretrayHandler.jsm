@@ -524,9 +524,11 @@ firetray.PrefListener = new PrefListener(
       break;
     case 'new_mail_icon_names':
       firetray.StatusIcon.loadThemedIcons();
-    case 'only_favorite_folders':
-    case 'message_count_type':
+    case 'excluded_folders_flags':
     case 'folder_count_recursive':
+    case 'mail_accounts':
+    case 'message_count_type':
+    case 'only_favorite_folders':
       firetray.Messaging.updateMsgCountWithCb();
       break;
     case 'app_mail_icon_names':

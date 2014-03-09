@@ -1,13 +1,5 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-/* FIXME: instantApply pref defaults to false on Windows. But the Firetray pref
-window was originaly crafted for instantApply platforms: some UI changes do
-also change prefs programmaticaly. For a consistant behaviour across all
-instantApply cases, we should probably not set prefs dynamically, that is leave
-it all to the UI. See:
-http://forums.mozillazine.org/viewtopic.php?f=19&t=2743643
-https://groups.google.com/forum/#!topic/mozilla.dev.extensions/SBGIogdIiwE */
-
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
@@ -213,7 +205,7 @@ var firetrayUIOptions = {
       if (val) iconNames.push(val);
     }
     log.debug("iconNames="+iconNames);
-    firetray.Utils.setArrayPref(prefIconNames, iconNames);
+    firetray.Utils.setArrayPref(prefIconNames, iconNames); // FIXME: should be a <preference>
   },
 
   disableIconTypeMaybe: function(appIconType) {
@@ -234,7 +226,6 @@ var firetrayUIOptions = {
 
     this.initMessageCountSettings();
     this.initNotificationSettings();
-    this.initMailTrigger();
 
     this.toggleNotifications(firetray.Utils.prefService.getBoolPref("mail_notification_enabled"));
   },
@@ -290,21 +281,14 @@ var firetrayUIOptions = {
     return -1;
   },
 
-  initMailTrigger: function() {
-    document.getElementById("ui_mail_change_trigger").value =
-      firetray.Utils.prefService.getCharPref("mail_change_trigger");
-  },
-
-  updateMailTrigger: function() {
-    let mailTrigger = document.getElementById("ui_mail_change_trigger").value.trim();
-    firetray.Utils.prefService.setCharPref("mail_change_trigger", mailTrigger);
+  saveMailChangeTrigger: function(uiElt) {
+    return uiElt.value.trim();
   },
 
   updateNotificationSettings: function() {
     log.debug("updateNotificationSettings");
     let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
     let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
-    firetray.Utils.prefService.setIntPref("mail_notification_type", mailNotificationType);
     this.disableNotificationMaybe(mailNotificationType);
 
     firetray.Messaging.updateIcon();
@@ -314,12 +298,6 @@ var firetrayUIOptions = {
     let radioMessageCountType = document.getElementById("ui_message_count_type");
     let messageCountType = +radioMessageCountType.getItemAtIndex(radioMessageCountType.selectedIndex).value;
     this.disableMessageCountMaybe(messageCountType);
-  },
-
-  updateChatBlinkSettings: function() {
-    let radioBlinkStyle = document.getElementById("ui_chat_icon_blink_style");
-    let blinkStyle = +radioBlinkStyle.getItemAtIndex(radioBlinkStyle.selectedIndex).value;
-    firetray.Utils.prefService.setIntPref("chat_icon_blink_style", blinkStyle);
   },
 
   disableNotificationMaybe: function(notificationSetting) {
@@ -355,7 +333,6 @@ var firetrayUIOptions = {
         let newMailIconNames = document.getElementById("newmail_icon_names");
         this.disableNChildren(newMailIconNames, 2, false);
       }
-      firetray.Utils.prefService.setIntPref("mail_notification_type", FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
     }
   },
 
@@ -434,44 +411,53 @@ var firetrayUIOptions = {
   },
 
   /**
-   * NOTE: folder exceptions for unread messages count are *stored* in
-   * preferences as excluded, but *shown* as "not included"
+   * NOTE: we store folder type *exceptions* for unread messages count. This is
+   * easier than storing all possible included folder types. The drawback is
+   * that we must inverse the selection in the UI: we show exceptions as "not
+   * included".
    */
   populateExcludedFoldersList: function() {
     let excludedFoldersList = document.getElementById('excluded_folders_list');
 
     let prefExcludedFoldersFlags = firetray.Utils.prefService
       .getIntPref("excluded_folders_flags");
+    log.debug("prefExcludedFoldersFlags="+prefExcludedFoldersFlags.toString(16));
     for (let folderType in FLDRS_UNINTERESTING) {
       let localizedFolderType = this.strings.getString(folderType);
-      let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
+      let folderTypeVal = FLDRS_UNINTERESTING[folderType];
+      let item = excludedFoldersList.appendItem(localizedFolderType, folderTypeVal);
       item.setAttribute("observes", "broadcaster-notification-disabled");
-      log.debug("folder: "+folderType);
-      if (!(FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags)) {
+      let folderTypeSet = (folderTypeVal & prefExcludedFoldersFlags);
+      log.debug("folder: "+folderType+" folderTypeVal="+folderTypeVal+" folderTypeSet="+folderTypeSet);
+      if (!folderTypeSet) {
         excludedFoldersList.ensureElementIsVisible(item); // bug 326445
-        excludedFoldersList.addItemToSelection(item); // doesn't trigger onselect
+        excludedFoldersList.addItemToSelection(item); // does trigger onselect...
       }
     }
+
+    // ...so we add onselect handler after the listbox is populated
+    excludedFoldersList.addEventListener(
+      'select', function(e) {   // select also on unselect
+        document.getElementById('pref-pane-mail').userChangedValue(excludedFoldersList);
+      }, true);
   },
 
-  updateExcludedFoldersPref: function() {
-    let excludedFoldersList = document.getElementById('excluded_folders_list');
+  loadExcludedFoldersFlags: function(uiElt) {
+    // we can't do much here since onLoad() not yet applied at onsyncfrompreference...
+  },
 
-    log.debug("LAST SELECTED: "+excludedFoldersList.currentItem.label);
-    let excludedFoldersFlags = null;
-    for (let i = 0, len=excludedFoldersList.itemCount; i<len; ++i) {
-      let folder = excludedFoldersList.getItemAtIndex(i);
+  saveExcludedFoldersFlags: function(uiElt) {
+    log.debug("LAST SELECTED: "+uiElt.currentItem.label);
+    let excludedFoldersFlags = 0;
+    for (let i = 0, len=uiElt.itemCount; i<len; ++i) {
+      let folder = uiElt.getItemAtIndex(i);
       if (folder.selected)
-        excludedFoldersFlags &= ~FLDRS_UNINTERESTING[folder.value];
+        excludedFoldersFlags &= ~folder.value; // clear
       else
-        excludedFoldersFlags |= FLDRS_UNINTERESTING[folder.value];
+        excludedFoldersFlags |= folder.value;  // set
     }
-    log.debug("excluded folders flags: "+excludedFoldersFlags);
-
-    firetray.Utils.prefService.setIntPref("excluded_folders_flags",
-                                          excludedFoldersFlags);
-
-    firetray.Messaging.updateMsgCountWithCb();
+    log.debug("excluded folders flags: "+excludedFoldersFlags.toString(16));
+    return excludedFoldersFlags;
   },
 
   /**
@@ -509,12 +495,11 @@ var firetrayUIOptions = {
    * needed for triggering actual preference change and saving
    */
   _userChangeValueTree: function(event) {
+    log.debug("_userChangeValueTree");
     if (event.attrName == "label") log.debug("label changed!");
     if (event.attrName == "value") log.debug("value changed!");
     document.getElementById("pref-pane-mail")
       .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
-
-    firetray.Messaging.updateMsgCountWithCb();
   },
 
   _userChangeValueTreeServerTypes: function(event) {
@@ -587,14 +572,16 @@ var firetrayUIOptions = {
       let cellExcluded = document.createElement('treecell');
       cellExcluded.setAttribute('value',!serverTypes[serverTypeName].excluded);
       cellExcluded.addEventListener( // CAUTION: removeEventListener in onQuit()
-        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+        'DOMAttrModified', function(e){that._userChangeValueTreeServerTypes(e);},
+        true);
       typeRow.appendChild(cellExcluded);
 
       // account_or_server_type_order
       let cellOrder = document.createElement('treecell');
       cellOrder.setAttribute('label',serverTypes[serverTypeName].order);
       cellOrder.addEventListener( // CAUTION: removeEventListener in onQuit()
-        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
+        'DOMAttrModified', function(e){that._userChangeValueTreeServerTypes(e);},
+        true);
       typeRow.appendChild(cellOrder);
 
       target.appendChild(typeItem);
@@ -701,7 +688,7 @@ var firetrayUIOptions = {
    * Save the "mail_accounts" preference. This is called by the pref's system
    * when the GUI element is altered.
    */
-  saveTreeAccountsOrServerTypes: function() {
+  saveTreeAccountsOrServerTypes: function() { // FIXME: broken ?
     let tree = document.getElementById("ui_tree_mail_accounts");
 
     log.debug("VIEW="+ tree.view + ", rowCount="+tree.view.rowCount);

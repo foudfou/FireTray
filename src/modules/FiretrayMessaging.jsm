@@ -13,14 +13,14 @@ Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const FLDRS_UNINTERESTING = {
-  Archive:   Ci.nsMsgFolderFlags.Archive,
-  Drafts:    Ci.nsMsgFolderFlags.Drafts,
-  Junk:      Ci.nsMsgFolderFlags.Junk,
-  Queue:     Ci.nsMsgFolderFlags.Queue,
-  SentMail:  Ci.nsMsgFolderFlags.SentMail,
-  Templates: Ci.nsMsgFolderFlags.Templates,
-  Trash:     Ci.nsMsgFolderFlags.Trash,
-  Virtual:   Ci.nsMsgFolderFlags.Virtual
+  Archive:   Ci.nsMsgFolderFlags.Archive,   // 0x00004000
+  Drafts:    Ci.nsMsgFolderFlags.Drafts,    // 0x00000400
+  Junk:      Ci.nsMsgFolderFlags.Junk,      // 0x40000000
+  Queue:     Ci.nsMsgFolderFlags.Queue,     // 0x00000800
+  SentMail:  Ci.nsMsgFolderFlags.SentMail,  // 0x00000200
+  Templates: Ci.nsMsgFolderFlags.Templates, // 0x00400000
+  Trash:     Ci.nsMsgFolderFlags.Trash,     // 0x00000100
+  Virtual:   Ci.nsMsgFolderFlags.Virtual    // 0x00000020
 };
 
 const ACCOUNTS_PREF_BRANCH = "mail.accountmanager.accounts";
