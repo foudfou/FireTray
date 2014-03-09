@@ -59,23 +59,8 @@ var firetrayUIOptions = {
   },
 
   onQuit: function(e) {
-    // cleaning: removeEventListener on cells
-    // NOTE: not sure this is necessary on window close
-    let tree = document.getElementById("ui_tree_mail_accounts");
-    let that = this;
-    for (let i=0, len=tree.view.rowCount; i<len ; ++i) {
-      let cells = tree.view.getItemAtIndex(i).getElementsByTagName("treecell");
-      if (tree.view.getLevel(i) === TREELEVEL_SERVER_TYPES) {
-        // account_or_server_type_excluded, account_or_server_type_order
-        [cells[1], cells[2]].map(
-          function(c) {
-            c.removeEventListener(
-              'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
-          });
-      } else if (tree.view.getLevel(i) === TREELEVEL_EXCLUDED_ACCOUNTS) {
-        cells[1].removeEventListener(
-          'DOMAttrModified', that._userChangeValueTree, true);
-      }
+    if (firetray.Handler.inMailApp) {
+      this.removeMailAccountsObserver();
     }
   },
 
@@ -223,6 +208,7 @@ var firetrayUIOptions = {
   initMailControls: function() {
     this.populateExcludedFoldersList();
     this.populateTreeAccountsOrServerTypes();
+    this.addMailAccountsObserver();
 
     this.initMessageCountSettings();
     this.initNotificationSettings();
@@ -473,15 +459,11 @@ var firetrayUIOptions = {
         if (disable === true) {
           cells[i].setAttribute('properties', "disabled");
           if (i === TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED) {
-            cells[i].removeEventListener(
-              'DOMAttrModified', that._userChangeValueTree, true);
             cells[i].setAttribute('editable', "false");
           }
         } else {
           cells[i].removeAttribute('properties');
           if (i === TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED) {
-            cells[i].addEventListener(
-              'DOMAttrModified', that._userChangeValueTree, true);
             cells[i].setAttribute('editable', "true");
           }
         }
@@ -489,38 +471,6 @@ var firetrayUIOptions = {
     } catch(e) {
       log.error(e);
     }
-  },
-
-  /**
-   * needed for triggering actual preference change and saving
-   */
-  _userChangeValueTree: function(event) {
-    log.debug("_userChangeValueTree");
-    if (event.attrName == "label") log.debug("label changed!");
-    if (event.attrName == "value") log.debug("value changed!");
-    document.getElementById("pref-pane-mail")
-      .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
-  },
-
-  _userChangeValueTreeServerTypes: function(event) {
-    if (event.attrName === "value") { // checkbox
-      let checkboxCell = event.originalTarget;
-      let tree = document.getElementById("ui_tree_mail_accounts");
-
-      let subRows = firetray.Utils.XPath(
-        checkboxCell,
-        'ancestor::xul:treeitem[1]/child::xul:treechildren/xul:treeitem/xul:treerow');
-      log.debug("subRows="+subRows);
-      for (let i=0, len=subRows.length; i<len; ++i) {
-        firetrayUIOptions._disableTreeRow(
-          subRows[i], (checkboxCell.getAttribute("value") === "false"));
-      }
-
-    } else if (event.attrName == "label") { // text
-      log.warn("NOT IMPLEMENTED YET: move row to new rank"); // TODO
-    }
-
-    this._userChangeValueTree(event);
   },
 
   /**
@@ -571,17 +521,11 @@ var firetrayUIOptions = {
       // account_or_server_type_excluded => checkbox
       let cellExcluded = document.createElement('treecell');
       cellExcluded.setAttribute('value',!serverTypes[serverTypeName].excluded);
-      cellExcluded.addEventListener( // CAUTION: removeEventListener in onQuit()
-        'DOMAttrModified', function(e){that._userChangeValueTreeServerTypes(e);},
-        true);
       typeRow.appendChild(cellExcluded);
 
       // account_or_server_type_order
       let cellOrder = document.createElement('treecell');
       cellOrder.setAttribute('label',serverTypes[serverTypeName].order);
-      cellOrder.addEventListener( // CAUTION: removeEventListener in onQuit()
-        'DOMAttrModified', function(e){that._userChangeValueTreeServerTypes(e);},
-        true);
       typeRow.appendChild(cellOrder);
 
       target.appendChild(typeItem);
@@ -617,9 +561,6 @@ var firetrayUIOptions = {
         if (rowDisabled === true) {
           accountCell.setAttribute('properties', "disabled");
           accountCell.setAttribute('editable', "false");
-        } else {
-          accountCell.addEventListener(  // CAUTION: removeEventListener in onQuit()
-            'DOMAttrModified', that._userChangeValueTree, true);
         }
         accountRow.appendChild(accountCell);
 
@@ -682,6 +623,50 @@ var firetrayUIOptions = {
 
     let tree = document.getElementById("ui_tree_mail_accounts");
     tree.addEventListener("keypress", that.onKeyPressTreeAccountsOrServerTypes, true);
+  },
+
+  onMutation: function(mutation) {
+    log.debug("mutation: type="+mutation.type+" node="+mutation.target.nodeName+" attr="+mutation.attributeName);
+    if (mutation.type !== "attributes") return;
+
+    if (mutation.attributeName === "value") { // checkbox
+      log.debug("value changed!");
+      let checkboxCell = mutation.target;
+      let tree = document.getElementById("ui_tree_mail_accounts");
+
+      let subRows = firetray.Utils.XPath(
+        checkboxCell,
+        'ancestor::xul:treeitem[1]/child::xul:treechildren/xul:treeitem/xul:treerow');
+      log.debug("subRows="+subRows);
+      for (let i=0, len=subRows.length; i<len; ++i) {
+        firetrayUIOptions._disableTreeRow(
+          subRows[i], (checkboxCell.getAttribute("value") === "false"));
+      }
+
+    } else if (mutation.attributeName == "label") { // text
+      log.debug("label changed!");
+      log.warn("NOT IMPLEMENTED YET: move row to new rank"); // TODO
+    } else {
+      return;
+    }
+
+    document.getElementById("pref-pane-mail")
+      .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
+
+  },
+
+  addMailAccountsObserver: function() {
+    this.mutationObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(firetrayUIOptions.onMutation);
+    });
+    let config = { attributes: true, childList: true, characterData: false, subtree: true };
+    let target = document.querySelector('#ui_mail_accounts');
+    this.mutationObserver.observe(target, config);
+  },
+
+  removeMailAccountsObserver: function() {
+    this.mutationObserver.disconnect();
+    this.mutationobserver = null;
   },
 
   /*
