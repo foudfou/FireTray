@@ -36,6 +36,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
    window close, a new window will create a new handler (and hence, a new tray
    icon) */
   onQuit: function(win) {
+    win.removeEventListener('close', firetrayChrome.onClose, true);
     firetray.Handler.unregisterWindow(win);
     firetray_log.info("windowsCount="+firetray.Handler.windowsCount+", visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
     firetray_log.debug('Firetray UNLOADED !');
@@ -46,11 +47,12 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
    hides_on_close is set (we are not actually closing the tabs!). There is no
    use trying to set warnOnClose=false temporarily in onClose, since onClose is
    called *after* the popup */
+  // FIXME: https://bugzilla.mozilla.org/show_bug.cgi?id=827880 menubar
+  // prevents close button to fire 'close'
   onClose: function(event) {
     firetray_log.debug('Firetray CLOSE');
-    let win = event.originalTarget;
-    if (!win instanceof ChromeWindow)
-      throw new TypeError('originalTarget not a ChromeWindow');
+    if (event.originalTarget != window)
+      throw new TypeError('originalTarget not the current ChromeWindow');
 
     let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
     firetray_log.debug('hides_on_close: '+hides_on_close);

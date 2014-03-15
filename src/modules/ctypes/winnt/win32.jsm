@@ -105,6 +105,8 @@ var win32 = new function() {
   this.WM_SHOWWINDOW     = 0x0018;
   this.WM_WININICHANGE   = 0x001A;
   this.WM_SETTINGCHANGE  = this.WM_WININICHANGE;
+  this.WM_COMMAND        = 0x0111;
+  this.WM_SYSCOMMAND     = 0x0112;
   this.WM_HSCROLL        = 0x0114;
   this.WM_VSCROLL        = 0x0115;
   this.WM_MOUSEWHEEL     = 0x020A;
@@ -131,6 +133,9 @@ var win32 = new function() {
   this.WM_XBUTTONDBLCLK  = 0x020D;
   this.WM_MOUSELAST      = 0x020D;
   this.WM_MOUSELAST      = 0x020A;
+
+  this.SC_MINIMIZE = 0xF020;
+  this.SC_CLOSE    = 0xF060;
 
   this.BITMAP = ctypes.StructType("BITMAP", [
     { "bmType": this.LONG },

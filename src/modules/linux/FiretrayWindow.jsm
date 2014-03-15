@@ -555,17 +555,12 @@ firetray.Window.filterWindow = function(xev, gdkEv, data) {
     let winStates = firetray.Window.getXWindowStates(xid);
     let isHidden =  winStates & FIRETRAY_XWINDOW_HIDDEN;
     log.debug("winStates="+winStates+", isHidden="+isHidden);
-    // NOTE: Gecko 8.0 provides the 'sizemodechange' event
+    // NOTE: Gecko 8.0 provides the 'sizemodechange' event, which comes once
+    // the window is minimized. i.e. preventDefault() or returning false won't
+    // prevent the event.
     if (isHidden) {
       log.debug("GOT ICONIFIED");
-      let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-      let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-      if (hides_on_minimize) {
-        if (hides_single_window)
-          firetray.Handler.hideWindow(xid);
-        else
-          firetray.Handler.hideAllWindows();
-      }
+      firetray.Handler.hideOnMinimizeMaybe(xid);
     }
     break;
 

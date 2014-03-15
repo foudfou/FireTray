@@ -69,6 +69,16 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
   } else if (uMsg === win32.WM_CLOSE) {
     log.debug("wndProc CALLED with WM_CLOSE");
 
+  } else if (uMsg === win32.WM_SYSCOMMAND) {
+    // FIXME: not work with window.minimize() (menubar hidden)
+    log.debug("wndProc CALLED with WM_SYSCOMMAND wParam="+wParam);
+    if (wParam === win32.SC_MINIMIZE) {
+      log.debug("GOT ICONIFIED");
+      if (firetray.Window.hideOnMinimizeMaybe(wid)) {
+        return 0;               // processed => preventDefault
+      }
+    }
+
   } else if (uMsg === win32.WM_DESTROY) {
     log.debug("wndProc CALLED with WM_DESTROY "+wid);
 
@@ -80,7 +90,7 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
   }
 
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
-  return user32.CallWindowProcW(procPrev, hWnd, uMsg, wParam, lParam);
+  return user32.CallWindowProcW(procPrev, hWnd, uMsg, wParam, lParam); // or DefWindowProcW
 };
 
 firetray.Window.attachWndProc = function(wid, hwnd) {

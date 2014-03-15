@@ -129,7 +129,7 @@ firetray.Handler = {
           firetray.Chat.init();
       } else {
         let platforms = FIRETRAY_CHAT_SUPPORTED_OS.join(", ");
-        log.error("Only "+platforms+" platform(s) supported at this time. Chat not loaded");
+        log.warn("Only "+platforms+" platform(s) supported at this time. Chat not loaded");
       }
     }
 
@@ -368,6 +368,20 @@ firetray.Handler = {
     } else {
       firetray.Handler.hideAllWindows();
     }
+  },
+
+  hideOnMinimizeMaybe: function(wid) {
+    let hidden = false;
+    let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+    if (hides_on_minimize) {
+      let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+      if (hides_single_window)
+        firetray.Handler.hideWindow(wid);
+      else
+        firetray.Handler.hideAllWindows();
+      hidden = true;
+    }
+    return hidden;
   },
 
   showHideIcon: function() {
