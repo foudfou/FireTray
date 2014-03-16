@@ -74,7 +74,7 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
     log.debug("wndProc CALLED with WM_SYSCOMMAND wParam="+wParam);
     if (wParam === win32.SC_MINIMIZE) {
       log.debug("GOT ICONIFIED");
-      if (firetray.Window.hideOnMinimizeMaybe(wid)) {
+      if (firetray.Handler.hideOnMinimizeMaybe(wid)) {
         return 0;               // processed => preventDefault
       }
     }

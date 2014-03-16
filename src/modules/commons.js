@@ -15,7 +15,8 @@ var EXPORTED_SYMBOLS =
     "FIRETRAY_ACCOUNT_SERVER_TYPE_IM", "FIRETRAY_DELAY_STARTUP_MILLISECONDS",
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS", "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD",
     "FIRETRAY_MESSAGE_COUNT_TYPE_NEW", "FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL",
-    "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE", "FIRETRAY_APP_DB" ];
+    "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE", "FIRETRAY_APP_DB",
+    "FIRETRAY_XUL_ATTRIBUTE_COMMAND", "FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -54,6 +55,9 @@ const FIRETRAY_DELAY_NOWAIT_MILLISECONDS        = 0;
 
 const FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL = 0;
 const FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE   = 1;
+
+const FIRETRAY_XUL_ATTRIBUTE_COMMAND   = 0;
+const FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND = 1;
 
 const FIRETRAY_APP_DB = {
 
@@ -266,6 +270,17 @@ firetray.Utils = {
     timer.initWithCallback({ notify: callback },
       delay, timerType);
     return timer;
+  },
+
+  /*
+   * Extracts statements from functions. Intended for feeding a 'oncommand'
+   * attribute.
+   * BUG: |let| assignations break oncommand inline callback under TB27
+   * The statements should probably be limited to a single function call.
+   */
+  bodyToString: function(func) {
+    let matches = func.toSource().match(/\{([\s\S]*)\}/m);
+    return matches ? matches[1] : matches;
   }
 
 };

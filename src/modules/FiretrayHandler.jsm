@@ -370,7 +370,7 @@ firetray.Handler = {
     }
   },
 
-  hideOnMinimizeMaybe: function(wid) {
+  onMinimize: function(wid) {
     let hidden = false;
     let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
     if (hides_on_minimize) {

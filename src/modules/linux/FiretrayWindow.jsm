@@ -560,7 +560,7 @@ firetray.Window.filterWindow = function(xev, gdkEv, data) {
     // prevent the event.
     if (isHidden) {
       log.debug("GOT ICONIFIED");
-      firetray.Handler.hideOnMinimizeMaybe(xid);
+      firetray.Handler.onMinimize(xid);
     }
     break;
 
