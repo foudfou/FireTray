@@ -29,7 +29,7 @@ if ("undefined" == typeof(firetray.Handler))
 
 FIRETRAY_ICON_CHROME_PATHS = {
   'blank-icon': "chrome://firetray/skin/winnt/blank-icon.bmp",
-  'mail-unread': "chrome://firetray/skin/winnt/mail-unread.ico",
+  'mail-unread': "chrome://firetray/skin/winnt/mail-unread.ico"
 };
 
 firetray.StatusIcon = {
@@ -41,11 +41,21 @@ firetray.StatusIcon = {
   bitmaps: null,
   WNDCLASS_NAME: "FireTrayHiddenWindowClass",
   WNDCLASS_ATOM: null,
+  icons: (function(){return new ctypesMap(win32.HICON);})(),
+  bitmaps: (function(){return new ctypesMap(win32.HBITMAP);})(),
+  IMG_TYPES: {
+    ico: { win_t: win32.HICON,   load_const: user32.IMAGE_ICON,   map: 'icons' },
+    bmp: { win_t: win32.HBITMAP, load_const: user32.IMAGE_BITMAP, map: 'bitmaps' }
+  },
+  PREF_TO_ICON_NAME: {
+    app_icon_filename: 'app_custom',
+    custom_mail_icon: 'mail_custom' // FIXME: rename pref for consistency
+  },
 
   init: function() {
     this.loadImages();
-    // this.defineIconNames();     // FIXME: linux-only
     this.create();
+    firetray.Handler.setIconImageDefault();
 
     this.initialized = true;
     return true;
@@ -61,54 +71,82 @@ firetray.StatusIcon = {
     return true;
   },
 
-  defineIconNames: function() { // FIXME: linux-only
-    this.prefAppIconNames = (function() {
-      if (firetray.Handler.inMailApp) {
-        return "app_mail_icon_names";
-      } else if (firetray.Handler.inBrowserApp) {
-        return "app_browser_icon_names";
-      } else {
-        return "app_default_icon_names";
-      }
-    })();
-    this.defaultAppIconName = firetray.Handler.appName.toLowerCase();
-
-    this.prefNewMailIconNames = "new_mail_icon_names";
-    this.defaultNewMailIconName = "mail-unread";
-  },
+  loadThemedIcons: function() { },
 
   loadImages: function() {
-    this.icons = new ctypesMap(win32.HICON);
-    this.bitmaps = new ctypesMap(win32.HBITMAP);
-
     // the Mozilla hidden window has the default Mozilla icon
     let hwnd_hidden_moz = user32.FindWindowW("MozillaHiddenWindowClass", null);
     log.debug("=== hwnd_hidden_moz="+hwnd_hidden_moz);
     this.icons.insert('app', this.getIconFromWindow(hwnd_hidden_moz));
+    ['app_icon_filename', 'custom_mail_icon'].forEach(function(elt) {
+      firetray.StatusIcon.loadImageCustom(elt);
+    });
 
     /* we'll take the first icon in the .ico file. To get the icon count in the
      file, pass ctypes.cast(ctypes.int(-1), win32.UINT); */
     for (let imgName in FIRETRAY_ICON_CHROME_PATHS) {
       let path = firetray.Utils.chromeToPath(FIRETRAY_ICON_CHROME_PATHS[imgName]);
-      let imgType = path.substr(-3, 3);
-      let imgTypeDict = {
-        ico: { win_t: win32.HICON,   load_const: user32.IMAGE_ICON,   map: this.icons },
-        bmp: { win_t: win32.HBITMAP, load_const: user32.IMAGE_BITMAP, map: this.bitmaps }
-      };
-      if (!(imgType in imgTypeDict)) {
-        throw Error("Unrecognized type '"+imgType+"'");
-      }
-      let imgTypeRec = imgTypeDict[imgType];
-      let himg = ctypes.cast(
-        user32.LoadImageW(null, path, imgTypeRec['load_const'], 0, 0,
-                          user32.LR_LOADFROMFILE|user32.LR_SHARED),
-        imgTypeRec['win_t']);
-      if (himg.isNull()) {
-        log.error("Could not load '"+imgName+"'="+himg+" winLastError="+ctypes.winLastError);
-        continue;
-      }
-      imgTypeRec['map'].insert(imgName, himg);
+      let img = this.loadImageFromFile(path);
+      if (img)
+        this[this.IMG_TYPES[img['type']]['map']].insert(imgName, img['himg']);
     }
+  },
+
+  loadImageCustom: function(prefname) {
+    let filename = firetray.Utils.prefService.getCharPref(prefname);
+    if (!filename) return;
+    let img = this.loadImageFromFile(filename);
+    if (!img) return;
+
+    log.debug("loadImageCustom img type="+img['type']+" himg="+img['himg']);
+    let hicon = img['himg'];
+    if (img['type'] === 'bmp')
+      hicon = this.HBITMAPToHICON(img['himg']);
+    let name = this.PREF_TO_ICON_NAME[prefname];
+    log.debug("    name="+name);
+    this.icons.insert(name, hicon);
+  },
+
+  loadImageFromFile: function(path) {
+    let imgType = path.substr(-3, 3).toLowerCase();
+    if (!(imgType in this.IMG_TYPES)) {
+      throw Error("Unrecognized type '"+imgType+"'");
+    }
+    let imgTypeRec = this.IMG_TYPES[imgType];
+    let himg = ctypes.cast(
+      user32.LoadImageW(null, path, imgTypeRec['load_const'], 0, 0,
+                        user32.LR_LOADFROMFILE|user32.LR_SHARED),
+      imgTypeRec['win_t']);
+    if (himg.isNull()) {
+      log.error("Could not load '"+path+"'="+himg+" winLastError="+ctypes.winLastError);
+      return null;
+    }
+    return {type:imgType, himg:himg};
+  },
+
+  HBITMAPToHICON: function(hBitmap) {
+    log.debug("HBITMAPToHICON hBitmap="+hBitmap);
+    let hWnd = null; // firetray.StatusIcon.hwndProxy;
+    let hdc = user32.GetDC(hWnd);
+    let bitmap = new win32.BITMAP();
+    let err = gdi32.GetObjectW(hBitmap, win32.BITMAP.size, bitmap.address()); // get bitmap info
+    let hBitmapMask = gdi32.CreateCompatibleBitmap(hdc, bitmap.bmWidth, bitmap.bmHeight);
+    user32.ReleaseDC(hWnd, hdc);
+
+    let iconInfo = win32.ICONINFO();
+    iconInfo.fIcon = true;
+    iconInfo.xHotspot = 0;
+    iconInfo.yHotspot = 0;
+    iconInfo.hbmMask = hBitmapMask;
+    iconInfo.hbmColor = hBitmap;
+
+    let hIcon = user32.CreateIconIndirect(iconInfo.address());
+    log.debug("   CreateIconIndirect hIcon="+hIcon+" lastError="+ctypes.winLastError);
+
+    gdi32.DeleteObject(hBitmap);
+    gdi32.DeleteObject(hBitmapMask);
+
+    return hIcon;
   },
 
   // images loaded with LR_SHARED need't be destroyed
@@ -284,32 +322,30 @@ firetray.StatusIcon = {
     user32.ReleaseDC(hWnd, hdc);
 
     let hBitmapOrig = gdi32.SelectObject(hdcMem, hBitmap);
-    // gdi32.PatBlt(hdcMem, 0, 0, 16, 16, gdi32.BLACKNESS); // paint black rectangle
 
-// http://forums.codeguru.com/showthread.php?379565-Windows-SDK-GDI-How-do-I-choose-a-font-size-to-exactly-fit-a-string-in-a
+    function getFont(fnHeight) {
+      return gdi32.CreateFontW(
+        fnHeight, 0, 0, 0, gdi32.FW_SEMIBOLD, 0, 0, 0,
+        gdi32.ANSI_CHARSET, gdi32.OUT_OUTLINE_PRECIS, 0, gdi32.ANTIALIASED_QUALITY,
+        gdi32.FIXED_PITCH|gdi32.FF_SWISS, "Arial"
+      );
+    }
 
     let fnHeight = firetray.js.floatToInt(height);
-    let hFont = gdi32.CreateFontW(fnHeight, 0, 0, 0, gdi32.FW_MEDIUM, 0, 0, 0,
-      gdi32.ANSI_CHARSET, 0, 0, 0, gdi32.FF_SWISS, "Sans"); // get font
-    ctypes.cast(gdi32.SelectObject(hdcMem, hFont), win32.HFONT); // replace font in bitmap by hFont
-    let faceName = ctypes.jschar.array()(32);
-    gdi32.GetTextFaceW(hdcMem, 32, faceName);
-    log.debug("    font="+faceName);
+      log.debug("    fnHeight initial="+fnHeight);
+    let hFont = getFont(fnHeight);
+    gdi32.SelectObject(hdcMem, hFont); // replace font in bitmap by hFont
+    { let bufLen = 32, faceName = ctypes.jschar.array()(bufLen); gdi32.GetTextFaceW(hdcMem, bufLen, faceName); log.debug("    font="+faceName); }
 
     let size = new gdi32.SIZE();
     gdi32.GetTextExtentPoint32W(hdcMem, text, text.length, size.address()); // more reliable than DrawText(DT_CALCRECT)
-
     while (size.cx > width - 6 || size.cy > height - 4) {
       fnHeight -= 1;
-      hFont = gdi32.CreateFontW(fnHeight, 0, 0, 0, gdi32.FW_SEMIBOLD, 0, 0, 0,
-                                gdi32.ANSI_CHARSET, 0, 0, gdi32.PROOF_QUALITY,
-                                gdi32.FF_SWISS, "Arial");
-      ctypes.cast(gdi32.SelectObject(hdcMem, hFont), win32.HFONT);
-
-      gdi32.GetTextExtentPoint32W(hdcMem, text, text.length, size.address()); // more reliable than DrawText(DT_CALCRECT)
+      hFont = getFont(fnHeight);
+      gdi32.SelectObject(hdcMem, hFont);
+      gdi32.GetTextExtentPoint32W(hdcMem, text, text.length, size.address());
       log.debug("    fnHeight="+fnHeight+" width="+size.cx);
     }
-    gdi32.GetTextExtentPoint32W(hdcMem, text, text.length, size.address());
 
     gdi32.SetTextColor(hdcMem, win32.COLORREF(this.cssColorToCOLORREF(color)));
     gdi32.SetBkMode(hdcMem, gdi32.TRANSPARENT); // VERY IMPORTANT
@@ -339,18 +375,40 @@ firetray.StatusIcon = {
     gdi32.DeleteObject(hBitmapMask);
 
     return hIcon;               // to be destroyed (DestroyIcon)
+  },
+
+  getIconSafe: function(name) {
+    let hicon = null;
+    try {
+      hicon = firetray.StatusIcon.icons.get(name);
+    } catch(error) {
+      log.error("icon 'app_custom' not defined.");
+    }
+    return hicon;
   }
 
 }; // firetray.StatusIcon
 
+
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
-  firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.icons.get('app')});
+  let appIconType = firetray.Utils.prefService.getIntPref("app_icon_type");
+  if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_THEMED)
+    firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.icons.get('app')});
+  else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM) {
+    firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.getIconSafe('app_custom')});
+  }
 };
 
 firetray.Handler.setIconImageNewMail = function() {
   log.debug("setIconImageDefault");
   firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.icons.get('mail-unread')});
+};
+
+firetray.Handler.setIconImageCustom = function(prefname) {
+  log.debug("setIconImageCustom");
+  let name = firetray.StatusIcon.PREF_TO_ICON_NAME[prefname];
+  firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.getIconSafe(name)});
 };
 
 // firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;

@@ -328,7 +328,7 @@ firetray.Handler = {
   // these get overridden in OS-specific Icon/Window handlers
   setIconImageDefault: function() {},
   setIconImageNewMail: function() {},
-  setIconImageFromFile: function(filename) {},
+  setIconImageCustom: function(prefname) {},
   setIconText: function(text, color) {},
   setIconTooltip: function(localizedMessage) {},
   setIconTooltipDefault: function() {},
@@ -515,7 +515,7 @@ firetray.Handler = {
 firetray.PrefListener = new PrefListener(
   FIRETRAY_PREF_BRANCH,
   function(branch, name) {
-    log.debug('Pref changed: '+name);
+    log.debug('____Pref changed: '+name);
     switch (name) {
     case 'hides_single_window':
       firetray.Handler.showHidePopupMenuItems();
@@ -548,9 +548,11 @@ firetray.PrefListener = new PrefListener(
     case 'app_mail_icon_names':
     case 'app_browser_icon_names':
     case 'app_default_icon_names':
-    case 'app_icon_type':
-      firetray.StatusIcon.loadThemedIcons();
+      firetray.StatusIcon.loadThemedIcons(); // linux
     case 'app_icon_filename':
+    case 'custom_mail_icon':
+      firetray.StatusIcon.loadImageCustom(name);
+    case 'app_icon_type':
       firetray.Handler.setIconImageDefault();
       if (firetray.Handler.inMailApp)
         firetray.Messaging.updateMsgCountWithCb();

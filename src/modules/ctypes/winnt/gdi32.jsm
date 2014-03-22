@@ -111,6 +111,17 @@ function gdi32_defines(lib) {
   this.ANTIALIASED_QUALITY       = 4;
   this.CLEARTYPE_QUALITY         = 5;
   this.CLEARTYPE_NATURAL_QUALITY = 6;
+  this.OUT_DEFAULT_PRECIS        = 0;
+  this.OUT_STRING_PRECIS         = 1;
+  this.OUT_CHARACTER_PRECIS      = 2;
+  this.OUT_STROKE_PRECIS         = 3;
+  this.OUT_TT_PRECIS             = 4;
+  this.OUT_DEVICE_PRECIS         = 5;
+  this.OUT_RASTER_PRECIS         = 6;
+  this.OUT_TT_ONLY_PRECIS        = 7;
+  this.OUT_OUTLINE_PRECIS        = 8;
+  this.OUT_SCREEN_OUTLINE_PRECIS = 9;
+  this.OUT_PS_ONLY_PRECIS        = 10;
 
   lib.lazy_bind("GetTextFaceW", ctypes.int, win32.HDC, ctypes.int, win32.LPTSTR);
   lib.lazy_bind("SetTextColor", win32.COLORREF, win32.HDC, win32.COLORREF);

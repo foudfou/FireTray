@@ -33,7 +33,7 @@ ctypesMap.prototype.get = function(key) {
 };
 
 Object.defineProperties(ctypesMap.prototype, {
-  "keys": { get: function(){return Object.keys(this.map);} }
+  "keys": {get: function(){return Object.keys(this.map);} }
 });
 
 ctypesMap.prototype.insert = function(key, item) {

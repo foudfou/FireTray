@@ -216,8 +216,7 @@
                    observes="broadcaster-notification-disabled" />
             <hbox id="custom_mail_icon" align="center" flex="1" >
               <textbox id="custom_mail_icon_filename" preference="pref_custom_mail_icon"
-                       observes="broadcaster-notification-disabled"
-                       onchange="firetray.Messaging.updateIcon();" flex="1" />
+                       observes="broadcaster-notification-disabled" flex="1" />
               <button id="custom_mail_icon_select" label="&choose;"
                       accesskey="&choose.accesskey;"
                       observes="broadcaster-notification-disabled"

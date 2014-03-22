@@ -20,6 +20,7 @@ let log = firetray.Logging.getLogger("firetray.UIOptions");
 var firetrayUIOptions = {
   strings: null,
   prefwindow: null,
+  listeners: {},
 
   onLoad: function(e) {
     log.debug("FULL FEATURED="+firetray.Handler.support['full_feat']);
@@ -60,6 +61,7 @@ var firetrayUIOptions = {
 
   onQuit: function(e) {
     if (firetray.Handler.inMailApp) {
+      this.removeListeners();
       this.removeMailAccountsObserver();
     }
   },
@@ -232,10 +234,14 @@ var firetrayUIOptions = {
     document.getElementById("ui_mail_notification_enabled").checked =
       (firetray.Utils.prefService.getBoolPref("mail_notification_enabled"));
 
-    let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
+    let mailNotifyRadio = document.getElementById("ui_radiogroup_mail_notification");
     let prefMailNotificationType = firetray.Utils.prefService.getIntPref("mail_notification_type");
-    radioMailNotify.selectedIndex = this.radioGetIndexByValue(radioMailNotify, prefMailNotificationType);
+    mailNotifyRadio.selectedIndex = this.radioGetIndexByValue(mailNotifyRadio, prefMailNotificationType);
     // this.disableNotificationMaybe(prefMailNotificationType); // done in toggleNotifications()
+    /* We need to ensure assigning selectedIndex in disableMessageCountMaybe()
+     does change the corresponding preference. */
+    let listener = {evt:'select', fn:firetrayUIOptions.userChangedValue, cap:true};
+    this.addListener(mailNotifyRadio, listener);
   },
 
   initMessageCountSettings: function() {
@@ -261,6 +267,10 @@ var firetrayUIOptions = {
     blinkStyle.selectedIndex = this.radioGetIndexByValue(blinkStyle, prefBlinkStyle);
   },
 
+  userChangedValue: function(e) {
+    document.getElementById('pref-pane-mail').userChangedValue(e.originalTarget);
+  },
+
   radioGetIndexByValue: function(radio, value) {
     for (let i=0, len=radio.itemCount; i<len; ++i)
       if (+radio.getItemAtIndex(i).value == value) return i;
@@ -273,11 +283,9 @@ var firetrayUIOptions = {
 
   updateNotificationSettings: function() {
     log.debug("updateNotificationSettings");
-    let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
-    let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
+    let mailNotifyRadio = document.getElementById("ui_radiogroup_mail_notification");
+    let mailNotificationType = +mailNotifyRadio.getItemAtIndex(mailNotifyRadio.selectedIndex).value;
     this.disableNotificationMaybe(mailNotificationType);
-
-    firetray.Messaging.updateIcon();
   },
 
   updateMessageCountSettings: function() {
@@ -311,10 +319,10 @@ var firetrayUIOptions = {
     let notificationUnreadCount = document.getElementById("ui_mail_notification_unread_count");
     this.disableElementsRecursive(notificationUnreadCount, msgCountTypeIsNewMessages);
 
-    let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
-    let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
+    let mailNotifyRadio = document.getElementById("ui_radiogroup_mail_notification");
+    let mailNotificationType = +mailNotifyRadio.getItemAtIndex(mailNotifyRadio.selectedIndex).value;
     if (msgCountTypeIsNewMessages && (mailNotificationType === FIRETRAY_NOTIFICATION_MESSAGE_COUNT)) {
-      radioMailNotify.selectedIndex = this.radioGetIndexByValue(radioMailNotify, FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
+      mailNotifyRadio.selectedIndex = this.radioGetIndexByValue(mailNotifyRadio, FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
       if (firetray.Handler.support['full_feat']) {
         let newMailIconNames = document.getElementById("newmail_icon_names");
         this.disableNChildren(newMailIconNames, 2, false);
@@ -385,7 +393,10 @@ var firetrayUIOptions = {
     }};
 
     filePicker.init(window, "Select Icon", nsIFilePicker.modeOpen); // FIXME: i18n
-    filePicker.appendFilters(nsIFilePicker.filterImages);
+    if (firetray.Handler.runtimeOS === "winnt")
+      filePicker.appendFilter("Icon", "*.bmp; *.ico"); // TODO: support more formats ?
+    else
+      filePicker.appendFilters(nsIFilePicker.filterImages);
     filePicker.open(fpCallback);
   },
 
@@ -421,11 +432,10 @@ var firetrayUIOptions = {
       }
     }
 
-    // ...so we add onselect handler after the listbox is populated
-    excludedFoldersList.addEventListener(
-      'select', function(e) {   // select also on unselect
-        document.getElementById('pref-pane-mail').userChangedValue(excludedFoldersList);
-      }, true);
+    // ...so we add onselect handler after the listbox is populated. 'select'
+    // also fired on unselect.
+    let listener = {evt:'select', fn:firetrayUIOptions.userChangedValue, cap:true};
+    this.addListener(excludedFoldersList, listener);
   },
 
   loadExcludedFoldersFlags: function(uiElt) {
@@ -622,7 +632,21 @@ var firetrayUIOptions = {
     }
 
     let tree = document.getElementById("ui_tree_mail_accounts");
-    tree.addEventListener("keypress", that.onKeyPressTreeAccountsOrServerTypes, true);
+    let listener = {evt:'keypress', fn:firetrayUIOptions.onKeyPressTreeAccountsOrServerTypes, cap:true};
+    this.addListener(tree, listener);
+  },
+
+  addListener: function(elt, listenerData) {
+    elt.addEventListener(listenerData['evt'], listenerData['fn'], listenerData['cap']);
+    this.listeners[elt.id] = listenerData;
+  },
+
+  removeListeners: function() {
+    for (id in this.listeners) {
+      let listener = listeners[id];
+      document.getElementById(id)
+        .removeEventListener(listener['evt'], listener['fn'], listener['cap']);
+    }
   },
 
   onMutation: function(mutation) {
