@@ -27,18 +27,23 @@ let log = firetray.Logging.getLogger("firetray.StatusIcon");
 if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");
 
-FIRETRAY_ICON_CHROME_PATHS = {
+const ICON_CHROME_PATHS = {
   'blank-icon': "chrome://firetray/skin/winnt/blank-icon.bmp",
-  'mail-unread': "chrome://firetray/skin/winnt/mail-unread.ico"
+  'mail-unread': "chrome://firetray/skin/winnt/mail-unread.ico",
+  // these are for the popup menu:
+  'prefs': "chrome://firetray/skin/winnt/gtk-preferences.bmp",
+  'quit': "chrome://firetray/skin/winnt/application-exit.bmp",
+  'new-wnd': "chrome://firetray/skin/winnt/document-new.bmp",
+  'new-msg': "chrome://firetray/skin/winnt/gtk-edit.bmp",
+  'reset': "chrome://firetray/skin/winnt/gtk-apply.bmp"
 };
+
 
 firetray.StatusIcon = {
   initialized: false,
   callbacks: {}, // pointers to JS functions. MUST LIVE DURING ALL THE EXECUTION
   notifyIconData: null,
   hwndProxy: null,
-  icons: null,
-  bitmaps: null,
   WNDCLASS_NAME: "FireTrayHiddenWindowClass",
   WNDCLASS_ATOM: null,
   icons: (function(){return new ctypesMap(win32.HICON);})(),
@@ -57,12 +62,17 @@ firetray.StatusIcon = {
     this.create();
     firetray.Handler.setIconImageDefault();
 
+    Cu.import("resource://firetray/winnt/FiretrayPopupMenu.jsm");
+    if (!firetray.PopupMenu.init())
+      return false;
+
     this.initialized = true;
     return true;
   },
 
   shutdown: function() {
     log.debug("Disabling StatusIcon");
+    firetray.PopupMenu.shutdown();
 
     this.destroy();
     this.destroyImages();
@@ -84,8 +94,8 @@ firetray.StatusIcon = {
 
     /* we'll take the first icon in the .ico file. To get the icon count in the
      file, pass ctypes.cast(ctypes.int(-1), win32.UINT); */
-    for (let imgName in FIRETRAY_ICON_CHROME_PATHS) {
-      let path = firetray.Utils.chromeToPath(FIRETRAY_ICON_CHROME_PATHS[imgName]);
+    for (let imgName in ICON_CHROME_PATHS) {
+      let path = firetray.Utils.chromeToPath(ICON_CHROME_PATHS[imgName]);
       let img = this.loadImageFromFile(path);
       if (img)
         this[this.IMG_TYPES[img['type']]['map']].insert(imgName, img['himg']);
@@ -225,23 +235,44 @@ firetray.StatusIcon = {
 
     } else if (uMsg === firetray.Win32.WM_TRAYMESSAGE) {
 
-      switch (+lParam) {
+      switch (win32.LOWORD(lParam)) {
       case win32.WM_LBUTTONUP:
         log.debug("WM_LBUTTONUP");
         firetray.Handler.showHideAllWindows();
         break;
       case win32.WM_RBUTTONUP:
         log.debug("WM_RBUTTONUP");
-        break;
       case win32.WM_CONTEXTMENU:
         log.debug("WM_CONTEXTMENU");
-        break;
-      case win32.NIN_KEYSELECT:
-        log.debug("NIN_KEYSELECT");
+        /* Can't determine tray icon position precisely: the mouse cursor can
+         move between WM_RBUTTONDOWN and WM_RBUTTONUP, or the icon can have
+         been moved inside the notification area... so we opt for the easy
+         solution. */
+        let pos = user32.GetMessagePos();
+        let xPos = win32.GET_X_LPARAM(pos), yPos = win32.GET_Y_LPARAM(pos);
+        log.debug("  x="+xPos+" y="+yPos);
+        user32.SetForegroundWindow(hWnd);
+        user32.TrackPopupMenu(firetray.PopupMenu.menu, user32.TPM_RIGHTALIGN|user32.TPM_BOTTOMALIGN, xPos, yPos, 0, hWnd, null);
         break;
       default:
       }
 
+    } else {
+      switch (uMsg) {
+      case win32.WM_SYSCOMMAND:
+        log.debug("WM_SYSCOMMAND wParam="+wParam+", lParam="+lParam);
+        break;
+      case win32.WM_COMMAND:
+        log.debug("WM_COMMAND wParam="+wParam+", lParam="+lParam);
+        firetray.PopupMenu.processMenuItem(wParam);
+        break;
+      case win32.WM_MENUCOMMAND:
+        log.debug("WM_MENUCOMMAND wParam="+wParam+", lParam="+lParam);
+        break;
+      case win32.WM_MENUCHAR:
+        log.debug("WM_MENUCHAR wParam="+wParam+", lParam="+lParam);
+        break;
+      }
     }
 
     return user32.DefWindowProcW(hWnd, uMsg, wParam, lParam);

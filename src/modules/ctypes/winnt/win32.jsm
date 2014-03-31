@@ -33,6 +33,7 @@ var win32 = new function() {
   this.LONG_PTR  = is64bit ? ctypes.int64_t  : ctypes.long;
   this.ULONG_PTR = is64bit ? ctypes.uint64_t : ctypes.unsigned_long;
   this.SIZE_T    = this.ULONG_PTR;
+  this.DWORD_PTR = this.ULONG_PTR;
   this.ATOM      = this.WORD;
   this.HANDLE    = ctypes.voidptr_t;
   this.HWND      = this.HANDLE;
@@ -77,6 +78,21 @@ var win32 = new function() {
     return ctypes.jschar.array()(str);
   };
 
+  /*
+   * #define LOWORD(l) ((WORD)((DWORD_PTR)(l) & 0xffff))
+   * #define HIWORD(l) ((WORD)((DWORD_PTR)(l) >> 16))
+   * #define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
+   * #define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
+   */
+  this.LOWORD = function(l) {return l & 0x0000ffff;};
+  this.HIWORD = function(l) {return l >> 16;};
+  /* Although we shouldn't use LO-/HIWORD to get coords, because of negative
+   coords on multi-monitor displays, I'm not sure how to express the
+   GET_?_LPARAM macros with ctypes. */
+  this.GET_X_LPARAM = this.LOWORD;
+  this.GET_Y_LPARAM = this.HIWORD;
+
+  this.ERROR_INVALID_PARAMETER       = 87;
   this.ERROR_INVALID_WINDOW_HANDLE   = 1400;
   this.ERROR_RESOURCE_TYPE_NOT_FOUND = 1813;
 
@@ -155,6 +171,12 @@ var win32 = new function() {
     { "hbmColor": this.HBITMAP }
   ]);
   this.PICONINFO = this.ICONINFO.ptr;
+
+  this.POINT = ctypes.StructType("POINT", [
+   { "x": this.LONG },
+   { "y": this.LONG }
+  ]);
+  this.PPOINT = this.LPPOINT =this.POINT.ptr;
 
   this.RECT = ctypes.StructType("RECT", [
     { "left": this.LONG },

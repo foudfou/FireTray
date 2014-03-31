@@ -266,6 +266,99 @@ function user32_defines(lib) {
   this.DT_NOPREFIX        = 0x00000800;
   this.DT_INTERNAL        = 0x00001000;
 
+  lib.lazy_bind("CreatePopupMenu", win32.HMENU);
+  lib.lazy_bind("DestroyMenu", win32.BOOL, win32.HMENU);
+
+  this.MENUITEMINFOW = ctypes.StructType("MENUITEMINFOW", [
+    { "cbSize": win32.UINT },
+    { "fMask": win32.UINT },
+    { "fType": win32.UINT },
+    { "fState": win32.UINT },
+    { "wID": win32.UINT },
+    { "hSubMenu": win32.HMENU },
+    { "hbmpChecked": win32.HBITMAP },
+    { "hbmpUnchecked": win32.HBITMAP },
+    { "dwItemData": win32.ULONG_PTR },
+    { "dwTypeData": win32.LPWSTR },
+    { "cch": win32.UINT },
+    { "hbmpItem": win32.HBITMAP }
+  ]);
+  this.LPCMENUITEMINFO = this.LPMENUITEMINFOW = this.MENUITEMINFOW.ptr;
+
+  lib.lazy_bind("InsertMenuItemW", win32.BOOL, win32.HMENU, win32.UINT, win32.BOOL, this.LPCMENUITEMINFO);
+  lib.lazy_bind("GetMenuItemInfoW", win32.BOOL, win32.HMENU, win32.UINT, win32.BOOL, this.LPCMENUITEMINFO);
+
+  this.MIIM_STATE      = 0x00000001;
+  this.MIIM_ID         = 0x00000002;
+  this.MIIM_SUBMENU    = 0x00000004;
+  this.MIIM_CHECKMARKS = 0x00000008;
+  this.MIIM_TYPE       = 0x00000010;
+  this.MIIM_DATA       = 0x00000020;
+  this.MIIM_STRING     = 0x00000040;
+  this.MIIM_BITMAP     = 0x00000080;
+  this.MIIM_FTYPE      = 0x00000100;
+
+  lib.lazy_bind("InsertMenuW", win32.BOOL, win32.HMENU, win32.UINT, win32.UINT, win32.UINT_PTR, win32.LPCTSTR);
+
+  this.MF_INSERT          = 0x00000000;
+  this.MF_CHANGE          = 0x00000080;
+  this.MF_APPEND          = 0x00000100;
+  this.MF_DELETE          = 0x00000200;
+  this.MF_REMOVE          = 0x00001000;
+  this.MF_BYCOMMAND       = 0x00000000;
+  this.MF_BYPOSITION      = 0x00000400;
+  this.MF_SEPARATOR       = 0x00000800;
+  this.MF_ENABLED         = 0x00000000;
+  this.MF_GRAYED          = 0x00000001;
+  this.MF_DISABLED        = 0x00000002;
+  this.MF_UNCHECKED       = 0x00000000;
+  this.MF_CHECKED         = 0x00000008;
+  this.MF_USECHECKBITMAPS = 0x00000200;
+  this.MF_STRING          = 0x00000000;
+  this.MF_BITMAP          = 0x00000004;
+  this.MF_OWNERDRAW       = 0x00000100;
+  this.MF_POPUP           = 0x00000010;
+  this.MF_MENUBARBREAK    = 0x00000020;
+  this.MF_MENUBREAK       = 0x00000040;
+  this.MF_UNHILITE        = 0x00000000;
+  this.MF_HILITE          = 0x00000080;
+  this.MF_DEFAULT         = 0x00001000;
+  this.MF_RIGHTJUSTIFY    = 0x00004000;
+  this.MFT_STRING         = this.MF_STRING;
+  this.MFT_BITMAP         = this.MF_BITMAP;
+  this.MFT_MENUBARBREAK   = this.MF_MENUBARBREAK;
+  this.MFT_MENUBREAK      = this.MF_MENUBREAK;
+  this.MFT_OWNERDRAW      = this.MF_OWNERDRAW;
+  this.MFT_RADIOCHECK     = 0x00000200;
+  this.MFT_SEPARATOR      = this.MF_SEPARATOR;
+  this.MFT_RIGHTORDER     = 0x00002000;
+  this.MFT_RIGHTJUSTIFY   = this.MF_RIGHTJUSTIFY;
+  this.MFS_GRAYED         = 0x00000003;
+  this.MFS_DISABLED       = this.MFS_GRAYED;
+  this.MFS_CHECKED        = this.MF_CHECKED;
+  this.MFS_HILITE         = this.MF_HILITE;
+  this.MFS_ENABLED        = this.MF_ENABLED;
+  this.MFS_UNCHECKED      = this.MF_UNCHECKED;
+  this.MFS_UNHILITE       = this.MF_UNHILITE;
+  this.MFS_DEFAULT        = this.MF_DEFAULT;
+
+  this.TPM_LEFTBUTTON   = 0x0000;
+  this.TPM_RIGHTBUTTON  = 0x0002;
+  this.TPM_LEFTALIGN    = 0x0000;
+  this.TPM_CENTERALIGN  = 0x0004;
+  this.TPM_RIGHTALIGN   = 0x0008;
+  this.TPM_TOPALIGN     = 0x0000;
+  this.TPM_VCENTERALIGN = 0x0010;
+  this.TPM_BOTTOMALIGN  = 0x0020;
+  this.TPM_HORIZONTAL   = 0x0000;
+  this.TPM_VERTICAL     = 0x0040;
+
+  lib.lazy_bind("CalculatePopupWindowPosition", win32.BOOL, win32.POINT.ptr, win32.SIZE, win32.UINT, win32.RECT.ptr, win32.RECT.ptr);
+  lib.lazy_bind("TrackPopupMenu", win32.BOOL, win32.HMENU, win32.UINT, ctypes.int, ctypes.int, ctypes.int, win32.HWND, win32.RECT.ptr);
+  lib.lazy_bind("SetForegroundWindow", win32.BOOL, win32.HWND);
+  lib.lazy_bind("GetCursorPos", win32.BOOL, win32.LPPOINT);
+  lib.lazy_bind("GetMessagePos", win32.DWORD);
+
 }
 
 new ctypes_library(USER32_LIBNAME, USER32_ABIS, user32_defines, this);
