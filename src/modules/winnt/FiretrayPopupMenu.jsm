@@ -49,29 +49,24 @@ firetray.PopupMenu = {
     this.menu = user32.CreatePopupMenu(); // FIXME: destroy
     log.debug("menu="+this.menu);
 
-    var addMenuSeparator = false;
-
     this.insertMenuItem('Quit', 'quit', IDM_QUIT);
     user32.InsertMenuW(this.menu, 0, user32.MF_BYPOSITION|user32.MF_SEPARATOR, 0, null);
     this.insertMenuItem('Preferences', 'prefs', IDM_PREF);
 
+    let menuSeparatorAdded = false;
     if (firetray.Handler.inBrowserApp) {
+      user32.InsertMenuW(this.menu, 0, user32.MF_BYPOSITION|user32.MF_SEPARATOR, 0, null);
+      menuSeparatorAdded = true;
       this.insertMenuItem('NewWindow', 'new-wnd', IDM_NEW_WND);
-      addMenuSeparator = true;
     }
 
     if (firetray.Handler.inMailApp) {
+      if (!menuSeparatorAdded) {
+        user32.InsertMenuW(this.menu, 0, user32.MF_BYPOSITION|user32.MF_SEPARATOR, 0, null);
+      }
       this.insertMenuItem('NewMessage', 'new-msg', IDM_NEW_MSG);
       this.insertMenuItem('ResetIcon', 'reset', IDM_RESET);
-      addMenuSeparator = true;
     }
-
-    if (addMenuSeparator) {
-      user32.InsertMenuW(this.menu, 2, user32.MF_BYPOSITION|user32.MF_SEPARATOR, 0, null);
-    }
-
-    // // We'll user InsertMenuW for hidden windows:
-    // user32.InsertMenuW(this.menu, 0, user32.MF_BYPOSITION|user32.MF_STRING, IDM_CLOSE, "Close"); // FIXME: ampersand doesn't work ?
 
     log.debug("PopupMenu created");
   },
