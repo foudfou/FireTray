@@ -51,8 +51,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "N">
 <!ENTITY mail_notification_newmail_icon.label "afficher l'icône de nouveau message">
 <!ENTITY mail_notification_newmail_icon.accesskey "f">
-<!ENTITY mail_notification_custom_mail_icon.label "afficher l'icône personnalisée">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "i">
+<!ENTITY mail_notification_mail_icon_custom.label "afficher l'icône personnalisée">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "i">
 <!ENTITY icon_text_color "Couleur du texte">
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Choisir">

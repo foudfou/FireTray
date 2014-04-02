@@ -51,8 +51,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "O">
 <!ENTITY mail_notification_newmail_icon.label "pictogram nieuw bericht weergeven">
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
-<!ENTITY mail_notification_custom_mail_icon.label "aangepast pictogram weergeven">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "i">
+<!ENTITY mail_notification_mail_icon_custom.label "aangepast pictogram weergeven">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "i">
 <!ENTITY icon_text_color "Tekstkleur">
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Kiezen">

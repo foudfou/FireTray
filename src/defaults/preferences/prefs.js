@@ -16,7 +16,7 @@ pref("extensions.firetray.app_icon_type", 0);
 pref("extensions.firetray.app_browser_icon_names", '["web-browser", "internet-web-browser"]');
 pref("extensions.firetray.app_mail_icon_names", '["indicator-messages", "applications-email-panel"]');
 pref("extensions.firetray.app_default_icon_names", '[]');
-pref("extensions.firetray.app_icon_filename", "");
+pref("extensions.firetray.app_icon_custom", "");
 pref("extensions.firetray.new_mail_icon_names", '["indicator-messages-new", "mail-message-new"]');
 pref("extensions.firetray.show_icon_on_hide", false);
 pref("extensions.firetray.scroll_hides", true);
@@ -30,7 +30,7 @@ pref("extensions.firetray.message_count_type", 0);
 pref("extensions.firetray.mail_notification_enabled", true);
 pref("extensions.firetray.mail_notification_type", 0);
 pref("extensions.firetray.icon_text_color", "#000000");
-pref("extensions.firetray.custom_mail_icon", "");
+pref("extensions.firetray.mail_icon_custom", "");
 pref("extensions.firetray.mail_change_trigger", "");
 pref("extensions.firetray.folder_count_recursive", true);
 // Ci.nsMsgFolderFlags.Archive|Drafts|Junk|Queue|SentMail|Trash|Virtual

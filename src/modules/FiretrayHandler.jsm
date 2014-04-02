@@ -549,8 +549,8 @@ firetray.PrefListener = new PrefListener(
     case 'app_browser_icon_names':
     case 'app_default_icon_names':
       firetray.StatusIcon.loadThemedIcons(); // linux
-    case 'app_icon_filename':
-    case 'custom_mail_icon':
+    case 'app_icon_custom':
+    case 'mail_icon_custom':
       firetray.StatusIcon.loadImageCustom(name);
     case 'app_icon_type':
       firetray.Handler.setIconImageDefault();
@@ -695,7 +695,7 @@ firetray.VersionChangeHandler = {
   },
 
   tryEraseOldOptions: function() {
-    let v03Options = [
+    let v0_3_Opts = [
       "close_to_tray", "minimize_to_tray", "start_minimized", "confirm_exit",
       "restore_to_next_unread", "mail_count_type", "show_mail_count",
       "dont_count_spam", "dont_count_archive", "dont_count_drafts",
@@ -704,13 +704,13 @@ firetray.VersionChangeHandler = {
       "use_custom_special_icon", "custom_normal_icon", "custom_special_icon",
       "text_color", "scroll_to_hide", "scroll_action", "grab_multimedia_keys",
       "hide_show_mm_key", "accounts_to_exclude" ];
-    let v040b2Options = [ 'mail_notification' ];
-    let v050Options = [ 'mail_urgency_hint' ];
-    let oldOptions = v03Options.concat(v040b2Options).concat(v050Options);
+    let v0_4_0b2_Opts = [ 'mail_notification' ];
+    let v0_5_0b1_Opts = [ 'mail_urgency_hint', 'app_icon_filename', 'custom_mail_icon' ];
+    let oldOpt = v0_3_Opts.concat(v0_4_0b2_Opts).concat(v0_5_0b1_Opts);
 
-    for (let i = 0, length = oldOptions.length; i<length; ++i) {
+    for (let i = 0, length = oldOpts.length; i<length; ++i) {
       try {
-        let option = oldOptions[i];
+        let option = oldOpts[i];
         firetray.Utils.prefService.clearUserPref(option);
       } catch (x) {}
     }

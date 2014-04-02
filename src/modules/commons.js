@@ -25,7 +25,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION           = "0.4.99"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_VERSION           = "0.5.0b1"; // needed for sync call of onVersionChange() :(
 const FIRETRAY_SUPPORTED_OS      = ['linux', 'winnt']; // install.rdf sync :(
 const FIRETRAY_CHAT_SUPPORTED_OS = ['linux'];
 const FIRETRAY_FULL_FEAT_SUPPORTED_OS = FIRETRAY_CHAT_SUPPORTED_OS;
@@ -50,8 +50,8 @@ const FIRETRAY_IM_STATUS_OFFLINE   = "user-offline";
 
 const FIRETRAY_ACCOUNT_SERVER_TYPE_IM = "im";
 
-const FIRETRAY_DELAY_STARTUP_MILLISECONDS       = 500;
-const FIRETRAY_DELAY_NOWAIT_MILLISECONDS        = 0;
+const FIRETRAY_DELAY_STARTUP_MILLISECONDS = 500;
+const FIRETRAY_DELAY_NOWAIT_MILLISECONDS  = 0;
 
 const FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL = 0;
 const FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE   = 1;
@@ -78,7 +78,7 @@ const FIRETRAY_APP_DB = {
   },
 
   sunbird: {
-    id: "718e30fb-e89b-41dd-9da7-e25a45638b28}",
+    id: "{718e30fb-e89b-41dd-9da7-e25a45638b28}",
   },
 
   chatzilla: {

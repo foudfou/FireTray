@@ -53,8 +53,8 @@ firetray.StatusIcon = {
     bmp: { win_t: win32.HBITMAP, load_const: user32.IMAGE_BITMAP, map: 'bitmaps' }
   },
   PREF_TO_ICON_NAME: {
-    app_icon_filename: 'app_custom',
-    custom_mail_icon: 'mail_custom' // FIXME: rename pref for consistency
+    app_icon_custom: 'app-custom',
+    mail_icon_custom: 'mail-custom'
   },
 
   init: function() {
@@ -88,7 +88,7 @@ firetray.StatusIcon = {
     let hwnd_hidden_moz = user32.FindWindowW("MozillaHiddenWindowClass", null);
     log.debug("=== hwnd_hidden_moz="+hwnd_hidden_moz);
     this.icons.insert('app', this.getIconFromWindow(hwnd_hidden_moz));
-    ['app_icon_filename', 'custom_mail_icon'].forEach(function(elt) {
+    ['app_icon_custom', 'mail_icon_custom'].forEach(function(elt) {
       firetray.StatusIcon.loadImageCustom(elt);
     });
 
@@ -103,6 +103,7 @@ firetray.StatusIcon = {
   },
 
   loadImageCustom: function(prefname) {
+    log.debug("loadImageCustom pref="+prefname);
     let filename = firetray.Utils.prefService.getCharPref(prefname);
     if (!filename) return;
     let img = this.loadImageFromFile(filename);
@@ -413,7 +414,7 @@ firetray.StatusIcon = {
     try {
       hicon = firetray.StatusIcon.icons.get(name);
     } catch(error) {
-      log.error("icon 'app_custom' not defined.");
+      log.error("icon '"+name+"' not defined.");
     }
     return hicon;
   }
@@ -427,7 +428,7 @@ firetray.Handler.setIconImageDefault = function() {
   if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_THEMED)
     firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.icons.get('app')});
   else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM) {
-    firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.getIconSafe('app_custom')});
+    firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.getIconSafe('app-custom')});
   }
 };
 
@@ -437,7 +438,7 @@ firetray.Handler.setIconImageNewMail = function() {
 };
 
 firetray.Handler.setIconImageCustom = function(prefname) {
-  log.debug("setIconImageCustom");
+  log.debug("setIconImageCustom pref="+prefname);
   let name = firetray.StatusIcon.PREF_TO_ICON_NAME[prefname];
   firetray.StatusIcon.setIcon({hicon:firetray.StatusIcon.getIconSafe(name)});
 };

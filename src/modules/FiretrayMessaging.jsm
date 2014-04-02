@@ -73,8 +73,7 @@ firetray.Messaging = {
 
   /* could also use a PrefListener, but let's keep it simple for now */
   observe: function(subject, topic, data) {
-    if (topic === "nsPref:changed" &&
-        data === ACCOUNTS_PREF_BRANCH) {
+    if (topic === "nsPref:changed" && data === ACCOUNTS_PREF_BRANCH) {
       log.debug(ACCOUNTS_PREF_BRANCH+"="+subject.QueryInterface(Ci.nsIPrefBranch).getCharPref(ACCOUNTS_PREF_BRANCH));
       this.cleanExcludedAccounts();
     }
@@ -238,7 +237,7 @@ firetray.Messaging = {
         firetray.Handler.setIconImageNewMail();
         break;
       case FIRETRAY_NOTIFICATION_CUSTOM_ICON:
-        firetray.Handler.setIconImageCustom('custom_mail_icon');
+        firetray.Handler.setIconImageCustom('mail_icon_custom');
         break;
       default:
         log.error("Unknown notification mode: "+prefMailNotification);

@@ -51,8 +51,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "U">
 <!ENTITY mail_notification_newmail_icon.label "顯示新郵件圖示">
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
-<!ENTITY mail_notification_custom_mail_icon.label "顯示自訂圖示">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "I">
+<!ENTITY mail_notification_mail_icon_custom.label "顯示自訂圖示">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "I">
 <!ENTITY icon_text_color "文字色彩">
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "選擇">

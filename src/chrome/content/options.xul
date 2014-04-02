@@ -67,7 +67,7 @@
 
     <preferences>
       <preference id="pref_app_icon_type" name="extensions.firetray.app_icon_type" type="int"/>
-      <preference id="pref_app_icon_filename" name="extensions.firetray.app_icon_filename" type="string"/>
+      <preference id="pref_app_icon_custom" name="extensions.firetray.app_icon_custom" type="string"/>
       <preference id="pref_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
       <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
@@ -97,7 +97,7 @@
             <radio id="ui_app_icon_type_custom" label="&app_icon_custom.label;"
                    accesskey="&app_icon_custom.accesskey;" />
             <hbox id="app_icon_custom" align="center" flex="1" >
-              <textbox id="app_icon_custom_filename" preference="pref_app_icon_filename" flex="1" />
+              <textbox id="app_icon_custom_filename" preference="pref_app_icon_custom" flex="1" />
               <button id="app_icon_custom_select" label="&choose;"
                       accesskey="&choose.accesskey;"
                       oncommand="firetrayUIOptions.chooseAppIconFile()" />
@@ -132,7 +132,7 @@
       <preference id="pref_mail_notification_type" name="extensions.firetray.mail_notification_type" type="int" />
       <preference id="pref_message_count_type" name="extensions.firetray.message_count_type" type="int" />
       <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
-      <preference id="pref_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
+      <preference id="pref_mail_icon_custom" name="extensions.firetray.mail_icon_custom" type="string" />
       <preference id="pref_excluded_folders_flags" name="extensions.firetray.excluded_folders_flags" type="int" />
       <preference id="pref_mail_change_trigger" name="extensions.firetray.mail_change_trigger" type="string"/>
       <preference id="pref_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
@@ -210,14 +210,14 @@
             </hbox>
           </hbox>
           <hbox>
-            <radio id="ui_radio_mail_notification_custom_mail_icon" label="&mail_notification_custom_mail_icon.label;"
-                   accesskey="&mail_notification_custom_mail_icon.accesskey;"
+            <radio id="ui_radio_mail_notification_mail_icon_custom" label="&mail_notification_mail_icon_custom.label;"
+                   accesskey="&mail_notification_mail_icon_custom.accesskey;"
                    oncommand="firetrayUIOptions.updateNotificationSettings()"
                    observes="broadcaster-notification-disabled" />
-            <hbox id="custom_mail_icon" align="center" flex="1" >
-              <textbox id="custom_mail_icon_filename" preference="pref_custom_mail_icon"
+            <hbox id="mail_icon_custom" align="center" flex="1" >
+              <textbox id="mail_icon_custom_filename" preference="pref_mail_icon_custom"
                        observes="broadcaster-notification-disabled" flex="1" />
-              <button id="custom_mail_icon_select" label="&choose;"
+              <button id="mail_icon_custom_select" label="&choose;"
                       accesskey="&choose.accesskey;"
                       observes="broadcaster-notification-disabled"
                       oncommand="firetrayUIOptions.chooseMailIconFile()" />

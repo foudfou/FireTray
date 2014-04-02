@@ -228,7 +228,7 @@ var firetrayUIOptions = {
       FIRETRAY_NOTIFICATION_MESSAGE_COUNT;
     document.getElementById("ui_radio_mail_notification_newmail_icon").value =
       FIRETRAY_NOTIFICATION_NEWMAIL_ICON;
-    document.getElementById("ui_radio_mail_notification_custom_mail_icon").value =
+    document.getElementById("ui_radio_mail_notification_mail_icon_custom").value =
       FIRETRAY_NOTIFICATION_CUSTOM_ICON;
 
     document.getElementById("ui_mail_notification_enabled").checked =
@@ -307,7 +307,7 @@ var firetrayUIOptions = {
         (notificationSetting !== FIRETRAY_NOTIFICATION_NEWMAIL_ICON));
     }
 
-    let customIconGroup = document.getElementById("custom_mail_icon");
+    let customIconGroup = document.getElementById("mail_icon_custom");
     this.disableChildren(customIconGroup,
       (notificationSetting !== FIRETRAY_NOTIFICATION_CUSTOM_ICON));
   },
@@ -373,7 +373,7 @@ var firetrayUIOptions = {
 
   chooseMailIconFile: function() {
     let updateIcon = firetray.Messaging.updateIcon.bind(firetray.Messaging);
-    this._chooseIconFile("custom_mail_icon_filename", updateIcon);
+    this._chooseIconFile("mail_icon_custom_filename", updateIcon);
   },
 
   _chooseIconFile: function(elementId, callback) {

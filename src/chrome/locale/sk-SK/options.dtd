@@ -57,8 +57,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "P">
 <!ENTITY mail_notification_newmail_icon.label "zobraziť ikonu novej pošty">
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
-<!ENTITY mail_notification_custom_mail_icon.label "zobraziť vlastnú ikonu">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "V">
+<!ENTITY mail_notification_mail_icon_custom.label "zobraziť vlastnú ikonu">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "V">
 <!ENTITY icon_text_color "Farba textu">
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Vyberte">

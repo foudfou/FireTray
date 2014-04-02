@@ -209,7 +209,7 @@ firetray.Handler.setIconImageDefault = function() {
   if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_THEMED)
     firetray.StatusIcon.setIconImageFromGIcon(firetray.StatusIcon.themedIconApp);
   else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM)
-    firetray.Handler.setIconImageCustom("app_icon_filename");
+    firetray.Handler.setIconImageCustom("app_icon_custom");
 };
 
 firetray.Handler.setIconImageNewMail = function() {
