@@ -172,8 +172,7 @@ firetray.PopupMenu = {
   },
 
   hideWindowItemAndSeparatorMaybe: function(xid) {
-    if (!this.windowItemsHandled())
-      return;
+    if (!this.windowItemsHandled()) return;
 
     this.hideWindowItem(xid);
     if (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)
@@ -212,4 +211,5 @@ firetray.PopupMenu = {
 
 }; // firetray.PopupMenu
 
-firetray.Handler.showHidePopupMenuItems = firetray.PopupMenu.showHideWindowItems;
+firetray.Handler.showHidePopupMenuItems =
+  firetray.PopupMenu.showHideWindowItems.bind(firetray.PopupMenu);

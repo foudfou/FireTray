@@ -24,4 +24,20 @@ FiretrayWindow.prototype = {
     return null;
   },
 
+  getWindowTitle: function(wid) {
+    let title = firetray.Handler.windows[wid].baseWin.title;
+    log.debug("|baseWin.title="+title+"|");
+    let tailIndex;
+    tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
+    if (tailIndex === -1)
+      tailIndex = title.indexOf(" - "+firetray.Handler.appName);
+
+    if (tailIndex !== -1)
+      return title.substring(0, tailIndex);
+    else if (title === "Mozilla "+firetray.Handler.appName)
+      return title;
+    else
+      return null;
+  }
+
 };

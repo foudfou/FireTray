@@ -340,6 +340,9 @@ firetray.Handler = {
   activateLastWindowCb: function(gtkStatusIcon, gdkEvent, userData) {},
   getActiveWindow: function() {},
   windowGetAttention: function(winId) {},
+  showHidePopupMenuItems: function() {}, // linux
+  addPopupWindowItemAndSeparatorMaybe: function(wid) {}, // winnt
+  removePopupWindowItemAndSeparatorMaybe: function(wid) {}, // winnt
 
   showAllWindows: function() {
     log.debug("showAllWindows");

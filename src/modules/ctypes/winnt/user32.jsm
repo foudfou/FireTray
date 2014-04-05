@@ -299,6 +299,7 @@ function user32_defines(lib) {
   this.MIIM_FTYPE      = 0x00000100;
 
   lib.lazy_bind("InsertMenuW", win32.BOOL, win32.HMENU, win32.UINT, win32.UINT, win32.UINT_PTR, win32.LPCTSTR);
+  lib.lazy_bind("DeleteMenu", win32.BOOL, win32.HMENU, win32.UINT, win32.UINT);
 
   this.MF_INSERT          = 0x00000000;
   this.MF_CHANGE          = 0x00000080;
@@ -352,6 +353,8 @@ function user32_defines(lib) {
   this.TPM_BOTTOMALIGN  = 0x0020;
   this.TPM_HORIZONTAL   = 0x0000;
   this.TPM_VERTICAL     = 0x0040;
+
+  lib.lazy_bind("GetMenuItemCount", ctypes.int, win32.HMENU);
 
   lib.lazy_bind("CalculatePopupWindowPosition", win32.BOOL, win32.POINT.ptr, win32.SIZE, win32.UINT, win32.RECT.ptr, win32.RECT.ptr);
   lib.lazy_bind("TrackPopupMenu", win32.BOOL, win32.HMENU, win32.UINT, ctypes.int, ctypes.int, ctypes.int, win32.HWND, win32.RECT.ptr);

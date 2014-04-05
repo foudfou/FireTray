@@ -498,22 +498,6 @@ firetray.Window.getXWindowDesktop = function(xwin) {
   return desktop;
 };
 
-firetray.Window.getWindowTitle = function(xid) {
-  let title = firetray.Handler.windows[xid].baseWin.title;
-  log.debug("|baseWin.title="+title+"|");
-  let tailIndex;
-  tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
-  if (tailIndex === -1)
-    tailIndex = title.indexOf(" - "+firetray.Handler.appName);
-
-  if (tailIndex !== -1)
-    return title.substring(0, tailIndex);
-  else if (title === "Mozilla "+firetray.Handler.appName)
-    return title;
-  else
-    return null;
-};
-
 firetray.Window.checkSubscribedEventMasks = function(xid) {
   let xWindowAttributes = new x11.XWindowAttributes;
   let status = x11.XGetWindowAttributes(x11.current.Display, xid, xWindowAttributes.address());

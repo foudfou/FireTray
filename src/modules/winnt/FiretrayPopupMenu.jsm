@@ -46,23 +46,23 @@ firetray.PopupMenu = {
   },
 
   create: function() {
-    this.menu = user32.CreatePopupMenu(); // FIXME: destroy
+    this.menu = user32.CreatePopupMenu();
     log.debug("menu="+this.menu);
 
     this.insertMenuItem('Quit', 'quit', IDM_QUIT);
-    user32.InsertMenuW(this.menu, 0, user32.MF_BYPOSITION|user32.MF_SEPARATOR, 0, null);
+    this.insertSeparator();
     this.insertMenuItem('Preferences', 'prefs', IDM_PREF);
 
     let menuSeparatorAdded = false;
     if (firetray.Handler.inBrowserApp) {
-      user32.InsertMenuW(this.menu, 0, user32.MF_BYPOSITION|user32.MF_SEPARATOR, 0, null);
+      this.insertSeparator();
       menuSeparatorAdded = true;
       this.insertMenuItem('NewWindow', 'new-wnd', IDM_NEW_WND);
     }
 
     if (firetray.Handler.inMailApp) {
       if (!menuSeparatorAdded) {
-        user32.InsertMenuW(this.menu, 0, user32.MF_BYPOSITION|user32.MF_SEPARATOR, 0, null);
+        this.insertSeparator();
       }
       this.insertMenuItem('NewMessage', 'new-msg', IDM_NEW_MSG);
       this.insertMenuItem('ResetIcon', 'reset', IDM_RESET);
@@ -99,7 +99,48 @@ firetray.PopupMenu = {
     }
   },
 
+  insertSeparator: function() {
+    user32.InsertMenuW(this.menu, 0, user32.MF_BYPOSITION|user32.MF_SEPARATOR,
+                       0, null);
+  },
+
+  // FIXME: need to handle hides_single_window=false
+  addWindowItemAndSeparatorMaybe: function(wid) {
+    if (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)
+      this.insertSeparator();
+    this.addWindowItem(wid);
+  },
+  removeWindowItemAndSeparatorMaybe: function(wid) {
+    this.removeWindowItem(wid);
+    if (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount - 1)
+      user32.DeleteMenu(this.menu, 0, user32.MF_BYPOSITION);
+  },
+
+  addWindowItem: function(wid) {
+    let title = firetray.Window.getWindowTitle(wid);
+    let mii = new user32.MENUITEMINFOW();
+    mii.cbSize = user32.MENUITEMINFOW.size;
+    mii.fMask = user32.MIIM_ID | user32.MIIM_STRING | user32.MIIM_DATA;
+    mii.wID = ctypes.UInt64(wid);
+    mii.dwTypeData = win32._T(title);
+    if (!user32.InsertMenuItemW(this.menu, 0, true, mii.address())) {
+      log.error("InsertMenuItemW failed winLastError="+ctypes.winLastError);
+    }
+  },
+  removeWindowItem: function(wid) {
+    let itemId = ctypes.UInt64(wid);
+    if (!user32.DeleteMenu(this.menu, itemId, user32.MF_BYCOMMAND)) {
+      log.error("DeleteMenu failed winLastError="+ctypes.winLastError);
+    }
+  },
+
   processMenuItem: function(itemId) {
+    let wid = firetray.Win32.hwndToHexStr(win32.HWND(itemId));
+    if (firetray.Handler.windows[wid]) {
+      firetray.Handler.showWindow(wid);
+      return;
+    }
+
     switch (itemId) {
     case IDM_PREF: firetray.Handler.openPrefWindow(); break;
     case IDM_QUIT: firetray.Handler.quitApplication(); break;
@@ -113,4 +154,7 @@ firetray.PopupMenu = {
 
 }; // firetray.PopupMenu
 
-firetray.Handler.showHidePopupMenuItems = firetray.PopupMenu.showHideWindowItems;
+firetray.Handler.addPopupMenuWindowItemAndSeparatorMaybe =
+  firetray.PopupMenu.addWindowItemAndSeparatorMaybe.bind(firetray.PopupMenu);
+firetray.Handler.removePopupMenuWindowItemAndSeparatorMaybe =
+  firetray.PopupMenu.removeWindowItemAndSeparatorMaybe.bind(firetray.PopupMenu);

@@ -201,9 +201,11 @@ firetray.Handler.unregisterWindow = function(win) {
 };
 
 firetray.Handler.showWindow = function(wid) {
+  firetray.Handler.removePopupMenuWindowItemAndSeparatorMaybe(wid);
   return firetray.Window.setVisibility(wid, true);
 };
 firetray.Handler.hideWindow = function(wid) {
+  firetray.Handler.addPopupMenuWindowItemAndSeparatorMaybe(wid);
   return firetray.Window.setVisibility(wid, false);
 };
 
