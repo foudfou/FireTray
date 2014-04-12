@@ -97,6 +97,8 @@ firetray.StatusIcon = {
     this.themedIconApp = this.initThemedIcon(appIconNames);
   },
 
+  loadImageCustom: function() { }, // done in setIconImageCustom
+
   getAppIconNames: function() {
     let appIconNames = firetray.Utils.getArrayPref(this.prefAppIconNames);
     appIconNames.push(this.defaultAppIconName);
@@ -135,7 +137,7 @@ firetray.StatusIcon = {
 
     log.debug("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
     this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
-      firetray.Handler.showHideAllWindows);
+      firetray.StatusIcon.onClick);
     let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
       "activate", firetray.StatusIcon.callbacks.iconActivate, null);
     log.debug("g_connect activate="+handlerId);
@@ -176,12 +178,18 @@ firetray.StatusIcon = {
     }
   },
 
+  onClick: function(gtkStatusIcon, userData) {
+    firetray.Handler.showHideAllWindows();
+    let stopPropagation = true;
+    return stopPropagation;
+  },
+
   setIconImageFromFile: function(filename) {
     if (!firetray.StatusIcon.trayIcon)
       log.error("Icon missing");
     log.debug(filename);
     gtk.gtk_status_icon_set_from_file(firetray.StatusIcon.trayIcon,
-                                        filename);
+                                      filename);
   },
 
   setIconImageFromGIcon: function(gicon) {
@@ -200,17 +208,18 @@ firetray.Handler.setIconImageDefault = function() {
   let appIconType = firetray.Utils.prefService.getIntPref("app_icon_type");
   if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_THEMED)
     firetray.StatusIcon.setIconImageFromGIcon(firetray.StatusIcon.themedIconApp);
-  else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM) {
-    let appIconFilename = firetray.Utils.prefService.getCharPref("app_icon_filename");
-    firetray.StatusIcon.setIconImageFromFile(appIconFilename);
-  }
+  else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM)
+    firetray.Handler.setIconImageCustom("app_icon_custom");
 };
 
 firetray.Handler.setIconImageNewMail = function() {
   firetray.StatusIcon.setIconImageFromGIcon(firetray.StatusIcon.themedIconNewMail);
 };
 
-firetray.Handler.setIconImageFromFile = firetray.StatusIcon.setIconImageFromFile;
+firetray.Handler.setIconImageCustom = function(prefname) {
+  let prefCustomIconPath = firetray.Utils.prefService.getCharPref(prefname);
+  firetray.StatusIcon.setIconImageFromFile(prefCustomIconPath);
+};
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
 firetray.Handler.setIconTooltip = function(toolTipStr) {

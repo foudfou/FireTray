@@ -15,14 +15,15 @@ const TREELEVEL_EXCLUDED_ACCOUNTS = 1;
 
 const PREF_DEFAULT_PANE = "pref-pane-windows";
 
-
 let log = firetray.Logging.getLogger("firetray.UIOptions");
 
 var firetrayUIOptions = {
   strings: null,
   prefwindow: null,
+  listeners: {},
 
   onLoad: function(e) {
+    log.debug("FULL FEATURED="+firetray.Handler.support['full_feat']);
     this.strings = document.getElementById("firetray-options-strings");
     this.prefwindow = document.getElementById("firetray-preferences");
     if (!this.prefwindow)
@@ -36,40 +37,54 @@ var firetrayUIOptions = {
       this.hidePrefPane("pref-pane-mail");
     }
 
-    if (firetray.Handler.isChatProvided()) {
-      Cu.import("resource://firetray/FiretrayChat.jsm");
+    if (firetray.Handler.isChatProvided() &&
+        FIRETRAY_CHAT_SUPPORTED_OS.indexOf(firetray.Handler.runtimeOS) > -1) {
+      Cu.import("resource://firetray/"+firetray.Handler.runtimeOS+"/FiretrayChat.jsm");
       this.initChatControls();
-    } else
+    } else {
       this.hidePrefPane("pref-pane-chat");
+    };
 
     this.updateWindowAndIconOptions();
     this.updateScrollOptions();
     this.initAppIconType();
-    this.initAppIconNames();
-    if (firetray.Handler.inMailApp)
-      this.initNewMailIconNames();
+    if (firetray.Handler.support['full_feat']) {
+      this.initAppIconNames();
+      if (firetray.Handler.inMailApp)
+        this.initNewMailIconNames();
+    } else {
+      this.hideUnsupportedOptions();
+    };
 
     window.sizeToContent();
   },
 
   onQuit: function(e) {
-    // cleaning: removeEventListener on cells
-    // NOTE: not sure this is necessary on window close
-    let tree = document.getElementById("ui_tree_mail_accounts");
-    let that = this;
-    for (let i=0, len=tree.view.rowCount; i<len ; ++i) {
-      let cells = tree.view.getItemAtIndex(i).getElementsByTagName("treecell");
-      if (tree.view.getLevel(i) === TREELEVEL_SERVER_TYPES) {
-        // account_or_server_type_excluded, account_or_server_type_order
-        [cells[1], cells[2]].map(
-          function(c) {
-            c.removeEventListener(
-              'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
-          });
-      } else if (tree.view.getLevel(i) === TREELEVEL_EXCLUDED_ACCOUNTS) {
-        cells[1].removeEventListener(
-          'DOMAttrModified', that._userChangeValueTree, true);
-      }
+    if (firetray.Handler.inMailApp) {
+      this.removeListeners();
+      this.removeMailAccountsObserver();
+    }
+  },
+
+  hideUnsupportedOptions: function() { // full_feat
+    // windows prefs
+    ['ui_hides_last_only', 'ui_show_activates', 'ui_remember_desktop']
+      .forEach(function(id){
+       document.getElementById(id).hidden = true;
+     });
+
+    // icon prefs
+    ['app_icon_default', 'ui_show_icon_on_hide', 'ui_scroll_hides',
+     'ui_radiogroup_scroll'].forEach(function(id){
+       document.getElementById(id).hidden = true;
+     });
+    document.getElementById("ui_scroll_hides").setAttribute("oncommand", void(0));
+
+    // mail prefs
+    document.getElementById("newmail_icon_names").hidden = true;
+    for (let i=1; i<4; ++i) {
+      document.getElementById("radio_mail_notification_newmail_icon_name"+i).
+        setAttribute("observes", void(0));
     }
   },
 
@@ -80,8 +95,10 @@ var firetrayUIOptions = {
     radio.hidden = true;
   },
 
-  hideElement: function(targetNode, hiddenval) {
-    targetNode.hidden = hiddenval;
+  hideChildren: function(group, hiddenval) {
+    let children = group.childNodes;
+    for (let i=0, len=children.length; i<len ; ++i)
+      children[i].hidden = hiddenval;
   },
 
   disableChildren: function(group, disableval) {
@@ -119,8 +136,9 @@ var firetrayUIOptions = {
   },
 
   updateScrollOptions: function() {
-    let scroll_hides = document.getElementById("ui_scroll_hides").checked;
-    this.disableChildren(document.getElementById("ui_radiogroup_scroll"), !scroll_hides);
+    let ui_scroll_hides = document.getElementById("ui_scroll_hides");
+    this.disableChildren(document.getElementById("ui_radiogroup_scroll"),
+                         !ui_scroll_hides.checked);
   },
 
   initAppIconType: function() {
@@ -174,26 +192,28 @@ var firetrayUIOptions = {
       if (val) iconNames.push(val);
     }
     log.debug("iconNames="+iconNames);
-    firetray.Utils.setArrayPref(prefIconNames, iconNames);
+    firetray.Utils.setArrayPref(prefIconNames, iconNames); // FIXME: should be a <preference>
   },
 
   disableIconTypeMaybe: function(appIconType) {
+    if (firetray.Handler.support['full_feat']) {
+      let appIconDefaultGroup = document.getElementById("app_icon_default");
+      this.disableNChildren(appIconDefaultGroup, 2,
+        (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_THEMED));
+    }
+
     let appIconCustomGroup = document.getElementById("app_icon_custom");
     this.disableChildren(appIconCustomGroup,
       (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM));
-
-    let appIconDefaultGroup = document.getElementById("app_icon_default");
-    this.disableNChildren(appIconDefaultGroup, 2,
-      (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_THEMED));
   },
 
   initMailControls: function() {
     this.populateExcludedFoldersList();
     this.populateTreeAccountsOrServerTypes();
+    this.addMailAccountsObserver();
 
     this.initMessageCountSettings();
     this.initNotificationSettings();
-    this.initMailTrigger();
 
     this.toggleNotifications(firetray.Utils.prefService.getBoolPref("mail_notification_enabled"));
   },
@@ -208,16 +228,20 @@ var firetrayUIOptions = {
       FIRETRAY_NOTIFICATION_MESSAGE_COUNT;
     document.getElementById("ui_radio_mail_notification_newmail_icon").value =
       FIRETRAY_NOTIFICATION_NEWMAIL_ICON;
-    document.getElementById("ui_radio_mail_notification_custom_mail_icon").value =
+    document.getElementById("ui_radio_mail_notification_mail_icon_custom").value =
       FIRETRAY_NOTIFICATION_CUSTOM_ICON;
 
     document.getElementById("ui_mail_notification_enabled").checked =
       (firetray.Utils.prefService.getBoolPref("mail_notification_enabled"));
 
-    let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
+    let mailNotifyRadio = document.getElementById("ui_radiogroup_mail_notification");
     let prefMailNotificationType = firetray.Utils.prefService.getIntPref("mail_notification_type");
-    radioMailNotify.selectedIndex = this.radioGetIndexByValue(radioMailNotify, prefMailNotificationType);
+    mailNotifyRadio.selectedIndex = this.radioGetIndexByValue(mailNotifyRadio, prefMailNotificationType);
     // this.disableNotificationMaybe(prefMailNotificationType); // done in toggleNotifications()
+    /* We need to ensure assigning selectedIndex in disableMessageCountMaybe()
+     does change the corresponding preference. */
+    let listener = {evt:'select', fn:firetrayUIOptions.userChangedValue, cap:true};
+    this.addListener(mailNotifyRadio, listener);
   },
 
   initMessageCountSettings: function() {
@@ -243,42 +267,31 @@ var firetrayUIOptions = {
     blinkStyle.selectedIndex = this.radioGetIndexByValue(blinkStyle, prefBlinkStyle);
   },
 
+  userChangedValue: function(e) {
+    document.getElementById('pref-pane-mail').userChangedValue(e.originalTarget);
+  },
+
   radioGetIndexByValue: function(radio, value) {
     for (let i=0, len=radio.itemCount; i<len; ++i)
       if (+radio.getItemAtIndex(i).value == value) return i;
     return -1;
   },
 
-  initMailTrigger: function() {
-    document.getElementById("ui_mail_change_trigger").value =
-      firetray.Utils.prefService.getCharPref("mail_change_trigger");
-  },
-
-  updateMailTrigger: function() {
-    let mailTrigger = document.getElementById("ui_mail_change_trigger").value.trim();
-    firetray.Utils.prefService.setCharPref("mail_change_trigger", mailTrigger);
+  saveMailChangeTrigger: function(uiElt) {
+    return uiElt.value.trim();
   },
 
   updateNotificationSettings: function() {
     log.debug("updateNotificationSettings");
-    let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
-    let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
-    firetray.Utils.prefService.setIntPref("mail_notification_type", mailNotificationType);
+    let mailNotifyRadio = document.getElementById("ui_radiogroup_mail_notification");
+    let mailNotificationType = +mailNotifyRadio.getItemAtIndex(mailNotifyRadio.selectedIndex).value;
     this.disableNotificationMaybe(mailNotificationType);
-
-    firetray.Messaging.updateIcon();
   },
 
   updateMessageCountSettings: function() {
     let radioMessageCountType = document.getElementById("ui_message_count_type");
     let messageCountType = +radioMessageCountType.getItemAtIndex(radioMessageCountType.selectedIndex).value;
     this.disableMessageCountMaybe(messageCountType);
-  },
-
-  updateChatBlinkSettings: function() {
-    let radioBlinkStyle = document.getElementById("ui_chat_icon_blink_style");
-    let blinkStyle = +radioBlinkStyle.getItemAtIndex(radioBlinkStyle.selectedIndex).value;
-    firetray.Utils.prefService.setIntPref("chat_icon_blink_style", blinkStyle);
   },
 
   disableNotificationMaybe: function(notificationSetting) {
@@ -288,11 +301,13 @@ var firetrayUIOptions = {
     this.disableChildren(iconTextColor,
       (notificationSetting !== FIRETRAY_NOTIFICATION_MESSAGE_COUNT));
 
-    let newMailIconNames = document.getElementById("newmail_icon_names");
-    this.disableNChildren(newMailIconNames, 2,
-      (notificationSetting !== FIRETRAY_NOTIFICATION_NEWMAIL_ICON));
+    if (firetray.Handler.support['full_feat']) {
+      let newMailIconNames = document.getElementById("newmail_icon_names");
+      this.disableNChildren(newMailIconNames, 2,
+        (notificationSetting !== FIRETRAY_NOTIFICATION_NEWMAIL_ICON));
+    }
 
-    let customIconGroup = document.getElementById("custom_mail_icon");
+    let customIconGroup = document.getElementById("mail_icon_custom");
     this.disableChildren(customIconGroup,
       (notificationSetting !== FIRETRAY_NOTIFICATION_CUSTOM_ICON));
   },
@@ -304,13 +319,14 @@ var firetrayUIOptions = {
     let notificationUnreadCount = document.getElementById("ui_mail_notification_unread_count");
     this.disableElementsRecursive(notificationUnreadCount, msgCountTypeIsNewMessages);
 
-    let radioMailNotify = document.getElementById("ui_radiogroup_mail_notification");
-    let mailNotificationType = +radioMailNotify.getItemAtIndex(radioMailNotify.selectedIndex).value;
+    let mailNotifyRadio = document.getElementById("ui_radiogroup_mail_notification");
+    let mailNotificationType = +mailNotifyRadio.getItemAtIndex(mailNotifyRadio.selectedIndex).value;
     if (msgCountTypeIsNewMessages && (mailNotificationType === FIRETRAY_NOTIFICATION_MESSAGE_COUNT)) {
-      radioMailNotify.selectedIndex = this.radioGetIndexByValue(radioMailNotify, FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
-      let newMailIconNames = document.getElementById("newmail_icon_names");
-      this.disableNChildren(newMailIconNames, 2, false);
-      firetray.Utils.prefService.setIntPref("mail_notification_type", FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
+      mailNotifyRadio.selectedIndex = this.radioGetIndexByValue(mailNotifyRadio, FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
+      if (firetray.Handler.support['full_feat']) {
+        let newMailIconNames = document.getElementById("newmail_icon_names");
+        this.disableNChildren(newMailIconNames, 2, false);
+      }
     }
   },
 
@@ -357,7 +373,7 @@ var firetrayUIOptions = {
 
   chooseMailIconFile: function() {
     let updateIcon = firetray.Messaging.updateIcon.bind(firetray.Messaging);
-    this._chooseIconFile("custom_mail_icon_filename", updateIcon);
+    this._chooseIconFile("mail_icon_custom_filename", updateIcon);
   },
 
   _chooseIconFile: function(elementId, callback) {
@@ -377,7 +393,10 @@ var firetrayUIOptions = {
     }};
 
     filePicker.init(window, "Select Icon", nsIFilePicker.modeOpen); // FIXME: i18n
-    filePicker.appendFilters(nsIFilePicker.filterImages);
+    if (firetray.Handler.runtimeOS === "winnt")
+      filePicker.appendFilter("Icon", "*.bmp; *.ico"); // TODO: support more formats ?
+    else
+      filePicker.appendFilters(nsIFilePicker.filterImages);
     filePicker.open(fpCallback);
   },
 
@@ -389,44 +408,52 @@ var firetrayUIOptions = {
   },
 
   /**
-   * NOTE: folder exceptions for unread messages count are *stored* in
-   * preferences as excluded, but *shown* as "not included"
+   * NOTE: we store folder type *exceptions* for unread messages count. This is
+   * easier than storing all possible included folder types. The drawback is
+   * that we must inverse the selection in the UI: we show exceptions as "not
+   * included".
    */
   populateExcludedFoldersList: function() {
     let excludedFoldersList = document.getElementById('excluded_folders_list');
 
     let prefExcludedFoldersFlags = firetray.Utils.prefService
       .getIntPref("excluded_folders_flags");
+    log.debug("prefExcludedFoldersFlags="+prefExcludedFoldersFlags.toString(16));
     for (let folderType in FLDRS_UNINTERESTING) {
       let localizedFolderType = this.strings.getString(folderType);
-      let item = excludedFoldersList.appendItem(localizedFolderType, folderType);
+      let folderTypeVal = FLDRS_UNINTERESTING[folderType];
+      let item = excludedFoldersList.appendItem(localizedFolderType, folderTypeVal);
       item.setAttribute("observes", "broadcaster-notification-disabled");
-      log.debug("folder: "+folderType);
-      if (!(FLDRS_UNINTERESTING[folderType] & prefExcludedFoldersFlags)) {
+      let folderTypeSet = (folderTypeVal & prefExcludedFoldersFlags);
+      log.debug("folder: "+folderType+" folderTypeVal="+folderTypeVal+" folderTypeSet="+folderTypeSet);
+      if (!folderTypeSet) {
         excludedFoldersList.ensureElementIsVisible(item); // bug 326445
-        excludedFoldersList.addItemToSelection(item); // doesn't trigger onselect
+        excludedFoldersList.addItemToSelection(item); // does trigger onselect...
       }
     }
+
+    // ...so we add onselect handler after the listbox is populated. 'select'
+    // also fired on unselect.
+    let listener = {evt:'select', fn:firetrayUIOptions.userChangedValue, cap:true};
+    this.addListener(excludedFoldersList, listener);
   },
 
-  updateExcludedFoldersPref: function() {
-    let excludedFoldersList = document.getElementById('excluded_folders_list');
+  loadExcludedFoldersFlags: function(uiElt) {
+    // we can't do much here since onLoad() not yet applied at onsyncfrompreference...
+  },
 
-    log.debug("LAST SELECTED: "+excludedFoldersList.currentItem.label);
-    let excludedFoldersFlags = null;
-    for (let i = 0, len=excludedFoldersList.itemCount; i<len; ++i) {
-      let folder = excludedFoldersList.getItemAtIndex(i);
+  saveExcludedFoldersFlags: function(uiElt) {
+    log.debug("LAST SELECTED: "+uiElt.currentItem.label);
+    let excludedFoldersFlags = 0;
+    for (let i = 0, len=uiElt.itemCount; i<len; ++i) {
+      let folder = uiElt.getItemAtIndex(i);
       if (folder.selected)
-        excludedFoldersFlags &= ~FLDRS_UNINTERESTING[folder.value];
+        excludedFoldersFlags &= ~folder.value; // clear
       else
-        excludedFoldersFlags |= FLDRS_UNINTERESTING[folder.value];
+        excludedFoldersFlags |= folder.value;  // set
     }
-    log.debug("excluded folders flags: "+excludedFoldersFlags);
-
-    firetray.Utils.prefService.setIntPref("excluded_folders_flags",
-                                          excludedFoldersFlags);
-
-    firetray.Messaging.updateMsgCountWithCb();
+    log.debug("excluded folders flags: "+excludedFoldersFlags.toString(16));
+    return excludedFoldersFlags;
   },
 
   /**
@@ -442,15 +469,11 @@ var firetrayUIOptions = {
         if (disable === true) {
           cells[i].setAttribute('properties', "disabled");
           if (i === TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED) {
-            cells[i].removeEventListener(
-              'DOMAttrModified', that._userChangeValueTree, true);
             cells[i].setAttribute('editable', "false");
           }
         } else {
           cells[i].removeAttribute('properties');
           if (i === TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED) {
-            cells[i].addEventListener(
-              'DOMAttrModified', that._userChangeValueTree, true);
             cells[i].setAttribute('editable', "true");
           }
         }
@@ -458,39 +481,6 @@ var firetrayUIOptions = {
     } catch(e) {
       log.error(e);
     }
-  },
-
-  /**
-   * needed for triggering actual preference change and saving
-   */
-  _userChangeValueTree: function(event) {
-    if (event.attrName == "label") log.debug("label changed!");
-    if (event.attrName == "value") log.debug("value changed!");
-    document.getElementById("pref-pane-mail")
-      .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
-
-    firetray.Messaging.updateMsgCountWithCb();
-  },
-
-  _userChangeValueTreeServerTypes: function(event) {
-    if (event.attrName === "value") { // checkbox
-      let checkboxCell = event.originalTarget;
-      let tree = document.getElementById("ui_tree_mail_accounts");
-
-      let subRows = firetray.Utils.XPath(
-        checkboxCell,
-        'ancestor::xul:treeitem[1]/child::xul:treechildren/xul:treeitem/xul:treerow');
-      log.debug("subRows="+subRows);
-      for (let i=0, len=subRows.length; i<len; ++i) {
-        firetrayUIOptions._disableTreeRow(
-          subRows[i], (checkboxCell.getAttribute("value") === "false"));
-      }
-
-    } else if (event.attrName == "label") { // text
-      log.warn("NOT IMPLEMENTED YET: move row to new rank"); // TODO
-    }
-
-    this._userChangeValueTree(event);
   },
 
   /**
@@ -541,15 +531,11 @@ var firetrayUIOptions = {
       // account_or_server_type_excluded => checkbox
       let cellExcluded = document.createElement('treecell');
       cellExcluded.setAttribute('value',!serverTypes[serverTypeName].excluded);
-      cellExcluded.addEventListener( // CAUTION: removeEventListener in onQuit()
-        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
       typeRow.appendChild(cellExcluded);
 
       // account_or_server_type_order
       let cellOrder = document.createElement('treecell');
       cellOrder.setAttribute('label',serverTypes[serverTypeName].order);
-      cellOrder.addEventListener( // CAUTION: removeEventListener in onQuit()
-        'DOMAttrModified', that._userChangeValueTreeServerTypes, true);
       typeRow.appendChild(cellOrder);
 
       target.appendChild(typeItem);
@@ -585,9 +571,6 @@ var firetrayUIOptions = {
         if (rowDisabled === true) {
           accountCell.setAttribute('properties', "disabled");
           accountCell.setAttribute('editable', "false");
-        } else {
-          accountCell.addEventListener(  // CAUTION: removeEventListener in onQuit()
-            'DOMAttrModified', that._userChangeValueTree, true);
         }
         accountRow.appendChild(accountCell);
 
@@ -649,14 +632,72 @@ var firetrayUIOptions = {
     }
 
     let tree = document.getElementById("ui_tree_mail_accounts");
-    tree.addEventListener("keypress", that.onKeyPressTreeAccountsOrServerTypes, true);
+    let listener = {evt:'keypress', fn:firetrayUIOptions.onKeyPressTreeAccountsOrServerTypes, cap:true};
+    this.addListener(tree, listener);
+  },
+
+  addListener: function(elt, listenerData) {
+    elt.addEventListener(listenerData['evt'], listenerData['fn'], listenerData['cap']);
+    this.listeners[elt.id] = listenerData;
+  },
+
+  removeListeners: function() {
+    for (id in this.listeners) {
+      let listener = listeners[id];
+      document.getElementById(id)
+        .removeEventListener(listener['evt'], listener['fn'], listener['cap']);
+    }
+  },
+
+  onMutation: function(mutation) {
+    log.debug("mutation: type="+mutation.type+" node="+mutation.target.nodeName+" attr="+mutation.attributeName);
+    if (mutation.type !== "attributes") return;
+
+    if (mutation.attributeName === "value") { // checkbox
+      log.debug("value changed!");
+      let checkboxCell = mutation.target;
+      let tree = document.getElementById("ui_tree_mail_accounts");
+
+      let subRows = firetray.Utils.XPath(
+        checkboxCell,
+        'ancestor::xul:treeitem[1]/child::xul:treechildren/xul:treeitem/xul:treerow');
+      log.debug("subRows="+subRows);
+      for (let i=0, len=subRows.length; i<len; ++i) {
+        firetrayUIOptions._disableTreeRow(
+          subRows[i], (checkboxCell.getAttribute("value") === "false"));
+      }
+
+    } else if (mutation.attributeName == "label") { // text
+      log.debug("label changed!");
+      log.warn("NOT IMPLEMENTED YET: move row to new rank"); // TODO
+    } else {
+      return;
+    }
+
+    document.getElementById("pref-pane-mail")
+      .userChangedValue(document.getElementById("ui_tree_mail_accounts"));
+
+  },
+
+  addMailAccountsObserver: function() {
+    this.mutationObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(firetrayUIOptions.onMutation);
+    });
+    let config = { attributes: true, childList: true, characterData: false, subtree: true };
+    let target = document.querySelector('#ui_mail_accounts');
+    this.mutationObserver.observe(target, config);
+  },
+
+  removeMailAccountsObserver: function() {
+    this.mutationObserver.disconnect();
+    this.mutationobserver = null;
   },
 
   /*
    * Save the "mail_accounts" preference. This is called by the pref's system
    * when the GUI element is altered.
    */
-  saveTreeAccountsOrServerTypes: function() {
+  saveTreeAccountsOrServerTypes: function() { // FIXME: broken ?
     let tree = document.getElementById("ui_tree_mail_accounts");
 
     log.debug("VIEW="+ tree.view + ", rowCount="+tree.view.rowCount);

@@ -67,7 +67,7 @@
 
     <preferences>
       <preference id="pref_app_icon_type" name="extensions.firetray.app_icon_type" type="int"/>
-      <preference id="pref_app_icon_filename" name="extensions.firetray.app_icon_filename" type="string"/>
+      <preference id="pref_app_icon_custom" name="extensions.firetray.app_icon_custom" type="string"/>
       <preference id="pref_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
       <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
@@ -97,7 +97,7 @@
             <radio id="ui_app_icon_type_custom" label="&app_icon_custom.label;"
                    accesskey="&app_icon_custom.accesskey;" />
             <hbox id="app_icon_custom" align="center" flex="1" >
-              <textbox id="app_icon_custom_filename" preference="pref_app_icon_filename" flex="1" />
+              <textbox id="app_icon_custom_filename" preference="pref_app_icon_custom" flex="1" />
               <button id="app_icon_custom_select" label="&choose;"
                       accesskey="&choose.accesskey;"
                       oncommand="firetrayUIOptions.chooseAppIconFile()" />
@@ -129,14 +129,17 @@
 
     <preferences>
       <preference id="pref_mail_notification_enabled" name="extensions.firetray.mail_notification_enabled" type="bool" />
+      <preference id="pref_mail_notification_type" name="extensions.firetray.mail_notification_type" type="int" />
       <preference id="pref_message_count_type" name="extensions.firetray.message_count_type" type="int" />
       <preference id="pref_icon_text_color" name="extensions.firetray.icon_text_color" type="string" />
-      <preference id="pref_custom_mail_icon" name="extensions.firetray.custom_mail_icon" type="string" />
+      <preference id="pref_mail_icon_custom" name="extensions.firetray.mail_icon_custom" type="string" />
+      <preference id="pref_excluded_folders_flags" name="extensions.firetray.excluded_folders_flags" type="int" />
       <preference id="pref_mail_change_trigger" name="extensions.firetray.mail_change_trigger" type="string"/>
       <preference id="pref_mail_accounts" name="extensions.firetray.mail_accounts" type="string"/>
       <preference id="pref_folder_count_recursive" name="extensions.firetray.folder_count_recursive" type="bool" />
       <preference id="pref_only_favorite_folders" name="extensions.firetray.only_favorite_folders" type="bool" />
-      <preference id="pref_mail_urgency_hint" name="extensions.firetray.mail_urgency_hint" type="bool" />
+      <preference id="pref_mail_change_trigger" name="extensions.firetray.mail_change_trigger" type="string" />
+      <preference id="pref_mail_get_attention" name="extensions.firetray.mail_get_attention" type="bool" />
     </preferences>
 
     <vbox align="left" flex="1">
@@ -169,7 +172,7 @@
                  observes="broadcaster-notification-disabled" />
         </caption>
 
-        <radiogroup id="ui_radiogroup_mail_notification">
+        <radiogroup id="ui_radiogroup_mail_notification" preference="pref_mail_notification_type">
           <hbox id="ui_mail_notification_unread_count">
             <radio id="ui_radio_mail_notification_unread_count" label="&mail_notification_unread_count.label;"
                    accesskey="&mail_notification_unread_count.accesskey;"
@@ -207,15 +210,14 @@
             </hbox>
           </hbox>
           <hbox>
-            <radio id="ui_radio_mail_notification_custom_mail_icon" label="&mail_notification_custom_mail_icon.label;"
-                   accesskey="&mail_notification_custom_mail_icon.accesskey;"
+            <radio id="ui_radio_mail_notification_mail_icon_custom" label="&mail_notification_mail_icon_custom.label;"
+                   accesskey="&mail_notification_mail_icon_custom.accesskey;"
                    oncommand="firetrayUIOptions.updateNotificationSettings()"
                    observes="broadcaster-notification-disabled" />
-            <hbox id="custom_mail_icon" align="center" flex="1" >
-              <textbox id="custom_mail_icon_filename" preference="pref_custom_mail_icon"
-                       observes="broadcaster-notification-disabled"
-                       onchange="firetray.Messaging.updateIcon();" flex="1" />
-              <button id="custom_mail_icon_select" label="&choose;"
+            <hbox id="mail_icon_custom" align="center" flex="1" >
+              <textbox id="mail_icon_custom_filename" preference="pref_mail_icon_custom"
+                       observes="broadcaster-notification-disabled" flex="1" />
+              <button id="mail_icon_custom_select" label="&choose;"
                       accesskey="&choose.accesskey;"
                       observes="broadcaster-notification-disabled"
                       oncommand="firetrayUIOptions.chooseMailIconFile()" />
@@ -238,7 +240,8 @@
 
         <listbox id="excluded_folders_list" rows="7" flex="1" seltype="multiple"
                  tooltiptext="&excluded_folders_list.tooltip;"
-                 onselect="firetrayUIOptions.updateExcludedFoldersPref()"
+                 preference="pref_excluded_folders_flags"
+                 onsynctopreference="return firetrayUIOptions.saveExcludedFoldersFlags(this);"
                  observes="broadcaster-notification-disabled" />
       </groupbox>
 
@@ -295,15 +298,16 @@
         <label control="ui_mail_change_trigger" value="&mail_change_trigger.label;"
                accesskey="&mail_change_trigger.accesskey;" />
         <textbox id="ui_mail_change_trigger" size="18" placeholder="&mail_change_trigger.placeholder;"
-                 onchange="firetrayUIOptions.updateMailTrigger();" flex="1"
-                 tooltiptext="&mail_change_trigger.tooltip;"
+                 tooltiptext="&mail_change_trigger.tooltip;" flex="1"
+                 preference="pref_mail_change_trigger"
+                 onsynctopreference="return firetrayUIOptions.saveMailChangeTrigger(this);"
                  observes="broadcaster-notification-disabled" />
       </hbox>
 
-      <checkbox id="ui_mail_urgency_hint"
-                label="&mail_urgency_hint.label;"
-                accesskey="&mail_urgency_hint.accesskey;"
-                preference="pref_mail_urgency_hint"
+      <checkbox id="ui_mail_get_attention"
+                label="&mail_get_attention.label;"
+                accesskey="&mail_get_attention.accesskey;"
+                preference="pref_mail_get_attention"
                 observes="broadcaster-notification-disabled"/>
 
     </vbox>
@@ -338,10 +342,8 @@
           <label control="ui_chat_icon_blink_style" observes="broadcaster-chat-icon-disabled"
                  value="&chat_icon_blink_style.label;" accesskey="&chat_icon_blink_style.accesskey;" />
           <radio id="ui_chat_icon_blink_style_normal" label="&chat_icon_blink_style_normal;"
-                 oncommand="firetrayUIOptions.updateChatBlinkSettings()"
                  observes="broadcaster-chat-icon-disabled"/>
           <radio id="ui_chat_icon_blink_style_fade" label="&chat_icon_blink_style_fade;"
-                 oncommand="firetrayUIOptions.updateChatBlinkSettings()"
                  observes="broadcaster-chat-icon-disabled"/>
         </hbox>
       </radiogroup>

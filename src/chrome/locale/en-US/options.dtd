@@ -57,8 +57,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "U">
 <!ENTITY mail_notification_newmail_icon.label "display newmail icon">
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
-<!ENTITY mail_notification_custom_mail_icon.label "display custom icon">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "I">
+<!ENTITY mail_notification_mail_icon_custom.label "display custom icon">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "I">
 <!ENTITY icon_text_color "Text color">
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Choose">
@@ -87,8 +87,8 @@
 <!ENTITY mail_change_trigger.accesskey "L">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
 <!ENTITY mail_change_trigger.tooltip "Absolute path of the program to run when the message count changes. This program will get the new message count as the first argument.">
-<!ENTITY mail_urgency_hint.label "Set X11 urgency hint">
-<!ENTITY mail_urgency_hint.accesskey "X">
+<!ENTITY mail_get_attention.label "Window draws attention on new messages">
+<!ENTITY mail_get_attention.accesskey "g">
 
 <!ENTITY chat_icon_enable.label "Enable chat icon">
 <!ENTITY chat_icon_enable.accesskey "E">

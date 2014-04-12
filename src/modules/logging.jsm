@@ -6,7 +6,9 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-const FIRETRAY_LOG_LEVEL = "Warn"; // "All" for debugging
+Cu.import("resource://gre/modules/Services.jsm");
+
+const FIRETRAY_LOG_LEVEL = "All"; // "All" for debugging
 
 const COLOR_NORMAL          = "";
 const COLOR_RESET           = "\033[m";
@@ -45,6 +47,7 @@ var colorTermLogColors = {
 if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
+var LogMod;
 
 // https://wiki.mozilla.org/Labs/JS_Modules#Logging
 firetray.Logging = {
@@ -53,17 +56,22 @@ firetray.Logging = {
   init: function() {
     if (this.initialized) return;
 
-    ["resource://services-common/log4moz.js", // FF
-     "resource:///app/modules/gloda/log4moz.js",  // TB
-     "resource://firetray/log4moz.js"]        // default
+    ["resource://gre/modules/Log.jsm",           // FF 27+
+     "resource://services-common/log4moz.js",    // FF
+     "resource:///app/modules/gloda/log4moz.js", // TB
+     "resource://firetray/log4moz.js"]           // default
       .forEach(function(file){
         try {Cu.import(file);} catch(x) {}
       }, this);
 
-    if ("undefined" == typeof(Log4Moz)) {
-      let errMsg = "log4moz.js not found";
+    if ("undefined" != typeof(Log)) {
+      LogMod = Log;
+    } else if ("undefined" != typeof(Log4Moz)) {
+      LogMod = Log4Moz;
+    } else {
+      let errMsg = "Log module not found";
       dump(errMsg+"\n");
-      Cu.ReportError(errMsg);
+      Cu.reportError(errMsg);
     };
 
     this.setupLogging("firetray");
@@ -77,24 +85,9 @@ firetray.Logging = {
   setupLogging: function(loggerName) {
 
     // lifted from log4moz.js
-    function SimpleFormatter(dateFormat) {
-      if (dateFormat)
-        this.dateFormat = dateFormat;
-    }
+    function SimpleFormatter() {}
     SimpleFormatter.prototype = {
-      __proto__: Log4Moz.Formatter.prototype,
-
-      _dateFormat: null,
-
-      get dateFormat() {
-        if (!this._dateFormat)
-          this._dateFormat = "%Y-%m-%d %H:%M:%S";
-        return this._dateFormat;
-      },
-
-      set dateFormat(format) {
-        this._dateFormat = format;
-      },
+      __proto__: LogMod.Formatter.prototype,
 
       format: function(message) {
         let messageString = "";
@@ -108,7 +101,9 @@ firetray.Logging = {
                       ([,mo] in Iterator(message.messageObjects))].join(" ");
 
         let date = new Date(message.time);
-        let stringLog = date.toLocaleFormat(this.dateFormat) + " " +
+        let dateStr = date.getHours() + ":" + date.getMinutes() + ":" +
+              date.getSeconds() + "." + date.getMilliseconds();
+        let stringLog = dateStr + " " +
           message.levelDesc + " " + message.loggerName + " " +
           messageString + "\n";
 
@@ -119,10 +114,7 @@ firetray.Logging = {
       }
     };
 
-    function ColorTermFormatter(dateFormat) {
-      if (dateFormat)
-        this.dateFormat = dateFormat;
-    }
+    function ColorTermFormatter() {}
     ColorTermFormatter.prototype = {
       __proto__: SimpleFormatter.prototype,
 
@@ -136,26 +128,30 @@ firetray.Logging = {
     };
 
     // Loggers are hierarchical, affiliation is handled by a '.' in the name.
-    this._logger = Log4Moz.repository.getLogger(loggerName);
+    this._logger = LogMod.repository.getLogger(loggerName);
     // Lowering this log level will affect all of our addon output
-    this._logger.level = Log4Moz.Level[FIRETRAY_LOG_LEVEL];
+    this._logger.level = LogMod.Level[FIRETRAY_LOG_LEVEL];
 
     // A console appender outputs to the JS Error Console
-    let dateFormat = "%T";
-    let simpleFormatter = new SimpleFormatter(dateFormat);
-    let capp = new Log4Moz.ConsoleAppender(simpleFormatter);
-    capp.level = Log4Moz.Level["Debug"];
+    let simpleFormatter = new SimpleFormatter();
+    let capp = new LogMod.ConsoleAppender(simpleFormatter);
+    capp.level = LogMod.Level["Debug"];
     this._logger.addAppender(capp);
 
     // A dump appender outputs to standard out
-    let colorFormatter = new ColorTermFormatter(dateFormat);
-    let dapp = new Log4Moz.DumpAppender(colorFormatter);
-    dapp.level = Log4Moz.Level["Debug"];
+    let dumpFormatter;
+    if (Services.appinfo.OS.match(/(^Linux|^Darwin|BSD$)/)) {
+      dumpFormatter = new ColorTermFormatter();
+    } else {
+      dumpFormatter = new SimpleFormatter();
+    }
+    let dapp = new LogMod.DumpAppender(dumpFormatter);
+    dapp.level = LogMod.Level["Debug"];
     this._logger.addAppender(dapp);
   },
 
   getLogger: function(loggerName){
-    return Log4Moz.repository.getLogger(loggerName);
+    return LogMod.repository.getLogger(loggerName);
   }
 
 };                              // firetray.Logging

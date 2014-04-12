@@ -13,14 +13,14 @@ Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://firetray/commons.js");
 
 const FLDRS_UNINTERESTING = {
-  Archive:   Ci.nsMsgFolderFlags.Archive,
-  Drafts:    Ci.nsMsgFolderFlags.Drafts,
-  Junk:      Ci.nsMsgFolderFlags.Junk,
-  Queue:     Ci.nsMsgFolderFlags.Queue,
-  SentMail:  Ci.nsMsgFolderFlags.SentMail,
-  Templates: Ci.nsMsgFolderFlags.Templates,
-  Trash:     Ci.nsMsgFolderFlags.Trash,
-  Virtual:   Ci.nsMsgFolderFlags.Virtual
+  Archive:   Ci.nsMsgFolderFlags.Archive,   // 0x00004000
+  Drafts:    Ci.nsMsgFolderFlags.Drafts,    // 0x00000400
+  Junk:      Ci.nsMsgFolderFlags.Junk,      // 0x40000000
+  Queue:     Ci.nsMsgFolderFlags.Queue,     // 0x00000800
+  SentMail:  Ci.nsMsgFolderFlags.SentMail,  // 0x00000200
+  Templates: Ci.nsMsgFolderFlags.Templates, // 0x00400000
+  Trash:     Ci.nsMsgFolderFlags.Trash,     // 0x00000100
+  Virtual:   Ci.nsMsgFolderFlags.Virtual    // 0x00000020
 };
 
 const ACCOUNTS_PREF_BRANCH = "mail.accountmanager.accounts";
@@ -73,8 +73,7 @@ firetray.Messaging = {
 
   /* could also use a PrefListener, but let's keep it simple for now */
   observe: function(subject, topic, data) {
-    if (topic === "nsPref:changed" &&
-        data === ACCOUNTS_PREF_BRANCH) {
+    if (topic === "nsPref:changed" && data === ACCOUNTS_PREF_BRANCH) {
       log.debug(ACCOUNTS_PREF_BRANCH+"="+subject.QueryInterface(Ci.nsIPrefBranch).getCharPref(ACCOUNTS_PREF_BRANCH));
       this.cleanExcludedAccounts();
     }
@@ -183,10 +182,10 @@ firetray.Messaging = {
           if (mailChangeTriggerFile)
             firetray.Messaging.runProcess(mailChangeTriggerFile, [newMsgCount.toString()]);
 
-          let setUrgency = firetray.Utils.prefService.getBoolPref("mail_urgency_hint");
-          if (setUrgency && (newMsgCount > currentMsgCount))
+          let getAttention = firetray.Utils.prefService.getBoolPref("mail_get_attention");
+          if (getAttention && (newMsgCount > currentMsgCount))
             for (let winId in firetray.Handler.windows)
-              firetray.Window.setUrgency(winId, true);
+              firetray.Handler.windowGetAttention(winId);
         }
       };
 
@@ -206,6 +205,7 @@ firetray.Messaging = {
   },
 
   updateIcon: function(msgCount) {
+    log.debug("updateIcon");
     if ("undefined" === typeof(msgCount)) msgCount = this.currentMsgCount;
 
     let localizedTooltip;
@@ -227,6 +227,7 @@ firetray.Messaging = {
 
     } else if (msgCount > 0) {
       let prefMailNotification = firetray.Utils.prefService.getIntPref('mail_notification_type');
+      log.debug("msgCount prefMailNotification="+prefMailNotification);
       switch (prefMailNotification) {
       case FIRETRAY_NOTIFICATION_MESSAGE_COUNT:
         let prefIconTextColor = firetray.Utils.prefService.getCharPref("icon_text_color");
@@ -236,8 +237,7 @@ firetray.Messaging = {
         firetray.Handler.setIconImageNewMail();
         break;
       case FIRETRAY_NOTIFICATION_CUSTOM_ICON:
-        let prefCustomIconPath = firetray.Utils.prefService.getCharPref("custom_mail_icon");
-        firetray.Handler.setIconImageFromFile(prefCustomIconPath);
+        firetray.Handler.setIconImageCustom('mail_icon_custom');
         break;
       default:
         log.error("Unknown notification mode: "+prefMailNotification);

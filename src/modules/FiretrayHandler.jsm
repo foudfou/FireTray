@@ -1,4 +1,5 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+"use strict";
 
 var EXPORTED_SYMBOLS = [ "firetray" ];
 
@@ -37,8 +38,14 @@ firetray.Handler = {
   appHasChat: false,
   appStarted: false,
   windows: {},
-  windowsCount: 0,
-  visibleWindowsCount: 0,
+  get windowsCount() {return Object.keys(this.windows).length;},
+  get visibleWindowsCount() {
+    let count = 0;
+    for (let wid in firetray.Handler.windows) {
+      if (firetray.Handler.windows[wid].visible) count += 1;
+    }
+    return count;
+  },
   observedTopics: {},
   ctypesLibs: {},               // {"lib1": lib1, "lib2": lib2}
 
@@ -46,7 +53,7 @@ firetray.Handler = {
   appName:    (function(){return Services.appinfo.name;})(),
   xulVer:     (function(){return Services.appinfo.platformVersion;})(), // Services.vc.compare(xulVer,"2.0a")>=0
   runtimeABI: (function(){return Services.appinfo.XPCOMABI;})(),
-  runtimeOS:  (function(){return Services.appinfo.OS;})(), // "WINNT", "Linux", "Darwin"
+  runtimeOS:  (function(){return Services.appinfo.OS.toLowerCase();})(), // "WINNT", "Linux", "Darwin"
   addonRootDir: (function(){
     let uri = Services.io.newURI(Components.stack.filename, null, null);
     if (uri instanceof Ci.nsIFileURL) {
@@ -55,6 +62,7 @@ firetray.Handler = {
     }
     throw new Error("not resolved");
   })(),
+  support: {chat: false, full_feat: false},
 
   init: function() {            // does creates icon
     firetray.PrefListener.register(false);
@@ -62,17 +70,20 @@ firetray.Handler = {
 
     // version checked during install, so we shouldn't need to care
     log.info("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + this.xulVer);
-    switch (this.runtimeOS) {
-    case "Linux":
-      Cu.import("resource://firetray/linux/FiretrayStatusIcon.jsm");
-      log.debug('FiretrayStatusIcon imported');
-      Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
-      log.debug('FiretrayWindow imported');
-      break;
-    default:
-      log.error("FIRETRAY: only Linux platform supported at this time. Firetray not loaded");
+    if (FIRETRAY_SUPPORTED_OS.indexOf(this.runtimeOS) < 0) {
+      let platforms = FIRETRAY_SUPPORTED_OS.join(", ");
+      log.error("Only "+platforms+" platform(s) supported at this time. Firetray not loaded");
       return false;
     }
+    Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayStatusIcon.jsm");
+    log.debug("FiretrayStatusIcon "+this.runtimeOS+" imported");
+    Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayWindow.jsm");
+    log.debug("FiretrayWindow "+this.runtimeOS+" imported");
+
+    this.support['chat'] = FIRETRAY_CHAT_SUPPORTED_OS
+      .indexOf(this.runtimeOS) > -1;
+    this.support['full_feat']  = FIRETRAY_FULL_FEAT_SUPPORTED_OS
+      .indexOf(firetray.Handler.runtimeOS) > -1;
 
     if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
         this.appId === FIRETRAY_APP_DB['seamonkey']['id'])
@@ -108,13 +119,18 @@ firetray.Handler = {
     let chatIsProvided = this.isChatProvided();
     log.info('isChatProvided='+chatIsProvided);
     if (chatIsProvided) {
-      Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
-      Cu.import("resource://firetray/FiretrayChat.jsm");
-      firetray.Utils.addObservers(firetray.Handler, [
-        "account-added", "account-removed"]);
-      if (firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
-          this.existsChatAccount())
-        firetray.Chat.init();
+      if (this.support['chat']) {
+        Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
+        Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayChat.jsm");
+        firetray.Utils.addObservers(firetray.Handler, [
+          "account-added", "account-removed"]);
+        if (firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
+            this.existsChatAccount())
+          firetray.Chat.init();
+      } else {
+        let platforms = FIRETRAY_CHAT_SUPPORTED_OS.join(", ");
+        log.warn("Only "+platforms+" platform(s) supported at this time. Chat not loaded");
+      }
     }
 
     firetray.Utils.addObservers(firetray.Handler,
@@ -153,7 +169,8 @@ firetray.Handler = {
 
   shutdown: function() {
     log.debug("Disabling Handler");
-    if (firetray.Handler.isChatProvided() && firetray.Chat.initialized)
+    if (firetray.Handler.isChatProvided() && firetray.Handler.support['chat']
+        && firetray.Chat.initialized)
       firetray.Chat.shutdown();
 
     if (this.inMailApp)
@@ -183,7 +200,7 @@ firetray.Handler = {
 
   tryCloseLibs: function() {
     try {
-      for (libName in this.ctypesLibs) {
+      for (let libName in this.ctypesLibs) {
         let lib = this.ctypesLibs[libName];
         if (lib.available())
           lib.close();
@@ -302,7 +319,7 @@ firetray.Handler = {
     } else {
       for (let winId in firetray.Handler.windows) {
         firetray.Chat.detachSelectListeners(firetray.Handler.windows[winId].chromeWin);
-        firetray.ChatStatusIcon.detachOnFocusInCallback(winId);
+        firetray.ChatStatusIcon.detachOnFocusInCallback(winId); // FIXME: to be removed
       }
       firetray.Chat.shutdown();
     }
@@ -311,19 +328,21 @@ firetray.Handler = {
   // these get overridden in OS-specific Icon/Window handlers
   setIconImageDefault: function() {},
   setIconImageNewMail: function() {},
-  setIconImageFromFile: function(filename) {},
+  setIconImageCustom: function(prefname) {},
   setIconText: function(text, color) {},
   setIconTooltip: function(localizedMessage) {},
   setIconTooltipDefault: function() {},
   setIconVisibility: function(visible) {},
   registerWindow: function(win) {},
   unregisterWindow: function(win) {},
-  getWindowIdFromChromeWindow: function(win) {},
   hideWindow: function(winId) {},
   showWindow: function(winId) {},
-  showHideAllWindows: function() {},
   activateLastWindowCb: function(gtkStatusIcon, gdkEvent, userData) {},
   getActiveWindow: function() {},
+  windowGetAttention: function(winId) {},
+  showHidePopupMenuItems: function() {}, // linux
+  addPopupWindowItemAndSeparatorMaybe: function(wid) {}, // winnt
+  removePopupWindowItemAndSeparatorMaybe: function(wid) {}, // winnt
 
   showAllWindows: function() {
     log.debug("showAllWindows");
@@ -338,6 +357,34 @@ firetray.Handler = {
       if (firetray.Handler.windows[winId].visible)
         firetray.Handler.hideWindow(winId);
     }
+  },
+
+  showHideAllWindows: function() {
+    log.debug("showHideAllWindows");
+    log.debug("  visibleWindowsCount="+firetray.Handler.visibleWindowsCount+" / windowsCount="+firetray.Handler.windowsCount);
+    let visibilityRate = firetray.Handler.visibleWindowsCount /
+          firetray.Handler.windowsCount;
+    log.debug("  visibilityRate="+visibilityRate);
+    if ((0.5 < visibilityRate) && (visibilityRate < 1)
+        || visibilityRate === 0) { // TODO: should be configurable
+      firetray.Handler.showAllWindows();
+    } else {
+      firetray.Handler.hideAllWindows();
+    }
+  },
+
+  onMinimize: function(wid) {
+    let hidden = false;
+    let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
+    if (hides_on_minimize) {
+      let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
+      if (hides_single_window)
+        firetray.Handler.hideWindow(wid);
+      else
+        firetray.Handler.hideAllWindows();
+      hidden = true;
+    }
+    return hidden;
   },
 
   showHideIcon: function() {
@@ -471,7 +518,7 @@ firetray.Handler = {
 firetray.PrefListener = new PrefListener(
   FIRETRAY_PREF_BRANCH,
   function(branch, name) {
-    log.debug('Pref changed: '+name);
+    log.debug('____Pref changed: '+name);
     switch (name) {
     case 'hides_single_window':
       firetray.Handler.showHidePopupMenuItems();
@@ -488,19 +535,27 @@ firetray.PrefListener = new PrefListener(
         firetray.Handler.setIconImageDefault();
       }
       break;
+    case 'mail_notification_type':
+    case 'icon_text_color':
+      firetray.Messaging.updateIcon();
+      break;
     case 'new_mail_icon_names':
       firetray.StatusIcon.loadThemedIcons();
-    case 'only_favorite_folders':
-    case 'message_count_type':
+    case 'excluded_folders_flags':
     case 'folder_count_recursive':
+    case 'mail_accounts':
+    case 'message_count_type':
+    case 'only_favorite_folders':
       firetray.Messaging.updateMsgCountWithCb();
       break;
     case 'app_mail_icon_names':
     case 'app_browser_icon_names':
     case 'app_default_icon_names':
+      firetray.StatusIcon.loadThemedIcons(); // linux
+    case 'app_icon_custom':
+    case 'mail_icon_custom':
+      firetray.StatusIcon.loadImageCustom(name);
     case 'app_icon_type':
-      firetray.StatusIcon.loadThemedIcons();
-    case 'app_icon_filename':
       firetray.Handler.setIconImageDefault();
       if (firetray.Handler.inMailApp)
         firetray.Messaging.updateMsgCountWithCb();
@@ -542,13 +597,14 @@ firetray.MailChatPrefListener = new PrefListener(
     case 'enabled':
       let enableChatCond =
             (firetray.Handler.appHasChat &&
-             firetray.Utils.prefService.getBoolPref("chat_icon_enable"));
+             firetray.Utils.prefService.getBoolPref("chat_icon_enable") &&
+             firetray.Handler.support['chat']);
       if (!enableChatCond) return;
 
       if (Services.prefs.getBoolPref("mail.chat.enabled")) {
         if (!firetray.Chat) {
           Cu.import("resource://firetray/FiretrayMessaging.jsm"); // needed for existsChatAccount
-          Cu.import("resource://firetray/FiretrayChat.jsm");
+          Cu.import("resource://firetray/linux/FiretrayChat.jsm");
           firetray.Utils.addObservers(firetray.Handler, [
             "account-added", "account-removed"]);
         }
@@ -642,7 +698,7 @@ firetray.VersionChangeHandler = {
   },
 
   tryEraseOldOptions: function() {
-    let v03Options = [
+    let v0_3_Opts = [
       "close_to_tray", "minimize_to_tray", "start_minimized", "confirm_exit",
       "restore_to_next_unread", "mail_count_type", "show_mail_count",
       "dont_count_spam", "dont_count_archive", "dont_count_drafts",
@@ -651,12 +707,13 @@ firetray.VersionChangeHandler = {
       "use_custom_special_icon", "custom_normal_icon", "custom_special_icon",
       "text_color", "scroll_to_hide", "scroll_action", "grab_multimedia_keys",
       "hide_show_mm_key", "accounts_to_exclude" ];
-    let v040b2Options = [ 'mail_notification' ];
-    let oldOptions = v03Options.concat(v040b2Options);
+    let v0_4_0b2_Opts = [ 'mail_notification' ];
+    let v0_5_0b1_Opts = [ 'mail_urgency_hint', 'app_icon_filename', 'custom_mail_icon' ];
+    let oldOpts = v0_3_Opts.concat(v0_4_0b2_Opts).concat(v0_5_0b1_Opts);
 
-    for (let i = 0, length = oldOptions.length; i<length; ++i) {
+    for (let i = 0, length = oldOpts.length; i<length; ++i) {
       try {
-        let option = oldOptions[i];
+        let option = oldOpts[i];
         firetray.Utils.prefService.clearUserPref(option);
       } catch (x) {}
     }

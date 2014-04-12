@@ -204,7 +204,6 @@ firetray.ChatStatusIcon = {
           { notify: firetray.ChatStatusIcon.fadeStep },
           ALPHA_STEP_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
 
-
     } catch (e if e instanceof StopIteration) {
 
       if (firetray.ChatStatusIcon.events['stop-fade']) {

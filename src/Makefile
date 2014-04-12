@@ -111,7 +111,9 @@ modules_sources := $(wildcard $(modules_dir)/*.js)		\
 		$(wildcard $(modules_dir)/*.jsm)		\
 		$(wildcard $(modules_dir)/ctypes/*.jsm)		\
 		$(wildcard $(modules_dir)/ctypes/linux/*.jsm)	\
-		$(wildcard $(modules_dir)/linux/*.jsm)
+		$(wildcard $(modules_dir)/ctypes/winnt/*.jsm)	\
+		$(wildcard $(modules_dir)/linux/*.jsm)		\
+		$(wildcard $(modules_dir)/winnt/*.jsm)
 
 # The components (JSM) dir.
 components_dir := components
@@ -142,7 +144,7 @@ $(xpi_built): check_version check_loglevel $(build_dir) $(build_includes)
 .PHONY: build
 build: $(xpi_built)
 	@echo
-	@echo "Build finished successfully."
+	@echo "Build finished successfully in $(build_dir)."
 	@echo
 
 # This cleans all temporary files and directories created by 'make'.

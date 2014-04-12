@@ -3,20 +3,20 @@
 /* for now, logging facilities (imported from logging.jsm) and Services are
    automatically provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "FIRETRAY_ID", "FIRETRAY_VERSION", "FIRETRAY_PREF_BRANCH",
-    "FIRETRAY_SPLASH_PAGE", "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
+  [ "firetray", "FIRETRAY_VERSION", "FIRETRAY_SUPPORTED_OS",
+    "FIRETRAY_CHAT_SUPPORTED_OS", "FIRETRAY_FULL_FEAT_SUPPORTED_OS",
+    "FIRETRAY_ID", "FIRETRAY_PREF_BRANCH", "FIRETRAY_SPLASH_PAGE",
+    "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
     "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
     "FIRETRAY_NOTIFICATION_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_IM_STATUS_AVAILABLE", "FIRETRAY_IM_STATUS_AWAY",
     "FIRETRAY_IM_STATUS_BUSY", "FIRETRAY_IM_STATUS_OFFLINE",
-    "FIRETRAY_ACCOUNT_SERVER_TYPE_IM",
-    "FIRETRAY_DELAY_STARTUP_MILLISECONDS",
-    "FIRETRAY_DELAY_NOWAIT_MILLISECONDS",
-    "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD", "FIRETRAY_MESSAGE_COUNT_TYPE_NEW",
-    "FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL",
-    "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE",
-    "FIRETRAY_APP_DB" ];
+    "FIRETRAY_ACCOUNT_SERVER_TYPE_IM", "FIRETRAY_DELAY_STARTUP_MILLISECONDS",
+    "FIRETRAY_DELAY_NOWAIT_MILLISECONDS", "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD",
+    "FIRETRAY_MESSAGE_COUNT_TYPE_NEW", "FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL",
+    "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE", "FIRETRAY_APP_DB",
+    "FIRETRAY_XUL_ATTRIBUTE_COMMAND", "FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -25,10 +25,13 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION     = "0.4.8"; // needed for sync call of onVersionChange() :(
-const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
-const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
-const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
+const FIRETRAY_VERSION           = "0.5.0b1"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_SUPPORTED_OS      = ['linux', 'winnt']; // install.rdf sync :(
+const FIRETRAY_CHAT_SUPPORTED_OS = ['linux'];
+const FIRETRAY_FULL_FEAT_SUPPORTED_OS = FIRETRAY_CHAT_SUPPORTED_OS;
+const FIRETRAY_ID                = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
+const FIRETRAY_PREF_BRANCH       = "extensions.firetray.";
+const FIRETRAY_SPLASH_PAGE       = "http://foudfou.github.com/FireTray/";
 
 const FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
 const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM = 1;
@@ -47,11 +50,14 @@ const FIRETRAY_IM_STATUS_OFFLINE   = "user-offline";
 
 const FIRETRAY_ACCOUNT_SERVER_TYPE_IM = "im";
 
-const FIRETRAY_DELAY_STARTUP_MILLISECONDS       = 500;
-const FIRETRAY_DELAY_NOWAIT_MILLISECONDS        = 0;
+const FIRETRAY_DELAY_STARTUP_MILLISECONDS = 500;
+const FIRETRAY_DELAY_NOWAIT_MILLISECONDS  = 0;
 
 const FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL = 0;
 const FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE   = 1;
+
+const FIRETRAY_XUL_ATTRIBUTE_COMMAND   = 0;
+const FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND = 1;
 
 const FIRETRAY_APP_DB = {
 
@@ -72,7 +78,7 @@ const FIRETRAY_APP_DB = {
   },
 
   sunbird: {
-    id: "718e30fb-e89b-41dd-9da7-e25a45638b28}",
+    id: "{718e30fb-e89b-41dd-9da7-e25a45638b28}",
   },
 
   chatzilla: {
@@ -144,11 +150,13 @@ firetray.Utils = {
 
   getArrayPref: function(prefStr) {
     let arrayPref = this.getObjPref(prefStr);
-    if (!firetray.js.isArray(arrayPref)) throw new TypeError();
+    if (!firetray.js.isArray(arrayPref))
+      throw new TypeError("'"+prefStr+"' preference is not array.");
     return arrayPref;
   },
   setArrayPref: function(prefStr, aArray) {
-    if (!firetray.js.isArray(aArray)) throw new TypeError();
+    if (!firetray.js.isArray(aArray))
+      throw new TypeError("'"+aArray+"' is not array.");
     this.setObjPref(prefStr, aArray);
   },
 
@@ -189,11 +197,11 @@ firetray.Utils = {
 
   dumpObj: function(obj) {
     let str = "";
-    for(i in obj) {
+    for(let prop in firetray.js.listAllProperties(obj)) {
       try {
-        str += "obj["+i+"]: " + obj[i] + "\n";
+        str += "obj["+prop+"]: " + obj[prop] + "\n";
       } catch(e) {
-        str += "obj["+i+"]: Unavailable\n";
+        str += "obj["+prop+"]: Unavailable\n";
       }
     }
     log.info(str);
@@ -262,6 +270,17 @@ firetray.Utils = {
     timer.initWithCallback({ notify: callback },
       delay, timerType);
     return timer;
+  },
+
+  /*
+   * Extracts statements from functions. Intended for feeding a 'oncommand'
+   * attribute.
+   * BUG: |let| assignations break oncommand inline callback under TB27
+   * The statements should probably be limited to a single function call.
+   */
+  bodyToString: function(func) {
+    let matches = func.toSource().match(/\{([\s\S]*)\}/m);
+    return matches ? matches[1] : matches;
   }
 
 };
@@ -291,7 +310,26 @@ firetray.js = {
   // https://developer.mozilla.org/en/js-ctypes/Using_js-ctypes/Working_with_data#Quirks_in_equality
   strEquals: function(obj1, obj2) {
     return obj1.toString() === obj2.toString();
-  }
+  },
+
+  assert: function(condition, message) {
+    if (!condition) {
+      throw new Error(message || "Assertion failed");
+    }
+  },
+
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects#Enumerating_all_properties_of_an_object
+  listAllProperties: function(obj){
+    var objectToInspect;
+    var result = [];
+    for(objectToInspect = obj; objectToInspect !== null; objectToInspect = Object.getPrototypeOf(objectToInspect)){
+      result = result.concat(Object.getOwnPropertyNames(objectToInspect));
+    }
+    return result;
+  },
+
+  floatToInt: function(nb) { return nb >> 0; } // bitwise ops on signed int
+
 };
 
 // http://stackoverflow.com/questions/18912/how-to-find-keys-of-a-hash

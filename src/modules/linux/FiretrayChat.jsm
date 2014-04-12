@@ -24,7 +24,7 @@ firetray.Chat = {
   init: function() {
     if (this.initialized) {
       log.warn("Chat already initialized");
-      return;
+      return true;
     }
     log.debug("Enabling Chat");
 
@@ -42,10 +42,11 @@ firetray.Chat = {
     this.updateIcon();
 
     this.initialized = true;
+    return true;
   },
 
   shutdown: function() {
-    if (!this.initialized) return;
+    if (!this.initialized) return false;
     log.debug("Disabling Chat");
 
     if (firetray.Chat.convsToAcknowledge.length())
@@ -55,6 +56,7 @@ firetray.Chat = {
     firetray.Utils.removeAllObservers(firetray.Chat);
 
     this.initialized = false;
+    return true;
   },
 
   // FIXME: the listener should probably attached on the conv entry in the
