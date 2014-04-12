@@ -319,7 +319,6 @@ firetray.Handler = {
     } else {
       for (let winId in firetray.Handler.windows) {
         firetray.Chat.detachSelectListeners(firetray.Handler.windows[winId].chromeWin);
-        firetray.ChatStatusIcon.detachOnFocusInCallback(winId); // FIXME: to be removed
       }
       firetray.Chat.shutdown();
     }
