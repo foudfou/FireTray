@@ -143,7 +143,6 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     }
   }
 
-
 };
 
 // should be sufficient for a delayed Startup (no need for window.setTimeout())

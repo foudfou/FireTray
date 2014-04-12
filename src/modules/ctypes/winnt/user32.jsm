@@ -362,6 +362,19 @@ function user32_defines(lib) {
   lib.lazy_bind("GetCursorPos", win32.BOOL, win32.LPPOINT);
   lib.lazy_bind("GetMessagePos", win32.DWORD);
 
+  this.WINDOWPLACEMENT = ctypes.StructType("WINDOWPLACEMENT", [
+   { "length": win32.UINT },
+   { "flags": win32.UINT },
+   { "showCmd": win32.UINT },
+   { "ptMinPosition": win32.POINT },
+   { "ptMaxPosition": win32.POINT },
+   { "rcNormalPosition": win32.RECT }
+  ]);
+  this.PWINDOWPLACEMENT = this.LPWINDOWPLACEMENT = this.WINDOWPLACEMENT.ptr;
+
+  lib.lazy_bind("GetWindowPlacement", win32.BOOL, win32.HWND, this.WINDOWPLACEMENT.ptr);
+  lib.lazy_bind("SetWindowPlacement", win32.BOOL, win32.HWND, this.WINDOWPLACEMENT.ptr);
+
 }
 
 new ctypes_library(USER32_LIBNAME, USER32_ABIS, user32_defines, this);

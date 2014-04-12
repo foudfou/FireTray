@@ -319,7 +319,7 @@ firetray.Handler = {
     } else {
       for (let winId in firetray.Handler.windows) {
         firetray.Chat.detachSelectListeners(firetray.Handler.windows[winId].chromeWin);
-        firetray.ChatStatusIcon.detachOnFocusInCallback(winId);
+        firetray.ChatStatusIcon.detachOnFocusInCallback(winId); // FIXME: to be removed
       }
       firetray.Chat.shutdown();
     }
@@ -709,7 +709,7 @@ firetray.VersionChangeHandler = {
       "hide_show_mm_key", "accounts_to_exclude" ];
     let v0_4_0b2_Opts = [ 'mail_notification' ];
     let v0_5_0b1_Opts = [ 'mail_urgency_hint', 'app_icon_filename', 'custom_mail_icon' ];
-    let oldOpt = v0_3_Opts.concat(v0_4_0b2_Opts).concat(v0_5_0b1_Opts);
+    let oldOpts = v0_3_Opts.concat(v0_4_0b2_Opts).concat(v0_5_0b1_Opts);
 
     for (let i = 0, length = oldOpts.length; i<length; ++i) {
       try {

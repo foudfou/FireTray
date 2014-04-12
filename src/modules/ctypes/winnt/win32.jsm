@@ -121,6 +121,15 @@ var win32 = new function() {
   this.WM_SHOWWINDOW     = 0x0018;
   this.WM_WININICHANGE   = 0x001A;
   this.WM_SETTINGCHANGE  = this.WM_WININICHANGE;
+  this.WM_DEVMODECHANGE  = 0x001B;
+  this.WM_ACTIVATEAPP    = 0x001C;
+  this.WM_FONTCHANGE     = 0x001D;
+  this.WM_TIMECHANGE     = 0x001E;
+  this.WM_CANCELMODE     = 0x001F;
+  this.WM_SETCURSOR      = 0x0020;
+  this.WM_MOUSEACTIVATE  = 0x0021;
+  this.WM_CHILDACTIVATE  = 0x0022;
+  this.WM_QUEUESYNC      = 0x0023;
   this.WM_COMMAND        = 0x0111;
   this.WM_SYSCOMMAND     = 0x0112;
   this.WM_HSCROLL        = 0x0114;
@@ -152,6 +161,12 @@ var win32 = new function() {
 
   this.SC_MINIMIZE = 0xF020;
   this.SC_CLOSE    = 0xF060;
+
+  this.SIZE_RESTORED  = 0;
+  this.SIZE_MINIMIZED = 1;
+  this.SIZE_MAXIMIZED = 2;
+  this.SIZE_MAXSHOW   = 3;
+  this.SIZE_MAXHIDE   = 4;
 
   this.BITMAP = ctypes.StructType("BITMAP", [
     { "bmType": this.LONG },

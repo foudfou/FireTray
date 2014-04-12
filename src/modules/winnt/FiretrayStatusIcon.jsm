@@ -228,11 +228,10 @@ firetray.StatusIcon = {
   proxyWndProc: function(hWnd, uMsg, wParam, lParam) {
     // log.debug("ProxyWindowProc CALLED: hWnd="+hWnd+", uMsg="+uMsg+", wParam="+wParam+", lParam="+lParam);
 
+    // FIXME: WM_TASKBARCREATED is needed in case of explorer crash
+    // http://twigstechtips.blogspot.fr/2011/02/c-detect-when-windows-explorer-has.html
     if (uMsg === firetray.Win32.WM_TASKBARCREATED) {
       log.info("____________TASKBARCREATED");
-
-    } else if (uMsg === firetray.Win32.WM_TRAYMESSAGEFWD) {
-      log.debug("ProxyWindowProc WM_TRAYMESSAGEFWD reached!");
 
     } else if (uMsg === firetray.Win32.WM_TRAYMESSAGE) {
 

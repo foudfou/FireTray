@@ -68,8 +68,8 @@ var firetrayUIOptions = {
 
   hideUnsupportedOptions: function() { // full_feat
     // windows prefs
-    ['ui_hides_last_only', 'ui_start_hidden', 'ui_show_activates',
-     'ui_remember_desktop'].forEach(function(id){
+    ['ui_hides_last_only', 'ui_show_activates', 'ui_remember_desktop']
+      .forEach(function(id){
        document.getElementById(id).hidden = true;
      });
 

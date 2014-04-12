@@ -563,6 +563,9 @@ firetray.Window.startupFilter = function(xev, gdkEv, data) {
   let xany = ctypes.cast(xev, x11.XAnyEvent.ptr);
   let xid = xany.contents.window;
 
+  // MapRequest already taken by window manager. Not sure we could be notified
+  // *before* the window is actually mapped, in order to minimize it before
+  // it's shown.
   if (xany.contents.type === x11.MapNotify) {
     gdk.gdk_window_remove_filter(firetray.Handler.gdkWindows.get(xid),
                                  firetray.Handler.windows[xid].startupFilterCb, null);
