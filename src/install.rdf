@@ -116,6 +116,14 @@
 
     <em:localized>
       <Description>
+        <em:locale>hr-HR</em:locale>
+        <em:translator>Goran Vidović (gogo)</em:translator>
+        <em:description>Proširenje za traku sustava u linuxu.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
         <em:locale>it</em:locale>
         <em:translator>Underpass (mozillaitalia.org)</em:translator>
         <em:description>Permette di ridurre l'applicazione nell'area di notifica di Linux.</em:description>
