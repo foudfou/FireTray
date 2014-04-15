@@ -140,6 +140,14 @@
 
     <em:localized>
       <Description>
+        <em:locale>pl-PL</em:locale>
+        <em:translator>AreYouLoco?</em:translator>
+        <em:description>Rozszerzenie zasobnika dla linuxa.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
         <em:locale>zh-TW</em:locale>
         <em:translator>Velociraptor</em:translator>
         <em:description>Linux 用的系統列套件。</em:description>
