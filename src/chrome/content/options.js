@@ -643,7 +643,7 @@ var firetrayUIOptions = {
 
   removeListeners: function() {
     for (id in this.listeners) {
-      let listener = listeners[id];
+      let listener = this.listeners[id];
       document.getElementById(id)
         .removeEventListener(listener['evt'], listener['fn'], listener['cap']);
     }
