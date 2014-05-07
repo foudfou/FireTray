@@ -69,9 +69,7 @@ license := LICENSE
 install_rdf := install.rdf
 
 # Version fetched from install.rdf
-VERSION := $(shell awk '/<em:version>/ {  version=$$1; \
-  version=gensub(/^.*<em:version>(.+)<\/em:version>.*$$/, "\\1", "g", version); \
-  print version }' $(install_rdf))
+VERSION := $(shell awk -F '[<>]' '/em:version/{print $$3}' $(install_rdf))
 
 # The target XPI files.
 xpi_file := $(extension_name)-$(VERSION).xpi
