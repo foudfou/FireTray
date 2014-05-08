@@ -191,13 +191,13 @@ clean_build:
 	@echo "Removing build dirs: $(build_dir)*"
 	@rm -rf $(build_dir)*
 
-VERSION_HARD_CODED := $(shell awk -F\" '/const\W+FIRETRAY_VERSION/ \
+VERSION_HARD_CODED := $(shell awk -F\" '/const[ \t]+FIRETRAY_VERSION/ \
   {print $$2}' modules/commons.js)
 check_version:
 	@echo "checking version consistency"
 	@[ "$(VERSION)" = "$(VERSION_HARD_CODED)" ]
 
-FIRETRAY_LOG_LEVEL := $(shell awk -F\" '/const\W+FIRETRAY_LOG_LEVEL/ \
+FIRETRAY_LOG_LEVEL := $(shell awk -F\" '/const[ \t]+FIRETRAY_LOG_LEVEL/ \
   {print $$2}' modules/logging.jsm)
 check_loglevel:
 	@echo "checking loglevel"
