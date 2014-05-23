@@ -150,7 +150,7 @@ firetray.Handler = {
       firetray.Utils.addObservers(firetray.Handler, [ "final-ui-startup" ]);
     }
 
-    this.preventWarnOnClose();
+    this.disablePrefsTmp();
 
     VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
     let vc = VersionChange, vch = firetray.VersionChangeHandler;
@@ -290,7 +290,7 @@ firetray.Handler = {
       break;
     case "profile-change-teardown": // also found "quit-application-granted"
       if (data === 'shutdown-persist')
-        this.restoreWarnOnClose();
+        this.restorePrefsTmp();
       break;
 
     case "account-removed":     // emitted by IM
@@ -495,18 +495,30 @@ firetray.Handler = {
     } catch (x) { log.error(x); }
   },
 
-  preventWarnOnClose: function() {
-    if (!this.inBrowserApp) return;
-    let generalTabsPrefs = Services.prefs.getBranch("browser.tabs.");
-    this.warnOnCloseTmp = generalTabsPrefs.getBoolPref('warnOnClose');
-    log.debug("warnOnClose saved. was: "+this.warnOnCloseTmp);
-    generalTabsPrefs.setBoolPref('warnOnClose', false);
+  prefsDisable: [
+    {cond: function(){return firetray.Handler.inBrowserApp;},
+     branch: "browser.tabs.", pref: "warnOnClose", bak:null},
+    {cond: function(){return firetray.Handler.inMailApp;},
+     branch: "mail.biff.", pref: "show_tray_icon", bak:null}
+  ],
+  disablePrefsTmp: function() {
+    for (let i=0, len=this.prefsDisable.length; i<len; ++i) {
+      let pref = this.prefsDisable[i];
+      if (!pref.cond()) continue;
+      let branch = Services.prefs.getBranch(pref.branch);
+      pref.bak = branch.getBoolPref(pref.pref);
+      log.debug(pref.pref+" saved. was: "+pref.bak);
+      branch.setBoolPref(pref.pref, false);
+    }
   },
-  restoreWarnOnClose: function() {
-    if (!this.inBrowserApp && !this.warnOnCloseTmp) return;
-    let generalTabsPrefs = Services.prefs.getBranch("browser.tabs.");
-    generalTabsPrefs.setBoolPref('warnOnClose', this.warnOnCloseTmp);
-    log.debug("warnOnClose restored to: "+this.warnOnCloseTmp);
+  restorePrefsTmp: function() {
+    for (let i=0, len=this.prefsDisable.length; i<len; ++i) {
+      let pref = this.prefsDisable[i];
+      if (!pref.cond() || !pref.bak) continue;
+      let branch = Services.prefs.getBranch(pref.branch);
+      branch.setBoolPref(pref.pref, pref.bak);
+      log.debug(pref.pref+" restored to: "+pref.bak);
+    }
   }
 
 }; // firetray.Handler
@@ -710,7 +722,7 @@ firetray.VersionChangeHandler = {
     let v0_5_0b1_Opts = [ 'mail_urgency_hint', 'app_icon_filename', 'custom_mail_icon' ];
     let oldOpts = v0_3_Opts.concat(v0_4_0b2_Opts).concat(v0_5_0b1_Opts);
 
-    for (let i = 0, length = oldOpts.length; i<length; ++i) {
+    for (let i=0, len=oldOpts.length; i<len; ++i) {
       try {
         let option = oldOpts[i];
         firetray.Utils.prefService.clearUserPref(option);
