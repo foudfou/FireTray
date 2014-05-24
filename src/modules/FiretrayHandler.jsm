@@ -502,23 +502,21 @@ firetray.Handler = {
      branch: "mail.biff.", pref: "show_tray_icon", bak:null}
   ],
   disablePrefsTmp: function() {
-    for (let i=0, len=this.prefsDisable.length; i<len; ++i) {
-      let pref = this.prefsDisable[i];
-      if (!pref.cond()) continue;
+    this.prefsDisable.forEach(function(pref){
+      if (!pref.cond()) return;
       let branch = Services.prefs.getBranch(pref.branch);
       pref.bak = branch.getBoolPref(pref.pref);
-      log.debug(pref.pref+" saved. was: "+pref.bak);
+      log.warn(pref.pref+" saved. was: "+pref.bak);
       branch.setBoolPref(pref.pref, false);
-    }
+    });
   },
   restorePrefsTmp: function() {
-    for (let i=0, len=this.prefsDisable.length; i<len; ++i) {
-      let pref = this.prefsDisable[i];
-      if (!pref.cond() || !pref.bak) continue;
+    this.prefsDisable.forEach(function(pref){
+      if (!pref.cond() || !pref.bak) return;
       let branch = Services.prefs.getBranch(pref.branch);
       branch.setBoolPref(pref.pref, pref.bak);
       log.debug(pref.pref+" restored to: "+pref.bak);
-    }
+    });
   }
 
 }; // firetray.Handler

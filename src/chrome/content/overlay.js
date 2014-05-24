@@ -102,7 +102,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   replaceCommand: function(eltId, func) {
     let elt = document.getElementById(eltId);
     if (!elt) {
-      firetray_log.info("Element '"+eltId+"' not found. Command not replaced.");
+      firetray_log.debug("Element '"+eltId+"' not found. Command not replaced.");
       return null;
     }
 
