@@ -506,7 +506,7 @@ firetray.Handler = {
       if (!pref.cond()) return;
       let branch = Services.prefs.getBranch(pref.branch);
       pref.bak = branch.getBoolPref(pref.pref);
-      log.warn(pref.pref+" saved. was: "+pref.bak);
+      log.debug(pref.pref+" saved. was: "+pref.bak);
       branch.setBoolPref(pref.pref, false);
     });
   },
