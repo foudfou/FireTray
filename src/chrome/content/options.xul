@@ -18,7 +18,7 @@
   </broadcasterset>
 
   <prefpane id="pref-pane-windows" label="&windows_options;"
-            image="chrome://firetray/skin/pref-windows.svg">
+            image="chrome://firetray/skin/icons/pref-windows.svg">
 
     <preferences>
       <preference id="pref_hides_on_close" name="extensions.firetray.hides_on_close" type="bool"/>
@@ -63,7 +63,7 @@
   </prefpane>
 
   <prefpane id="pref-pane-icon" label="&icon_options;"
-            image="chrome://firetray/skin/pref-icon.svg">
+            image="chrome://firetray/skin/icons/pref-icon.svg">
 
     <preferences>
       <preference id="pref_app_icon_type" name="extensions.firetray.app_icon_type" type="int"/>
@@ -125,7 +125,7 @@
   </prefpane>
 
   <prefpane id="pref-pane-mail" label="&mail_options;"
-            image="chrome://firetray/skin/pref-mail.svg">
+            image="chrome://firetray/skin/icons/pref-mail.svg">
 
     <preferences>
       <preference id="pref_mail_notification_enabled" name="extensions.firetray.mail_notification_enabled" type="bool" />
@@ -315,7 +315,7 @@
   </prefpane>
 
   <prefpane id="pref-pane-chat" label="&chat_options;"
-            image="chrome://firetray/skin/pref-chat.svg">
+            image="chrome://firetray/skin/icons/pref-chat.svg">
 
     <preferences>
       <preference id="pref_chat_icon_enable" name="extensions.firetray.chat_icon_enable" type="bool" />

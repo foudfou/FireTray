@@ -41,7 +41,7 @@ firetray.StatusIcon = {
 
   init: function() {
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
-      "chrome://firetray/skin/blank-icon.png");
+      "chrome://firetray/skin/icons/blank-icon.png");
 
     Cu.import("resource://firetray/linux/FiretrayGtkIcons.jsm");
     firetray.GtkIcons.init();

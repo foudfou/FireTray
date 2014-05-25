@@ -92,14 +92,13 @@ chrome_sources := $(chrome_sources_js)								\
                $(wildcard $(chrome_source_root)/content/*.xul)					\
                $(wildcard $(chrome_source_root)/content/*.xml)					\
                $(wildcard $(chrome_source_root)/content/*.css)					\
-               $(wildcard $(chrome_source_root)/skin/*.css)					\
-               $(wildcard $(chrome_source_root)/skin/*.gif)					\
-               $(wildcard $(chrome_source_root)/skin/*.png)					\
-               $(wildcard $(chrome_source_root)/skin/*.svg)					\
-               $(wildcard $(chrome_source_root)/skin/linux/icons/hicolor/22x22/apps/*.png)	\
-               $(wildcard $(chrome_source_root)/skin/linux/icons/gnome/22x22/status/*.png)	\
-               $(wildcard $(chrome_source_root)/skin/winnt/*.bmp)				\
-               $(wildcard $(chrome_source_root)/skin/winnt/*.ico)				\
+               $(wildcard $(chrome_source_root)/skin/icons/*.css)				\
+               $(wildcard $(chrome_source_root)/skin/icons/*.gif)				\
+               $(wildcard $(chrome_source_root)/skin/icons/*.png)				\
+               $(wildcard $(chrome_source_root)/skin/icons/*.svg)				\
+               $(wildcard $(chrome_source_root)/skin/icons/linux/hicolor/22x22/*/*.png)		\
+               $(wildcard $(chrome_source_root)/skin/icons/winnt/*.bmp)				\
+               $(wildcard $(chrome_source_root)/skin/icons/winnt/*.ico)				\
                $(wildcard $(chrome_source_root)/locale/*/*.dtd)					\
                $(wildcard $(chrome_source_root)/locale/*/*.properties)
 

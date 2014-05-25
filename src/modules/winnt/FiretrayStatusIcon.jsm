@@ -27,15 +27,16 @@ let log = firetray.Logging.getLogger("firetray.StatusIcon");
 if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");
 
-const ICON_CHROME_PATHS = {
-  'blank-icon': "chrome://firetray/skin/winnt/blank-icon.bmp",
-  'mail-unread': "chrome://firetray/skin/winnt/mail-unread.ico",
+const ICON_CHROME_PATH = "chrome://firetray/skin/icons/winnt";
+const ICON_CHROME_FILES = {
+  'blank-icon': ICON_CHROME_PATH+"/blank-icon.bmp",
+  'mail-unread': ICON_CHROME_PATH+"/mail-unread.ico",
   // these are for the popup menu:
-  'prefs': "chrome://firetray/skin/winnt/gtk-preferences.bmp",
-  'quit': "chrome://firetray/skin/winnt/application-exit.bmp",
-  'new-wnd': "chrome://firetray/skin/winnt/document-new.bmp",
-  'new-msg': "chrome://firetray/skin/winnt/gtk-edit.bmp",
-  'reset': "chrome://firetray/skin/winnt/gtk-apply.bmp"
+  'prefs': ICON_CHROME_PATH+"/gtk-preferences.bmp",
+  'quit': ICON_CHROME_PATH+"/application-exit.bmp",
+  'new-wnd': ICON_CHROME_PATH+"/document-new.bmp",
+  'new-msg': ICON_CHROME_PATH+"/gtk-edit.bmp",
+  'reset': ICON_CHROME_PATH+"/gtk-apply.bmp"
 };
 
 
@@ -94,8 +95,8 @@ firetray.StatusIcon = {
 
     /* we'll take the first icon in the .ico file. To get the icon count in the
      file, pass ctypes.cast(ctypes.int(-1), win32.UINT); */
-    for (let imgName in ICON_CHROME_PATHS) {
-      let path = firetray.Utils.chromeToPath(ICON_CHROME_PATHS[imgName]);
+    for (let imgName in ICON_CHROME_FILES) {
+      let path = firetray.Utils.chromeToPath(ICON_CHROME_FILES[imgName]);
       let img = this.loadImageFromFile(path);
       if (img)
         this[this.IMG_TYPES[img['type']]['map']].insert(imgName, img['himg']);

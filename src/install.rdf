@@ -12,8 +12,8 @@
     <em:homepageURL>https://github.com/foudfou/firetray</em:homepageURL>
     <em:description>A system tray extension for linux.</em:description>
     <em:optionsURL>chrome://firetray/content/options.xul</em:optionsURL>
-    <em:iconURL>chrome://firetray/skin/firetray48.png</em:iconURL>
-    <em:icon64URL>chrome://firetray/skin/firetray64.png</em:icon64URL>
+    <em:iconURL>chrome://firetray/skin/icons/firetray48.png</em:iconURL>
+    <em:icon64URL>chrome://firetray/skin/icons/firetray64.png</em:icon64URL>
     <em:targetPlatform>Linux</em:targetPlatform>
     <em:targetPlatform>WINNT</em:targetPlatform>
 
