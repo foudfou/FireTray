@@ -68,11 +68,14 @@ firetray.Handler = {
     firetray.PrefListener.register(false);
     firetray.MailChatPrefListener.register(false);
 
-    // version checked during install, so we shouldn't need to care
     log.info("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + this.xulVer);
     if (FIRETRAY_SUPPORTED_OS.indexOf(this.runtimeOS) < 0) {
       let platforms = FIRETRAY_SUPPORTED_OS.join(", ");
       log.error("Only "+platforms+" platform(s) supported at this time. Firetray not loaded");
+      return false;
+    } else if (this.runtimeOS == "winnt" &&
+               Services.vc.compare(this.xulVer,"27.0") < 0) {
+      log.error("FireTray needs Gecko 27 and above on Windows.");
       return false;
     }
     Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayStatusIcon.jsm");
