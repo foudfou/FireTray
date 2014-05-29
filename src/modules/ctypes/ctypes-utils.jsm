@@ -50,6 +50,7 @@ const WinABI   = is64bit ? ctypes.default_abi : ctypes.winapi_abi;
 const WinCbABI = is64bit ? ctypes.default_abi : ctypes.stdcall_abi;
 
 let log = firetray.Logging.getLogger("firetray.ctypes-utils");
+log.info("is64bit="+is64bit);
 
 /**
  * Loads a library using ctypes and exports an object on to the specified

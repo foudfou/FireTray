@@ -32,6 +32,7 @@ function user32_defines(lib) {
   lib.lazy_bind("GetWindowTextW", ctypes.int, win32.HWND, win32.LPTSTR, ctypes.int);
   lib.lazy_bind("FindWindowW", win32.HWND, win32.LPCTSTR, win32.LPCTSTR);
 
+  lib.lazy_bind("PostMessageW", win32.BOOL, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
   lib.lazy_bind("SendMessageW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
   this.WM_GETICON = 0x007F;
   this.WM_SETICON = 0x0080;
@@ -95,8 +96,7 @@ function user32_defines(lib) {
     WinCbABI, win32.LRESULT,
     [win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM]).ptr;
 
-  // lib.lazy_bind("CallWindowProcW", win32.LRESULT, this.WNDPROC, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
-  lib.lazy_bind("CallWindowProcW", win32.LRESULT, ctypes.voidptr_t, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
+  lib.lazy_bind("CallWindowProcW", win32.LRESULT, this.WNDPROC, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
   lib.lazy_bind("DefWindowProcW", win32.LRESULT, win32.HWND, win32.UINT, win32.WPARAM, win32.LPARAM);
 
   this.WNDCLASSEXW = ctypes.StructType("WNDCLASSEXW", [
@@ -185,6 +185,16 @@ function user32_defines(lib) {
     { "message": win32.UINT },
     { "hwnd": win32.HWND }
   ]);
+
+  this.MSG = ctypes.StructType("MSG", [
+   { "hwnd": win32.HWND },
+   { "message": win32.UINT },
+   { "wParam": win32.WPARAM },
+   { "lParam": win32.LPARAM },
+   { "time": win32.DWORD },
+   { "pt": win32.POINT }
+  ]);
+  this.PMSG = this.MSG.ptr;
 
   this.HOOKPROC = ctypes.FunctionType(
     WinCbABI, win32.LRESULT,
@@ -374,6 +384,33 @@ function user32_defines(lib) {
 
   lib.lazy_bind("GetWindowPlacement", win32.BOOL, win32.HWND, this.WINDOWPLACEMENT.ptr);
   lib.lazy_bind("SetWindowPlacement", win32.BOOL, win32.HWND, this.WINDOWPLACEMENT.ptr);
+
+  this.WINDOWPOS = ctypes.StructType("WINDOWPOS", [
+   { "hwnd": win32.HWND },
+   { "hwndInsertAfter": win32.HWND },
+   { "x": ctypes.int },
+   { "y": ctypes.int },
+   { "cx": ctypes.int },
+   { "cy": ctypes.int },
+   { "flags": win32.UINT }
+  ]);
+  this.PWINDOWPOS = this.WINDOWPOS;
+
+  this.SWP_NOSIZE         = 0x0001;
+  this.SWP_NOMOVE         = 0x0002;
+  this.SWP_NOZORDER       = 0x0004;
+  this.SWP_NOREDRAW       = 0x0008;
+  this.SWP_NOACTIVATE     = 0x0010;
+  this.SWP_FRAMECHANGED   = 0x0020;  /* The frame changed: send WM_NCCALCSIZ= */
+  this.SWP_SHOWWINDOW     = 0x0040;
+  this.SWP_HIDEWINDOW     = 0x0080;
+  this.SWP_NOCOPYBITS     = 0x0100;
+  this.SWP_NOOWNERZORDER  = 0x0200;  /* Don't do owner Z orderin= */
+  this.SWP_NOSENDCHANGING = 0x0400;  /* Don't send WM_WINDOWPOSCHANGIN= */
+  this.SWP_DRAWFRAME      = this.SWP_FRAMECHANGED;
+  this.SWP_NOREPOSITION   = this.SWP_NOOWNERZORDER;
+  this.SWP_DEFERERASE     = 0x2000;
+  this.SWP_ASYNCWINDOWPOS = 0x4000;
 
 }
 

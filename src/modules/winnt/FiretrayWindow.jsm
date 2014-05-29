@@ -26,10 +26,9 @@ const FIRETRAY_XWINDOW_MAXIMIZED = 1 << 1;
 
 // We need to keep long-living references to wndProcs callbacks. As they also
 // happen to be ctypes pointers, we store them into real ctypes arrays.
-firetray.Handler.wndProcs      = new ctypesMap(user32.WNDPROC);
-firetray.Handler.wndProcsOrig  = new ctypesMap(user32.WNDPROC);
-firetray.Handler.procHooks          = new ctypesMap(win32.HHOOK);
-firetray.Handler.procHooksRegistred = new ctypesMap(win32.HHOOK);
+firetray.Handler.wndProcs        = new ctypesMap(win32.LONG_PTR);
+firetray.Handler.wndProcsOrig    = new ctypesMap(win32.LONG_PTR);
+firetray.Handler.wndProcsStartup = new ctypesMap(win32.LONG_PTR);
 
 
 firetray.Window = new FiretrayWindow();
@@ -64,84 +63,69 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
     log.debug("wndProc CALLED with WM_SYSCOMMAND wParam="+wParam);
     if (wParam === win32.SC_MINIMIZE) {
       log.debug("GOT ICONIFIED");
-      if (firetray.Handler.hideOnMinimizeMaybe(wid)) {
+      if (firetray.Handler.onMinimize(wid)) {
         return 0;               // processed => preventDefault
       }
     }
   }
 
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
-  return user32.CallWindowProcW(procPrev, hWnd, uMsg, wParam, lParam); // or DefWindowProcW
+  return user32.CallWindowProcW(user32.WNDPROC(procPrev), hWnd, uMsg, wParam, lParam); // or DefWindowProcW
 };
 
-// We could chain wndProcs, but adding a hook looks simpler.
-firetray.Window.showCount = 0;
-firetray.Window.startupHook = function(nCode, wParam, lParam) { // WH_CALLWNDPROC, WH_GETMESSAGE
-  // log.debug("startupHook CALLED: nCode="+nCode+", wParam="+wParam+", lParam="+lParam);
-  if (nCode < 0) return user32.CallNextHookEx(null, nCode, wParam, lParam); // user32.HC_ACTION
+/*
+ * We get the best effect by intercepting WM_WINDOWPOSCHANGING/SWP_SHOWWINDOW.
+ * Here, we subclass only once either with a startup wndProc, if
+ * start_hidden, or just our default wndProc. None of the following works:
+ * - a WH_CALLWNDPROC hook doesn't catch SWP_SHOWWINDOW
+ * - chaining WNDPROCs crashes the app (UserCallWinProcCheckWow or ffi_call)
+ */
+firetray.Window.startupShowCount = 0;
+firetray.Window.wndProcStartup = function(hWnd, uMsg, wParam, lParam) {
+  let wid = firetray.Win32.hwndToHexStr(hWnd);
 
-  let cwpstruct = ctypes.cast(win32.LPARAM(lParam), user32.CWPSTRUCT.ptr).contents;
-  let uMsg = cwpstruct.message;
-  let hwnd = cwpstruct.hwnd;
-  let wid = firetray.Win32.hwndToHexStr(hwnd);
-  let wparam = cwpstruct.wParam;
-  let lparam = cwpstruct.lParam;
+  if (uMsg === win32.WM_WINDOWPOSCHANGING) {
+    let posStruct = ctypes.cast(win32.LPARAM(lParam), user32.WINDOWPOS.ptr).contents;
+    let isShowing = ((posStruct.flags & user32.SWP_SHOWWINDOW) != 0);
+    if (isShowing) {
+      log.debug("wndProcStartup CALLED with WM_WINDOWPOSCHANGING/SWP_SHOWWINDOW");
+      firetray.Window.startupShowCount += 1;
 
-  if (uMsg === win32.WM_SHOWWINDOW && wparam == 1 && lparam == 0) { // shown and ShowWindow called
-    log.debug("startupHook CALLED with WM_SHOWWINDOW wparam="+wparam+" lparam="+lparam);
-    firetray.Window.showCount += 1;
-
-    if (firetray.Utils.prefService.getBoolPref('start_hidden')) {
-      log.debug("start_hidden");
-
-      /* Compared to ShowWindow, SetWindowPlacement seems to bypass window
-       animations. http://stackoverflow.com/a/6087214 */
-      let placement = new user32.WINDOWPLACEMENT;
-      let ret = user32.GetWindowPlacement(hwnd, placement.address());
-      log.debug("  GetWindowPlacement="+ret+" winLastError="+ctypes.winLastError);
-      log.debug("  PLACEMENT="+placement);
-
-      if (firetray.Window.showCount < 2) {
-        // we can't prevent ShowWindow, so we mitigate the effect by minimizing
-        // it before. This is why we'll have to restore it when unhidden.
-        placement.showCmd = user32.SW_SHOWMINNOACTIVE;
-        ret = user32.SetWindowPlacement(hwnd, placement.address());
-        log.debug("  SetWindowPlacement="+ret+" winLastError="+ctypes.winLastError);
-
-        firetray.Utils.timer(
-          FIRETRAY_DELAY_NOWAIT_MILLISECONDS,
-          Ci.nsITimer.TYPE_ONE_SHOT, function(){firetray.Handler.hideWindow(wid);}
-        ); // looks like CData (hwnd) cannot be closured
-
-      } else {                  // restore
-        firetray.Window.detachHook(wid);
-
-        placement.showCmd = user32.SW_RESTORE;
-        user32.SetWindowPlacement(hwnd, placement.address());
+      if (firetray.Window.startupShowCount < 2) {  // hide
+        log.debug("start_hidden");
+        // Modifying a JS posStruct field does really modify the WINDOWPOS C
+        // struct behind lParam !
+        posStruct.flags &= ~user32.SWP_SHOWWINDOW;
+        let force = true;
+        firetray.Handler.addPopupMenuWindowItemAndSeparatorMaybe(wid, force);
       }
-
-    } else {
-      firetray.Window.detachHook(wid);
+      else {                    // restore
+        firetray.Window.attachWndProc({
+          wid: wid, hwnd: hWnd,
+          jsProc: firetray.Window.wndProc,
+          mapNew: firetray.Handler.wndProcs,
+          mapBak: null
+        });
+        firetray.Handler.wndProcsStartup.remove(wid);
+      }
     }
-
   }
 
-  return user32.CallNextHookEx(null, nCode, wParam, lParam);
+  let procPrev = firetray.Handler.wndProcsOrig.get(wid);
+  return user32.CallWindowProcW(user32.WNDPROC(procPrev), hWnd, uMsg, wParam, lParam);
 };
 
-firetray.Window.attachWndProc = function(wid, hwnd) {
+// procInfo = {wid, hwnd, jsProc, mapNew, mapBak}
+firetray.Window.attachWndProc = function(procInfo) {
   try {
-    let wndProc = user32.WNDPROC(firetray.Window.wndProc);
+    let wndProc = ctypes.cast(user32.WNDPROC(procInfo.jsProc), win32.LONG_PTR);
     log.debug("proc="+wndProc);
-    firetray.Handler.wndProcs.insert(wid, wndProc);
-    let procPrev = user32.WNDPROC(
-      user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC,
-                            ctypes.cast(wndProc, win32.LONG_PTR))
-    );
+    procInfo.mapNew.insert(procInfo.wid, wndProc);
+    let procPrev = user32.SetWindowLongW(procInfo.hwnd, user32.GWLP_WNDPROC, wndProc);
     log.debug("procPrev="+procPrev+" winLastError="+ctypes.winLastError);
     /* we can't store WNDPROC callbacks (JS ctypes objects) with SetPropW(), as
      we need long-living refs. */
-    firetray.Handler.wndProcsOrig.insert(wid, procPrev);
+    if (procInfo.mapBak) procInfo.mapBak.insert(procInfo.wid, procPrev);
 
   } catch (x) {
     if (x.name === "RangeError") { // instanceof not working :-(
@@ -157,40 +141,17 @@ firetray.Window.attachWndProc = function(wid, hwnd) {
   }
 };
 
-firetray.Window.detachWndProc = function(wid) {
-  let procPrev = firetray.Handler.wndProcsOrig.get(wid);
+// procInfo = {wid, mapNew, mapBak}
+firetray.Window.detachWndProc = function(procInfo) {
+  let wid = procInfo.wid;
+  let procPrev = procInfo.mapBak.get(wid);
   let hwnd = firetray.Win32.hexStrToHwnd(wid);
   log.debug("hwnd="+hwnd);
-  let proc = user32.WNDPROC(
-    user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC,
-                          ctypes.cast(procPrev, win32.LONG_PTR))
-  );
-  firetray.js.assert(firetray.js.strEquals(proc, firetray.Handler.wndProcs.get(wid)),
+  let proc = user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC, procPrev);
+  firetray.js.assert(firetray.js.strEquals(proc, procInfo.mapNew.get(wid)),
                      "Wrong WndProc replaced.");
-  firetray.Handler.wndProcs.remove(wid);
-  firetray.Handler.wndProcsOrig.remove(wid);
-};
-
-firetray.Window.attachHook = function(wid) { // detaches itself alone
-    let startupHook = user32.HOOKPROC(firetray.Window.startupHook);
-    log.debug("callhk="+startupHook);
-    firetray.Handler.procHooks.insert(wid, startupHook);
-    // Global hooks must reside in a dll (hence hInst). This is important for
-    // the scope of variables.
-    let hhook = user32.SetWindowsHookExW(
-      user32.WH_CALLWNDPROC, startupHook, null, kernel32.GetCurrentThreadId());
-    log.debug("  hhook="+hhook+" winLastError="+ctypes.winLastError);
-    firetray.Handler.procHooksRegistred.insert(wid, hhook);
-};
-
-firetray.Window.detachHook = function(wid) { // detaches itself alone
-  let hook = firetray.Handler.procHooksRegistred.get(wid);
-  if (!user32.UnhookWindowsHookEx(hook)) {
-    log.error("UnhookWindowsHookEx for window "+wid+" failed: winLastError="+ctypes.winLastError);
-    return;
-  }
-  firetray.Handler.procHooks.remove(wid);
-  firetray.Handler.procHooksRegistred.remove(wid);
+  procInfo.mapNew.remove(wid);
+  procInfo.mapBak.remove(wid);
 };
 
 
@@ -230,10 +191,19 @@ firetray.Handler.registerWindow = function(win) {
   });
   log.debug("window "+wid+" registered");
 
-  firetray.Window.attachWndProc(wid, hwnd);
-  if (!firetray.Handler.appStarted) {
-    firetray.Window.attachHook(wid);
+  let proc, map;
+  if (!firetray.Handler.appStarted &&
+      firetray.Utils.prefService.getBoolPref('start_hidden')) {
+    proc = firetray.Window.wndProcStartup; map = firetray.Handler.wndProcsStartup;
+  } else {
+    proc = firetray.Window.wndProc; map = firetray.Handler.wndProcs;
   }
+  firetray.Window.attachWndProc({
+    wid: wid, hwnd: hwnd,
+    jsProc: proc,
+    mapNew: map,
+    mapBak: firetray.Handler.wndProcsOrig
+  });
 
   firetray.Win32.acceptAllMessages(hwnd);
 
@@ -250,7 +220,25 @@ firetray.Handler.unregisterWindow = function(win) {
     return false;
   }
 
-  firetray.Window.detachWndProc(wid);
+  try {
+    firetray.Window.detachWndProc({
+      wid: wid,
+      mapNew: firetray.Handler.wndProcsStartup,
+      mapBak: firetray.Handler.wndProcsOrig
+    });
+    log.debug("Window never shown.");
+  } catch (x) {
+    if (x.name === "RangeError") {
+      firetray.Window.detachWndProc({
+        wid: wid,
+        mapNew: firetray.Handler.wndProcs,
+        mapBak: firetray.Handler.wndProcsOrig
+      });
+    } else {
+      log.error(x);
+      Cu.reportError(x);
+    }
+  }
 
   if (!delete firetray.Handler.windows[wid])
     throw new DeleteError();

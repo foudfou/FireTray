@@ -104,9 +104,12 @@ firetray.PopupMenu = {
                        0, null);
   },
 
-  // FIXME: need to handle hides_single_window=false
-  addWindowItemAndSeparatorMaybe: function(wid) {
-    if (firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)
+  /**
+   * @param force: useful to start_hidden, when window is not shown
+   */
+  addWindowItemAndSeparatorMaybe: function(wid, force) {
+    if (typeof force === "undefined") force = false;
+    if (force || firetray.Handler.visibleWindowsCount === firetray.Handler.windowsCount)
       this.insertSeparator();
     this.addWindowItem(wid);
   },
