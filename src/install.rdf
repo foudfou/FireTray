@@ -87,14 +87,20 @@
     <em:translator>Wacław Jacek [pl-PL]</em:translator>
     <em:translator>Alberto Eidh [pt-BR]</em:translator>
     <em:translator>Quicksilver tears [ru-RU]</em:translator>
-    <em:translator>VitalD [ru-RU]</em:translator>
     <em:translator>lukas_sk [sk-SK]</em:translator>
-    <em:translator>Slavko slavino.sk [sk-SK]</em:translator>
     <em:translator>miles [sl-SL]</em:translator>
     <em:translator>Lakrits [sv-SE]</em:translator>
     <em:translator>efecan [tr-TR]</em:translator>
     <em:translator>Sappa [uk-UA]</em:translator>
     <em:translator>xmoke [zh-CN]</em:translator>
+
+    <em:localized>
+      <Description>
+        <em:locale>de-DE</em:locale>
+        <em:translator>Florian Haftmann</em:translator>
+        <em:description>Tray-Erweiterung für GNU/Linux.</em:description>
+      </Description>
+    </em:localized>
 
     <em:localized>
       <Description>
@@ -143,6 +149,22 @@
         <em:locale>pl-PL</em:locale>
         <em:translator>AreYouLoco?</em:translator>
         <em:description>Rozszerzenie zasobnika dla linuxa.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
+        <em:locale>sk-SK</em:locale>
+        <em:translator>Slavko slavino.sk</em:translator>
+        <em:description>Linuxové rozšírenie pre oznamovaciu lištu.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
+        <em:locale>ru-RU</em:locale>
+        <em:translator>VitalD</em:translator>
+        <em:description>Значок в трее для GNU/Linux.</em:description>
       </Description>
     </em:localized>
 
