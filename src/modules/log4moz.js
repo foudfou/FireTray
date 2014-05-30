@@ -331,13 +331,11 @@ function BasicFormatter(dateFormat) {
   if (dateFormat)
     this.dateFormat = dateFormat;
 }
-BasicFormatter.prototype = {
-  __proto__: Formatter.prototype,
-
-  format: function BF_format(message) {
-    return message.time + "\t" + message.loggerName + "\t" + message.levelDesc
-           + "\t" + message.message + "\n";
-  }
+BasicFormatter.prototype = Object.create(Formatter.prototype);
+BasicFormatter.prototype.constructor = BasicFormatter;
+BasicFormatter.prototype.format = function BF_format(message) {
+  return message.time + "\t" + message.loggerName + "\t" + message.levelDesc
+    + "\t" + message.message + "\n";
 };
 
 /*
@@ -372,12 +370,10 @@ function DumpAppender(formatter) {
   this._name = "DumpAppender";
   Appender.call(this, formatter);
 }
-DumpAppender.prototype = {
-  __proto__: Appender.prototype,
-
-  doAppend: function DApp_doAppend(message) {
-    dump(message);
-  }
+DumpAppender.prototype = Object.create(Appender.prototype);
+DumpAppender.prototype.constructor = DumpAppender;
+DumpAppender.prototype.doAppend = function DApp_doAppend(message) {
+  dump(message);
 };
 
 /*
@@ -389,17 +385,14 @@ function ConsoleAppender(formatter) {
   this._name = "ConsoleAppender";
   Appender.call(this, formatter);
 }
-ConsoleAppender.prototype = {
-  __proto__: Appender.prototype,
-
-  doAppend: function CApp_doAppend(message) {
-    if (message.level > Log4Moz.Level.Warn) {
-      Cu.reportError(message);
-      return;
-    }
-    Cc["@mozilla.org/consoleservice;1"].
-      getService(Ci.nsIConsoleService).logStringMessage(message);
+ConsoleAppender.prototype = Object.create(Appender.prototype);
+ConsoleAppender.prototype.doAppend = function CApp_doAppend(message) {
+  if (message.level > Log4Moz.Level.Warn) {
+    Cu.reportError(message);
+    return;
   }
+  Cc["@mozilla.org/consoleservice;1"].
+    getService(Ci.nsIConsoleService).logStringMessage(message);
 };
 
 /**
@@ -414,20 +407,20 @@ function BlockingStreamAppender(formatter) {
   this._name = "BlockingStreamAppender";
   Appender.call(this, formatter);
 }
-BlockingStreamAppender.prototype = {
-  __proto__: Appender.prototype,
+BlockingStreamAppender.prototype = Object.create(Appender.prototype);
+BlockingStreamAppender.prototype.constructor = BlockingStreamAppender;
+BlockingStreamAppender.prototype._converterStream = null, // holds the nsIConverterOutputStream
+BlockingStreamAppender.prototype._outputStream = null,   // holds the underlying nsIOutputStream
 
-  _converterStream: null, // holds the nsIConverterOutputStream
-  _outputStream: null,    // holds the underlying nsIOutputStream
-
-  /**
-   * Output stream to write to.
-   *
-   * This will automatically open the stream if it doesn't exist yet by
-   * calling newOutputStream. The resulting raw stream is wrapped in a
-   * nsIConverterOutputStream to ensure text is written as UTF-8.
-   */
-  get outputStream() {
+/**
+ * Output stream to write to.
+ *
+ * This will automatically open the stream if it doesn't exist yet by
+ * calling newOutputStream. The resulting raw stream is wrapped in a
+ * nsIConverterOutputStream to ensure text is written as UTF-8.
+ */
+Object.defineProperty(BlockingStreamAppender, "outputStream", {
+  get: function outputStream() {
     if (!this._outputStream) {
       // First create a raw stream. We can bail out early if that fails.
       this._outputStream = this.newOutputStream();
@@ -439,43 +432,43 @@ BlockingStreamAppender.prototype = {
       // the instance if we already have one.
       if (!this._converterStream) {
         this._converterStream = Cc["@mozilla.org/intl/converter-output-stream;1"]
-                                  .createInstance(Ci.nsIConverterOutputStream);
+          .createInstance(Ci.nsIConverterOutputStream);
       }
       this._converterStream.init(
         this._outputStream, "UTF-8", STREAM_SEGMENT_SIZE,
         Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
     }
     return this._converterStream;
-  },
+  }
+});
 
-  newOutputStream: function newOutputStream() {
-    throw "Stream-based appenders need to implement newOutputStream()!";
-  },
+BlockingStreamAppender.prototype.newOutputStream = function newOutputStream() {
+  throw "Stream-based appenders need to implement newOutputStream()!";
+};
 
-  reset: function reset() {
-    if (!this._outputStream) {
-      return;
-    }
-    this.outputStream.close();
-    this._outputStream = null;
-  },
+BlockingStreamAppender.prototype.reset = function reset() {
+  if (!this._outputStream) {
+    return;
+  }
+  this.outputStream.close();
+  this._outputStream = null;
+};
 
-  doAppend: function doAppend(message) {
-    if (!message) {
-      return;
-    }
-    try {
-      this.outputStream.writeString(message);
-    } catch(ex) {
-      if (ex.result == Cr.NS_BASE_STREAM_CLOSED) {
-        // The underlying output stream is closed, so let's open a new one
-        // and try again.
-        this._outputStream = null;
-        try {
-          this.outputStream.writeString(message);
-        } catch (ex) {
-          // Ah well, we tried, but something seems to be hosed permanently.
-        }
+BlockingStreamAppender.prototype.doAppend = function doAppend(message) {
+  if (!message) {
+    return;
+  }
+  try {
+    this.outputStream.writeString(message);
+  } catch(ex) {
+    if (ex.result == Cr.NS_BASE_STREAM_CLOSED) {
+      // The underlying output stream is closed, so let's open a new one
+      // and try again.
+      this._outputStream = null;
+      try {
+        this.outputStream.writeString(message);
+      } catch (ex) {
+        // Ah well, we tried, but something seems to be hosed permanently.
       }
     }
   }
@@ -493,28 +486,27 @@ function StorageStreamAppender(formatter) {
   this._name = "StorageStreamAppender";
   BlockingStreamAppender.call(this, formatter);
 }
-StorageStreamAppender.prototype = {
-  __proto__: BlockingStreamAppender.prototype,
+StorageStreamAppender.prototype = Object.create(BlockingStreamAppender.prototype);
+StorageStreamAppender.prototype.constructor = StorageStreamAppender;
 
-  _ss: null,
-  newOutputStream: function newOutputStream() {
-    let ss = this._ss = Cc["@mozilla.org/storagestream;1"]
-                          .createInstance(Ci.nsIStorageStream);
-    ss.init(STREAM_SEGMENT_SIZE, PR_UINT32_MAX, null);
-    return ss.getOutputStream(0);
-  },
+StorageStreamAppender.prototype._ss = null,
+StorageStreamAppender.prototype.newOutputStream = function newOutputStream() {
+  let ss = this._ss = Cc["@mozilla.org/storagestream;1"]
+        .createInstance(Ci.nsIStorageStream);
+  ss.init(STREAM_SEGMENT_SIZE, PR_UINT32_MAX, null);
+  return ss.getOutputStream(0);
+};
 
-  getInputStream: function getInputStream() {
-    if (!this._ss) {
-      return null;
-    }
-    return this._ss.newInputStream(0);
-  },
-
-  reset: function reset() {
-    BlockingStreamAppender.prototype.reset.call(this);
-    this._ss = null;
+StorageStreamAppender.prototype.getInputStream = function getInputStream() {
+  if (!this._ss) {
+    return null;
   }
+  return this._ss.newInputStream(0);
+};
+
+StorageStreamAppender.prototype.reset = function reset() {
+  BlockingStreamAppender.prototype.reset.call(this);
+  this._ss = null;
 };
 
 /**
@@ -529,24 +521,23 @@ function FileAppender(file, formatter) {
   this._file = file; // nsIFile
   BlockingStreamAppender.call(this, formatter);
 }
-FileAppender.prototype = {
-  __proto__: BlockingStreamAppender.prototype,
+FileAppender.prototype = Object.create(BlockingStreamAppender.prototype);
+FileAppender.prototype.constructor = FileAppender;
 
-  newOutputStream: function newOutputStream() {
-    try {
-      return FileUtils.openFileOutputStream(this._file);
-    } catch(e) {
-      return null;
-    }
-  },
+FileAppender.prototype.newOutputStream = function newOutputStream() {
+  try {
+    return FileUtils.openFileOutputStream(this._file);
+  } catch(e) {
+    return null;
+  }
+};
 
-  reset: function reset() {
-    BlockingStreamAppender.prototype.reset.call(this);
-    try {
-      this._file.remove(false);
-    } catch (e) {
-      // File didn't exist in the first place, or we're on Windows. Meh.
-    }
+FileAppender.prototype.reset = function reset() {
+  BlockingStreamAppender.prototype.reset.call(this);
+  try {
+    this._file.remove(false);
+  } catch (e) {
+    // File didn't exist in the first place, or we're on Windows. Meh.
   }
 };
 
@@ -567,38 +558,37 @@ function RotatingFileAppender(file, formatter, maxSize, maxBackups) {
   this._maxSize = maxSize;
   this._maxBackups = maxBackups;
 }
-RotatingFileAppender.prototype = {
-  __proto__: FileAppender.prototype,
+RotatingFileAppender.prototype = Object.create(FileAppender.prototype);
+RotatingFileAppender.prototype.constructor = RotatingFileAppender;
 
-  doAppend: function doAppend(message) {
-    FileAppender.prototype.doAppend.call(this, message);
-    try {
-      this.rotateLogs();
-    } catch(e) {
-      dump("Error writing file:" + e + "\n");
-    }
-  },
-
-  rotateLogs: function rotateLogs() {
-    if (this._file.exists() && this._file.fileSize < this._maxSize) {
-      return;
-    }
-
-    BlockingStreamAppender.prototype.reset.call(this);
-
-    for (let i = this.maxBackups - 1; i > 0; i--) {
-      let backup = this._file.parent.clone();
-      backup.append(this._file.leafName + "." + i);
-      if (backup.exists()) {
-        backup.moveTo(this._file.parent, this._file.leafName + "." + (i + 1));
-      }
-    }
-
-    let cur = this._file.clone();
-    if (cur.exists()) {
-      cur.moveTo(cur.parent, cur.leafName + ".1");
-    }
-
-    // Note: this._file still points to the same file
+RotatingFileAppender.prototype.doAppend = function doAppend(message) {
+  FileAppender.prototype.doAppend.call(this, message);
+  try {
+    this.rotateLogs();
+  } catch(e) {
+    dump("Error writing file:" + e + "\n");
   }
+};
+
+RotatingFileAppender.prototype.rotateLogs = function rotateLogs() {
+  if (this._file.exists() && this._file.fileSize < this._maxSize) {
+    return;
+  }
+
+  BlockingStreamAppender.prototype.reset.call(this);
+
+  for (let i = this.maxBackups - 1; i > 0; i--) {
+    let backup = this._file.parent.clone();
+    backup.append(this._file.leafName + "." + i);
+    if (backup.exists()) {
+      backup.moveTo(this._file.parent, this._file.leafName + "." + (i + 1));
+    }
+  }
+
+  let cur = this._file.clone();
+  if (cur.exists()) {
+    cur.moveTo(cur.parent, cur.leafName + ".1");
+  }
+
+  // Note: this._file still points to the same file
 };

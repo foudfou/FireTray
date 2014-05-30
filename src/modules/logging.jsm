@@ -85,46 +85,42 @@ firetray.Logging = {
   setupLogging: function(loggerName) {
 
     // lifted from log4moz.js
-    function SimpleFormatter() {}
-    SimpleFormatter.prototype = {
-      __proto__: LogMod.Formatter.prototype,
+    function SimpleFormatter() {LogMod.Formatter.call(this);}
+    SimpleFormatter.prototype = Object.create(LogMod.Formatter.prototype);
+    SimpleFormatter.prototype.constructor = SimpleFormatter;
+    SimpleFormatter.prototype.format = function(message) {
+      let messageString = "";
+      if (message.hasOwnProperty("message"))
+        messageString = message.message;
+      else
+        // The trick below prevents errors further down because mo is null or
+        //  undefined.
+        messageString = [
+          ("" + mo) for each
+                    ([,mo] in Iterator(message.messageObjects))].join(" ");
 
-      format: function(message) {
-        let messageString = "";
-        if (message.hasOwnProperty("message"))
-          messageString = message.message;
-        else
-          // The trick below prevents errors further down because mo is null or
-          //  undefined.
-          messageString = [
-            ("" + mo) for each
-                      ([,mo] in Iterator(message.messageObjects))].join(" ");
+      let date = new Date(message.time);
+      let dateStr = date.getHours() + ":" + date.getMinutes() + ":" +
+            date.getSeconds() + "." + date.getMilliseconds();
+      let stringLog = dateStr + " " +
+            message.levelDesc + " " + message.loggerName + " " +
+            messageString + "\n";
 
-        let date = new Date(message.time);
-        let dateStr = date.getHours() + ":" + date.getMinutes() + ":" +
-              date.getSeconds() + "." + date.getMilliseconds();
-        let stringLog = dateStr + " " +
-          message.levelDesc + " " + message.loggerName + " " +
-          messageString + "\n";
+      if (message.exception)
+        stringLog += message.stackTrace + "\n";
 
-        if (message.exception)
-          stringLog += message.stackTrace + "\n";
-
-        return stringLog;
-      }
+      return stringLog;
     };
 
-    function ColorTermFormatter() {}
-    ColorTermFormatter.prototype = {
-      __proto__: SimpleFormatter.prototype,
+    function ColorTermFormatter() {SimpleFormatter.call(this);}
+    ColorTermFormatter.prototype = Object.create(SimpleFormatter.prototype);
+    ColorTermFormatter.prototype.constructor = ColorTermFormatter;
+    ColorTermFormatter.prototype.format = function(message) {
+      let color = colorTermLogColors[message.levelDesc];
+      let stringLog = SimpleFormatter.prototype.format.call(this, message);
+      stringLog = color + stringLog + COLOR_RESET;
 
-      format: function(message) {
-        let color = colorTermLogColors[message.levelDesc];
-        let stringLog = SimpleFormatter.prototype.format.call(this, message);
-        stringLog = color + stringLog + COLOR_RESET;
-
-        return stringLog;
-      }
+      return stringLog;
     };
 
     // Loggers are hierarchical, affiliation is handled by a '.' in the name.
