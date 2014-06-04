@@ -171,10 +171,15 @@ firetray.Handler.registerWindow = function(win) {
 
   let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
   let nativeHandle = baseWin.nativeHandle;
-  let hwnd = nativeHandle ?
-        firetray.Win32.hexStrToHwnd(nativeHandle) :
-        user32.FindWindowW("MozillaWindowClass", win.document.title);
-  let wid = firetray.Win32.hwndToHexStr(hwnd);
+  let hwnd, wid;
+  if (nativeHandle) {
+    hwnd = firetray.Win32.hexStrToHwnd(nativeHandle);
+    wid = nativeHandle;
+  }
+  else {
+    hwnd = user32.FindWindowW("MozillaWindowClass", win.document.title);
+    wid = firetray.Win32.hwndToHexStr(hwnd);
+  }
   log.debug("=== hwnd="+hwnd+" wid="+wid+" win.document.title: "+win.document.title);
 
   if (this.windows.hasOwnProperty(wid)) {
