@@ -85,10 +85,15 @@ firetray.StatusIcon = {
   loadThemedIcons: function() { },
 
   loadImages: function() {
-    // the Mozilla hidden window has the default Mozilla icon
-    let hwnd_hidden_moz = user32.FindWindowW("MozillaHiddenWindowClass", null);
-    log.debug("=== hwnd_hidden_moz="+hwnd_hidden_moz);
-    this.icons.insert('app', this.getIconFromWindow(hwnd_hidden_moz));
+    let topmost = firetray.Handler.getWindowInterface(
+      Services.wm.getMostRecentWindow(null), "nsIBaseWindow");
+    let hwnd;
+    if (topmost.nativeHandle)
+      hwnd = firetray.Win32.hexStrToHwnd(topmost.nativeHandle);
+    else
+      hwnd = user32.FindWindowW("MozillaHiddenWindowClass", null);
+    log.debug("topmost or hiddenWin hwnd="+hwnd);
+    this.icons.insert('app', this.getIconFromWindow(hwnd));
     ['app_icon_custom', 'mail_icon_custom'].forEach(function(elt) {
       firetray.StatusIcon.loadImageCustom(elt);
     });
