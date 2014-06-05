@@ -87,11 +87,7 @@ firetray.StatusIcon = {
   loadImages: function() {
     let topmost = firetray.Handler.getWindowInterface(
       Services.wm.getMostRecentWindow(null), "nsIBaseWindow");
-    let hwnd;
-    if (topmost.nativeHandle)
-      hwnd = firetray.Win32.hexStrToHwnd(topmost.nativeHandle);
-    else
-      hwnd = user32.FindWindowW("MozillaHiddenWindowClass", null);
+    let hwnd = firetray.Win32.hexStrToHwnd(topmost.nativeHandle);
     log.debug("topmost or hiddenWin hwnd="+hwnd);
     this.icons.insert('app', this.getIconFromWindow(hwnd));
     ['app_icon_custom', 'mail_icon_custom'].forEach(function(elt) {
