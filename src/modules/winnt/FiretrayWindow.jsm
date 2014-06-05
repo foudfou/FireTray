@@ -170,16 +170,12 @@ firetray.Handler.registerWindow = function(win) {
   log.debug("register window");
 
   let baseWin = firetray.Handler.getWindowInterface(win, "nsIBaseWindow");
-  let nativeHandle = baseWin.nativeHandle;
-  let hwnd, wid;
-  if (nativeHandle) {
-    hwnd = firetray.Win32.hexStrToHwnd(nativeHandle);
-    wid = nativeHandle;
+  let wid = baseWin.nativeHandle;
+  if (!wid) {
+    log.error("nativeHandle undefined ?!");
+    return false;
   }
-  else {
-    hwnd = user32.FindWindowW("MozillaWindowClass", win.document.title);
-    wid = firetray.Win32.hwndToHexStr(hwnd);
-  }
+  let hwnd = firetray.Win32.hexStrToHwnd(wid);
   log.debug("=== hwnd="+hwnd+" wid="+wid+" win.document.title: "+win.document.title);
 
   if (this.windows.hasOwnProperty(wid)) {
