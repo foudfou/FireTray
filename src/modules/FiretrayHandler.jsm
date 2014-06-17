@@ -145,7 +145,7 @@ firetray.Handler = {
       this.restoredWindowsCount = this.readTBRestoreWindowsCount();
       log.info("restoredWindowsCount="+this.restoredWindowsCount);
       if (!this.restoredWindowsCount) {
-        log.error("session file could not be read");
+        log.warn("session file could not be read");
         this.restoredWindowsCount = 1; // default
       }
       firetray.Utils.addObservers(firetray.Handler, [ "mail-startup-done" ]);
