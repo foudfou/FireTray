@@ -156,6 +156,9 @@ $(build_dir)/%: %
 	@mkdir -p $(dir $@)
 	@cp -f $< $@ # -d for symlinks
 
+$(build_dir)/$(license): ../$(license)
+	@cp -f $< $@
+
 # Inject SCM revision stamp. This may be useful in case we mess up with tags
 $(build_dir)/$(install_rdf): $(install_rdf)
 	@sed 's/\/\* SCM-REVISION:/\/* SCM-REVISION: $(SCM-REVISION) /' $< > $@
