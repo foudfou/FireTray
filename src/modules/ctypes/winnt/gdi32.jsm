@@ -43,6 +43,7 @@ function gdi32_defines(lib) {
   this.NOMIRRORBITMAP = win32.DWORD(0x80000000); /* Do not Mirror the bitmap in this call */
   this.CAPTUREBLT     = win32.DWORD(0x40000000); /* Include layered windows */
   lib.lazy_bind("CreateCompatibleBitmap", win32.HBITMAP, win32.HDC, ctypes.int, ctypes.int);
+  lib.lazy_bind("CreateBitmap", win32.HBITMAP, ctypes.int, ctypes.int, win32.UINT, win32.UINT, ctypes.voidptr_t);
   lib.lazy_bind("CreateBitmapIndirect", win32.HBITMAP, win32.BITMAP.ptr);
   lib.lazy_bind("GetObjectW", ctypes.int, win32.HGDIOBJ, ctypes.int, win32.LPVOID);
   lib.lazy_bind("GetCurrentObject", win32.HGDIOBJ, win32.HDC, win32.UINT);
@@ -176,6 +177,9 @@ function gdi32_defines(lib) {
   ]);
   this.PBITMAPINFO = this.BITMAPINFO.ptr;
   lib.lazy_bind("SetDIBits", ctypes.int, win32.HDC, win32.HBITMAP, win32.UINT, win32.UINT, ctypes.voidptr_t, this.BITMAPINFO.ptr, win32.UINT);
+
+  lib.lazy_bind("GetPixel", win32.COLORREF, win32.HDC, ctypes.int, ctypes.int);
+  lib.lazy_bind("SetPixel", win32.COLORREF, win32.HDC, ctypes.int, ctypes.int, win32.COLORREF);
 
 }
 

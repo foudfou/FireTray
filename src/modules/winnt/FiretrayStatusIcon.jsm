@@ -29,14 +29,13 @@ if ("undefined" == typeof(firetray.Handler))
 
 const ICON_CHROME_PATH = "chrome://firetray/skin/icons/winnt";
 const ICON_CHROME_FILES = {
-  'blank-icon': ICON_CHROME_PATH+"/blank-icon.bmp",
-  'mail-unread': ICON_CHROME_PATH+"/mail-unread.ico",
-  // these are for the popup menu:
-  'prefs': ICON_CHROME_PATH+"/gtk-preferences.bmp",
-  'quit': ICON_CHROME_PATH+"/application-exit.bmp",
-  'new-wnd': ICON_CHROME_PATH+"/document-new.bmp",
-  'new-msg': ICON_CHROME_PATH+"/gtk-edit.bmp",
-  'reset': ICON_CHROME_PATH+"/gtk-apply.bmp"
+  'blank-icon': { use:'tray', path:ICON_CHROME_PATH+"/blank-icon.bmp" },
+  'mail-unread': { use:'tray', path:ICON_CHROME_PATH+"/mail-unread.ico" },
+  'prefs': { use:'menu', path:ICON_CHROME_PATH+"/gtk-preferences.bmp" },
+  'quit': { use:'menu', path:ICON_CHROME_PATH+"/application-exit.bmp" },
+  'new-wnd': { use:'menu', path:ICON_CHROME_PATH+"/document-new.bmp" },
+  'new-msg': { use:'menu', path:ICON_CHROME_PATH+"/gtk-edit.bmp" },
+  'reset': { use:'menu', path:ICON_CHROME_PATH+"/gtk-apply.bmp" },
 };
 
 
@@ -97,8 +96,13 @@ firetray.StatusIcon = {
     /* we'll take the first icon in the .ico file. To get the icon count in the
      file, pass ctypes.cast(ctypes.int(-1), win32.UINT); */
     for (let imgName in ICON_CHROME_FILES) {
-      let path = firetray.Utils.chromeToPath(ICON_CHROME_FILES[imgName]);
+      let path = firetray.Utils.chromeToPath(ICON_CHROME_FILES[imgName].path);
       let img = this.loadImageFromFile(path);
+      if (img && ICON_CHROME_FILES[imgName].use == 'menu')
+        /* Ideally we should rebuild the menu each time it is shown as the menu
+         color may change. But, let's just consider it's not worth it for
+         now. */
+        img.himg = this.makeBitMapTransparent(img.himg);
       if (img)
         this[this.IMG_TYPES[img['type']]['map']].insert(imgName, img['himg']);
     }
@@ -418,6 +422,36 @@ firetray.StatusIcon = {
       log.error("icon '"+name+"' not defined.");
     }
     return hicon;
+  },
+
+  // http://www.dreamincode.net/forums/topic/281612-how-to-make-bitmaps-on-menus-transparent-in-c-win32/
+  makeBitMapTransparent: function(hbmSrc) {
+    log.debug("hbmSrc="+hbmSrc);
+    let hdcSrc = gdi32.CreateCompatibleDC(null);
+    let hdcDst = gdi32.CreateCompatibleDC(null);
+    if (!hdcSrc || !hdcSrc) return null;
+
+    let bm = new win32.BITMAP();
+    let err = gdi32.GetObjectW(hbmSrc, win32.BITMAP.size, bm.address());
+    let hbmOld = ctypes.cast(gdi32.SelectObject(hdcSrc, hbmSrc), win32.HBITMAP);
+    let width = bm.bmWidth, height = bm.bmHeight;
+    let hbmNew = gdi32.CreateBitmap(width, height, bm.bmPlanes, bm.bmBitsPixel, null);
+    gdi32.SelectObject(hdcDst, hbmNew);
+
+    gdi32.BitBlt(hdcDst,0,0,width, height,hdcSrc,0,0,gdi32.SRCCOPY);
+
+    let clrTP = gdi32.GetPixel(hdcDst, 0, 0);          // color of first pixel
+    let clrBK = user32.GetSysColor(user32.COLOR_MENU); // current background color
+
+    for (let nRow=0, len=height; nRow<len; ++nRow)
+      for (let nCol=0, len=width; nCol<len; ++nCol)
+        if (firetray.js.strEquals(gdi32.GetPixel(hdcDst, nCol, nRow), clrTP))
+          gdi32.SetPixel(hdcDst, nCol, nRow, clrBK);
+
+    gdi32.DeleteDC(hdcDst);
+    gdi32.DeleteDC(hdcSrc);
+
+    return hbmNew;
   }
 
 }; // firetray.StatusIcon

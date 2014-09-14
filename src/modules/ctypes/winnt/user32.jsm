@@ -412,6 +412,9 @@ function user32_defines(lib) {
   this.SWP_DEFERERASE     = 0x2000;
   this.SWP_ASYNCWINDOWPOS = 0x4000;
 
+  lib.lazy_bind("GetSysColor", win32.DWORD, ctypes.int);
+  this.COLOR_MENU = 4;
+
 }
 
 new ctypes_library(USER32_LIBNAME, USER32_ABIS, user32_defines, this);
