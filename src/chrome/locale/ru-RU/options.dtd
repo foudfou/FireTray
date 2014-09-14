@@ -57,8 +57,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "U">
 <!ENTITY mail_notification_newmail_icon.label "показать значок новой почты">
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
-<!ENTITY mail_notification_custom_mail_icon.label "показать выбранный значок">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "I">
+<!ENTITY mail_notification_mail_icon_custom.label "показать выбранный значок">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "I">
 <!ENTITY icon_text_color "Цвет текста">
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Выбрать">
@@ -87,8 +87,8 @@
 <!ENTITY mail_change_trigger.accesskey "L">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
 <!ENTITY mail_change_trigger.tooltip "Абсолютный путь к программе. В качестве первого аргумента будет передано количество сообщений">
-<!ENTITY mail_urgency_hint.label "Установить срочное оповещение X11">
-<!ENTITY mail_urgency_hint.accesskey "X">
+<!ENTITY mail_get_attention.label "Установить срочное оповещение X11">
+<!ENTITY mail_get_attention.accesskey "X">
 
 <!ENTITY chat_icon_enable.label "Включить значок чата">
 <!ENTITY chat_icon_enable.accesskey "E">

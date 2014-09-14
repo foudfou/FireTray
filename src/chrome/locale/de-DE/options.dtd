@@ -56,8 +56,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "A">
 <!ENTITY mail_notification_newmail_icon.label "Icon aus dem Desktop-Theme">
 <!ENTITY mail_notification_newmail_icon.accesskey "T">
-<!ENTITY mail_notification_custom_mail_icon.label "Beliebiges Icon">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "I">
+<!ENTITY mail_notification_mail_icon_custom.label "Beliebiges Icon">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "I">
 <!ENTITY icon_text_color "Textfarbe">
 <!ENTITY icon_text_color.accesskey "F">
 <!ENTITY choose "Auswählen">
@@ -86,8 +86,8 @@
 <!ENTITY mail_change_trigger.accesskey "A">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
 <!ENTITY mail_change_trigger.tooltip "absoluter Pfad eines Executables, das aufgerufen wird, falls sich die Anzahl der Mails ändert; die (neue) Anzahl der Mails wird als Argument übergeben.">
-<!ENTITY mail_urgency_hint.label "»X11 urgency hint« absetzen">
-<!ENTITY mail_urgency_hint.accesskey "X">
+<!ENTITY mail_get_attention.label "»X11 urgency hint« absetzen">
+<!ENTITY mail_get_attention.accesskey "X">
 
 <!ENTITY chat_icon_enable.label "Chat-Icon aktivieren">
 <!ENTITY chat_icon_enable.accesskey "A">

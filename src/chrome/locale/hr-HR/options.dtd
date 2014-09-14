@@ -51,8 +51,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "U">
 <!ENTITY mail_notification_newmail_icon.label "prikaži ikonu pristigle pošte">
 <!ENTITY mail_notification_newmail_icon.accesskey "N">
-<!ENTITY mail_notification_custom_mail_icon.label "prikaži prilagođenu ikonu">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "I">
+<!ENTITY mail_notification_mail_icon_custom.label "prikaži prilagođenu ikonu">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "I">
 <!ENTITY icon_text_color "Boja teksta">
 <!ENTITY icon_text_color.accesskey "T">
 <!ENTITY choose "Odaberi">
@@ -77,8 +77,8 @@
 <!ENTITY mail_change_trigger.accesskey "L">
 <!ENTITY mail_change_trigger.placeholder "/bin/pošalji-obavijest">
 <!ENTITY mail_change_trigger.tooltip "Potpuna putanja programa koji će se pokrenuti kada se broj poruka promijeni. Taj program će dobiti novi broj poruka kao prvi argument.">
-<!ENTITY mail_urgency_hint.label "Postavi X11 napomenu hitnosti">
-<!ENTITY mail_urgency_hint.accesskey "X">
+<!ENTITY mail_get_attention.label "Postavi X11 napomenu hitnosti">
+<!ENTITY mail_get_attention.accesskey "X">
 <!ENTITY chat_icon_enable.label "Omogući ikonu čavrljanja">
 <!ENTITY chat_icon_enable.accesskey "E">
 <!ENTITY chat_icon_blink.label "Ikona čavrljanja blinka kod pristigle poruke">
