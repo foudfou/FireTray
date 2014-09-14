@@ -100,7 +100,7 @@ firetray.StatusIcon = {
       let img = this.loadImageFromFile(path);
       if (img && ICON_CHROME_FILES[imgName].use == 'menu')
         /* Ideally we should rebuild the menu each time it is shown as the menu
-         color may change. But, let's just consider it's not worth it for
+         color may change. But let's just consider it's not worth it for
          now. */
         img.himg = this.makeBitMapTransparent(img.himg);
       if (img)

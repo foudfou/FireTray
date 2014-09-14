@@ -74,7 +74,8 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
 };
 
 /*
- * We get the best effect by intercepting WM_WINDOWPOSCHANGING/SWP_SHOWWINDOW.
+ * For start_hidden, we get the best effect by intercepting
+ * WM_WINDOWPOSCHANGING/SWP_SHOWWINDOW.
  * Here, we subclass only once either with a startup wndProc, if
  * start_hidden, or just our default wndProc. None of the following works:
  * - a WH_CALLWNDPROC hook doesn't catch SWP_SHOWWINDOW
@@ -144,11 +145,12 @@ firetray.Window.attachWndProc = function(procInfo) {
 // procInfo = {wid, mapNew, mapBak}
 firetray.Window.detachWndProc = function(procInfo) {
   let wid = procInfo.wid;
-  let procPrev = procInfo.mapBak.get(wid);
+  let procBak = procInfo.mapBak.get(wid);
+  let procNew = procInfo.mapNew.get(wid);
   let hwnd = firetray.Win32.hexStrToHwnd(wid);
   log.debug("hwnd="+hwnd);
-  let proc = user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC, procPrev);
-  firetray.js.assert(firetray.js.strEquals(proc, procInfo.mapNew.get(wid)),
+  let procPrev = user32.SetWindowLongW(hwnd, user32.GWLP_WNDPROC, procBak);
+  firetray.js.assert(firetray.js.strEquals(procPrev, procNew),
                      "Wrong WndProc replaced.");
   procInfo.mapNew.remove(wid);
   procInfo.mapBak.remove(wid);
@@ -221,25 +223,22 @@ firetray.Handler.unregisterWindow = function(win) {
     return false;
   }
 
+  let mapNew;
   try {
-    firetray.Window.detachWndProc({
-      wid: wid,
-      mapNew: firetray.Handler.wndProcsStartup,
-      mapBak: firetray.Handler.wndProcsOrig
-    });
-    log.debug("Window never shown.");
+    firetray.Handler.wndProcsStartup.get(wid); // throws
+    mapNew = firetray.Handler.wndProcsStartup;
+    log.debug("Window never shown (unregistered but procStartup still in place).");
   } catch (x) {
     if (x.name === "RangeError") {
-      firetray.Window.detachWndProc({
-        wid: wid,
-        mapNew: firetray.Handler.wndProcs,
-        mapBak: firetray.Handler.wndProcsOrig
-      });
+      mapNew = firetray.Handler.wndProcs;
     } else {
       log.error(x);
       Cu.reportError(x);
     }
   }
+  firetray.Window.detachWndProc({
+    wid: wid, mapNew: mapNew, mapBak: firetray.Handler.wndProcsOrig
+  });
 
   if (!delete firetray.Handler.windows[wid])
     throw new DeleteError();

@@ -74,29 +74,30 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
    * we override the fake buttons' default actions.
    */
   hijackTitlebarButtons: function() {
-    this.titlebarDispatch.forEach(function(button) {
-      let fInfo = firetrayChrome.replaceCommand(button.id, button.new);
+    Object.keys(this.titlebarDispatch).forEach(function(id) {
+      let button = this.titlebarDispatch[id];
+      let fInfo = firetrayChrome.replaceCommand(id, button.new);
       if (fInfo) {
         button.old = fInfo[0];
         firetray_log.debug('replaced command='+button.id+' type='+fInfo[1]+' func='+fInfo[0]);
         button.type = fInfo[1];
       }
-    });
+    }, this);
   },
 
-  titlebarDispatch: [
-    {id: "titlebar-min", new: function(e){
+  titlebarDispatch: {
+    "titlebar-min": { new: function(e){
       firetray_log.debug('  titlebar-min clicked');
       if (!firetray.Handler.onMinimize(firetrayChrome.winId))
         firetrayChrome.applyDefaultCommand("titlebar-min");
-    }, old: null, type: null},
-    {id: "titlebar-close", new: function(e){
+    }, old: null, type: null },
+    "titlebar-close": { new: function(e){
       firetray_log.debug('  titlebar-close clicked');
       if (!firetrayChrome.onClose(null)) {
         firetrayChrome.applyDefaultCommand("titlebar-close");
       }
-    }, old: null, type: null}
-  ],
+    }, old: null, type: null }
+  },
 
   replaceCommand: function(eltId, func) {
     let elt = document.getElementById(eltId);
