@@ -48,10 +48,11 @@
     <div class="span-16 colborder">
       <header>
         <p id="about">
-	  FireTray is a Linux Mozilla addon that targets Firefox, Thunderbird
-	  and Seamonkey. It provides a system tray icon with much window
-	  handling functionality. For mail applications, the icon can show the
-	  number of unread or new messages. FireTray is very customizable.
+	  FireTray is a Mozilla addon that targets Firefox, Thunderbird and
+	  Seamonkey. It provides a system tray icon with much window handling
+	  functionality. For mail applications, the icon can show the number of
+	  unread or new messages. FireTray is very customizable and works on
+	  Linux and Windows.
         </p>
       </header>
     </div>
@@ -82,8 +83,7 @@
                 <li>start minimized to tray</li>
                 <li>show icon only when hidden to tray</li>
                 <li>mouse scroll on tray icon shows/hides</li>
-                <li>GTK-themable icons</li>
-                <li>customizable tray icons</li>
+                <li>customizable tray icons (GTK-themable on Linux)</li>
                 <li>popup menu (show/hide individual windows, open new windows, quit)</li>
                 <li>adds <code>-firetrayShowHide</code>
                 and <code>-firetrayPresent</code> options (useful for window
@@ -93,7 +93,7 @@
             <li><p>for mail applications:</p>
               <ul><li>display unread message count in tray icon</li>
                 <li>display biff in tray icon for new messages</li>
-                <li>set X11 urgency hint on new messages</li>
+                <li>draw attention on new messages</li>
                 <li>include/exclude mail accounts to/from messages count</li>
                 <li>include/exclude folders types to/from messages count</li>
                 <li>count in sub-folders recursively</li>
@@ -101,10 +101,11 @@
                 <li>restrict message count to favorite folders</li>
                 <li>trigger external program on message count change</li></ul></li>
 
-            <li><p>for applications embedding chat (currently only Thunderbird)</p>
+            <li><p>for applications embedding chat (currently only Thunderbird
+            and Seamonkey under Linux)</p>
               <ul><li>display additional system tray status icon</li>
                 <li>status icon can blink or <b>fade</b></li>
-                <li>set X11 urgency hint on new messages</li></ul></li>
+                <li>draw attention on new messages</li></ul></li>
 
           </ul></p>
       </section>
@@ -134,16 +135,32 @@
         <h2>Release Notes</h2>
 
         <article id="v0.4.8">
+          <h3>v0.5.0 &mdash; 2014-10-01</h3>
+          <p><strong>Beta-testers wanted</strong>. <a href="mailto:firetray-request@ml.free.fr?subject=subscribe">Join
+          our new mailing list</a>. Release candidates will be announced there
+          so Beta-testers can help testing them in their specific environment.</p>
+          <p><ul>
+              <li>New support for the <em>Windows</em> platform (very few
+                functionalities missing compared to Linux, most noticeably
+                scrolling on icon)</li>
+              <li>Fix use of embedded icons (<a href="https://github.com/foudfou/FireTray/issues/119">#119</a>)</li>
+              <li>Fix empty space if remove icon (<a href="https://github.com/foudfou/FireTray/issues/124">#124</a>)</li>
+              <li>New pl-PL locale (thx AreYouLoco!)</li>
+              <li>New croatian/hr-HR locale (thx gogo!)</li>
+              <li>New Russian locale (thx VitalD)</li>
+              <li>New de-DE locale (thx Florian Haftmann)</li>
+          </ul></p>
+        </article>
+
+        <article id="v0.4.8">
           <h3>v0.4.8 &mdash; 2013-11-12</h3>
-          <p><strong>Beta-testers
-          wanted</strong>. <a href="mailto:firetray-request@ml.free.fr?subject=subscribe">Join
-          our new mailing list</a>. Release candidates will be announced there so
-          Beta-testers can help testing them in their specific environment.</p>
           <p><ul>
               <li>hotfix for Firefox (bogus import) (<a href="https://github.com/foudfou/FireTray/issues/110">#110</a>)</li>
               <li>hotfix for Seamonkey (accounts scrambling) (<a href="https://github.com/foudfou/FireTray/issues/106">#106</a>)</li>
               <li>new preference for X11 urgency hint in mail applications (<a href="https://github.com/foudfou/FireTray/issues/111">#111</a>)</li>
           </ul></p>
+          <p>New <a href="mailto:firetray-request@ml.free.fr?subject=subscribe">
+          user mailing list</a> mostly intended for Beta-testers.</p>
         </article>
 
         <article id="v0.4.7">
