@@ -128,22 +128,23 @@ firetray.StatusIcon = {
     /* NOTE: here we do use a function handler (instead of a function
      definition) because we need the args passed to it ! As a consequence, we
      need to abandon 'this' in PopupMenu.popup() */
-    this.callbacks.menuPopup = gtk.GCallbackMenuPopup_t(firetray.PopupMenu.popup);
+    this.callbacks.menuPopup = gtk.GCallbackMenuPopup_t(firetray.PopupMenu.popup); // void return, no sentinel
     gobject.g_signal_connect(this.trayIcon, "popup-menu",
       firetray.StatusIcon.callbacks.menuPopup, firetray.PopupMenu.menu);
-    this.callbacks.onScroll = gtk.GCallbackOnScroll_t(firetray.StatusIcon.onScroll);
+    this.callbacks.onScroll = gtk.GCallbackOnScroll_t(
+      firetray.StatusIcon.onScroll, null, FIRETRAY_CB_SENTINEL);
     gobject.g_signal_connect(this.trayIcon, "scroll-event",
       firetray.StatusIcon.callbacks.onScroll, null);
 
     log.debug("showHideAllWindows: "+firetray.Handler.hasOwnProperty("showHideAllWindows"));
     this.callbacks.iconActivate = gtk.GCallbackStatusIconActivate_t(
-      firetray.StatusIcon.onClick);
+      firetray.StatusIcon.onClick, null, FIRETRAY_CB_SENTINEL);
     let handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
       "activate", firetray.StatusIcon.callbacks.iconActivate, null);
     log.debug("g_connect activate="+handlerId);
 
     this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
-      firetray.Handler.activateLastWindowCb);
+      firetray.Handler.activateLastWindowCb, null, FIRETRAY_CB_SENTINEL);
     handlerId = gobject.g_signal_connect(firetray.StatusIcon.trayIcon,
       "button-press-event", firetray.StatusIcon.callbacks.iconMiddleClick, null);
     log.debug("g_connect middleClick="+handlerId);
@@ -151,7 +152,7 @@ firetray.StatusIcon = {
 
   onScroll: function(icon, event, data) {
     if (!firetray.Utils.prefService.getBoolPref("scroll_hides"))
-      return;
+      return false;
 
     let iconGpointer = ctypes.cast(icon, gobject.gpointer);
     let gdkEventScroll = ctypes.cast(event, gdk.GdkEventScroll.ptr);
@@ -176,6 +177,9 @@ firetray.StatusIcon = {
     default:
       log.error("SCROLL UNKNOWN");
     }
+
+    let stopPropagation = false;
+    return stopPropagation;
   },
 
   onClick: function(gtkStatusIcon, userData) {

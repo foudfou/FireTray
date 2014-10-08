@@ -86,7 +86,7 @@ firetray.Window.shutdown = function() {
  * Iterate over all Gtk toplevel windows to find a window. We rely on
  * Service.wm to watch windows correctly: we should find only one window.
  *
- * @author Nils Maier (stolen from MiniTrayR)
+ * @author Nils Maier (stolen from MiniTrayR), himself inspired by Windows docs
  * @param window nsIDOMWindow from Services.wm
  * @return a gtk.GtkWindow.ptr
  */
@@ -105,7 +105,7 @@ firetray.Window.getGtkWindowFromChromeWindow = function(window) {
     // Search the window by the *temporary* title
     let widgets = gtk.gtk_window_list_toplevels();
     let that = this;
-    let findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle);
+    let findGtkWindowByTitleCb = gobject.GFunc_t(that._findGtkWindowByTitle); // void return, no sentinel
     var userData = new _find_data_t(
       ctypes.char.array()(baseWindow.title),
       null
@@ -590,18 +590,22 @@ firetray.Window.showAllWindowsAndActivate = function() {
 
 firetray.Window.attachOnFocusInCallback = function(xid) {
   log.debug("attachOnFocusInCallback xid="+xid);
-  this.signals['focus-in'].callback[xid] =
-    gtk.GCallbackWidgetFocusEvent_t(firetray.Window.onFocusIn);
-  this.signals['focus-in'].handler[xid] = gobject.g_signal_connect(
-    firetray.Handler.gtkWindows.get(xid), "focus-in-event",
-    firetray.Window.signals['focus-in'].callback[xid], null);
-  log.debug("focus-in handler="+this.signals['focus-in'].handler[xid]);
+  let callback = gtk.GCallbackWidgetFocusEvent_t(
+    firetray.Window.onFocusIn, null, FIRETRAY_CB_SENTINEL);
+  this.signals['focus-in'].callback[xid] = callback;
+  let rv = gobject.g_signal_connect(
+    firetray.Handler.gtkWindows.get(xid), "focus-in-event", callback, null);
+  log.debug("focus-in handler="+rv);
+  this.signals['focus-in'].handler[xid] = rv;
 };
 
 firetray.Window.detachOnFocusInCallback = function(xid) {
   log.debug("detachOnFocusInCallback xid="+xid);
   let gtkWin = firetray.Handler.gtkWindows.get(xid);
-  gobject.g_signal_handler_disconnect(gtkWin, this.signals['focus-in'].handler[xid]);
+  gobject.g_signal_handler_disconnect(
+    gtkWin,
+    gobject.gulong(this.signals['focus-in'].handler[xid])
+  );
   delete this.signals['focus-in'].callback[xid];
   delete this.signals['focus-in'].handler[xid];
 };
@@ -619,6 +623,9 @@ firetray.Window.onFocusIn = function(widget, event, data) {
   if (firetray.Handler.isChatEnabled() && firetray.Chat.initialized) {
     firetray.Chat.stopGetAttentionMaybe(xid);
   }
+
+  let stopPropagation = false;
+  return stopPropagation;
 };
 
 
@@ -660,10 +667,12 @@ firetray.Handler.registerWindow = function(win) {
      // delete_event_cb (in gtk2/nsWindow.cpp), but we prefer to use the
      // provided 'close' JS event
 
-    this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(firetray.Window.filterWindow);
+    this.windows[xid].filterWindowCb = gdk.GdkFilterFunc_t(
+      firetray.Window.filterWindow, null, FIRETRAY_CB_SENTINEL);
     gdk.gdk_window_add_filter(gdkWin, this.windows[xid].filterWindowCb, null);
     if (!firetray.Handler.appStarted) {
-      this.windows[xid].startupFilterCb = gdk.GdkFilterFunc_t(firetray.Window.startupFilter);
+      this.windows[xid].startupFilterCb = gdk.GdkFilterFunc_t(
+        firetray.Window.startupFilter, null, FIRETRAY_CB_SENTINEL);
       gdk.gdk_window_add_filter(gdkWin, this.windows[xid].startupFilterCb, null);
     }
 
@@ -673,8 +682,8 @@ firetray.Handler.registerWindow = function(win) {
     }
 
   } catch (x) {
-    firetray.Window.unregisterWindowByXID(xid);
     log.error(x);
+    firetray.Window.unregisterWindowByXID(xid);
     return null;
   }
 

@@ -16,7 +16,8 @@ var EXPORTED_SYMBOLS =
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS", "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD",
     "FIRETRAY_MESSAGE_COUNT_TYPE_NEW", "FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL",
     "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE", "FIRETRAY_APP_DB",
-    "FIRETRAY_XUL_ATTRIBUTE_COMMAND", "FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND" ];
+    "FIRETRAY_XUL_ATTRIBUTE_COMMAND", "FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND",
+    "FIRETRAY_CB_SENTINEL" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -90,6 +91,28 @@ const FIRETRAY_APP_DB = {
   }
 
 };
+
+/*
+ * Debugging purpose: if a callback fails (like "expected type int, got (void
+ * 0)"), there is no easy way to find out which (for ex. when called through
+ * g_signal_connect()). A possible way is to remove the sentinel definition on
+ * each callback definition one-by-one. For ex:
+ *
+ *   let callback = gtk.GCallbackWidgetFocusEvent_t(
+ *     firetray.Window.onFocusIn, null, FIRETRAY_CB_SENTINEL);
+ *
+ * becomes
+ *
+ *   let callback = gtk.GCallbackWidgetFocusEvent_t(
+ *     firetray.Window.onFocusIn);
+ *
+ * and see if the the message "JavaScript callback failed, and an error
+ * sentinel was not specified" appears in the console.
+ *
+ * Note: it's not possible to define a sentinel when the return type is void.
+ * Note: almost all return types end up as int's (even gboolean).
+ */
+const FIRETRAY_CB_SENTINEL = -1;
 
 /**
  * firetray namespace.
