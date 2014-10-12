@@ -78,7 +78,7 @@ var firetrayUIOptions = {
      'ui_radiogroup_scroll'].forEach(function(id){
        document.getElementById(id).hidden = true;
      });
-    document.getElementById("ui_scroll_hides").setAttribute("oncommand", void(0));
+    document.getElementById("ui_scroll_hides").removeAttribute("oncommand");
 
     // mail prefs
     document.getElementById("newmail_icon_names").hidden = true;

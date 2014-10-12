@@ -79,8 +79,8 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
       let fInfo = firetrayChrome.replaceCommand(id, button.new);
       if (fInfo) {
         button.old = fInfo[0];
-        firetray_log.debug('replaced command='+button.id+' type='+fInfo[1]+' func='+fInfo[0]);
         button.type = fInfo[1];
+        firetray_log.debug('replaced command='+id+' type='+fInfo[1]+' func='+fInfo[0]);
       }
     }, this);
   },
@@ -120,7 +120,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
       type = FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND;
       let prev = elt.getAttribute("oncommand");
       old = new Function(prev);
-      elt.setAttribute("oncommand", void(0));
+      elt.removeAttribute("oncommand");
       elt.addEventListener('command', func, false);
     } else {
       firetray_log.warn('Could not replace oncommand on '+eltId);
