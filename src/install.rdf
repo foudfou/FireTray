@@ -6,7 +6,7 @@
     <em:unpack>true</em:unpack> <!-- needed for embedded icons -->
     <em:type>2</em:type>
     <em:name>FireTray</em:name>
-    <em:version>0.5.1</em:version> <!-- change FIRETRAY_VERSION accordingly ! -->
+    <em:version>0.5.2</em:version> <!-- change FIRETRAY_VERSION accordingly ! -->
     <em:creator>Hua Luo, Francesco Solero, Foudil BRÉTEL</em:creator>
     <em:contributor>Hua Luo, Francesco Solero (Firetray original authors)</em:contributor>
     <em:homepageURL>https://github.com/foudfou/firetray</em:homepageURL>

@@ -26,7 +26,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION           = "0.5.1"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_VERSION           = "0.5.2"; // needed for sync call of onVersionChange() :(
 const FIRETRAY_SUPPORTED_OS      = ['linux', 'winnt']; // install.rdf sync :(
 const FIRETRAY_CHAT_SUPPORTED_OS = ['linux'];
 const FIRETRAY_FULL_FEAT_SUPPORTED_OS = FIRETRAY_CHAT_SUPPORTED_OS;
