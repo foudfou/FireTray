@@ -115,7 +115,7 @@ firetray.PopupMenu = {
   // hides_single_window is false, because if hides_single_window becomes true,
   // we'll just have to show the menuItems
   addWindowItem: function(xid) { // on registerWindow
-    log.warn("addWindowItem");
+    log.debug("addWindowItem");
     var menuItemWindow = this.createAndAddItemToMenu();
     firetray.Handler.gtkPopupMenuWindowItems.insert(xid, menuItemWindow);
     this.setWindowItemLabel(menuItemWindow, xid.toString()); // default to xid

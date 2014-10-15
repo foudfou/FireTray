@@ -376,11 +376,10 @@ firetray.Handler = {
   },
 
   onMinimize: function(wid) {
+    log.debug("onMinimize");
     let hidden = false;
-    let hides_on_minimize = firetray.Utils.prefService.getBoolPref('hides_on_minimize');
-    if (hides_on_minimize) {
-      let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
-      if (hides_single_window)
+    if (firetray.Utils.prefService.getBoolPref('hides_on_minimize')) {
+      if (firetray.Utils.prefService.getBoolPref('hides_single_window'))
         firetray.Handler.hideWindow(wid);
       else
         firetray.Handler.hideAllWindows();

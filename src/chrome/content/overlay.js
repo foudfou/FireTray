@@ -75,72 +75,53 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
    */
   hijackTitlebarButtons: function() {
     Object.keys(this.titlebarDispatch).forEach(function(id) {
-      let button = this.titlebarDispatch[id];
-      let fInfo = firetrayChrome.replaceCommand(id, button.new);
-      if (fInfo) {
-        button.old = fInfo[0];
-        button.type = fInfo[1];
-        firetray_log.debug('replaced command='+id+' type='+fInfo[1]+' func='+fInfo[0]);
+      if (firetrayChrome.replaceCommand(id, this.titlebarDispatch[id])) {
+        firetray_log.debug('replaced command='+id);
       }
     }, this);
   },
 
   titlebarDispatch: {
-    "titlebar-min": { new: function(e){
-      firetray_log.debug('  titlebar-min clicked');
-      if (!firetray.Handler.onMinimize(firetrayChrome.winId))
-        firetrayChrome.applyDefaultCommand("titlebar-min");
-    }, old: null, type: null },
-    "titlebar-close": { new: function(e){
-      firetray_log.debug('  titlebar-close clicked');
-      if (!firetrayChrome.onClose(null)) {
-        firetrayChrome.applyDefaultCommand("titlebar-close");
-      }
-    }, old: null, type: null }
+    "titlebar-min": function() {
+      return firetray.Handler.onMinimize(firetrayChrome.winId);
+    },
+    "titlebar-close": function() {
+      return firetrayChrome.onClose(null);
+    }
   },
 
-  replaceCommand: function(eltId, func) {
+  replaceCommand: function(eltId, gotHidden) {
     let elt = document.getElementById(eltId);
     if (!elt) {
       firetray_log.debug("Element '"+eltId+"' not found. Command not replaced.");
-      return null;
+      return false;
     }
 
-    let command = elt.command;
-    let oncommand = elt.getAttribute("oncommand");
-    let old = null, type = null;
-    if (command) {
-      firetray_log.debug('command');
-      type = FIRETRAY_XUL_ATTRIBUTE_COMMAND;
-      old = elt.command;
-      elt.command = null;
-      elt.addEventListener('click', func, false);
-    } else if (oncommand) {
-      firetray_log.debug('oncommand');
-      type = FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND;
-      let prev = elt.getAttribute("oncommand");
-      old = new Function(prev);
-      elt.removeAttribute("oncommand");
-      elt.addEventListener('command', func, false);
+    let prevent = null;
+    if (elt.command) {
+      prevent = { event: "click", func: function(e){e.preventDefault();} };
+    } else if (elt.getAttribute("oncommand")) {
+      prevent = { event: "command", func: function(e){e.stopPropagation();} };
     } else {
       firetray_log.warn('Could not replace oncommand on '+eltId);
+      return false;
     }
 
-    return [old, type];
-  },
-  applyDefaultCommand: function(key) {
-    let callType = this.titlebarDispatch[key]['type'];
-    if (callType === FIRETRAY_XUL_ATTRIBUTE_COMMAND) {
-      let cmdName = firetrayChrome.titlebarDispatch[key]['old'];
-      let cmd = document.getElementById(cmdName);
-      cmd.doCommand();
+    let callback = function(event) {
+      if (event.target.id === eltId) {
+        firetray_log.debug(prevent.event +' on '+eltId);
+        if (gotHidden())
+          prevent.func(event);
+      }
+    };
+    /* We put listeners on the "titlebar" parent node, because:
+     - we can hardly short-circuit command/oncommand (probably because they are
+       registered first)
+     - we'd have otherwise to alter "oncommand"/"command" attribute and use
+       Function(), which do not pass review nowadays. */
+    elt.parentNode.addEventListener(prevent.event, callback, true);
 
-    } else if (callType === FIRETRAY_XUL_ATTRIBUTE_ONCOMMAND) {
-      firetrayChrome.titlebarDispatch[key]['old']();
-
-    } else {
-      firetray_log.error("Calling type undefined for "+key);
-    }
+    return true;
   }
 
 };
