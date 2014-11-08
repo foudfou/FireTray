@@ -13,6 +13,7 @@ Cu.import("resource://firetray/ctypes/linux/cairo.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
+Cu.import("resource://firetray/ctypes/linux/glib.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
@@ -57,6 +58,33 @@ firetray.StatusIcon = {
       return false;
 
     this.addCallbacks();
+
+    Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
+    if (appind3.available() && this.isNotificationWatcherReady()) {
+      this.indicator = appind3.app_indicator_new(
+        'FOUDIL',
+        'firefox',
+        appind3.APP_INDICATOR_CATEGORY_APPLICATION_STATUS
+      );
+      appind3.app_indicator_set_status(this.indicator, appind3.APP_INDICATOR_STATUS_ACTIVE);
+      appind3.app_indicator_set_menu(this.indicator, firetray.PopupMenu.menu); // mandatory
+      log.warn("indicator="+this.indicator);
+      /*
+      let gval = new gobject.gboolean;
+      gobject.g_object_get(
+        ctypes.cast(this.indicator, gobject.gpointer),
+        "connected",
+        gval.address(),
+        ctypes.voidptr_t(null)
+      );
+      log.warn("gval="+gval+" true? "+!firetray.js.strEquals(gval, gobject.FALSE));
+       */
+      this.callbacks.indicator = appind3.AppIndicatorConnectionChangedCb_t(
+        firetray.StatusIcon.onAppIndicatorConnectionChanged); // void return, no sentinel
+      gobject.g_signal_connect(this.indicator, "connection-changed",
+                               firetray.StatusIcon.callbacks.indicator, null);
+      log.warn("status="+appind3.app_indicator_get_status(this.indicator));
+    }
 
     this.initialized = true;
     return true;
@@ -201,6 +229,48 @@ firetray.StatusIcon = {
       log.error("Icon missing");
     log.debug(gicon);
     gtk.gtk_status_icon_set_from_gicon(firetray.StatusIcon.trayIcon, gicon);
+  },
+
+  onAppIndicatorConnectionChanged: function(indicator, connected, data) {
+    log.warn("AppIndicator connection-changed: "+connected);
+  },
+
+  isNotificationWatcherReady: function() {
+    let watcherReady = false;
+
+    let conn = new gio.GDBusConnection.ptr;
+    let error = new glib.GError.ptr(null);
+    conn = gio.g_bus_get_sync(gio.G_BUS_TYPE_SESSION, null, error.address());
+    firetray.js.assert(error.isNull());
+    if (!conn.isNull()) {
+      let flags = gio.G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START |
+            gio.G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
+            gio.G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS;
+
+      let proxy = gio.g_dbus_proxy_new_for_bus_sync(
+        gio.G_BUS_TYPE_SESSION,
+        flags,
+        null, /* GDBusInterfaceInfo */
+        appind3.NOTIFICATION_WATCHER_DBUS_ADDR,
+        appind3.NOTIFICATION_WATCHER_DBUS_OBJ,
+        appind3.NOTIFICATION_WATCHER_DBUS_IFACE,
+        null, /* GCancellable */
+        error.address());
+      firetray.js.assert(error.isNull());
+
+      if (!proxy.isNull()) {
+        let owner = gio.g_dbus_proxy_get_name_owner(proxy);
+        if (!owner.isNull()) {
+          watcherReady = true;
+        }
+        gobject.g_object_unref(proxy);
+      }
+
+      gobject.g_object_unref(conn);
+    }
+    glib.g_error_free(error);
+
+    return watcherReady;
   }
 
 }; // firetray.StatusIcon

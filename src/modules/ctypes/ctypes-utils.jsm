@@ -128,7 +128,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
         log.debug("Successfully loaded " + soname);
         break;
       } catch(e) {
-          log.error(soname+" unfound.");
+        log.warn(soname+" unfound.");
       }
     }
 
