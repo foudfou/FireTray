@@ -89,18 +89,6 @@ firetray.Window.wndProcStartup = function(hWnd, uMsg, wParam, lParam) {
     let posStruct = ctypes.cast(win32.LPARAM(lParam),
                                 user32.WINDOWPOS.ptr).contents;
 
-    // let stateChanged = ((posStruct.flags & user32.SWP_STATECHANGED) != 0);
-    // if (!firetray.Window.startup.minimized && stateChanged) { // run minimized/maximized
-    //   Cu.reportError("  stateChanged");
-    //   let info = new user32.WINDOWINFO;
-    //   let ret = user32.GetWindowInfo(hWnd, info.address());
-    //   Cu.reportError("  hWnd="+hWnd+" uMsg="+uMsg+" dwStyle="+info.dwStyle);
-    //   firetray.Window.startup.minimized = ((info.dwStyle & user32.WS_MINIMIZE) != 0);
-    //   Cu.reportError("  minimized="+firetray.Window.startup.minimized);
-    //   posStruct.flags &= user32.SWP_NOSIZE|user32.SWP_NOMOVE;
-    //   // return 1;
-    // }
-
     let isShowing = ((posStruct.flags & user32.SWP_SHOWWINDOW) != 0);
     if (isShowing) {
       log.debug("wndProcStartup CALLED with WM_WINDOWPOSCHANGING/SWP_SHOWWINDOW");
@@ -135,8 +123,8 @@ firetray.Window.wndProcStartup = function(hWnd, uMsg, wParam, lParam) {
           user32.SetWindowPlacement(hWnd, placement.address());
         }
       }
-
     }
+
   }
 
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
