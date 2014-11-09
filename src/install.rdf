@@ -170,6 +170,14 @@
 
     <em:localized>
       <Description>
+        <em:locale>uk-UA</em:locale>
+        <em:translator>Володимир Савчук Volodymyr Savchuk</em:translator>
+        <em:description>Розширення системного лотка.</em:description>
+      </Description>
+    </em:localized>
+
+    <em:localized>
+      <Description>
         <em:locale>zh-TW</em:locale>
         <em:translator>Velociraptor</em:translator>
         <em:description>用的系統列套件。</em:description>
