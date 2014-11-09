@@ -35,6 +35,30 @@ function kernel32_defines(lib) {
   lib.lazy_bind("GetProcAddress", win32.FARPROC, win32.HMODULE, win32.LPCSTR);
   lib.lazy_bind("GetCurrentThreadId", win32.DWORD);
 
+  this.STARTUPINFO = ctypes.StructType("STARTUPINFO", [
+   { "cb": win32.DWORD },
+   { "lpReserved": win32.LPTSTR },
+   { "lpDesktop": win32.LPTSTR },
+   { "lpTitle": win32.LPTSTR },
+   { "dwX": win32.DWORD },
+   { "dwY": win32.DWORD },
+   { "dwXSize": win32.DWORD },
+   { "dwYSize": win32.DWORD },
+   { "dwXCountChars": win32.DWORD },
+   { "dwYCountChars": win32.DWORD },
+   { "dwFillAttribute": win32.DWORD },
+   { "dwFlags": win32.DWORD },
+   { "wShowWindow": win32.WORD  },
+   { "cbReserved2": win32.WORD  },
+   { "lpReserved2": win32.LPBYTE },
+   { "hStdInput": win32.HANDLE },
+   { "hStdOutput": win32.HANDLE },
+   { "hStdError": win32.HANDLE }
+  ]);
+  this.LPSTARTUPINFO = ctypes.PointerType(this.STARTUPINFO);
+
+  lib.lazy_bind("GetStartupInfoW", ctypes.void_t, this.LPSTARTUPINFO);
+
 }
 
 new ctypes_library(KERNEL32_LIBNAME, KERNEL32_ABIS, kernel32_defines, this);

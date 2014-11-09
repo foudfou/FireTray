@@ -372,6 +372,22 @@ function user32_defines(lib) {
   lib.lazy_bind("GetCursorPos", win32.BOOL, win32.LPPOINT);
   lib.lazy_bind("GetMessagePos", win32.DWORD);
 
+  this.WINDOWINFO = ctypes.StructType("WINDOWINFO", [
+   { "cbSize": win32.DWORD },
+   { "rcWindow": win32.RECT },
+   { "rcClient": win32.RECT },
+   { "dwStyle": win32.DWORD },
+   { "dwExStyle": win32.DWORD },
+   { "dwWindowStatus": win32.DWORD },
+   { "cxWindowBorders": win32.UINT },
+   { "cyWindowBorders": win32.UINT },
+   { "atomWindowType": win32.ATOM },
+   { "wCreatorVersion": win32.WORD }
+  ]);
+  this.PWINDOWINFO = this.LPWINDOWINFO = this.WINDOWINFO.ptr;
+
+  lib.lazy_bind("GetWindowInfo", win32.BOOL, win32.HWND, this.WINDOWINFO.ptr);
+
   this.WINDOWPLACEMENT = ctypes.StructType("WINDOWPLACEMENT", [
    { "length": win32.UINT },
    { "flags": win32.UINT },
@@ -411,6 +427,7 @@ function user32_defines(lib) {
   this.SWP_NOREPOSITION   = this.SWP_NOOWNERZORDER;
   this.SWP_DEFERERASE     = 0x2000;
   this.SWP_ASYNCWINDOWPOS = 0x4000;
+  this.SWP_STATECHANGED   = 0x8000;  /* Undocumented */
 
   lib.lazy_bind("GetSysColor", win32.DWORD, ctypes.int);
   this.COLOR_MENU = 4;

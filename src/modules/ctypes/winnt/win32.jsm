@@ -21,6 +21,7 @@ var win32 = new function() {
 
   this.BOOL      = ctypes.bool;
   this.BYTE      = ctypes.unsigned_char;
+  this.LPBYTE    = this.BYTE.ptr;
   this.INT_PTR   = is64bit ? ctypes.int64_t  : ctypes.int;
   this.UINT      = ctypes.unsigned_int;
   this.UINT_PTR  = is64bit ? ctypes.uint64_t : ctypes.unsigned_int;
