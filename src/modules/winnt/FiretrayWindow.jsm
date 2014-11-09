@@ -70,7 +70,8 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
   }
 
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
-  return user32.CallWindowProcW(user32.WNDPROC(procPrev), hWnd, uMsg, wParam, lParam); // or DefWindowProcW
+  return user32.CallWindowProcW(
+    user32.WNDPROC(procPrev), hWnd, uMsg, wParam, lParam); // or DefWindowProcW
 };
 
 /*
@@ -81,22 +82,27 @@ firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
  * - a WH_CALLWNDPROC hook doesn't catch SWP_SHOWWINDOW
  * - chaining WNDPROCs crashes the app (UserCallWinProcCheckWow or ffi_call)
  */
-firetray.Window.startupShowCount = 0;
 firetray.Window.wndProcStartup = function(hWnd, uMsg, wParam, lParam) {
   let wid = firetray.Win32.hwndToHexStr(hWnd);
 
   if (uMsg === win32.WM_WINDOWPOSCHANGING) {
-    let posStruct = ctypes.cast(win32.LPARAM(lParam), user32.WINDOWPOS.ptr).contents;
+    let posStruct = ctypes.cast(win32.LPARAM(lParam),
+                                user32.WINDOWPOS.ptr).contents;
+
     let isShowing = ((posStruct.flags & user32.SWP_SHOWWINDOW) != 0);
     if (isShowing) {
       log.debug("wndProcStartup CALLED with WM_WINDOWPOSCHANGING/SWP_SHOWWINDOW");
-      firetray.Window.startupShowCount += 1;
+      firetray.Window.startup.showCount += 1;
 
-      if (firetray.Window.startupShowCount < 2) {  // hide
+      if (firetray.Window.startup.showCount < 2) {  // hide
         log.debug("start_hidden");
-        // Modifying a JS posStruct field does really modify the WINDOWPOS C
-        // struct behind lParam !
-        posStruct.flags &= ~user32.SWP_SHOWWINDOW;
+        // Modifying posStruct is modifying lParam, which is passed onwards!
+        if (firetray.Window.startup.showSpecial) {
+          posStruct.flags &= user32.SWP_NOSIZE|user32.SWP_NOMOVE;
+        }
+        else {
+          posStruct.flags &= ~user32.SWP_SHOWWINDOW;
+        }
         let force = true;
         firetray.Handler.addPopupMenuWindowItemAndSeparatorMaybe(wid, force);
       }
@@ -108,8 +114,17 @@ firetray.Window.wndProcStartup = function(hWnd, uMsg, wParam, lParam) {
           mapBak: null
         });
         firetray.Handler.wndProcsStartup.remove(wid);
+
+        if (firetray.Window.startup.showSpecial) {
+          let placement = new user32.WINDOWPLACEMENT;
+          let ret = user32.GetWindowPlacement(hWnd, placement.address());
+          firetray.js.assert(ret, "GetWindowPlacement failed.");
+          placement.showCmd = firetray.Window.startup.showSpecial;
+          user32.SetWindowPlacement(hWnd, placement.address());
+        }
       }
     }
+
   }
 
   let procPrev = firetray.Handler.wndProcsOrig.get(wid);
@@ -197,6 +212,13 @@ firetray.Handler.registerWindow = function(win) {
   let proc, map;
   if (!firetray.Handler.appStarted &&
       firetray.Utils.prefService.getBoolPref('start_hidden')) {
+    let startupInfo = new kernel32.STARTUPINFO;
+    kernel32.GetStartupInfoW(startupInfo.address());
+    let showSpecial = ([
+      user32.SW_SHOWMINNOACTIVE, user32.SW_SHOWMINIMIZED,
+      user32.SW_SHOWMAXIMIZED
+    ].indexOf(startupInfo.wShowWindow) > -1) ? startupInfo.wShowWindow : 0;
+    firetray.Window.startup = {showCount: 0, showSpecial: showSpecial};
     proc = firetray.Window.wndProcStartup; map = firetray.Handler.wndProcsStartup;
   } else {
     proc = firetray.Window.wndProc; map = firetray.Handler.wndProcs;
