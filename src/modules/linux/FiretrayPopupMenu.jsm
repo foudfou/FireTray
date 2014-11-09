@@ -121,7 +121,7 @@ firetray.PopupMenu = {
     this.setWindowItemLabel(menuItemWindow, xid.toString()); // default to xid
 
     let callback = gobject.GCallback_t(
-      function(){firetray.Handler.showWindow(xid);}, null, FIRETRAY_CB_SENTINEL); // void return, no sentinel
+      function(){firetray.Handler.showWindow(xid);}); // void return, no sentinel
     this.callbacks.menuItemWindowActivate[xid] = callback,
     gobject.g_signal_connect(menuItemWindow, "activate", callback, null);
 

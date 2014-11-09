@@ -593,10 +593,10 @@ firetray.Window.attachOnFocusInCallback = function(xid) {
   let callback = gtk.GCallbackWidgetFocusEvent_t(
     firetray.Window.onFocusIn, null, FIRETRAY_CB_SENTINEL);
   this.signals['focus-in'].callback[xid] = callback;
-  let rv = gobject.g_signal_connect(
+  let handlerId = gobject.g_signal_connect(
     firetray.Handler.gtkWindows.get(xid), "focus-in-event", callback, null);
-  log.debug("focus-in handler="+rv);
-  this.signals['focus-in'].handler[xid] = rv;
+  log.debug("focus-in handler="+handlerId);
+  this.signals['focus-in'].handler[xid] = handlerId;
 };
 
 firetray.Window.detachOnFocusInCallback = function(xid) {
