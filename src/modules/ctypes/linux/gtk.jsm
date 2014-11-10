@@ -101,6 +101,7 @@ function gtk_defines(lib) {
 
   lib.lazy_bind("gtk_icon_theme_get_default", this.GtkIconTheme.ptr);
   lib.lazy_bind("gtk_icon_theme_get_for_screen", this.GtkIconTheme.ptr, gdk.GdkScreen.ptr);
+  lib.lazy_bind("gtk_icon_theme_get_search_path", ctypes.void_t, this.GtkIconTheme.ptr, gobject.gchar.ptr.ptr.array(), gobject.gint.ptr);
   lib.lazy_bind("gtk_icon_theme_append_search_path", ctypes.void_t, this.GtkIconTheme.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gtk_icon_theme_prepend_search_path", ctypes.void_t, this.GtkIconTheme.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gtk_icon_theme_choose_icon", this.GtkIconInfo.ptr, this.GtkIconTheme.ptr, gobject.gchar.ptr.array(), gobject.gint, this.GtkIconLookupFlags);

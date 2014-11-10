@@ -16,6 +16,8 @@ function glib_defines(lib) {
   /* mutual inclusion not possible */
   this.GQuark = ctypes.uint32_t; // this.GQuark = gobject.guint32;
   this.GError = ctypes.StructType("GError");
+
+  lib.lazy_bind("g_strfreev", ctypes.void_t, ctypes.char.ptr.ptr);
 };
 
 new ctypes_library(GLIB_LIBNAME, GLIB_ABIS, glib_defines, this);

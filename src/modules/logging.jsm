@@ -47,11 +47,11 @@ var colorTermLogColors = {
 if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
-var LogMod;
 
 // https://wiki.mozilla.org/Labs/JS_Modules#Logging
 firetray.Logging = {
   initialized: false,
+  LogMod: null,
 
   init: function() {
     if (this.initialized) return;
@@ -65,9 +65,9 @@ firetray.Logging = {
       }, this);
 
     if ("undefined" != typeof(Log)) {
-      LogMod = Log;
+      this.LogMod = Log;
     } else if ("undefined" != typeof(Log4Moz)) {
-      LogMod = Log4Moz;
+      this.LogMod = Log4Moz;
     } else {
       let errMsg = "Log module not found";
       dump(errMsg+"\n");
@@ -85,8 +85,8 @@ firetray.Logging = {
   setupLogging: function(loggerName) {
 
     // lifted from log4moz.js
-    function SimpleFormatter() {LogMod.Formatter.call(this);}
-    SimpleFormatter.prototype = Object.create(LogMod.Formatter.prototype);
+    function SimpleFormatter() {firetray.Logging.LogMod.Formatter.call(this);}
+    SimpleFormatter.prototype = Object.create(firetray.Logging.LogMod.Formatter.prototype);
     SimpleFormatter.prototype.constructor = SimpleFormatter;
     SimpleFormatter.prototype.format = function(message) {
       let messageString = "";
@@ -104,7 +104,7 @@ firetray.Logging = {
             date.getSeconds() + "." + date.getMilliseconds();
       let stringLog = dateStr + " " +
             message.levelDesc + " " + message.loggerName + " " +
-            messageString + "\n";
+            messageString;
 
       if (message.exception)
         stringLog += message.stackTrace + "\n";
@@ -124,14 +124,14 @@ firetray.Logging = {
     };
 
     // Loggers are hierarchical, affiliation is handled by a '.' in the name.
-    this._logger = LogMod.repository.getLogger(loggerName);
+    this._logger = this.LogMod.repository.getLogger(loggerName);
     // Lowering this log level will affect all of our addon output
-    this._logger.level = LogMod.Level[FIRETRAY_LOG_LEVEL];
+    this._logger.level = this.LogMod.Level[FIRETRAY_LOG_LEVEL];
 
     // A console appender outputs to the JS Error Console
     let simpleFormatter = new SimpleFormatter();
-    let capp = new LogMod.ConsoleAppender(simpleFormatter);
-    capp.level = LogMod.Level["Debug"];
+    let capp = new this.LogMod.ConsoleAppender(simpleFormatter);
+    capp.level = this.LogMod.Level["Debug"];
     this._logger.addAppender(capp);
 
     // A dump appender outputs to standard out
@@ -141,13 +141,13 @@ firetray.Logging = {
     } else {
       dumpFormatter = new SimpleFormatter();
     }
-    let dapp = new LogMod.DumpAppender(dumpFormatter);
-    dapp.level = LogMod.Level["Debug"];
+    let dapp = new this.LogMod.DumpAppender(dumpFormatter);
+    dapp.level = this.LogMod.Level["Debug"];
     this._logger.addAppender(dapp);
   },
 
   getLogger: function(loggerName){
-    return LogMod.repository.getLogger(loggerName);
+    return this.LogMod.repository.getLogger(loggerName);
   }
 
 };                              // firetray.Logging

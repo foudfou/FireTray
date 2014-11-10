@@ -335,7 +335,7 @@ BasicFormatter.prototype = Object.create(Formatter.prototype);
 BasicFormatter.prototype.constructor = BasicFormatter;
 BasicFormatter.prototype.format = function BF_format(message) {
   return message.time + "\t" + message.loggerName + "\t" + message.levelDesc
-    + "\t" + message.message + "\n";
+    + "\t" + message.message;
 };
 
 /*
@@ -373,7 +373,7 @@ function DumpAppender(formatter) {
 DumpAppender.prototype = Object.create(Appender.prototype);
 DumpAppender.prototype.constructor = DumpAppender;
 DumpAppender.prototype.doAppend = function DApp_doAppend(message) {
-  dump(message);
+  dump(message + "\n");
 };
 
 /*

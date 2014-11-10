@@ -44,6 +44,23 @@ firetray.GtkIcons = {
     let gtkIconTheme = gtk.gtk_icon_theme_get_default();
     log.debug("gtkIconTheme="+gtkIconTheme);
     gtk.gtk_icon_theme_append_search_path(gtkIconTheme, this.GTK_THEME_ICON_PATH);
+
+    if (log.level <= firetray.Logging.LogMod.Level.Debug) {
+      Cu.import("resource://firetray/ctypes/linux/glib.jsm");
+      Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+      firetray.Handler.subscribeLibsForClosing([glib, gobject]);
+      let path = new gobject.gchar.ptr.ptr;
+      let n_elements = new gobject.gint;
+      gtk.gtk_icon_theme_get_search_path(gtkIconTheme, path.address(), n_elements.address());
+      log.debug("n_elements="+n_elements+" path="+path);
+      let pathIt = path;
+      for (let i=0, len=n_elements.value; i<len || pathIt.isNull(); ++i) {
+        log.debug("path["+i+"]="+pathIt.contents.readString());
+        pathIt = pathIt.increment();
+      }
+      log.debug("path="+path+" pathIt="+pathIt);
+      glib.g_strfreev(path);
+    }
   }
 
 };
