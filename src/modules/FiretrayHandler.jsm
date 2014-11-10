@@ -201,6 +201,14 @@ firetray.Handler = {
     return this.appHasChat && Services.prefs.getBoolPref("mail.chat.enabled");
   },
 
+  subscribeLibsForClosing: function(libs) {
+    for (let i=0, len=libs.length; i<len; ++i) {
+      let lib = libs[i];
+      if (!this.ctypesLibs.hasOwnProperty(lib.name))
+        this.ctypesLibs[lib.name] = lib;
+    }
+  },
+
   tryCloseLibs: function() {
     try {
       for (let libName in this.ctypesLibs) {
@@ -209,14 +217,6 @@ firetray.Handler = {
           lib.close();
       };
     } catch(x) { log.error(x); }
-  },
-
-  subscribeLibsForClosing: function(libs) {
-    for (let i=0, len=libs.length; i<len; ++i) {
-      let lib = libs[i];
-      if (!this.ctypesLibs.hasOwnProperty(lib.name))
-        this.ctypesLibs[lib.name] = lib;
-    }
   },
 
   readTBRestoreWindowsCount: function() {

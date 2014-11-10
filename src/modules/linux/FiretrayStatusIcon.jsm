@@ -39,6 +39,7 @@ firetray.StatusIcon = {
   prefNewMailIconNames: null,
   defaultAppIconName: null,
   defaultNewMailIconName: null,
+  inidicator: null,
 
   init: function() {
     this.FILENAME_BLANK = firetray.Utils.chromeToPath(
@@ -49,42 +50,23 @@ firetray.StatusIcon = {
     this.defineIconNames();
     this.loadThemedIcons();
 
-    this.trayIcon = gtk.gtk_status_icon_new();
-    firetray.Handler.setIconImageDefault();
-    firetray.Handler.setIconTooltipDefault();
-
     Cu.import("resource://firetray/linux/FiretrayPopupMenu.jsm");
     if (!firetray.PopupMenu.init())
       return false;
 
-    this.addCallbacks();
-
     Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
-    if (appind3.available() && this.isNotificationWatcherReady()) {
-      this.indicator = appind3.app_indicator_new(
-        'FOUDIL',
-        'firefox',
-        appind3.APP_INDICATOR_CATEGORY_APPLICATION_STATUS
-      );
-      appind3.app_indicator_set_status(this.indicator, appind3.APP_INDICATOR_STATUS_ACTIVE);
-      appind3.app_indicator_set_menu(this.indicator, firetray.PopupMenu.menu); // mandatory
-      log.warn("indicator="+this.indicator);
-      /*
-      let gval = new gobject.gboolean;
-      gobject.g_object_get(
-        ctypes.cast(this.indicator, gobject.gpointer),
-        "connected",
-        gval.address(),
-        ctypes.voidptr_t(null)
-      );
-      log.warn("gval="+gval+" true? "+!firetray.js.strEquals(gval, gobject.FALSE));
-       */
-      this.callbacks.indicator = appind3.AppIndicatorConnectionChangedCb_t(
-        firetray.StatusIcon.onAppIndicatorConnectionChanged); // void return, no sentinel
-      gobject.g_signal_connect(this.indicator, "connection-changed",
-                               firetray.StatusIcon.callbacks.indicator, null);
-      log.warn("status="+appind3.app_indicator_get_status(this.indicator));
+    if (appind3.available() && this.dbusNotificationWatcherReady()) {
+      firetray.Handler.subscribeLibsForClosing([appind3]);
+      // FIXME: we may want to split into 2 separate modules: GtkStatusIcon and
+      // AppIndicator.
+      this.indicatorInit();
     }
+
+    this.trayIcon = gtk.gtk_status_icon_new();
+    firetray.Handler.setIconImageDefault();
+    firetray.Handler.setIconTooltipDefault();
+
+    this.addCallbacks();
 
     this.initialized = true;
     return true;
@@ -96,6 +78,32 @@ firetray.StatusIcon = {
     // FIXME: should destroy/hide icon here
     firetray.GtkIcons.shutdown();
     this.initialized = false;
+  },
+
+  indicatorInit: function() {
+    this.indicator = appind3.app_indicator_new(
+      FIRETRAY_APPINDICATOR_ID,
+      'firefox',
+      appind3.APP_INDICATOR_CATEGORY_COMMUNICATIONS
+    );
+    appind3.app_indicator_set_status(this.indicator, appind3.APP_INDICATOR_STATUS_ACTIVE);
+    appind3.app_indicator_set_menu(this.indicator, firetray.PopupMenu.menu); // mandatory
+    log.warn("indicator="+this.indicator);
+    /*
+     let gval = new gobject.gboolean;
+     gobject.g_object_get(
+     ctypes.cast(this.indicator, gobject.gpointer),
+     "connected",
+     gval.address(),
+     ctypes.voidptr_t(null)
+     );
+     log.warn("gval="+gval+" true? "+!firetray.js.strEquals(gval, gobject.FALSE));
+     */
+    this.callbacks.indicator = appind3.AppIndicatorConnectionChangedCb_t(
+      firetray.StatusIcon.onAppIndicatorConnectionChanged); // void return, no sentinel
+    gobject.g_signal_connect(this.indicator, "connection-changed",
+                             firetray.StatusIcon.callbacks.indicator, null);
+    log.warn("status="+appind3.app_indicator_get_status(this.indicator));
   },
 
   defineIconNames: function() {
@@ -235,7 +243,7 @@ firetray.StatusIcon = {
     log.warn("AppIndicator connection-changed: "+connected);
   },
 
-  isNotificationWatcherReady: function() {
+  dbusNotificationWatcherReady: function() {
     let watcherReady = false;
 
     let conn = new gio.GDBusConnection.ptr;
