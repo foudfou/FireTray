@@ -119,17 +119,15 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     for each (let abi in aABIs) {
       // FIXME: ABI is in fact SO_VER. Now we're mixing .so versions and the
       // .dll extension :(
-      let soname = abi === 'dll' ? aName :
+      let libname = abi === 'dll' ? aName :
         "lib" + aName + ".so." + abi.toString();
-      log.debug("Trying " + soname);
+      log.debug("Trying " + libname);
       try {
-        library = ctypes.open(soname);
+        library = ctypes.open(libname);
         this.ABI = abi;
-        log.debug("Successfully loaded " + soname);
+        log.debug("Successfully loaded " + libname);
         break;
-      } catch(e) {
-        log.warn(soname+" unfound.");
-      }
+      } catch(e) {}
     }
 
     this.name = aName;
@@ -153,7 +151,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     };
 
     if (!library) {
-      log.debug("Failed to load library: " + aName);
+      log.info("Library does not exist: " + aName);
       this.ABI = -1;
       return;
     }

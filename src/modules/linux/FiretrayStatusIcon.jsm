@@ -54,19 +54,18 @@ firetray.StatusIcon = {
     if (!firetray.PopupMenu.init())
       return false;
 
+    // FIXME: we may want to split into 2 separate modules: GtkStatusIcon and
+    // AppIndicator.
     Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
     if (appind3.available() && this.dbusNotificationWatcherReady()) {
       firetray.Handler.subscribeLibsForClosing([appind3]);
-      // FIXME: we may want to split into 2 separate modules: GtkStatusIcon and
-      // AppIndicator.
       this.indicatorInit();
+    } else {
+      this.trayIcon = gtk.gtk_status_icon_new();
+      firetray.Handler.setIconImageDefault();
+      firetray.Handler.setIconTooltipDefault();
+      this.addCallbacks();
     }
-
-    this.trayIcon = gtk.gtk_status_icon_new();
-    firetray.Handler.setIconImageDefault();
-    firetray.Handler.setIconTooltipDefault();
-
-    this.addCallbacks();
 
     this.initialized = true;
     return true;
@@ -246,10 +245,18 @@ firetray.StatusIcon = {
   dbusNotificationWatcherReady: function() {
     let watcherReady = false;
 
+    function error(e) {
+      if (!e.isNull()) {
+        log.error(e.contents.message);
+        glib.g_error_free(e);
+      }
+    }
+
     let conn = new gio.GDBusConnection.ptr;
-    let error = new glib.GError.ptr(null);
-    conn = gio.g_bus_get_sync(gio.G_BUS_TYPE_SESSION, null, error.address());
-    firetray.js.assert(error.isNull());
+    let err = new glib.GError.ptr(null);
+    conn = gio.g_bus_get_sync(gio.G_BUS_TYPE_SESSION, null, err.address());
+    if (error(err)) return watcherReady;
+
     if (!conn.isNull()) {
       let flags = gio.G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START |
             gio.G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
@@ -263,8 +270,8 @@ firetray.StatusIcon = {
         appind3.NOTIFICATION_WATCHER_DBUS_OBJ,
         appind3.NOTIFICATION_WATCHER_DBUS_IFACE,
         null, /* GCancellable */
-        error.address());
-      firetray.js.assert(error.isNull());
+        err.address());
+      if (error(err)) return watcherReady;
 
       if (!proxy.isNull()) {
         let owner = gio.g_dbus_proxy_get_name_owner(proxy);
@@ -276,7 +283,6 @@ firetray.StatusIcon = {
 
       gobject.g_object_unref(conn);
     }
-    glib.g_error_free(error);
 
     return watcherReady;
   }
