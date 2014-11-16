@@ -85,7 +85,7 @@ firetray.Handler = {
 
     this.support['chat'] = FIRETRAY_CHAT_SUPPORTED_OS
       .indexOf(this.runtimeOS) > -1;
-    this.support['full_feat']  = FIRETRAY_FULL_FEAT_SUPPORTED_OS
+    this.support['full_feat'] = FIRETRAY_FULL_FEAT_SUPPORTED_OS
       .indexOf(firetray.Handler.runtimeOS) > -1;
 
     if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
@@ -328,6 +328,7 @@ firetray.Handler = {
   },
 
   // these get overridden in OS-specific Icon/Window handlers
+  loadIcons: function() {},
   setIconImageDefault: function() {},
   setIconImageNewMail: function() {},
   setIconImageCustom: function(prefname) {},
@@ -551,7 +552,7 @@ firetray.PrefListener = new PrefListener(
       firetray.Messaging.updateIcon();
       break;
     case 'new_mail_icon_names':
-      firetray.StatusIcon.loadThemedIcons();
+      this.loadIcons();
     case 'excluded_folders_flags':
     case 'folder_count_recursive':
     case 'mail_accounts':
@@ -562,7 +563,7 @@ firetray.PrefListener = new PrefListener(
     case 'app_mail_icon_names':
     case 'app_browser_icon_names':
     case 'app_default_icon_names':
-      firetray.StatusIcon.loadThemedIcons(); // linux
+      this.loadIcons(); // linux
     case 'app_icon_custom':
     case 'mail_icon_custom':
       firetray.StatusIcon.loadImageCustom(name);

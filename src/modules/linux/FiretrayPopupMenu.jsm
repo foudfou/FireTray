@@ -21,11 +21,14 @@ if ("undefined" == typeof(firetray.StatusIcon))
 
 
 firetray.PopupMenu = {
+  MENU_ITEM_WINDOWS_POSITION: 3,
+
   initialized: false,
   callbacks: {menuItemWindowActivate: {}}, // FIXME: try to store them into a ctypes array/struct.
   menu: null,
   menuShell: null,
   menuSeparatorWindows: null,
+  menuShowHide: {tip: null, sep: null, item: null},
 
   init: function() {
     this.menu = gtk.gtk_menu_new();
@@ -33,16 +36,16 @@ firetray.PopupMenu = {
     var addMenuSeparator = false;
 
     if (firetray.Handler.inMailApp) {
-      this.addItem("ResetIcon", "gtk-apply", "activate",
-                   firetray.Handler.setIconImageDefault);
-      this.addItem("NewMessage", "gtk-edit", "activate",
-                   firetray.Handler.openMailMessage);
+      this.addItem({itemName:"ResetIcon", iconName:"gtk-apply",
+                    action:"activate", callback: firetray.Handler.setIconImageDefault});
+      this.addItem({itemName:"NewMessage", iconName:"gtk-edit",
+                    action:"activate", callback: firetray.Handler.openMailMessage});
       addMenuSeparator = true;
     }
 
     if (firetray.Handler.inBrowserApp) {
-      this.addItem("NewWindow", "gtk-new", "activate",
-                   firetray.Handler.openBrowserWindow);
+      this.addItem({itemName:"NewWindow", iconName:"gtk-new",
+                    action:"activate", callback: firetray.Handler.openBrowserWindow});
       addMenuSeparator = true;
     }
 
@@ -53,22 +56,25 @@ firetray.PopupMenu = {
                                                             gtk.GtkWidget.ptr));
     }
 
-    this.addItem("Preferences", "gtk-preferences", "activate",
-                 firetray.Handler.openPrefWindow);
+    this.addItem({itemName:"Preferences", iconName:"gtk-preferences",
+                  action:"activate", callback: firetray.Handler.openPrefWindow});
     menuSeparator = gtk.gtk_separator_menu_item_new();
     gtk.gtk_menu_shell_append(this.menuShell, ctypes.cast(menuSeparator,
                                                           gtk.GtkWidget.ptr));
 
-    this.addItem("Quit", "gtk-quit", "activate",
-                 firetray.Handler.quitApplication);
+    this.addItem({itemName:"Quit", iconName:"gtk-quit",
+                  action:"activate", callback: firetray.Handler.quitApplication});
 
     var menuWidget = ctypes.cast(this.menu, gtk.GtkWidget.ptr);
     gtk.gtk_widget_show_all(menuWidget);
 
-    var menuSeparatorWindows = gtk.gtk_separator_menu_item_new();
-    gtk.gtk_menu_shell_prepend(this.menuShell, ctypes.cast(menuSeparatorWindows,
-                                                           gtk.GtkWidget.ptr));
-    this.menuSeparatorWindows = menuSeparatorWindows;
+    // for hidden windows, not shown otherwise
+    this.menuSeparatorWindows = gtk.gtk_separator_menu_item_new();
+    gtk.gtk_menu_shell_prepend(
+      this.menuShell, ctypes.cast(this.menuSeparatorWindows, gtk.GtkWidget.ptr));
+
+    // for AppIndicator, not shown otherwise
+    this.prependAppIndicatorItems();
 
     this.initialized = true;
     return true;
@@ -79,22 +85,43 @@ firetray.PopupMenu = {
     this.initialized = false;
   },
 
-  addItem: function(itemName, iconName, action, callback) {
-    var menuItemLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel."+itemName); // shouldn't need to convert to utf8 later thank to js-ctypes
+  addItem: function(it) {
+    var menuItemLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel."+it.itemName); // shouldn't need to convert to utf8 later thank to js-ctypes
     var menuItem = gtk.gtk_image_menu_item_new_with_label(menuItemLabel);
-    var menuItemIcon = gtk.gtk_image_new_from_stock(iconName, gtk.GTK_ICON_SIZE_MENU);
+    var menuItemIcon = gtk.gtk_image_new_from_stock(it.iconName, gtk.GTK_ICON_SIZE_MENU);
     gtk.gtk_image_menu_item_set_image(menuItem, menuItemIcon);
-    gtk.gtk_menu_shell_append(this.menuShell, ctypes.cast(menuItem, gtk.GtkWidget.ptr));
+    var menuItemWidget = ctypes.cast(menuItem, gtk.GtkWidget.ptr);
+    if (it.inFront)
+      gtk.gtk_menu_shell_prepend(this.menuShell, menuItemWidget);
+    else
+      gtk.gtk_menu_shell_append(this.menuShell, menuItemWidget);
 
     function capitalizeFirst(str) {
       return str.charAt(0).toUpperCase() + str.substring(1);
     }
 
-    let cbName = "menuItem"+capitalizeFirst(itemName)+capitalizeFirst(action);
-    log.debug("cbName="+cbName);
-    this.callbacks[cbName] = gobject.GCallback_t(callback); // void return, no sentinel
-    gobject.g_signal_connect(menuItem, action,
+    let cbName = "menuItem"+capitalizeFirst(it.itemName)+capitalizeFirst(it.action);
+    if (this.callbacks.hasOwnProperty(cbName))
+      log.warn("callback '"+cbName+"' already registered");
+    else
+      log.debug("cbName="+cbName);
+    this.callbacks[cbName] = gobject.GCallback_t(it.callback); // void return, no sentinel
+    gobject.g_signal_connect(menuItem, it.action,
                              firetray.PopupMenu.callbacks[cbName], null);
+
+    return menuItem;
+  },
+
+  prependAppIndicatorItems: function() {
+    this.menuShowHide.sep = gtk.gtk_separator_menu_item_new();
+    gtk.gtk_menu_shell_prepend(this.menuShell, ctypes.cast(this.menuShowHide.sep,
+                                                           gtk.GtkWidget.ptr));
+    this.menuShowHide.item = this.addItem({
+      itemName:"ShowHide", iconName:"gtk-go-down", action:"activate", callback:
+      firetray.Handler.showHideAllWindows, inFront: true});
+    this.menuShowHide.tip = this.createAndAddItemToMenuAt(0);
+    gtk.gtk_widget_set_sensitive(
+      ctypes.cast(this.menuShowHide.tip, gtk.GtkWidget.ptr), false);
   },
 
   popup: function(icon, button, activateTime, menu) {
@@ -116,9 +143,10 @@ firetray.PopupMenu = {
   // we'll just have to show the menuItems
   addWindowItem: function(xid) { // on registerWindow
     log.debug("addWindowItem");
-    var menuItemWindow = this.createAndAddItemToMenu();
+    var menuItemWindow = this.createAndAddItemToMenuAt(
+      this.MENU_ITEM_WINDOWS_POSITION);
     firetray.Handler.gtkPopupMenuWindowItems.insert(xid, menuItemWindow);
-    this.setWindowItemLabel(menuItemWindow, xid.toString()); // default to xid
+    this.setItemLabel(menuItemWindow, xid.toString()); // default to xid
 
     let callback = gobject.GCallback_t(
       function(){firetray.Handler.showWindow(xid);}); // void return, no sentinel
@@ -128,10 +156,11 @@ firetray.PopupMenu = {
     log.debug("added gtkPopupMenuWindowItems: "+firetray.Handler.gtkPopupMenuWindowItems.count);
   },
 
-  createAndAddItemToMenu: function() {
+  createAndAddItemToMenuAt: function(pos) {
     var menuItem = gtk.gtk_image_menu_item_new();
-    gtk.gtk_menu_shell_prepend(this.menuShell, ctypes.cast(menuItem,
-                                                           gtk.GtkWidget.ptr));
+    gtk.gtk_menu_shell_insert(this.menuShell,
+                              ctypes.cast(menuItem, gtk.GtkWidget.ptr),
+                              pos);
     return menuItem;
   },
 
@@ -158,7 +187,7 @@ firetray.PopupMenu = {
     log.debug("showWindowItem");
     let menuItemWindow = firetray.Handler.gtkPopupMenuWindowItems.get(xid);
     this.showItem(menuItemWindow);
-    this.setWindowItemLabel(menuItemWindow, firetray.Window.getWindowTitle(xid));
+    this.setItemLabel(menuItemWindow, firetray.Window.getWindowTitle(xid));
     this.showWindowSeparator();
   },
 
@@ -166,7 +195,7 @@ firetray.PopupMenu = {
     gtk.gtk_widget_show(ctypes.cast(menuItem, gtk.GtkWidget.ptr));
   },
 
-  setWindowItemLabel: function(menuItem, label) {
+  setItemLabel: function(menuItem, label) {
     log.debug("about to set title: "+label);
     if (label)
       gtk.gtk_menu_item_set_label(ctypes.cast(menuItem, gtk.GtkMenuItem.ptr), label);

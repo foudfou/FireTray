@@ -81,8 +81,6 @@ firetray.StatusIcon = {
     return true;
   },
 
-  loadThemedIcons: function() { },
-
   loadImages: function() {
     let topmost = firetray.Handler.getWindowInterface(
       Services.wm.getMostRecentWindow(null), "nsIBaseWindow");

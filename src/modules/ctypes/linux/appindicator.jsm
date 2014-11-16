@@ -1,4 +1,4 @@
-/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
 var EXPORTED_SYMBOLS = [ "appind3" ];
 
@@ -43,9 +43,16 @@ function appindicator_defines(lib) {
   lib.lazy_bind("app_indicator_set_status", ctypes.void_t, this.AppIndicator.ptr, this.AppIndicatorStatus);
   lib.lazy_bind("app_indicator_get_status", this.AppIndicatorStatus, this.AppIndicator.ptr);
   lib.lazy_bind("app_indicator_set_menu", ctypes.void_t, this.AppIndicator.ptr, gtk.GtkMenu.ptr);
+  lib.lazy_bind("app_indicator_set_icon", ctypes.void_t, this.AppIndicator.ptr, gobject.gchar.ptr);
+  lib.lazy_bind("app_indicator_set_attention_icon", ctypes.void_t, this.AppIndicator.ptr, gobject.gchar.ptr);
+  lib.lazy_bind("app_indicator_set_label", ctypes.void_t, this.AppIndicator.ptr, gobject.gchar.ptr, gobject.gchar.ptr);
+  lib.lazy_bind("app_indicator_set_secondary_activate_target", ctypes.void_t, this.AppIndicator.ptr, gtk.GtkWidget.ptr);
 
-  this.AppIndicatorConnectionChangedCb_t = ctypes.FunctionType(
+  this.ConnectionChangedCb_t = ctypes.FunctionType(
     ctypes.default_abi, ctypes.void_t, [this.AppIndicator.ptr, gobject.gboolean, gobject.gpointer]).ptr;
+
+  this.OnScrollCb_t = ctypes.FunctionType(
+    ctypes.default_abi, ctypes.void_t, [this.AppIndicator.ptr, gobject.gint, gobject.guint, gobject.gpointer]).ptr;
 };
 
-appind3 = new ctypes_library(APPINDICATOR_LIBNAME, APPINDICATOR_ABIS, appindicator_defines, this);
+var appind3 = new ctypes_library(APPINDICATOR_LIBNAME, APPINDICATOR_ABIS, appindicator_defines, this);
