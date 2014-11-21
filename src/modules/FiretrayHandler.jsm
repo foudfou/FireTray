@@ -62,15 +62,15 @@ firetray.Handler = {
     }
     throw new Error("not resolved");
   })(),
-  support: {chat: false, full_feat: false},
+  support: {chat: false, winnt: false},
 
   init: function() {            // does creates icon
     firetray.PrefListener.register(false);
     firetray.MailChatPrefListener.register(false);
 
     log.info("OS=" + this.runtimeOS + ", ABI=" + this.runtimeABI + ", XULrunner=" + this.xulVer);
-    if (FIRETRAY_SUPPORTED_OS.indexOf(this.runtimeOS) < 0) {
-      let platforms = FIRETRAY_SUPPORTED_OS.join(", ");
+    if (FIRETRAY_OS_SUPPORT.indexOf(this.runtimeOS) < 0) {
+      let platforms = FIRETRAY_OS_SUPPORT.join(", ");
       log.error("Only "+platforms+" platform(s) supported at this time. Firetray not loaded");
       return false;
     } else if (this.runtimeOS == "winnt" &&
@@ -83,9 +83,8 @@ firetray.Handler = {
     Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayWindow.jsm");
     log.debug("FiretrayWindow "+this.runtimeOS+" imported");
 
-    this.support['chat'] = FIRETRAY_CHAT_SUPPORTED_OS
-      .indexOf(this.runtimeOS) > -1;
-    this.support['full_feat'] = FIRETRAY_FULL_FEAT_SUPPORTED_OS
+    this.support['chat']  = ['linux'].indexOf(this.runtimeOS) > -1;
+    this.support['winnt'] = ['winnt']
       .indexOf(firetray.Handler.runtimeOS) > -1;
 
     if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
@@ -131,8 +130,7 @@ firetray.Handler = {
             this.existsChatAccount())
           firetray.Chat.init();
       } else {
-        let platforms = FIRETRAY_CHAT_SUPPORTED_OS.join(", ");
-        log.warn("Only "+platforms+" platform(s) supported at this time. Chat not loaded");
+        log.warn("Chat not supported for this platform. Chat not loaded");
       }
     }
 

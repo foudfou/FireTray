@@ -3,8 +3,7 @@
 /* for now, logging facilities (imported from logging.jsm) and Services are
    automatically provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "FIRETRAY_VERSION", "FIRETRAY_SUPPORTED_OS",
-    "FIRETRAY_CHAT_SUPPORTED_OS", "FIRETRAY_FULL_FEAT_SUPPORTED_OS",
+  [ "firetray", "FIRETRAY_VERSION", "FIRETRAY_OS_SUPPORT",
     "FIRETRAY_ID", "FIRETRAY_PREF_BRANCH", "FIRETRAY_SPLASH_PAGE",
     "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
     "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
@@ -25,13 +24,11 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION           = "0.5.3"; // needed for sync call of onVersionChange() :(
-const FIRETRAY_SUPPORTED_OS      = ['linux', 'winnt']; // install.rdf sync :(
-const FIRETRAY_CHAT_SUPPORTED_OS = ['linux'];
-const FIRETRAY_FULL_FEAT_SUPPORTED_OS = FIRETRAY_CHAT_SUPPORTED_OS;
-const FIRETRAY_ID                = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
-const FIRETRAY_PREF_BRANCH       = "extensions.firetray.";
-const FIRETRAY_SPLASH_PAGE       = "http://foudfou.github.com/FireTray/";
+const FIRETRAY_VERSION     = "0.5.3"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_OS_SUPPORT  = ['linux', 'winnt']; // install.rdf sync :(
+const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
+const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
+const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
 
 const FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
 const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM = 1;

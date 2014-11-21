@@ -38,7 +38,8 @@ var firetrayUIOptions = {
     }
 
     if (firetray.Handler.isChatProvided() &&
-        FIRETRAY_CHAT_SUPPORTED_OS.indexOf(firetray.Handler.runtimeOS) > -1) {
+        firetray.Handler.support['chat'] &&
+        !firetray.AppIndicator) {
       Cu.import("resource://firetray/"+firetray.Handler.runtimeOS+"/FiretrayChat.jsm");
       this.initChatControls();
     } else {
@@ -48,13 +49,22 @@ var firetrayUIOptions = {
     this.updateWindowAndIconOptions();
     this.updateScrollOptions();
     this.initAppIconType();
-    if (firetray.Handler.support['full_feat']) {
+    if (firetray.Handler.support['winnt']) {
+      this.hideUnsupportedOptions([
+        'ui_hides_last_only', 'ui_show_activates', 'ui_remember_desktop',
+        'app_icon_default', 'ui_show_icon_on_hide', 'ui_scroll_hides',
+        'ui_radiogroup_scroll', 'ui_scroll_hides', 'newmail_icon_names'
+      ]);
+    } else if (firetray.AppIndicator) {
+      this.hideUnsupportedOptions([
+        'app_icon_default', 'ui_mail_notification_unread_count',
+        'newmail_icon_names'
+      ]);
+    } else {
       this.initAppIconNames();
       if (firetray.Handler.inMailApp)
         this.initNewMailIconNames();
-    } else {
-      this.hideUnsupportedOptions();
-    };
+    }
 
     window.sizeToContent();
   },
@@ -66,26 +76,38 @@ var firetrayUIOptions = {
     }
   },
 
-  hideUnsupportedOptions: function() { // full_feat
-    // windows prefs
-    ['ui_hides_last_only', 'ui_show_activates', 'ui_remember_desktop']
-      .forEach(function(id){
-       document.getElementById(id).hidden = true;
-     });
+  hideUnsupportedOptions: function(uiElts) {
+    uiElts.forEach(function(id){
+      switch(id){
+        // windows prefs
+      case 'ui_hides_last_only':
+      case 'ui_show_activates':
+      case 'ui_remember_desktop':
+        // icon prefs
+      case 'app_icon_default':
+      case 'ui_show_icon_on_hide':
+      case 'ui_scroll_hides':
+      case 'ui_radiogroup_scroll':
+        document.getElementById(id).hidden = true;
+        break;
+      case 'ui_scroll_hides':
+        document.getElementById(id).removeAttribute("oncommand");
+        break;
+        // mail prefs
+      case 'newmail_icon_names':
+        for (let i=1; i<4; ++i) {
+          document.getElementById("radio_mail_notification_newmail_icon_name"+i).
+            setAttribute("observes", void(0));
+        }
+      case 'ui_mail_notification_unread_count':
+        document.getElementById(id).hidden = true;
+        break;
+      default:
+        log.error("Unhandled id: "+id);
+      };
+    });
 
-    // icon prefs
-    ['app_icon_default', 'ui_show_icon_on_hide', 'ui_scroll_hides',
-     'ui_radiogroup_scroll'].forEach(function(id){
-       document.getElementById(id).hidden = true;
-     });
-    document.getElementById("ui_scroll_hides").removeAttribute("oncommand");
 
-    // mail prefs
-    document.getElementById("newmail_icon_names").hidden = true;
-    for (let i=1; i<4; ++i) {
-      document.getElementById("radio_mail_notification_newmail_icon_name"+i).
-        setAttribute("observes", void(0));
-    }
   },
 
   hidePrefPane: function(name){
@@ -196,7 +218,7 @@ var firetrayUIOptions = {
   },
 
   disableIconTypeMaybe: function(appIconType) {
-    if (firetray.Handler.support['full_feat']) {
+    if (firetray.Handler.support['winnt']) {
       let appIconDefaultGroup = document.getElementById("app_icon_default");
       this.disableNChildren(appIconDefaultGroup, 2,
         (appIconType !== FIRETRAY_APPLICATION_ICON_TYPE_THEMED));
@@ -301,7 +323,7 @@ var firetrayUIOptions = {
     this.disableChildren(iconTextColor,
       (notificationSetting !== FIRETRAY_NOTIFICATION_MESSAGE_COUNT));
 
-    if (firetray.Handler.support['full_feat']) {
+    if (firetray.Handler.support['winnt']) {
       let newMailIconNames = document.getElementById("newmail_icon_names");
       this.disableNChildren(newMailIconNames, 2,
         (notificationSetting !== FIRETRAY_NOTIFICATION_NEWMAIL_ICON));
@@ -323,7 +345,7 @@ var firetrayUIOptions = {
     let mailNotificationType = +mailNotifyRadio.getItemAtIndex(mailNotifyRadio.selectedIndex).value;
     if (msgCountTypeIsNewMessages && (mailNotificationType === FIRETRAY_NOTIFICATION_MESSAGE_COUNT)) {
       mailNotifyRadio.selectedIndex = this.radioGetIndexByValue(mailNotifyRadio, FIRETRAY_NOTIFICATION_NEWMAIL_ICON);
-      if (firetray.Handler.support['full_feat']) {
+      if (firetray.Handler.support['winnt']) {
         let newMailIconNames = document.getElementById("newmail_icon_names");
         this.disableNChildren(newMailIconNames, 2, false);
       }
