@@ -53,7 +53,8 @@ var firetrayUIOptions = {
       this.hideUnsupportedOptions([
         'ui_hides_last_only', 'ui_show_activates', 'ui_remember_desktop',
         'app_icon_default', 'ui_show_icon_on_hide', 'ui_scroll_hides',
-        'ui_radiogroup_scroll', 'ui_scroll_hides', 'newmail_icon_names'
+        'ui_radiogroup_scroll', 'ui_scroll_hides', 'ui_middle_click',
+        'newmail_icon_names'
       ]);
     } else if (firetray.AppIndicator) {
       this.hideUnsupportedOptions([
@@ -88,6 +89,7 @@ var firetrayUIOptions = {
       case 'ui_show_icon_on_hide':
       case 'ui_scroll_hides':
       case 'ui_radiogroup_scroll':
+      case 'ui_middle_click':
         document.getElementById(id).hidden = true;
         break;
       case 'ui_scroll_hides':

@@ -21,14 +21,14 @@ if ("undefined" == typeof(firetray.StatusIcon))
 
 
 firetray.PopupMenu = {
-  MENU_ITEM_WINDOWS_POSITION: 3,
+  MENU_ITEM_WINDOWS_POSITION: 4,
 
   initialized: false,
   callbacks: {menuItemWindowActivate: {}}, // FIXME: try to store them into a ctypes array/struct.
   menu: null,
   menuShell: null,
   menuSeparatorWindows: null,
-  menuShowHide: {tip: null, sep: null, item: null},
+  menuItem: {tip: null, showHide: null, activateLast: null, sep: null},
 
   init: function() {
     this.menu = gtk.gtk_menu_new();
@@ -113,15 +113,21 @@ firetray.PopupMenu = {
   },
 
   prependAppIndicatorItems: function() {
-    this.menuShowHide.sep = gtk.gtk_separator_menu_item_new();
-    gtk.gtk_menu_shell_prepend(this.menuShell, ctypes.cast(this.menuShowHide.sep,
+    this.menuItem.sep = gtk.gtk_separator_menu_item_new();
+    gtk.gtk_menu_shell_prepend(this.menuShell, ctypes.cast(this.menuItem.sep,
                                                            gtk.GtkWidget.ptr));
-    this.menuShowHide.item = this.addItem({
+
+    this.menuItem.activateLast = this.addItem({
+      itemName:"ActivateLast", iconName:null, action:"activate", callback:
+      firetray.Handler.showAllWindowsAndActivate, inFront: true});
+
+    this.menuItem.showHide = this.addItem({
       itemName:"ShowHide", iconName:"gtk-go-down", action:"activate", callback:
       firetray.Handler.showHideAllWindows, inFront: true});
-    this.menuShowHide.tip = this.createAndAddItemToMenuAt(0);
+
+    this.menuItem.tip = this.createAndAddItemToMenuAt(0);
     gtk.gtk_widget_set_sensitive(
-      ctypes.cast(this.menuShowHide.tip, gtk.GtkWidget.ptr), false);
+      ctypes.cast(this.menuItem.tip, gtk.GtkWidget.ptr), false);
   },
 
   popup: function(icon, button, activateTime, menu) {

@@ -15,12 +15,12 @@ treechildren::-moz-tree-checkbox(checked, disabled) {
 
 /* properties="disabled" */
 treechildren::-moz-tree-cell-text(disabled) {
-        color: GrayText;
+  color: GrayText;
 }
 
 /*
 treechildren::-moz-tree-cell(disabled) {
-    background-color: #eeeeee;
+  background-color: #eeeeee;
 }
 */
 

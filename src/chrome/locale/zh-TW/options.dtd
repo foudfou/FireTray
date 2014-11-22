@@ -38,6 +38,10 @@
 <!ENTITY down "↓">
 <!ENTITY hide "隱藏">
 <!ENTITY restore "恢復">
+<!ENTITY middle_click.label "Mouse middle click action :" >
+<!ENTITY middle_click.accesskey "k" >
+<!ENTITY show_hide "Show/hide" >
+<!ENTITY activate_last "Activate last window" >
 <!ENTITY mail_notification_enabled.label "啟用郵件通知">
 <!ENTITY mail_notification_enabled.accesskey "A">
 <!ENTITY message_count_type.label "郵件計數器類型:">

@@ -571,6 +571,10 @@ firetray.PrefListener = new PrefListener(
         firetray.Messaging.updateMsgCountWithCb();
       break;
 
+    case 'middle_click':
+      firetray.StatusIcon.middleClickActionChanged();
+      break;
+
     case 'chat_icon_enable':
       firetray.Handler.toggleChat(firetray.Handler.isChatEnabled());
       break;

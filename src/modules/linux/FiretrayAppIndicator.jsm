@@ -40,14 +40,11 @@ firetray.AppIndicator = {
 
     this.addCallbacks();
 
-    for (let item in firetray.PopupMenu.menuShowHide) {
-      firetray.PopupMenu.showItem(firetray.PopupMenu.menuShowHide[item]);
+    for (let item in firetray.PopupMenu.menuItem) {
+      firetray.PopupMenu.showItem(firetray.PopupMenu.menuItem[item]);
     }
-    let menuItemShowHideWidget = ctypes.cast(
-      firetray.PopupMenu.menuShowHide.item, gtk.GtkWidget.ptr);
-    // FIXME: XXX should be option ShowHide or ActivateLast
-    appind3.app_indicator_set_secondary_activate_target(
-      this.indicator, menuItemShowHideWidget);
+
+    this.attachMiddleClickCallback();
     firetray.Handler.setIconTooltipDefault();
 
     this.initialized = true;
@@ -72,6 +69,24 @@ firetray.AppIndicator = {
                              firetray.AppIndicator.callbacks.onScroll, null);
   },
 
+  attachMiddleClickCallback: function(pref) {
+    let pref = firetray.Utils.prefService.getIntPref("middle_click");
+    if (pref === FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST) {
+      item = firetray.PopupMenu.menuItem.activateLast;
+      firetray.PopupMenu.showItem(firetray.PopupMenu.menuItem.activateLast);
+    } else if (pref === FIRETRAY_MIDDLE_CLICK_SHOW_HIDE) {
+      item = firetray.PopupMenu.menuItem.showHide;
+      firetray.PopupMenu.hideItem(firetray.PopupMenu.menuItem.activateLast);
+    } else {
+      log.error("Unknown pref value for 'middle_click': "+pref);
+      return false;
+    }
+    let menuItemShowHideWidget = ctypes.cast(item, gtk.GtkWidget.ptr);
+    appind3.app_indicator_set_secondary_activate_target(
+      this.indicator, menuItemShowHideWidget);
+    return true;
+  },
+
   onConnectionChanged: function(indicator, connected, data) {
     log.debug("AppIndicator connection-changed: "+connected);
   },
@@ -89,6 +104,12 @@ firetray.StatusIcon.initImpl =
 
 firetray.StatusIcon.shutdownImpl =
   firetray.AppIndicator.shutdown.bind(firetray.AppIndicator);
+
+firetray.StatusIcon.middleClickActionChanged = function() {
+  log.debug("middleClickActionChanged");
+  firetray.AppIndicator.attachMiddleClickCallback();
+};
+
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
@@ -116,7 +137,7 @@ firetray.Handler.setIconTooltip = function(toolTipStr) {
   log.debug("setIconTooltip");
   if (!firetray.AppIndicator.indicator)
     return false;
-  firetray.PopupMenu.setItemLabel(firetray.PopupMenu.menuShowHide.tip,
+  firetray.PopupMenu.setItemLabel(firetray.PopupMenu.menuItem.tip,
                                   toolTipStr);
   return true;
 };

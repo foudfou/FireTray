@@ -38,6 +38,10 @@
 <!ENTITY down "↓">
 <!ENTITY hide "masquer">
 <!ENTITY restore "restaurer">
+<!ENTITY middle_click.label "Souris clic du milieu :" >
+<!ENTITY middle_click.accesskey "m" >
+<!ENTITY show_hide "Masquer/Restaurer" >
+<!ENTITY activate_last "Activer la dernière fenêtre ouverte" >
 <!ENTITY mail_notification_enabled.label "Autoriser la notification des courriers">
 <!ENTITY mail_notification_enabled.accesskey "A">
 <!ENTITY message_count_type.label "compter les messages :">

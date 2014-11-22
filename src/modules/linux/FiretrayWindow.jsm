@@ -391,6 +391,7 @@ firetray.Window.xSendClientMessgeEvent = function(xid, atom, data, dataSize) {
  * raises window on top and give focus.
  */
 firetray.Window.activate = function(xid) {
+  // broken in KDE ?
   gtk.gtk_window_present(firetray.Handler.gtkWindows.get(xid));
   log.debug("window raised");
 };

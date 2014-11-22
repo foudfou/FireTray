@@ -38,6 +38,10 @@
 <!ENTITY down "↓">
 <!ENTITY hide "ocultar">
 <!ENTITY restore "restaurar">
+<!ENTITY middle_click.label "Mouse middle click action :" >
+<!ENTITY middle_click.accesskey "k" >
+<!ENTITY show_hide "Show/hide" >
+<!ENTITY activate_last "Activate last window" >
 <!ENTITY mail_notification_enabled.label "Habilitar notificaciones por correo">
 <!ENTITY mail_notification_enabled.accesskey "H">
 <!ENTITY message_count_type.label "tipo de contador de mensajes:">

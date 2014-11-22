@@ -104,11 +104,37 @@ firetray.GtkStatusIcon = {
       "activate", firetray.GtkStatusIcon.callbacks.iconActivate, null);
     log.debug("g_connect activate="+handlerId);
 
-    this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
-      firetray.Handler.activateLastWindowCb, null, FIRETRAY_CB_SENTINEL);
-    handlerId = gobject.g_signal_connect(firetray.GtkStatusIcon.trayIcon,
-      "button-press-event", firetray.GtkStatusIcon.callbacks.iconMiddleClick, null);
-    log.debug("g_connect middleClick="+handlerId);
+    let pref = firetray.Utils.prefService.getIntPref("middle_click");
+    this.attachMiddleClickCallback(pref);
+  },
+
+  attachMiddleClickCallback: function(pref) {
+    log.debug("attachMiddleClickCallback pref="+pref);
+    if (pref === FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST) {
+      this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
+        firetray.Handler.activateLastWindowCb, null, FIRETRAY_CB_SENTINEL);
+    } else if (pref === FIRETRAY_MIDDLE_CLICK_SHOW_HIDE) {
+      this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
+        function(widget, event, data) {firetray.Handler.showHideAllWindows(); return true;},
+        null, FIRETRAY_CB_SENTINEL);
+    } else {
+      log.error("Unknown pref value for 'middle_click': "+pref);
+      return;
+    }
+    this.callbacks.iconMiddleClickId = gobject.g_signal_connect(
+      firetray.GtkStatusIcon.trayIcon,
+      "button-press-event", firetray.GtkStatusIcon.callbacks.iconMiddleClick,
+      null);
+    log.debug("g_connect middleClick="+this.callbacks.iconMiddleClickId);
+  },
+
+  detachMiddleClickCallback: function() {
+    log.debug("detachMiddleClickCallback");
+    gobject.g_signal_handler_disconnect(
+      firetray.GtkStatusIcon.trayIcon,
+      gobject.gulong(this.callbacks.iconMiddleClickId)
+    );
+    delete this.callbacks.iconMiddleClickId;
   },
 
   onScroll: function(icon, event, data) {
@@ -149,6 +175,14 @@ firetray.StatusIcon.initImpl =
 
 firetray.StatusIcon.shutdownImpl =
   firetray.GtkStatusIcon.shutdown.bind(firetray.GtkStatusIcon);
+
+firetray.StatusIcon.middleClickActionChanged = function() {
+  log.debug("middleClickActionChanged");
+  let pref = firetray.Utils.prefService.getIntPref("middle_click");
+  firetray.GtkStatusIcon.detachMiddleClickCallback();
+  firetray.GtkStatusIcon.attachMiddleClickCallback(pref);
+};
+
 
 firetray.Handler.loadIcons = firetray.GtkStatusIcon.loadThemedIcons;
 
