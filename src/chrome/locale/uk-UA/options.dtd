@@ -61,8 +61,8 @@
 <!ENTITY mail_notification_unread_count.accesskey "н">
 <!ENTITY mail_notification_newmail_icon.label "показувати значок нових повідомлень">
 <!ENTITY mail_notification_newmail_icon.accesskey "з">
-<!ENTITY mail_notification_custom_mail_icon.label "показувати власний значок">
-<!ENTITY mail_notification_custom_mail_icon.accesskey "в">
+<!ENTITY mail_notification_mail_icon_custom.label "показувати власний значок">
+<!ENTITY mail_notification_mail_icon_custom.accesskey "в">
 <!ENTITY icon_text_color "Колір тексту">
 <!ENTITY icon_text_color.accesskey "К">
 <!ENTITY choose "Обрати">
