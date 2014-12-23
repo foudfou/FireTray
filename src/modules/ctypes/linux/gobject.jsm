@@ -70,6 +70,7 @@ function gobject_defines(lib) {
   this.gchar = ctypes.char;
   this.guchar = ctypes.unsigned_char;
   this.gboolean = this.gint;
+  this.FALSE = this.gboolean(0);
   this.gfloat = ctypes.float;
   this.gdouble = ctypes.double;
   this.gsize = ctypes.unsigned_long;
@@ -131,6 +132,9 @@ function gobject_defines(lib) {
 
   /* NOTE: we can't easily work with g_object_get_property() because it uses
   GValue, which is an opaque struct, and thus can't be initialized by ctypes */
+  this.GValue = ctypes.StructType("GValue");
+  lib.lazy_bind("g_object_get_property", ctypes.void_t, this.GObject.ptr, this.gchar.ptr, this.GValue.ptr);
+  lib.lazy_bind("g_object_get", ctypes.void_t, this.gpointer, this.gchar.ptr, "...");
 }
 
 new ctypes_library(GOBJECT_LIBNAME, GOBJECT_ABIS, gobject_defines, this);

@@ -71,6 +71,7 @@
       <preference id="pref_show_icon_on_hide" name="extensions.firetray.show_icon_on_hide" type="bool"/>
       <preference id="pref_scroll_hides" name="extensions.firetray.scroll_hides" type="bool" />
       <preference id="pref_scroll_mode" name="extensions.firetray.scroll_mode" type="string" />
+      <preference id="pref_middle_click" name="extensions.firetray.middle_click" type="int" />
     </preferences>
 
     <vbox pack="start" align="left" flex="1">
@@ -118,6 +119,15 @@
       <radiogroup id="ui_radiogroup_scroll" preference="pref_scroll_mode">
         <radio id="ui_radio_scroll_down_hides" label="&down;=&hide;, &up;=&restore;" value="down_hides" />
         <radio id="ui_radio_scroll_up_hides" label="&up;=&hide;, &down;=&restore;" value="up_hides" />
+      </radiogroup>
+
+      <radiogroup id="ui_middle_click" preference="pref_middle_click">
+        <hbox align="center" flex="1">
+        <label control="ui_middle_click" value="&middle_click.label;"
+               accesskey="&middle_click.accesskey;" />
+        <radio id="ui_middle_click_activate_last" label="&activate_last;" value="0" />
+        <radio id="ui_middle_click_show_hide" label="&show_hide;" value="1" />
+        </hbox>
       </radiogroup>
 
     </vbox>

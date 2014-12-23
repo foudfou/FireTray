@@ -3,11 +3,11 @@
 /* for now, logging facilities (imported from logging.jsm) and Services are
    automatically provided by this module */
 var EXPORTED_SYMBOLS =
-  [ "firetray", "FIRETRAY_VERSION", "FIRETRAY_SUPPORTED_OS",
-    "FIRETRAY_CHAT_SUPPORTED_OS", "FIRETRAY_FULL_FEAT_SUPPORTED_OS",
-    "FIRETRAY_ID", "FIRETRAY_PREF_BRANCH", "FIRETRAY_SPLASH_PAGE",
+  [ "firetray", "FIRETRAY_VERSION", "FIRETRAY_OS_SUPPORT", "FIRETRAY_ID",
+    "FIRETRAY_PREF_BRANCH", "FIRETRAY_SPLASH_PAGE",
     "FIRETRAY_APPLICATION_ICON_TYPE_THEMED",
     "FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM",
+    "FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST", "FIRETRAY_MIDDLE_CLICK_SHOW_HIDE",
     "FIRETRAY_NOTIFICATION_MESSAGE_COUNT",
     "FIRETRAY_NOTIFICATION_NEWMAIL_ICON", "FIRETRAY_NOTIFICATION_CUSTOM_ICON",
     "FIRETRAY_IM_STATUS_AVAILABLE", "FIRETRAY_IM_STATUS_AWAY",
@@ -15,8 +15,8 @@ var EXPORTED_SYMBOLS =
     "FIRETRAY_ACCOUNT_SERVER_TYPE_IM", "FIRETRAY_DELAY_STARTUP_MILLISECONDS",
     "FIRETRAY_DELAY_NOWAIT_MILLISECONDS", "FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD",
     "FIRETRAY_MESSAGE_COUNT_TYPE_NEW", "FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL",
-    "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE", "FIRETRAY_APP_DB",
-    "FIRETRAY_CB_SENTINEL" ];
+    "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE", "FIRETRAY_APPINDICATOR_ID",
+    "FIRETRAY_APP_DB", "FIRETRAY_CB_SENTINEL" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -25,16 +25,17 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION           = "0.5.3"; // needed for sync call of onVersionChange() :(
-const FIRETRAY_SUPPORTED_OS      = ['linux', 'winnt']; // install.rdf sync :(
-const FIRETRAY_CHAT_SUPPORTED_OS = ['linux'];
-const FIRETRAY_FULL_FEAT_SUPPORTED_OS = FIRETRAY_CHAT_SUPPORTED_OS;
-const FIRETRAY_ID                = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
-const FIRETRAY_PREF_BRANCH       = "extensions.firetray.";
-const FIRETRAY_SPLASH_PAGE       = "http://foudfou.github.com/FireTray/";
+const FIRETRAY_VERSION     = "0.5.3"; // needed for sync call of onVersionChange() :(
+const FIRETRAY_OS_SUPPORT  = ['linux', 'winnt']; // install.rdf sync :(
+const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
+const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
+const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
 
 const FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
 const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM = 1;
+
+const FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST = 0;
+const FIRETRAY_MIDDLE_CLICK_SHOW_HIDE     = 1;
 
 const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD  = 0;
 const FIRETRAY_MESSAGE_COUNT_TYPE_NEW     = 1;
@@ -55,6 +56,8 @@ const FIRETRAY_DELAY_NOWAIT_MILLISECONDS  = 0;
 
 const FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL = 0;
 const FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE   = 1;
+
+const FIRETRAY_APPINDICATOR_ID = "firetray";
 
 const FIRETRAY_APP_DB = {
 

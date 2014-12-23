@@ -15,8 +15,12 @@ Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
 function glib_defines(lib) {
   /* mutual inclusion not possible */
   this.GQuark = ctypes.uint32_t; // this.GQuark = gobject.guint32;
-  this.GError = ctypes.StructType("GError");
-
+  this.GError = ctypes.StructType("GError", [
+    { domain: this.GQuark },
+    { code: ctypes.int },        // gint
+    { message: ctypes.char.ptr } // gchar.ptr
+  ]);
+  lib.lazy_bind("g_error_free", ctypes.void_t, this.GError.ptr);
   lib.lazy_bind("g_strfreev", ctypes.void_t, ctypes.char.ptr.ptr);
 };
 

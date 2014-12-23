@@ -23,7 +23,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
     firetray_log.debug("Handler initialized: "+firetray.Handler.initialized);
     let init = firetray.Handler.initialized || firetray.Handler.init();
 
-    firetray_log.debug("ONLOAD"); firetray.Handler.dumpWindows();
+    firetray_log.debug("ONLOAD");
     this.winId = firetray.Handler.registerWindow(win);
 
     win.addEventListener('close', firetrayChrome.onClose, true);
@@ -39,7 +39,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   onQuit: function(win) {
     win.removeEventListener('close', firetrayChrome.onClose, true);
     firetray.Handler.unregisterWindow(win);
-    firetray_log.info("windowsCount="+firetray.Handler.windowsCount+", visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
+    firetray_log.debug("windowsCount="+firetray.Handler.windowsCount+", visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
     firetray_log.debug('Firetray UNLOADED !');
   },
 

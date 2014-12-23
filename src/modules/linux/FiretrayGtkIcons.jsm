@@ -25,7 +25,7 @@ firetray.GtkIcons = {
     try {
       if (this.initialized) return true;
 
-      this.loadDefaultTheme();
+      this.appendSearchPath();
       this.initialized = true;
       return true;
     } catch (x) {
@@ -35,10 +35,11 @@ firetray.GtkIcons = {
   },
 
   shutdown: function() {
+    // FIXME: XXX destroy icon here
     this.initialized = false;
   },
 
-  loadDefaultTheme: function() {
+  appendSearchPath: function() {
     this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath("chrome://firetray/skin/icons/linux");
     log.debug(this.GTK_THEME_ICON_PATH);
     let gtkIconTheme = gtk.gtk_icon_theme_get_default();

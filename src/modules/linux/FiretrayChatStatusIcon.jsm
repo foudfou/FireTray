@@ -10,13 +10,13 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
-Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
-Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gio.jsm");
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
 Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
 Cu.import("resource://firetray/commons.js");
-firetray.Handler.subscribeLibsForClosing([gobject, gio, gtk]);
+firetray.Handler.subscribeLibsForClosing([gdk, gio, gobject, gtk]);
 
 if ("undefined" == typeof(firetray.Handler))
   log.error("This module MUST be imported from/after FiretrayHandler !");
@@ -51,7 +51,7 @@ firetray.ChatStatusIcon = {
 
   init: function() {
     if (!firetray.Handler.appHasChat) throw "ChatStatusIcon for chat app only";
-    if (!firetray.GtkIcons.initialized) throw "GtkIcons should have been initialized by StatusIcon";
+    firetray.GtkIcons.init();
 
     this.trayIcon = gtk.gtk_status_icon_new();
     this.loadThemedIcons();

@@ -43,6 +43,10 @@
 <!ENTITY down "↓" >
 <!ENTITY hide "skryť" >
 <!ENTITY restore "obnoviť" >
+<!ENTITY middle_click.label "Mouse middle click action :" >
+<!ENTITY middle_click.accesskey "k" >
+<!ENTITY show_hide "Show/hide" >
+<!ENTITY activate_last "Activate last window" >
 
 <!ENTITY mail_notification_enabled.label "Zapnúť upozornenia pošty">
 <!ENTITY mail_notification_enabled.accesskey "a">

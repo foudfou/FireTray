@@ -81,8 +81,6 @@ firetray.StatusIcon = {
     return true;
   },
 
-  loadThemedIcons: function() { },
-
   loadImages: function() {
     let topmost = firetray.Handler.getWindowInterface(
       Services.wm.getMostRecentWindow(null), "nsIBaseWindow");
@@ -260,6 +258,14 @@ firetray.StatusIcon = {
         user32.SetForegroundWindow(hWnd);
         user32.TrackPopupMenu(firetray.PopupMenu.menu, user32.TPM_RIGHTALIGN|user32.TPM_BOTTOMALIGN, xPos, yPos, 0, hWnd, null);
         break;
+      case win32.WM_MBUTTONUP:
+        log.debug("WM_MBUTTONUP");
+        break;
+      // case win32.WM_VSCROLL:
+      // case win32.WM_MOUSEWHEEL:
+        /* getting scroll event from the icon is not straight-forward:
+         SetWindowsHookEx, http://stackoverflow.com/a/90793/421846,
+         http://www.codeproject.com/Articles/21218/Tray-Me */
       default:
       }
 

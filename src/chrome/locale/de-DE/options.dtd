@@ -42,6 +42,10 @@
 <!ENTITY down "↓" >
 <!ENTITY hide "verstecken" >
 <!ENTITY restore "wiederherstellen" >
+<!ENTITY middle_click.label "Mouse middle click action :" >
+<!ENTITY middle_click.accesskey "k" >
+<!ENTITY show_hide "Show/hide" >
+<!ENTITY activate_last "Activate last window" >
 
 <!ENTITY mail_notification_enabled.label "Mailbenachrichtigung">
 <!ENTITY mail_notification_enabled.accesskey "M">
