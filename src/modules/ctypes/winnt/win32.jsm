@@ -49,6 +49,7 @@ var win32 = new function() {
   this.HGDIOBJ   = this.HANDLE;
   this.HBITMAP   = this.HANDLE;
   this.HFONT     = this.HANDLE;
+  // FIXME: jschar renamed to char16_t (FF35+)
   this.TCHAR     = ctypes.jschar, // Mozilla compiled with UNICODE/_UNICODE macros and wchar_t = jschar
   this.LPSTR     = ctypes.char.ptr;
   this.LPCSTR    = ctypes.char.ptr;

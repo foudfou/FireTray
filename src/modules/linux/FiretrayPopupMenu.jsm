@@ -72,6 +72,7 @@ firetray.PopupMenu = {
     this.menuSeparatorWindows = gtk.gtk_separator_menu_item_new();
     gtk.gtk_menu_shell_prepend(
       this.menuShell, ctypes.cast(this.menuSeparatorWindows, gtk.GtkWidget.ptr));
+    // FIXME: we better use a submenu for this: gtk_menu_new(), gtk_menu_item_set_submenu();
 
     // for AppIndicator, not shown otherwise
     this.prependAppIndicatorItems();
