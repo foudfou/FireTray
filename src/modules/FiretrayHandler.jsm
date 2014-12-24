@@ -156,7 +156,7 @@ firetray.Handler = {
     VersionChange.init(FIRETRAY_ID, FIRETRAY_VERSION, FIRETRAY_PREF_BRANCH);
     let vc = VersionChange, vch = firetray.VersionChangeHandler;
     vc.addHook(["install", "upgrade", "reinstall"], vch.showReleaseNotes);
-    vc.addHook(["upgrade", "reinstall"], vch.tryEraseOldOptions);
+    vc.addHook(["upgrade", "reinstall"], vch.deleteOrRenameOldOptions);
     vc.addHook(["upgrade", "reinstall"], vch.correctMailNotificationType);
     vc.addHook(["upgrade", "reinstall"], vch.correctMailServerTypes);
     if (this.inMailApp) {
@@ -711,7 +711,7 @@ firetray.VersionChangeHandler = {
     } catch (e) {log.error(e);}
   },
 
-  tryEraseOldOptions: function() {
+  deleteOrRenameOldOptions: function() {
     let v0_3_Opts = [
       "close_to_tray", "minimize_to_tray", "start_minimized", "confirm_exit",
       "restore_to_next_unread", "mail_count_type", "show_mail_count",
@@ -722,14 +722,42 @@ firetray.VersionChangeHandler = {
       "text_color", "scroll_to_hide", "scroll_action", "grab_multimedia_keys",
       "hide_show_mm_key", "accounts_to_exclude" ];
     let v0_4_0b2_Opts = [ 'mail_notification' ];
-    let v0_5_0b1_Opts = [ 'mail_urgency_hint', 'app_icon_filename', 'custom_mail_icon' ];
-    let oldOpts = v0_3_Opts.concat(v0_4_0b2_Opts).concat(v0_5_0b1_Opts);
+    let oldOpts = v0_3_Opts.concat(v0_4_0b2_Opts);
 
     for (let i=0, len=oldOpts.length; i<len; ++i) {
       try {
         let option = oldOpts[i];
         firetray.Utils.prefService.clearUserPref(option);
       } catch (x) {}
+    }
+
+    let v0_5_0b1_Renames = {
+      'mail_urgency_hint': 'mail_get_attention',
+      'app_icon_filename': 'app_icon_custom',
+      'custom_mail_icon': 'mail_icon_custom'
+    };
+    oldOpts = v0_5_0b1_Renames;
+
+    let prefSrv = firetray.Utils.prefService;
+    for (let opt in oldOpts) {
+      log.debug("opt rename: "+opt);
+      if (prefSrv.prefHasUserValue(opt)) {
+        let prefType = prefSrv.getPrefType(opt);
+        switch (prefType) {
+        case Ci.nsIPrefBranch.PREF_STRING:
+          prefSrv.setCharPref(oldOpts[opt], prefSrv.getCharPref(opt));
+          break;
+        case Ci.nsIPrefBranch.PREF_INT:
+          prefSrv.setIntPref(oldOpts[opt], prefSrv.getIntPref(opt));
+          break;
+        case Ci.nsIPrefBranch.PREF_BOOL:
+          prefSrv.setBoolPref(oldOpts[opt], prefSrv.getBoolPref(opt));
+          break;
+        default:
+          log.error("Unknow pref type: "+prefType);
+        }
+      }
+      try { prefSrv.clearUserPref(opt); } catch (x) {}
     }
   },
 
