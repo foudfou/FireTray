@@ -217,17 +217,7 @@ firetray.Utils = {
     return protocolHandler.getFileFromURLSpec(aPath).path;
   },
 
-  dumpObj: function(obj) {
-    let str = "";
-    for(let prop in firetray.js.listAllProperties(obj)) {
-      try {
-        str += "obj["+prop+"]: " + obj[prop] + "\n";
-      } catch(e) {
-        str += "obj["+prop+"]: Unavailable\n";
-      }
-    }
-    log.info(str);
-  },
+  dumpObj: function(obj) {},    // Use JSON.stringify(obj) instead.
 
   _nsResolver: function(prefix) {
     var ns = {

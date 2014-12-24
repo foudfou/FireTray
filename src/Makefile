@@ -92,7 +92,7 @@ chrome_sources := $(chrome_sources_js)								\
                $(wildcard $(chrome_source_root)/content/*.xul)					\
                $(wildcard $(chrome_source_root)/content/*.xml)					\
                $(wildcard $(chrome_source_root)/content/*.css)					\
-               $(wildcard $(chrome_source_root)/skin/icons/*.css)				\
+               $(wildcard $(chrome_source_root)/skin/*.css)					\
                $(wildcard $(chrome_source_root)/skin/icons/*.gif)				\
                $(wildcard $(chrome_source_root)/skin/icons/*.png)				\
                $(wildcard $(chrome_source_root)/skin/icons/*.svg)				\
