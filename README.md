@@ -43,7 +43,10 @@ Features
 Notes
 -----
 
-* requires GTK+ 2.20 and higher.
+* Under Linux:
+  * GTK+ 2.20+ required.
+  * libappindicator3 can be used for StatusNotifierItem (KDE, Unity).
+* Under Windows, few features are not yet implemented.
 * Firetray temporarily unsets:
   * the `tabs.warnOnClose` built-in preference, which otherwise disrupts the handeling of the close event
   * `mail.biff.show_tray_icon` for mail applications
