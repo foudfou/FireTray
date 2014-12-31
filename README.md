@@ -20,6 +20,7 @@ Features
   * show icon only when hidden to tray
   * mouse scroll on tray icon shows/hides
   * GTK-themable icons
+  * StatusNotifierItem support (can be disabled by `with_appindicator` hidden pref)
   * customizable tray icons
   * popup menu (show/hide individual windows, open new windows, quit)
   * command-line `-firetrayShowHide` option (useful for window manager's keyboard shortcuts)

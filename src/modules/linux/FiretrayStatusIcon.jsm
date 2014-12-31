@@ -26,6 +26,7 @@ firetray.StatusIcon = {
   prefNewMailIconNames: null,
   defaultAppIconName: null,
   defaultNewMailIconName: null,
+  canAppIndicator: null,
 
   init: function() {
     this.defineIconNames();
@@ -34,7 +35,11 @@ firetray.StatusIcon = {
     // StatusIcon implementations, PopupMenu must be initialized *after*
     // implemenations are imported.
     Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
-    if (appind3.available() && this.dbusNotificationWatcherReady()) {
+    this.canAppIndicator =
+      (appind3.available() && this.dbusNotificationWatcherReady());
+    log.info("canAppIndicator="+this.canAppIndicator);
+    if (firetray.Utils.prefService.getBoolPref('with_appindicator') &&
+        this.canAppIndicator) {
       /* FIXME: Ubuntu14.04/Unity: successfully closing appind3 crashes FF/TB
        during exit, in Ubuntu's unity-menubar.patch's code.
        https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256 */
