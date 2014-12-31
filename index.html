@@ -84,6 +84,7 @@
                 <li>show icon only when hidden to tray</li>
                 <li>mouse scroll on tray icon shows/hides</li>
                 <li>customizable tray icons (GTK-themable on Linux)</li>
+                <li>StatusNotifierItem support (can be disabled by <code>with_appindicator</code> hidden pref)</li>
                 <li>popup menu (show/hide individual windows, open new windows, quit)</li>
                 <li>adds <code>-firetrayShowHide</code>
                 and <code>-firetrayPresent</code> options (useful for window
@@ -134,13 +135,24 @@
       <section id="release-notes">
         <h2>Release Notes</h2>
 
-        <article id="v0.5.3">
-          <h3>v0.5.3 &mdash; 2014-12-23</h3>
+        <article id="v0.5.4">
+          <h3>v0.5.4 &mdash; 2014-02-14</h3>
           <p><strong>Beta-testers wanted</strong>.
             <a href="mailto:firetray-request@ml.free.fr?subject=subscribe">Join
           our new mailing list</a>. Release candidates will be announced there
           so Beta-testers can help testing them in their specific
           environment.</p>
+          <p><ul>
+              <li>Add AppIndicator/SystemNotifierItem support (Ubuntu, KDE) (<a href="https://github.com/foudfou/FireTray/issues/130">#130</a>)</li>
+              <li>Add <code>with_appindicator</code> hidden preference for
+              avoiding using AppIndicator even if available.</li>
+              <li>Fix check marks invisible in option 'Included accounts' (<a href="https://github.com/foudfou/FireTray/issues/139">#139</a>)</li>
+              <li>Minor fixes
+          </ul></p>
+        </article>
+
+        <article id="v0.5.3">
+          <h3>v0.5.3 &mdash; 2014-12-23</h3>
           <p><ul>
               <li>Fix start hidden when startup minimized or maximized on winnt (<a href="https://github.com/foudfou/FireTray/issues/134">#134</a>)</li>
               <li>Fix broken click on popup-menu items (regression in v0.5.2)</li>
