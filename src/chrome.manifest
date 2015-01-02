@@ -11,6 +11,7 @@ locale		firetray	pl-PL		chrome/locale/pl-PL/
 locale		firetray	ru-RU		chrome/locale/ru-RU/
 locale		firetray	sk-SK		chrome/locale/sk-SK/
 locale		firetray	uk-UA		chrome/locale/uk-UA/
+locale		firetray	zh-CN		chrome/locale/zh-CN/
 locale		firetray	zh-TW		chrome/locale/zh-TW/
 resource	firetray			modules/
 
