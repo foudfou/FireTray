@@ -10,8 +10,8 @@ locale		firetray	nl		chrome/locale/nl/
 locale		firetray	pl-PL		chrome/locale/pl-PL/
 locale		firetray	ru-RU		chrome/locale/ru-RU/
 locale		firetray	sk-SK		chrome/locale/sk-SK/
+locale		firetray	uk-UA		chrome/locale/uk-UA/
 locale		firetray	zh-TW		chrome/locale/zh-TW/
-locale		firetray	zh-TW		chrome/locale/uk-UA/
 resource	firetray			modules/
 
 overlay	chrome://browser/content/browser.xul	chrome://firetray/content/overlay.xul
