@@ -265,12 +265,14 @@ function gdk_defines(lib) {
   lib.lazy_bind("gdk_window_show_unraised", ctypes.void_t, this.GdkWindow.ptr);
   lib.lazy_bind("gdk_screen_get_default", this.GdkScreen.ptr);
   lib.lazy_bind("gdk_screen_get_toplevel_windows", gobject.GList.ptr, this.GdkScreen.ptr);
+  lib.lazy_bind("gdk_screen_get_number", gobject.gint, this.GdkScreen.ptr);
+  lib.lazy_bind("gdk_screen_get_display", this.GdkDisplay.ptr, this.GdkScreen.ptr);
+  lib.lazy_bind("gdk_x11_get_xatom_by_name_for_display", x11.Atom, this.GdkDisplay.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gdk_pixbuf_new_from_file", this.GdkPixbuf.ptr, gobject.gchar.ptr, glib.GError.ptr.ptr);
   lib.lazy_bind("gdk_pixbuf_copy", this.GdkPixbuf.ptr, this.GdkPixbuf.ptr);
   lib.lazy_bind("gdk_pixbuf_composite", ctypes.void_t, this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, ctypes.int, ctypes.int, ctypes.int, ctypes.int, ctypes.double, ctypes.double, ctypes.double, ctypes.double, ctypes.int, ctypes.int);
   lib.lazy_bind("gdk_pixbuf_get_has_alpha", gobject.gboolean, this.GdkPixbuf.ptr);
   lib.lazy_bind("gdk_pixbuf_add_alpha", this.GdkPixbuf.ptr, this.GdkPixbuf.ptr, gobject.gboolean, gobject.guchar, gobject.guchar, gobject.guchar);
-
   lib.lazy_bind("gdk_pixbuf_get_colorspace", this.GdkColorspace, this.GdkPixbuf.ptr);
   lib.lazy_bind("gdk_pixbuf_get_n_channels", ctypes.int, this.GdkPixbuf.ptr);
   lib.lazy_bind("gdk_pixbuf_get_has_alpha", gobject.gboolean, this.GdkPixbuf.ptr);

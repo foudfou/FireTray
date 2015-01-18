@@ -218,6 +218,10 @@ function x11_defines(lib) {
   lib.lazy_bind("XRaiseWindow", ctypes.int, this.Display.ptr, this.Window);
   lib.lazy_bind("XGetWindowAttributes", this.Status, this.Display.ptr, this.Window, this.XWindowAttributes.ptr);
   lib.lazy_bind("XChangeWindowAttributes", ctypes.int, this.Display.ptr, this.Window, ctypes.unsigned_long, this.XSetWindowAttributes.ptr);
+  lib.lazy_bind("XGetSelectionOwner", this.Window, this.Display.ptr, this.Atom);
+  lib.lazy_bind("XGetAtomName", ctypes.char.ptr, this.Display.ptr, this.Atom);
+  lib.lazy_bind("XOpenDisplay", this.Display.ptr, ctypes.char.ptr);
+  lib.lazy_bind("XCloseDisplay", ctypes.int, this.Display.ptr);
 }
 
 new ctypes_library(X11_LIBNAME, X11_ABIS, x11_defines, this);

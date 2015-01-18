@@ -10,6 +10,7 @@ Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/glib.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/x11.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gdk, gio, glib, gobject]);
 
@@ -38,6 +39,11 @@ firetray.StatusIcon = {
     this.canAppIndicator =
       (appind3.available() && this.dbusNotificationWatcherReady());
     log.info("canAppIndicator="+this.canAppIndicator);
+    // Can we detect if EWMH icons handled ?
+    // For ex. if gtk_status_icon_new returns NULL ? NO
+    // XGetSelectionOwner(_NET_SYSTEM_TRAY_Sn) ?
+    let xtray = this.xSystemtrayReady();
+    log.warn("xtray="+xtray);
     if (firetray.Utils.prefService.getBoolPref('with_appindicator') &&
         this.canAppIndicator) {
       /* FIXME: Ubuntu14.04/Unity: successfully closing appind3 crashes FF/TB
@@ -97,6 +103,54 @@ firetray.StatusIcon = {
   },
 
   loadImageCustom: function() { }, // done in setIconImageCustom
+
+  xSystemtrayReady: function() {
+    /*
+     GdkScreen * screen = gtk_widget_get_screen(GTK_WIDGET(p->panel->topgwin));
+     GdkDisplay * display = gdk_screen_get_display(screen);
+
+     char * selection_atom_name = g_strdup_printf("_NET_SYSTEM_TRAY_S%d", gdk_screen_get_number(screen));
+     Atom selection_atom = gdk_x11_get_xatom_by_name_for_display(display, selection_atom_name);
+     g_free(selection_atom_name);
+
+     if (XGetSelectionOwner(GDK_DISPLAY_XDISPLAY(display), selection_atom) != None)
+     {
+     ERR("tray: another systray already running\n");
+     return 1;
+     }
+     */
+
+    let dpy = x11.XOpenDisplay(null);
+    log.warn("dpy="+dpy);
+
+    // let screen = gdk.gdk_screen_get_default();
+    // let display = gdk.gdk_screen_get_display(screen);
+    // let selection_atom_name = "_NET_SYSTEM_TRAY_S"+gdk.gdk_screen_get_number(screen);
+    // log.warn("selection_atom_name="+selection_atom_name);
+    // let selection_atom = gdk.gdk_x11_get_xatom_by_name_for_display(display, selection_atom_name);
+    // log.warn("selection_atom="+selection_atom);
+
+    let intern_atom = x11.XInternAtom(dpy, "_NET_SYSTEM_TRAY_S0", 0);
+    log.warn("intern_atom="+intern_atom);
+
+    // let xdisplay = gdk.gdk_x11_display_get_xdisplay(display);
+    // log.warn("xdisplay="+xdisplay+" "+"Display="+x11.current.Display);
+    // let name = x11.XGetAtomName(xdisplay, selection_atom).readString();
+    // log.warn("name="+name);
+
+    // let rv = x11.XGetSelectionOwner(xdisplay, selection_atom);
+    // let rv = x11.XGetSelectionOwner(x11.current.Display, selection_atom);
+    let rv = x11.XGetSelectionOwner(dpy, intern_atom);
+    log.warn(rv);
+    log.warn(rv.value);
+    log.warn(rv.toSource());
+    log.warn(rv.toString());
+    log.warn(x11.None);
+
+    x11.XCloseDisplay(dpy);
+
+    return rv;
+  },
 
   dbusNotificationWatcherReady: function() {
     let watcherReady = false;
