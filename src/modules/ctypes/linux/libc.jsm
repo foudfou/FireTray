@@ -23,6 +23,9 @@ function libc_defines(lib) {
   lib.lazy_bind("fflush", ctypes.int32_t, this.FILE.ptr);
   lib.lazy_bind("getpid", this.pid_t);
   lib.lazy_bind("strcmp", ctypes.int, ctypes.char.ptr, ctypes.char.ptr);
+  lib.lazy_bind("popen", this.FILE.ptr, ctypes.char.ptr, ctypes.char.ptr);
+  lib.lazy_bind("pclose", ctypes.int, this.FILE.ptr);
+  lib.lazy_bind("fread", ctypes.size_t, ctypes.voidptr_t, ctypes.size_t, ctypes.size_t, this.FILE.ptr);
 };
 
 var libc = new ctypes_library(LIBC_LIBNAME, LIBC_ABIS, libc_defines, this);
