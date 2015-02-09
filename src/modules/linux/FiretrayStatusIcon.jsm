@@ -114,8 +114,8 @@ firetray.StatusIcon = {
   loadImageCustom: function() { }, // done in setIconImageCustom
 
   getDesktop: function() {
-    let env = Cc["@mozilla.org/process/environment;1"].
-      createInstance(Ci.nsIEnvironment);
+    let env = Cc["@mozilla.org/process/environment;1"]
+          .createInstance(Ci.nsIEnvironment);
     let XDG_CURRENT_DESKTOP = env.get("XDG_CURRENT_DESKTOP").toLowerCase();
     let DESKTOP_SESSION = env.get("DESKTOP_SESSION").toLowerCase();
 
@@ -125,15 +125,15 @@ firetray.StatusIcon = {
     }
     else if (DESKTOP_SESSION === 'kde-plasma' || XDG_CURRENT_DESKTOP === 'kde') {
       desktop.name = 'kde-plasma';
-      let plasmaVer = this.processRead('plasma-desktop --version').
-        match(/Plasma Desktop Shell: (\d+)\./);
+      let plasmaVer = this.processRead('plasma-desktop --version')
+            .match(/Plasma Desktop Shell: (\d+)\./);
       if (plasmaVer) desktop.ver = parseInt(plasmaVer[1], 10);
     }
     else if (DESKTOP_SESSION) {
-      desktop = DESKTOP_SESSION;
+      desktop.name = DESKTOP_SESSION;
     }
     else if (XDG_CURRENT_DESKTOP) {
-      desktop = XDG_CURRENT_DESKTOP;
+      desktop.name = XDG_CURRENT_DESKTOP;
     }
 
     return desktop;
