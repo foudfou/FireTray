@@ -10,7 +10,9 @@ Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/glib.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
+Cu.import("resource://firetray/ctypes/linux/libc.jsm");
 Cu.import("resource://firetray/ctypes/linux/x11.jsm");
+Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gdk, gio, glib, gobject]);
 
@@ -32,6 +34,8 @@ firetray.StatusIcon = {
   init: function() {
     this.defineIconNames();
 
+    let systray = this.XSystemtrayReady();
+    log.debug("systray="+systray);
     // PopupMenu g_connect's some Handler functions. As these are overridden is
     // StatusIcon implementations, PopupMenu must be initialized *after*
     // implemenations are imported.
@@ -39,13 +43,18 @@ firetray.StatusIcon = {
     this.canAppIndicator =
       (appind3.available() && this.dbusNotificationWatcherReady());
     log.info("canAppIndicator="+this.canAppIndicator);
-    // Can we detect if EWMH icons handled ?
-    // For ex. if gtk_status_icon_new returns NULL ? NO
-    // XGetSelectionOwner(_NET_SYSTEM_TRAY_Sn) ?
-    let xtray = this.xSystemtrayReady();
-    log.warn("xtray="+xtray);
+    /* We can't reliably detect if xembed tray icons are handled, because, for
+     instance, Unity/compiz falsely claims to have support for it through
+     _NET_SYSTEM_TRAY_Sn (compiz). We could also check the root window WM_NAME,
+     except that Unity has "compiz"... So we end up using the desktop id as a
+     criteria for enabling appindicator. */
+    let desktop = this.getDesktop();
+    log.info("desktop="+JSON.stringify(desktop));
+
     if (firetray.Utils.prefService.getBoolPref('with_appindicator') &&
-        this.canAppIndicator) {
+        this.canAppIndicator &&
+        (desktop.name === 'unity' ||
+         (desktop.name === 'kde-plasma' && desktop.ver > 4))) {
       /* FIXME: Ubuntu14.04/Unity: successfully closing appind3 crashes FF/TB
        during exit, in Ubuntu's unity-menubar.patch's code.
        https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256 */
@@ -104,51 +113,60 @@ firetray.StatusIcon = {
 
   loadImageCustom: function() { }, // done in setIconImageCustom
 
-  xSystemtrayReady: function() {
-    /*
-     GdkScreen * screen = gtk_widget_get_screen(GTK_WIDGET(p->panel->topgwin));
-     GdkDisplay * display = gdk_screen_get_display(screen);
+  getDesktop: function() {
+    let env = Cc["@mozilla.org/process/environment;1"].
+      createInstance(Ci.nsIEnvironment);
+    let XDG_CURRENT_DESKTOP = env.get("XDG_CURRENT_DESKTOP").toLowerCase();
+    let DESKTOP_SESSION = env.get("DESKTOP_SESSION").toLowerCase();
 
-     char * selection_atom_name = g_strdup_printf("_NET_SYSTEM_TRAY_S%d", gdk_screen_get_number(screen));
-     Atom selection_atom = gdk_x11_get_xatom_by_name_for_display(display, selection_atom_name);
-     g_free(selection_atom_name);
+    let desktop = {name:'unknown', ver:null};
+    if (XDG_CURRENT_DESKTOP === 'unity' || DESKTOP_SESSION === 'ubuntu') {
+      desktop.name = 'unity';
+    }
+    else if (DESKTOP_SESSION === 'kde-plasma' || XDG_CURRENT_DESKTOP === 'kde') {
+      desktop.name = 'kde-plasma';
+      let plasmaVer = this.processRead('plasma-desktop --version').
+        match(/Plasma Desktop Shell: (\d+)\./);
+      if (plasmaVer) desktop.ver = parseInt(plasmaVer[1], 10);
+    }
+    else if (DESKTOP_SESSION) {
+      desktop = DESKTOP_SESSION;
+    }
+    else if (XDG_CURRENT_DESKTOP) {
+      desktop = XDG_CURRENT_DESKTOP;
+    }
 
-     if (XGetSelectionOwner(GDK_DISPLAY_XDISPLAY(display), selection_atom) != None)
-     {
-     ERR("tray: another systray already running\n");
-     return 1;
-     }
-     */
+    return desktop;
+  },
 
-    let dpy = x11.XOpenDisplay(null);
-    log.warn("dpy="+dpy);
+  // thx noitidart https://ask.mozilla.org/question/1086
+  processRead: function(cmd) {
+    const BUFSIZE = 1024;
+    let buffer = ctypes.char.array(BUFSIZE)();
+    let size = BUFSIZE;
+    let out = "";
+    let fd = libc.popen(cmd, 'r');
+    while (size == BUFSIZE) {
+      size = libc.fread(buffer, 1, BUFSIZE, fd);
+      out = out + buffer.readString();
+    }
+    libc.pclose(fd);
+    return out;
+  },
 
-    // let screen = gdk.gdk_screen_get_default();
-    // let display = gdk.gdk_screen_get_display(screen);
-    // let selection_atom_name = "_NET_SYSTEM_TRAY_S"+gdk.gdk_screen_get_number(screen);
-    // log.warn("selection_atom_name="+selection_atom_name);
-    // let selection_atom = gdk.gdk_x11_get_xatom_by_name_for_display(display, selection_atom_name);
-    // log.warn("selection_atom="+selection_atom);
+  XSystemtrayReady: function() {
+    let screen = gdk.gdk_screen_get_default();
+    let display = gdk.gdk_screen_get_display(screen); // = x11.current.Display
+    let selection_atom_name = "_NET_SYSTEM_TRAY_S" +
+          gdk.gdk_screen_get_number(screen);
+    log.debug("selection_atom_name="+selection_atom_name);
+    let selection_atom = gdk.gdk_x11_get_xatom_by_name_for_display(
+      display, selection_atom_name); // = XInternAtom() + cache
+    log.debug("selection_atom="+selection_atom);
 
-    let intern_atom = x11.XInternAtom(dpy, "_NET_SYSTEM_TRAY_S0", 0);
-    log.warn("intern_atom="+intern_atom);
-
-    // let xdisplay = gdk.gdk_x11_display_get_xdisplay(display);
-    // log.warn("xdisplay="+xdisplay+" "+"Display="+x11.current.Display);
-    // let name = x11.XGetAtomName(xdisplay, selection_atom).readString();
-    // log.warn("name="+name);
-
-    // let rv = x11.XGetSelectionOwner(xdisplay, selection_atom);
-    // let rv = x11.XGetSelectionOwner(x11.current.Display, selection_atom);
-    let rv = x11.XGetSelectionOwner(dpy, intern_atom);
-    log.warn(rv);
-    log.warn(rv.value);
-    log.warn(rv.toSource());
-    log.warn(rv.toString());
-    log.warn(x11.None);
-
-    x11.XCloseDisplay(dpy);
-
+    let xdisplay = gdk.gdk_x11_display_get_xdisplay(display);
+    let rv = x11.XGetSelectionOwner(xdisplay, selection_atom);
+    log.debug(rv.toSource());
     return rv;
   },
 

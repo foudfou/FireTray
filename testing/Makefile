@@ -1,7 +1,8 @@
 includes_gtk := $(shell pkg-config --libs --cflags gtk+-2.0)
 includes_gdk_gtk := $(shell pkg-config --libs --cflags gdk-2.0 gtk+-2.0)
 executables :=  gtk_icon_example trayicon hide xtypes x11XGetWindowProp \
-	window_state_event xev_desktop teststatusicon gtk-version
+	window_state_event xev_desktop xgetselectionowner teststatusicon \
+	gtk-version
 
 .PHONY: all
 all: $(executables)
@@ -30,6 +31,9 @@ window_state_event: window_state_event.c
 
 xev_desktop: xev_desktop.c
 	gcc -lXm -lXt -lX11 -o xev_desktop xev_desktop.c
+
+xgetselectionowner: xgetselectionowner.c
+	gcc -lX11 -o xgetselectionowner xgetselectionowner.c
 
 teststatusicon: teststatusicon.c prop-editor.c
 	gcc $(includes_gtk) -o teststatusicon teststatusicon.c prop-editor.c
