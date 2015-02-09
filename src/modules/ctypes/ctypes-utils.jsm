@@ -116,6 +116,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     }
 
     var library;
+    this.ABI = -1;
     for each (let abi in aABIs) {
       // FIXME: ABI is in fact SO_VER. Now we're mixing .so versions and the
       // .dll extension :(

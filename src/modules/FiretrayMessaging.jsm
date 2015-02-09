@@ -345,7 +345,8 @@ firetray.Messaging = {
       file.initWithPath(filepath);
 
       // create the process
-      var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+      var process = Cc["@mozilla.org/process/util;1"]
+            .createInstance(Ci.nsIProcess);
       process.init(file);
 
       process.run(false, args, args.length);
