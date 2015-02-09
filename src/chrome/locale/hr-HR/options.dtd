@@ -38,10 +38,10 @@
 <!ENTITY down "↓">
 <!ENTITY hide "sakrij">
 <!ENTITY restore "obnovi">
-<!ENTITY middle_click.label "Mouse middle click action :" >
-<!ENTITY middle_click.accesskey "k" >
-<!ENTITY show_hide "Show/hide" >
-<!ENTITY activate_last "Activate last window" >
+<!ENTITY middle_click.label "Radnja srednjeg klika miša:">
+<!ENTITY middle_click.accesskey "k">
+<!ENTITY show_hide "Show/hide">
+<!ENTITY activate_last "Activate last window">
 <!ENTITY mail_notification_enabled.label "Omogući obavijesti pošte">
 <!ENTITY mail_notification_enabled.accesskey "a">
 <!ENTITY message_count_type.label "broj vrsta poruka:">
