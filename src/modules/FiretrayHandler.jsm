@@ -438,8 +438,14 @@ firetray.Handler = {
         Components.interfaces.nsIPrefLocalizedString).data;
     } catch (e) {}
 
-    // use this if we can't find the pref
-    if (!url) {
+    if (url) {
+      try {
+        Services.io.newURI(url, null, null);
+      } catch (e) {
+        url = "http://" + url;
+      }
+    }
+    else {
       var SBS = Cc["@mozilla.org/intl/stringbundle;1"].getService(Ci.nsIStringBundleService);
       var configBundle = SBS.createBundle(firetray.Handler._getBrowserProperties());
       url = configBundle.GetStringFromName(prefDomain);
