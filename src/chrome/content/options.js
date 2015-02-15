@@ -51,10 +51,9 @@ var firetrayUIOptions = {
     this.initAppIconType();
     if (firetray.Handler.support['winnt']) {
       this.hideUnsupportedOptions([
-        'ui_hides_last_only', 'ui_show_activates', 'ui_remember_desktop',
-        'app_icon_default', 'ui_show_icon_on_hide', 'ui_scroll_hides',
-        'ui_radiogroup_scroll', 'ui_scroll_hides', 'ui_middle_click',
-        'newmail_icon_names'
+        'ui_show_activates', 'ui_remember_desktop', 'app_icon_default',
+        'ui_show_icon_on_hide', 'ui_scroll_hides', 'ui_radiogroup_scroll',
+        'ui_scroll_hides', 'ui_middle_click', 'newmail_icon_names'
       ]);
     } else if (firetray.AppIndicator) {
       this.hideUnsupportedOptions([
@@ -81,7 +80,6 @@ var firetrayUIOptions = {
     uiElts.forEach(function(id){
       switch(id){
         // windows prefs
-      case 'ui_hides_last_only':
       case 'ui_show_activates':
       case 'ui_remember_desktop':
         // icon prefs
