@@ -222,6 +222,10 @@ firetray.Messaging = {
       log.error('unknown message count type');
 
     if (msgCount == 0) {
+
+      if (firetray.Utils.prefService.getBoolPref('nomail_hides_icon'))
+        firetray.Handler.setIconVisibility(false);
+
       firetray.Handler.setIconImageDefault();
       firetray.Handler.setIconTooltipDefault();
 
@@ -244,6 +248,9 @@ firetray.Messaging = {
       }
 
       firetray.Handler.setIconTooltip(localizedTooltip);
+
+      if (firetray.Utils.prefService.getBoolPref('nomail_hides_icon'))
+        firetray.Handler.setIconVisibility(true);
 
     } else {
       throw "negative message count"; // should never happen

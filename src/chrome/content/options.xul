@@ -150,6 +150,7 @@
       <preference id="pref_only_favorite_folders" name="extensions.firetray.only_favorite_folders" type="bool" />
       <preference id="pref_mail_change_trigger" name="extensions.firetray.mail_change_trigger" type="string" />
       <preference id="pref_mail_get_attention" name="extensions.firetray.mail_get_attention" type="bool" />
+      <preference id="pref_nomail_hides_icon" name="extensions.firetray.nomail_hides_icon" type="bool" />
     </preferences>
 
     <vbox align="left" flex="1">
@@ -318,6 +319,12 @@
                 label="&mail_get_attention.label;"
                 accesskey="&mail_get_attention.accesskey;"
                 preference="pref_mail_get_attention"
+                observes="broadcaster-notification-disabled"/>
+
+      <checkbox id="ui_nomail_hides_icon"
+                label="&nomail_hides_icon.label;"
+                accesskey="&nomail_hides_icon.accesskey;"
+                preference="pref_nomail_hides_icon"
                 observes="broadcaster-notification-disabled"/>
 
     </vbox>

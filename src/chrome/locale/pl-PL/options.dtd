@@ -93,6 +93,8 @@
 <!ENTITY mail_change_trigger.tooltip "Absolutna ścieżka do programu, który uruchomić gdy licznik wiadomośći się zmieni. Ten program otrzyma ilość nowych wiadomośći jako pierwszy argument.">
 <!ENTITY mail_get_attention.label "Okno przyciąga uwagę przy nowej wiadomośći">
 <!ENTITY mail_get_attention.accesskey "y">
+<!ENTITY nomail_hides_icon.label "Hide icon when no mail">
+<!ENTITY nomail_hides_icon.accesskey "H">
 
 <!ENTITY chat_icon_enable.label "Włącz ikonę czatu">
 <!ENTITY chat_icon_enable.accesskey "u">

@@ -93,6 +93,8 @@
 <!ENTITY mail_change_trigger.tooltip "Абсолютний шлях запуску програми при зміні кількості повідомлень. Ця програма буде отримувати нову кількість повідомлень як перший аргумент.">
 <!ENTITY mail_get_attention.label "Вікно концентрується на нових повідомленнях">
 <!ENTITY mail_get_attention.accesskey "х">
+<!ENTITY nomail_hides_icon.label "Hide icon when no mail">
+<!ENTITY nomail_hides_icon.accesskey "H">
 
 
 <!ENTITY chat_icon_enable.label "Включити значок чату">

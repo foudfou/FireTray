@@ -92,6 +92,8 @@
 <!ENTITY mail_change_trigger.tooltip "absoluter Pfad eines Executables, das aufgerufen wird, falls sich die Anzahl der Mails ändert; die (neue) Anzahl der Mails wird als Argument übergeben.">
 <!ENTITY mail_get_attention.label "»X11 urgency hint« absetzen">
 <!ENTITY mail_get_attention.accesskey "X">
+<!ENTITY nomail_hides_icon.label "Icon verstecken, wenn keine neue Mail">
+<!ENTITY nomail_hides_icon.accesskey "H">
 
 <!ENTITY chat_icon_enable.label "Chat-Icon aktivieren">
 <!ENTITY chat_icon_enable.accesskey "A">

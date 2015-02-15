@@ -83,6 +83,8 @@
 <!ENTITY mail_change_trigger.tooltip "Absoluut pad van het uit te voeren programma wanneer het aantal wijzigt. Dit programma krijgt het aantal nieuwe berichten als het eerste argument.">
 <!ENTITY mail_get_attention.label "Window draws attention on new messages">
 <!ENTITY mail_get_attention.accesskey "g">
+<!ENTITY nomail_hides_icon.label "Hide icon when no mail">
+<!ENTITY nomail_hides_icon.accesskey "H">
 <!ENTITY chat_icon_enable.label "Chatpictogram inschakelen">
 <!ENTITY chat_icon_enable.accesskey "s">
 <!ENTITY chat_icon_blink.label "Chatpictogram knippert bij nieuwe berichten">

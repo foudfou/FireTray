@@ -83,6 +83,8 @@
 <!ENTITY mail_change_trigger.tooltip "消息数量变化时要运行的进程的绝对路径。此进程将在首个参数获得新消息的数量。">
 <!ENTITY mail_get_attention.label "有新消息时窗口提醒注意">
 <!ENTITY mail_get_attention.accesskey "g">
+<!ENTITY nomail_hides_icon.label "Hide icon when no mail">
+<!ENTITY nomail_hides_icon.accesskey "H">
 <!ENTITY chat_icon_enable.label "启用聊天图标">
 <!ENTITY chat_icon_enable.accesskey "E">
 <!ENTITY chat_icon_blink.label "有新消息时闪动聊天图标">

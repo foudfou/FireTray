@@ -558,6 +558,11 @@ firetray.PrefListener = new PrefListener(
     case 'only_favorite_folders':
       firetray.Messaging.updateMsgCountWithCb();
       break;
+    case 'nomail_hides_icon':
+      if (!firetray.Utils.prefService.getBoolPref('nomail_hides_icon'))
+        firetray.Handler.setIconVisibility(true);
+      firetray.Messaging.updateMsgCountWithCb();
+      break;
     case 'app_mail_icon_names':
     case 'app_browser_icon_names':
     case 'app_default_icon_names':

@@ -83,6 +83,8 @@
 <!ENTITY mail_change_trigger.tooltip "Chemin absolu du programme à lancer lorsque le compte des messages a changé. Ce programme prendra pour base le nouveau décompte de messages">
 <!ENTITY mail_get_attention.label "La fenêtre attire l'attention lors de nouveaux messages">
 <!ENTITY mail_get_attention.accesskey "e">
+<!ENTITY nomail_hides_icon.label "Cache l'icône lorsqu'aucun nouveau message">
+<!ENTITY nomail_hides_icon.accesskey "H">
 <!ENTITY chat_icon_enable.label "Activer l'icône du chat">
 <!ENTITY chat_icon_enable.accesskey "h">
 <!ENTITY chat_icon_blink.label "L'icône du chat clignote à l'arrivée de nouveaux messages">

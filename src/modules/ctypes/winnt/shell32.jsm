@@ -89,6 +89,10 @@ function shell32_defines(lib) {
   this.NIF_REALTIME = 0x00000040;
   this.NIF_SHOWTIP  = 0x00000080;
 
+  // for NOTIFYICONDATAW.dwState
+  this.NIS_HIDDEN     = 0x00000001;
+  this.NIS_SHAREDICON = 0x00000002;
+
   lib.lazy_bind("ExtractIconW", win32.HICON, win32.HINSTANCE, win32.LPCTSTR, win32.UINT);
   lib.lazy_bind("ExtractIconExW", win32.UINT, win32.LPCTSTR, ctypes.int, win32.HICON.ptr, win32.HICON.ptr, win32.UINT);
 }

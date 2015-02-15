@@ -93,6 +93,8 @@
 <!ENTITY mail_change_trigger.tooltip "Абсолютный путь к программе. В качестве первого аргумента будет передано количество сообщений">
 <!ENTITY mail_get_attention.label "Установить срочное оповещение X11">
 <!ENTITY mail_get_attention.accesskey "X">
+<!ENTITY nomail_hides_icon.label "Hide icon when no mail">
+<!ENTITY nomail_hides_icon.accesskey "H">
 
 <!ENTITY chat_icon_enable.label "Включить значок чата">
 <!ENTITY chat_icon_enable.accesskey "E">
