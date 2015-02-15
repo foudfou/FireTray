@@ -515,5 +515,5 @@ firetray.Handler.setIconVisibility = function(visible) {
     nid.dwState = shell32.NIS_HIDDEN;
   nid.dwStateMask = shell32.NIS_HIDDEN;
   let rv = shell32.Shell_NotifyIconW(shell32.NIM_MODIFY, nid.address());
-  log.warn("Shell_NotifyIcon MODIFY="+rv+" winLastError="+ctypes.winLastError);
+  log.debug("Shell_NotifyIcon MODIFY="+rv+" winLastError="+ctypes.winLastError);
 };
