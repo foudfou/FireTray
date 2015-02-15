@@ -30,6 +30,8 @@ FiretrayWindow.prototype = {
     let tailIndex;
     tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
     if (tailIndex === -1)
+      tailIndex = title.indexOf(" - Nightly");
+    if (tailIndex === -1)
       tailIndex = title.indexOf(" - "+firetray.Handler.appName);
 
     if (tailIndex !== -1)
