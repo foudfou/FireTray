@@ -34,8 +34,6 @@ firetray.StatusIcon = {
   init: function() {
     this.defineIconNames();
 
-    let systray = this.XSystemtrayReady();
-    log.debug("systray="+systray);
     // PopupMenu g_connect's some Handler functions. As these are overridden is
     // StatusIcon implementations, PopupMenu must be initialized *after*
     // implemenations are imported.
@@ -43,10 +41,9 @@ firetray.StatusIcon = {
     this.canAppIndicator =
       (appind3.available() && this.dbusNotificationWatcherReady());
     log.info("canAppIndicator="+this.canAppIndicator);
-    /* We can't reliably detect if xembed tray icons are handled, because, for
+    /* We can't reliably detect if xembed tray icons are supported, because, for
      instance, Unity/compiz falsely claims to have support for it through
-     _NET_SYSTEM_TRAY_Sn (compiz). We could also check the root window WM_NAME,
-     except that Unity has "compiz"... So we end up using the desktop id as a
+     _NET_SYSTEM_TRAY_Sn (compiz). So we end up using the desktop id as a
      criteria for enabling appindicator. */
     let desktop = this.getDesktop();
     log.info("desktop="+JSON.stringify(desktop));
@@ -54,12 +51,12 @@ firetray.StatusIcon = {
     if (firetray.Utils.prefService.getBoolPref('with_appindicator') &&
         this.canAppIndicator &&
         (desktop.name === 'unity' ||
-         (desktop.name === 'kde-plasma' && desktop.ver > 4))) {
+         (desktop.name === 'kde' && desktop.ver > 4))) {
+      Cu.import("resource://firetray/linux/FiretrayAppIndicator.jsm");
       /* FIXME: Ubuntu14.04/Unity: successfully closing appind3 crashes FF/TB
        during exit, in Ubuntu's unity-menubar.patch's code.
        https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256 */
       // firetray.Handler.subscribeLibsForClosing([appind3]);
-      Cu.import("resource://firetray/linux/FiretrayAppIndicator.jsm");
     } else {
       Cu.import("resource://firetray/linux/FiretrayGtkStatusIcon.jsm");
     }
@@ -123,11 +120,10 @@ firetray.StatusIcon = {
     if (XDG_CURRENT_DESKTOP === 'unity' || DESKTOP_SESSION === 'ubuntu') {
       desktop.name = 'unity';
     }
-    else if (DESKTOP_SESSION === 'kde-plasma' || XDG_CURRENT_DESKTOP === 'kde') {
-      desktop.name = 'kde-plasma';
-      let plasmaVer = this.processRead('plasma-desktop --version')
-            .match(/Plasma Desktop Shell: (\d+)\./);
-      if (plasmaVer) desktop.ver = parseInt(plasmaVer[1], 10);
+    else if (XDG_CURRENT_DESKTOP === 'kde') { // DESKTOP_SESSION kde-plasma, plasme, kf5, ...
+      desktop.name = 'kde';
+      let KDE_SESSION_VERSION = env.get("KDE_SESSION_VERSION");
+      if (KDE_SESSION_VERSION) desktop.ver = parseInt(KDE_SESSION_VERSION, 10);
     }
     else if (DESKTOP_SESSION) {
       desktop.name = DESKTOP_SESSION;
@@ -137,37 +133,6 @@ firetray.StatusIcon = {
     }
 
     return desktop;
-  },
-
-  // thx noitidart https://ask.mozilla.org/question/1086
-  processRead: function(cmd) {
-    const BUFSIZE = 1024;
-    let buffer = ctypes.char.array(BUFSIZE)();
-    let size = BUFSIZE;
-    let out = "";
-    let fd = libc.popen(cmd, 'r');
-    while (size == BUFSIZE) {
-      size = libc.fread(buffer, 1, BUFSIZE, fd);
-      out = out + buffer.readString();
-    }
-    libc.pclose(fd);
-    return out;
-  },
-
-  XSystemtrayReady: function() {
-    let screen = gdk.gdk_screen_get_default();
-    let display = gdk.gdk_screen_get_display(screen); // = x11.current.Display
-    let selection_atom_name = "_NET_SYSTEM_TRAY_S" +
-          gdk.gdk_screen_get_number(screen);
-    log.debug("selection_atom_name="+selection_atom_name);
-    let selection_atom = gdk.gdk_x11_get_xatom_by_name_for_display(
-      display, selection_atom_name); // = XInternAtom() + cache
-    log.debug("selection_atom="+selection_atom);
-
-    let xdisplay = gdk.gdk_x11_display_get_xdisplay(display);
-    let rv = x11.XGetSelectionOwner(xdisplay, selection_atom);
-    log.debug(rv.toSource());
-    return rv;
   },
 
   dbusNotificationWatcherReady: function() {
