@@ -96,7 +96,8 @@ chrome_sources := $(chrome_sources_js)								\
                $(wildcard $(chrome_source_root)/skin/icons/*.gif)				\
                $(wildcard $(chrome_source_root)/skin/icons/*.png)				\
                $(wildcard $(chrome_source_root)/skin/icons/*.svg)				\
-               $(wildcard $(chrome_source_root)/skin/icons/linux/hicolor/22x22/*/*.png)		\
+               $(wildcard $(chrome_source_root)/skin/icons/freebsd/hicolor/22x22/*/*.png) \
+               $(wildcard $(chrome_source_root)/skin/icons/linux/hicolor/22x22/*/*.png) \
                $(wildcard $(chrome_source_root)/skin/icons/winnt/*.bmp)				\
                $(wildcard $(chrome_source_root)/skin/icons/winnt/*.ico)				\
                $(wildcard $(chrome_source_root)/locale/*/*.dtd)					\
@@ -109,8 +110,10 @@ modules_dir := modules
 modules_sources := $(wildcard $(modules_dir)/*.js)		\
 		$(wildcard $(modules_dir)/*.jsm)		\
 		$(wildcard $(modules_dir)/ctypes/*.jsm)		\
+		$(wildcard $(modules_dir)/ctypes/freebsd/*.jsm)	\
 		$(wildcard $(modules_dir)/ctypes/linux/*.jsm)	\
 		$(wildcard $(modules_dir)/ctypes/winnt/*.jsm)	\
+		$(wildcard $(modules_dir)/freebsd/*.jsm)	\
 		$(wildcard $(modules_dir)/linux/*.jsm)		\
 		$(wildcard $(modules_dir)/winnt/*.jsm)
 
