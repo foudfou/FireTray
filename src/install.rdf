@@ -15,6 +15,7 @@
     <em:optionsURL>chrome://firetray/content/options.xul</em:optionsURL>
     <em:iconURL>chrome://firetray/skin/icons/firetray48.png</em:iconURL>
     <em:icon64URL>chrome://firetray/skin/icons/firetray64.png</em:icon64URL>
+    <em:targetPlatform>FreeBSD</em:targetPlatform>
     <em:targetPlatform>Linux</em:targetPlatform>
     <em:targetPlatform>WINNT</em:targetPlatform>
 
