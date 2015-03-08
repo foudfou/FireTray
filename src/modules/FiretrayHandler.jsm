@@ -77,7 +77,10 @@ firetray.Handler = {
                Services.vc.compare(this.xulVer,"27.0") < 0) {
       log.error("FireTray needs Gecko 27 and above on Windows.");
       return false;
+    } else if (this.runtimeOS == "freebsd") {
+      this.runtimeOS = "linux";
     }
+
     Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayStatusIcon.jsm");
     log.debug("FiretrayStatusIcon "+this.runtimeOS+" imported");
     Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayWindow.jsm");
