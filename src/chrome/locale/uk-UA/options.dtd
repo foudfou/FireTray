@@ -2,6 +2,7 @@
 <!ENTITY prefwindow.title "FireTray вподобання">
 
 <!ENTITY NOT_IMPLEMENTED_YET "ЩЕ НЕ РЕАЛІЗОВАНО.">
+<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "Вікна">
 <!ENTITY icon_options "Піктограма">

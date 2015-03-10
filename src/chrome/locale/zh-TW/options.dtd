@@ -1,10 +1,13 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray 偏好設定">
 <!ENTITY NOT_IMPLEMENTED_YET "NOT IMPLEMENTED YET">
+<!ENTITY exclusive.tooltip "exclusive option">
+
 <!ENTITY windows_options "視窗">
 <!ENTITY icon_options "圖示">
 <!ENTITY mail_options "郵件">
 <!ENTITY chat_options "聊天">
+
 <!ENTITY hides_on_close.label "關閉視窗時隱藏至系統列">
 <!ENTITY hides_on_close.accesskey "C">
 <!ENTITY hides_on_minimize.label "視窗最小化時隱藏至系統列">

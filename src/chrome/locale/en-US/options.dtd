@@ -2,6 +2,7 @@
 <!ENTITY prefwindow.title "FireTray preferences">
 
 <!ENTITY NOT_IMPLEMENTED_YET "NOT IMPLEMENTED YET">
+<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "Windows">
 <!ENTITY icon_options "Icon">
@@ -93,8 +94,8 @@
 <!ENTITY mail_change_trigger.tooltip "Absolute path of the program to run when the message count changes. This program will get the new message count as the first argument.">
 <!ENTITY mail_get_attention.label "Window draws attention on new messages">
 <!ENTITY mail_get_attention.accesskey "g">
-<!ENTITY nomail_hides_icon.label "Hide icon when no mail">
-<!ENTITY nomail_hides_icon.accesskey "H">
+<!ENTITY nomail_hides_icon.label "Show tray icon only when new mail">
+<!ENTITY nomail_hides_icon.accesskey "t">
 
 <!ENTITY chat_icon_enable.label "Enable chat icon">
 <!ENTITY chat_icon_enable.accesskey "E">

@@ -385,7 +385,7 @@ var firetrayUIOptions = {
   },
 
   toggleChatIconBlink: function(enabled) {
-      this.disableElementsRecursive(document.getElementById("ui_chat_icon_blink_style"), !enabled);
+    this.disableElementsRecursive(document.getElementById("ui_chat_icon_blink_style"), !enabled);
   },
 
   chooseAppIconFile: function() {

@@ -223,9 +223,6 @@ firetray.Messaging = {
 
     if (msgCount == 0) {
 
-      if (firetray.Utils.prefService.getBoolPref('nomail_hides_icon'))
-        firetray.Handler.setIconVisibility(false);
-
       firetray.Handler.setIconImageDefault();
       firetray.Handler.setIconTooltipDefault();
 
@@ -249,12 +246,11 @@ firetray.Messaging = {
 
       firetray.Handler.setIconTooltip(localizedTooltip);
 
-      if (firetray.Utils.prefService.getBoolPref('nomail_hides_icon'))
-        firetray.Handler.setIconVisibility(true);
-
     } else {
       throw "negative message count"; // should never happen
     }
+
+    firetray.Handler.showHideIcon(msgCount);
   },
 
   /**
@@ -365,7 +361,7 @@ firetray.Messaging = {
 
 /**
  * Accounts Iterator/Generator for iterating over all account servers.
- * NOTE: MailServices.accounts.allServers exludes hidden and IM servers
+ * NOTE: MailServices.accounts.allServers excludes hidden and IM servers
  * @param sortByTypeAndName: boolean
  * @return a generator over all nsIMsgIncomingServer including hidden and IM ones
  */

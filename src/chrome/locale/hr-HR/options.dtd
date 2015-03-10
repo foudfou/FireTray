@@ -1,10 +1,13 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray osobitosti">
 <!ENTITY NOT_IMPLEMENTED_YET "JOŠ NIJE IMPLEMENTIRANO">
+<!ENTITY exclusive.tooltip "exclusive option">
+
 <!ENTITY windows_options "Prozori">
 <!ENTITY icon_options "Ikona">
 <!ENTITY mail_options "Pošta">
 <!ENTITY chat_options "Čavrljanje">
+
 <!ENTITY hides_on_close.label "Zatvaranjem se prozor sakriva u traku sustava">
 <!ENTITY hides_on_close.accesskey "C">
 <!ENTITY hides_on_minimize.label "Smanjivanjem se prozor sakriva u traku sustava">

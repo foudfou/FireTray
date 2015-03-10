@@ -1,10 +1,13 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray preferencias">
 <!ENTITY NOT_IMPLEMENTED_YET "NO IMPLEMENTADO AUN">
+<!ENTITY exclusive.tooltip "exclusive option">
+
 <!ENTITY windows_options "Ventanas">
 <!ENTITY icon_options "Icono">
 <!ENTITY mail_options "Correo">
 <!ENTITY chat_options "Chat">
+
 <!ENTITY hides_on_close.label "Cerrar la ventana a la bandeja">
 <!ENTITY hides_on_close.accesskey "C">
 <!ENTITY hides_on_minimize.label "Minimizar ventana a la bandeja">

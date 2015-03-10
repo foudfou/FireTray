@@ -1,10 +1,13 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray-voorkeuren">
 <!ENTITY NOT_IMPLEMENTED_YET "NOG NIET GEÏMPLEMENTEERD">
+<!ENTITY exclusive.tooltip "exclusive option">
+
 <!ENTITY windows_options "Vensters">
 <!ENTITY icon_options "Pictogram">
 <!ENTITY mail_options "E-mail">
 <!ENTITY chat_options "Chatten">
+
 <!ENTITY hides_on_close.label "Venster sluiten verbergt naar systeemvak">
 <!ENTITY hides_on_close.accesskey "u">
 <!ENTITY hides_on_minimize.label "Venster minimaliseren verbergt naar systeemvak">

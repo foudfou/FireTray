@@ -1,10 +1,13 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "Preferenze di FireTray">
 <!ENTITY NOT_IMPLEMENTED_YET "Non ancora implementato">
+<!ENTITY exclusive.tooltip "exclusive option">
+
 <!ENTITY windows_options "Finestre">
 <!ENTITY icon_options "Icona">
 <!ENTITY mail_options "Posta">
 <!ENTITY chat_options "Chat">
+
 <!ENTITY hides_on_close.label "Riduci a icona quando si chiude il programma">
 <!ENTITY hides_on_close.accesskey "C">
 <!ENTITY hides_on_minimize.label "Riduci a icona quando si riduce la finestra">

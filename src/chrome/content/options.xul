@@ -110,7 +110,8 @@
 
       <checkbox id="ui_show_icon_on_hide" preference="pref_show_icon_on_hide"
                 label="&show_icon_on_hide.label;"
-                accesskey="&show_icon_on_hide.accesskey;"/>
+                accesskey="&show_icon_on_hide.accesskey;"
+                tooltiptext="&exclusive.tooltip;"/>
 
       <checkbox id="ui_scroll_hides" preference="pref_scroll_hides"
                 label="&enable_mouse_scroll.label;"
@@ -324,6 +325,7 @@
       <checkbox id="ui_nomail_hides_icon"
                 label="&nomail_hides_icon.label;"
                 accesskey="&nomail_hides_icon.accesskey;"
+                tooltiptext="&exclusive.tooltip;"
                 preference="pref_nomail_hides_icon"
                 observes="broadcaster-notification-disabled"/>
 

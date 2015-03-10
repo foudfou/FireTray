@@ -390,12 +390,22 @@ firetray.Handler = {
     return hidden;
   },
 
-  showHideIcon: function() {
-    if (firetray.Utils.prefService.getBoolPref('show_icon_on_hide'))
-      firetray.Handler.setIconVisibility(
-        (firetray.Handler.visibleWindowsCount !== firetray.Handler.windowsCount));
-    else
-      firetray.Handler.setIconVisibility(true);
+  showHideIcon: function(msgCount) {
+    let allWindowsVisible = true;
+    if (firetray.Utils.prefService.getBoolPref('show_icon_on_hide')) {
+      allWindowsVisible =
+        (firetray.Handler.visibleWindowsCount !== firetray.Handler.windowsCount);
+    }
+
+    let msgCountPositive = true;
+    if (firetray.Utils.prefService.getBoolPref('nomail_hides_icon') &&
+        ("undefined" !== typeof(msgCount))) {
+      msgCountPositive = (msgCount > 0);
+      log.info("__msgCountPositive="+msgCountPositive);
+    }
+
+    log.debug("allWindowsVisible="+allWindowsVisible+" msgCountPositive="+msgCountPositive);
+    firetray.Handler.setIconVisibility(allWindowsVisible && msgCountPositive);
   },
 
   /** nsIBaseWindow, nsIXULWindow, ... */
@@ -527,6 +537,13 @@ firetray.Handler = {
       branch.setBoolPref(pref.pref, pref.bak);
       log.debug(pref.pref+" restored to: "+pref.bak);
     });
+  },
+
+  excludeOtherShowIconPrefs: function(prefName) {
+    if (prefName !== 'nomail_hides_icon')
+      firetray.Utils.prefService.setBoolPref('nomail_hides_icon', false);
+    if (prefName !== 'show_icon_on_hide')
+      firetray.Utils.prefService.setBoolPref('show_icon_on_hide', false);
   }
 
 }; // firetray.Handler
@@ -543,6 +560,8 @@ firetray.PrefListener = new PrefListener(
       firetray.Handler.showHidePopupMenuItems();
       break;
     case 'show_icon_on_hide':
+      if (firetray.Utils.prefService.getBoolPref(name))
+        firetray.Handler.excludeOtherShowIconPrefs(name);
       firetray.Handler.showHideIcon();
       break;
     case 'mail_notification_enabled':
@@ -568,7 +587,9 @@ firetray.PrefListener = new PrefListener(
       firetray.Messaging.updateMsgCountWithCb();
       break;
     case 'nomail_hides_icon':
-      if (!firetray.Utils.prefService.getBoolPref('nomail_hides_icon'))
+      if (firetray.Utils.prefService.getBoolPref(name))
+        firetray.Handler.excludeOtherShowIconPrefs(name);
+      else
         firetray.Handler.setIconVisibility(true);
       firetray.Messaging.updateMsgCountWithCb();
       break;

@@ -2,6 +2,7 @@
 <!ENTITY prefwindow.title "Einstellungen von FireTray">
 
 <!ENTITY NOT_IMPLEMENTED_YET "NOCH NICHT IMPLEMENTIERT">
+<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "Windows">
 <!ENTITY icon_options "Icon">
@@ -92,8 +93,8 @@
 <!ENTITY mail_change_trigger.tooltip "absoluter Pfad eines Executables, das aufgerufen wird, falls sich die Anzahl der Mails ändert; die (neue) Anzahl der Mails wird als Argument übergeben.">
 <!ENTITY mail_get_attention.label "»X11 urgency hint« absetzen">
 <!ENTITY mail_get_attention.accesskey "X">
-<!ENTITY nomail_hides_icon.label "Icon verstecken, wenn keine neue Mail">
-<!ENTITY nomail_hides_icon.accesskey "H">
+<!ENTITY nomail_hides_icon.label "Tray-Icon nur anzeigen, falls neue Mail">
+<!ENTITY nomail_hides_icon.accesskey "u">
 
 <!ENTITY chat_icon_enable.label "Chat-Icon aktivieren">
 <!ENTITY chat_icon_enable.accesskey "A">

@@ -2,6 +2,7 @@
 <!ENTITY prefwindow.title "Настройки FireTray">
 
 <!ENTITY NOT_IMPLEMENTED_YET "ЕЩЕ НЕ РЕАЛИЗОВАНО">
+<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "Окна">
 <!ENTITY icon_options "Значок">
