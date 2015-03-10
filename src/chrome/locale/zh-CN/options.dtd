@@ -1,7 +1,6 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray 首选项">
 <!ENTITY NOT_IMPLEMENTED_YET "尚未实现">
-<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "窗口">
 <!ENTITY icon_options "图标">

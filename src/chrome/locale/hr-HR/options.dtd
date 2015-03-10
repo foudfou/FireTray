@@ -1,7 +1,6 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray osobitosti">
 <!ENTITY NOT_IMPLEMENTED_YET "JOŠ NIJE IMPLEMENTIRANO">
-<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "Prozori">
 <!ENTITY icon_options "Ikona">

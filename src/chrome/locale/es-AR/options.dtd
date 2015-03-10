@@ -1,7 +1,6 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray preferencias">
 <!ENTITY NOT_IMPLEMENTED_YET "NO IMPLEMENTADO AUN">
-<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "Ventanas">
 <!ENTITY icon_options "Icono">

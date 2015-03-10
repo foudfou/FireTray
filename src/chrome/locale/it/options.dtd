@@ -1,7 +1,6 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "Preferenze di FireTray">
 <!ENTITY NOT_IMPLEMENTED_YET "Non ancora implementato">
-<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "Finestre">
 <!ENTITY icon_options "Icona">

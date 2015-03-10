@@ -2,7 +2,6 @@
 <!ENTITY prefwindow.title "FireTray preferences">
 
 <!ENTITY NOT_IMPLEMENTED_YET "NOT IMPLEMENTED YET">
-<!ENTITY exclusive.tooltip "exclusive option">
 
 <!ENTITY windows_options "Windows">
 <!ENTITY icon_options "Icon">

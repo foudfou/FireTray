@@ -36,6 +36,7 @@ Features
   * handle [Exquilla](https://addons.mozilla.org/fr/thunderbird/addon/exquilla-exchange-web-services/) accounts
   * restrict message count to favorite folders
   * trigger external program on message count change
+  * show icon only when new mail (mutually exclusive with *show icon only when hidden to tray*)
 
 * for applications embedding chat (currently only Thunderbird)
   * display additional system tray status icon
