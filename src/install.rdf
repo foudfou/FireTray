@@ -78,7 +78,7 @@
     <em:contributor>David Prévot</em:contributor>
     <em:contributor>Scott Furry</em:contributor>
 
-    <em:translator>Lachezar [bg-BG]</em:translator>
+    <em:translator>Lyubomir Vasilev [bg-BG]</em:translator>
     <em:translator>SoftcatalàAljullu,ellibre [ca-AD]</em:translator>
     <em:translator>Sam [cz-CZ]</em:translator>
     <em:translator>bricks [de-DE]</em:translator>
@@ -97,6 +97,14 @@
     <em:translator>efecan [tr-TR]</em:translator>
     <em:translator>Sappa [uk-UA]</em:translator>
     <em:translator>xmoke [zh-CN]</em:translator>
+    
+    <em:localized>
+      <Description>
+        <em:locale>bg</em:locale>
+        <em:translator>Любомир Василев (Lyubomir Vasilev)</em:translator>
+        <em:description>Добавка, която добавя иконка в системния панел.</em:description>
+      </Description>
+    </em:localized>
 
     <em:localized>
       <Description>
