@@ -110,21 +110,13 @@ firetray.GtkStatusIcon = {
 
   attachMiddleClickCallback: function(pref) {
     log.debug("attachMiddleClickCallback pref="+pref);
-    if (pref === FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST) {
-      this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
-        firetray.Handler.activateLastWindowCb, null, FIRETRAY_CB_SENTINEL);
-    } else if (pref === FIRETRAY_MIDDLE_CLICK_SHOW_HIDE) {
-      this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
-        function(widget, event, data) {firetray.Handler.showHideAllWindows(); return true;},
-        null, FIRETRAY_CB_SENTINEL);
-    } else {
-      log.error("Unknown pref value for 'middle_click': "+pref);
-      return;
-    }
+    let prefAsPtr = new gobject.gpointer(pref);
+    this.callbacks.iconMiddleClick = gtk.GCallbackStatusIconMiddleClick_t(
+      firetray.GtkStatusIcon.onButtonPressCb, null, FIRETRAY_CB_SENTINEL);
     this.callbacks.iconMiddleClickId = gobject.g_signal_connect(
       firetray.GtkStatusIcon.trayIcon,
       "button-press-event", firetray.GtkStatusIcon.callbacks.iconMiddleClick,
-      null);
+      prefAsPtr);
     log.debug("g_connect middleClick="+this.callbacks.iconMiddleClickId);
   },
 
@@ -150,6 +142,26 @@ firetray.GtkStatusIcon = {
   onClick: function(gtkStatusIcon, userData) {
     firetray.Handler.showHideAllWindows();
     let stopPropagation = true;
+    return stopPropagation;
+  },
+
+  onButtonPressCb: function(widget, event, data) {
+    let gdkEventButton = ctypes.cast(event, gdk.GdkEventButton.ptr);
+    if (gdkEventButton.contents.button === 2 &&
+        gdkEventButton.contents.type === gdk.GDK_BUTTON_PRESS)
+    {
+      log.debug("MIDDLE CLICK");
+      let pref = ctypes.cast(data, ctypes.unsigned_int).value;
+      if (pref === FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST) {
+        firetray.Handler.showAllWindowsAndActivate();
+      } else if (pref === FIRETRAY_MIDDLE_CLICK_SHOW_HIDE) {
+        firetray.Handler.showHideAllWindows();
+      } else {
+        log.error("Unknown pref value for 'middle_click': "+pref);
+      }
+    }
+
+    let stopPropagation = false;
     return stopPropagation;
   },
 

@@ -341,7 +341,7 @@ firetray.Handler = {
   unregisterWindow: function(win) {},
   hideWindow: function(winId) {},
   showWindow: function(winId) {},
-  activateLastWindowCb: function(gtkStatusIcon, gdkEvent, userData) {},
+  showAllWindowsAndActivate:function() {}, // linux
   getActiveWindow: function() {},
   windowGetAttention: function(winId) {},
   showHidePopupMenuItems: function() {}, // linux
