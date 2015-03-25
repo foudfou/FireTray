@@ -27,19 +27,14 @@ FiretrayWindow.prototype = {
   getWindowTitle: function(wid) {
     let title = firetray.Handler.windows[wid].baseWin.title;
     log.debug("|baseWin.title="+title+"|");
-    let tailIndex;
-    tailIndex = title.indexOf(" - Mozilla "+firetray.Handler.appName);
-    if (tailIndex === -1)
-      tailIndex = title.indexOf(" - Nightly");
-    if (tailIndex === -1)
-      tailIndex = title.indexOf(" - "+firetray.Handler.appName);
-
+    // FIXME: we should be able to compute the base title from the XUL window
+    // attributes.
+    const kTailRe = " (-|\u2014) ((Mozilla )?"+firetray.Handler.appName+"|Nightly)";
+    let tailIndex = title.search(kTailRe);
     if (tailIndex !== -1)
       return title.substring(0, tailIndex);
-    else if (title === "Mozilla "+firetray.Handler.appName)
-      return title;
     else
-      return null;
+      return title;
   }
 
 };
