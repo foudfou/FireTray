@@ -69,7 +69,7 @@ firetray.AppIndicator = {
                              firetray.AppIndicator.callbacks.onScroll, null);
   },
 
-  attachMiddleClickCallback: function(pref) {
+  attachMiddleClickCallback: function() {
     let pref = firetray.Utils.prefService.getIntPref("middle_click");
     if (pref === FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST) {
       item = firetray.PopupMenu.menuItem.activateLast;
@@ -104,11 +104,6 @@ firetray.StatusIcon.initImpl =
 
 firetray.StatusIcon.shutdownImpl =
   firetray.AppIndicator.shutdown.bind(firetray.AppIndicator);
-
-firetray.StatusIcon.middleClickActionChanged = function() {
-  log.debug("middleClickActionChanged");
-  firetray.AppIndicator.attachMiddleClickCallback();
-};
 
 
 firetray.Handler.setIconImageDefault = function() {
