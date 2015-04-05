@@ -7,7 +7,7 @@
     <em:multiprocessCompatible>true</em:multiprocessCompatible>
     <em:type>2</em:type>
     <em:name>FireTray</em:name>
-    <em:version>0.5.4</em:version> <!-- change FIRETRAY_VERSION accordingly ! -->
+    <em:version>0.5.5</em:version> <!-- change FIRETRAY_VERSION accordingly ! -->
     <em:creator>Hua Luo, Francesco Solero, Foudil BRÉTEL</em:creator>
     <em:contributor>Hua Luo, Francesco Solero (Firetray original authors)</em:contributor>
     <em:homepageURL>https://github.com/foudfou/firetray</em:homepageURL>
@@ -97,7 +97,7 @@
     <em:translator>efecan [tr-TR]</em:translator>
     <em:translator>Sappa [uk-UA]</em:translator>
     <em:translator>xmoke [zh-CN]</em:translator>
-    
+
     <em:localized>
       <Description>
         <em:locale>bg</em:locale>
