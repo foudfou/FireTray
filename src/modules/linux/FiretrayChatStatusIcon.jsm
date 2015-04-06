@@ -14,6 +14,7 @@ Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
+Cu.import("resource://firetray/linux/FiretrayGtkIcons.jsm");
 Cu.import("resource://firetray/linux/FiretrayWindow.jsm");
 Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gdk, gio, gobject, gtk]);
@@ -51,9 +52,9 @@ firetray.ChatStatusIcon = {
 
   init: function() {
     if (!firetray.Handler.appHasChat) throw "ChatStatusIcon for chat app only";
-    firetray.GtkIcons.init();
 
     this.trayIcon = gtk.gtk_status_icon_new();
+    firetray.GtkIcons.init();
     this.loadThemedIcons();
     this.setIconImage(this.themedIconNameCurrent || FIRETRAY_IM_STATUS_OFFLINE); // updated in Chat anyway
     this.setIconTooltipDefault();
@@ -66,6 +67,7 @@ firetray.ChatStatusIcon = {
   shutdown: function() {
     this.destroyTimers();
     this.destroyIcons();
+    firetray.GtkIcons.shutdown();
     this.initialized = false;
   },
 
