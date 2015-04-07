@@ -29,38 +29,19 @@ firetray.StatusIcon = {
   prefNewMailIconNames: null,
   defaultAppIconName: null,
   defaultNewMailIconName: null,
-  canAppIndicator: null,
 
   init: function() {
     this.defineIconNames();
 
-    // PopupMenu g_connect's some Handler functions. As these are overridden is
-    // StatusIcon implementations, PopupMenu must be initialized *after*
-    // implemenations are imported.
-    Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
-    this.canAppIndicator =
-      (appind3.available() && this.dbusNotificationWatcherReady());
-    log.info("canAppIndicator="+this.canAppIndicator);
-    /* We can't reliably detect if xembed tray icons are supported, because, for
-     instance, Unity/compiz falsely claims to have support for it through
-     _NET_SYSTEM_TRAY_Sn (compiz). So we end up using the desktop id as a
-     criteria for enabling appindicator. */
-    let desktop = this.getDesktop();
-    log.info("desktop="+JSON.stringify(desktop));
-
-    if (firetray.Utils.prefService.getBoolPref('with_appindicator') &&
-        this.canAppIndicator &&
-        (desktop.name === 'unity' ||
-         (desktop.name === 'kde' && desktop.ver > 4))) {
+    if (firetray.Handler.useAppind) {
       Cu.import("resource://firetray/linux/FiretrayAppIndicator.jsm");
-      /* FIXME: Ubuntu14.04/Unity: successfully closing appind3 crashes FF/TB
-       during exit, in Ubuntu's unity-menubar.patch's code.
-       https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256 */
-      // firetray.Handler.subscribeLibsForClosing([appind3]);
     } else {
       Cu.import("resource://firetray/linux/FiretrayGtkStatusIcon.jsm");
     }
 
+    // PopupMenu g_connect's some Handler functions. As these are overridden is
+    // StatusIcon implementations, PopupMenu must be initialized *after*
+    // implemenations are imported.
     Cu.import("resource://firetray/linux/FiretrayPopupMenu.jsm");
     if (!firetray.PopupMenu.init())
       return false;
@@ -109,6 +90,28 @@ firetray.StatusIcon = {
   },
 
   loadImageCustom: function() { }, // done in setIconImageCustom
+
+  appindEnable: function() {
+    Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
+    /* FIXME: Ubuntu14.04/Unity: successfully closing appind3 crashes FF/TB
+     during exit, in Ubuntu's unity-menubar.patch's code.
+     https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256 */
+    // firetray.Handler.subscribeLibsForClosing([appind3]);
+    let canAppIndicator =
+          (appind3.available() && this.dbusNotificationWatcherReady());
+    /* We can't reliably detect if xembed tray icons are supported, because,
+     for instance, Unity/compiz falsely claims to have support for it through
+     _NET_SYSTEM_TRAY_Sn (compiz). So we end up using the desktop id as a
+     criteria for enabling appindicator. */
+    let desktop = this.getDesktop();
+    log.info("desktop="+JSON.stringify(desktop));
+    return (
+      firetray.Utils.prefService.getBoolPref('with_appindicator') &&
+        canAppIndicator &&
+        (desktop.name === 'unity' ||
+         (desktop.name === 'kde' && desktop.ver > 4))
+    );
+  },
 
   getDesktop: function() {
     let env = Cc["@mozilla.org/process/environment;1"]
@@ -209,6 +212,8 @@ firetray.StatusIcon = {
 
 }; // firetray.StatusIcon
 
+
+firetray.Handler.useAppind = firetray.StatusIcon.appindEnable();
 
 firetray.Handler.setIconTooltipDefault = function() {
   if (!this.appName)

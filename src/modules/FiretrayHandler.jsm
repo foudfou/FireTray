@@ -37,6 +37,7 @@ firetray.Handler = {
   inMailApp: false,
   appHasChat: false,
   appStarted: false,
+  useAppind: false,             // initialized in StatusIcon
   windows: {},
   get windowsCount() {return Object.keys(this.windows).length;},
   get visibleWindowsCount() {
@@ -83,12 +84,14 @@ firetray.Handler = {
 
     Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayStatusIcon.jsm");
     log.debug("FiretrayStatusIcon "+this.runtimeOS+" imported");
+    log.info("useAppind="+firetray.Handler.useAppind);
     Cu.import("resource://firetray/"+this.runtimeOS+"/FiretrayWindow.jsm");
     log.debug("FiretrayWindow "+this.runtimeOS+" imported");
 
-    this.support['chat']  = ['linux'].indexOf(this.runtimeOS) > -1;
-    this.support['winnt'] = ['winnt']
-      .indexOf(firetray.Handler.runtimeOS) > -1;
+    this.support['chat']  =
+      ['linux'].indexOf(this.runtimeOS) > -1 && !this.useAppind;
+    this.support['winnt'] =
+      ['winnt'].indexOf(firetray.Handler.runtimeOS) > -1;
 
     if (this.appId === FIRETRAY_APP_DB['thunderbird']['id'] ||
         this.appId === FIRETRAY_APP_DB['seamonkey']['id'])
@@ -133,7 +136,7 @@ firetray.Handler = {
             this.existsChatAccount())
           firetray.Chat.init();
       } else {
-        log.warn("Chat not supported for this platform. Chat not loaded");
+        log.warn("Chat not supported for this environment. Chat not loaded");
       }
     }
 
