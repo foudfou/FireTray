@@ -29,17 +29,17 @@
 
       <h1 id="title"><a href="/">FireTray</a></h1>
       <nav>
-	<ul>
-	  <li><a href="#about">About</a></li>
-	  <li><a href="#features">Features</a></li>
-	  <li><a href="#release-notes">Release Notes</a></li>
-	</ul>
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#release-notes">Release Notes</a></li>
+        </ul>
       </nav>
     </header>
     <a href="https://github.com/foudfou/FireTray">
       <img style="position: fixed; top: 0; right: 0; border: 0;"
-	   src="https://a248.e.akamai.net/assets.github.com/img/7afbc8b248c68eb468279e8c17986ad46549fb71/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
-	   alt="Fork me on GitHub" />
+           src="https://a248.e.akamai.net/assets.github.com/img/7afbc8b248c68eb468279e8c17986ad46549fb71/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
+           alt="Fork me on GitHub" />
     </a>
   </div>
 
@@ -48,11 +48,11 @@
     <div class="span-16 colborder">
       <header>
         <p id="about">
-	  FireTray is a Mozilla addon that targets Firefox, Thunderbird and
-	  Seamonkey. It provides a system tray icon with much window handling
-	  functionality. For mail applications, the icon can show the number of
-	  unread or new messages. FireTray is very customizable and works on
-	  Linux and Windows.
+          FireTray is a Mozilla addon that targets Firefox, Thunderbird and
+          Seamonkey. It provides a system tray icon with much window handling
+          functionality. For mail applications, the icon can show the number of
+          unread or new messages. FireTray is very customizable and works on
+          Linux and Windows.
         </p>
       </header>
     </div>
@@ -135,13 +135,20 @@
       <section id="release-notes">
         <h2>Release Notes</h2>
 
-        <article id="v0.5.5">
-          <h3>v0.5.5 &mdash; 2014-05-06</h3>
+        <article id="v0.5.6">
+          <h3>v0.5.6 &mdash; 2014-05-10</h3>
           <p><strong>Beta-testers wanted</strong>.
             <a href="mailto:firetray-request@ml.free.fr?subject=subscribe">Join
               our new mailing list</a>. Release candidates will be announced there
             so Beta-testers can help testing them in their specific
             environment.</p>
+          <p><ul>
+              <li>Fix GtkIcons import. (<a href="https://github.com/foudfou/FireTray/issues/175">#175</a>)</li>
+          </ul></p>
+        </article>
+
+        <article id="v0.5.5">
+          <h3>v0.5.5 &mdash; 2014-05-06</h3>
           <p><ul>
               <li>Better desktop detection: libappindicator enabled for Unity and KDE5+.</li>
               <li>Add <code>nomail_hides_icon</code>
