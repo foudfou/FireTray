@@ -43,7 +43,7 @@
 <!ENTITY down "↓" >
 <!ENTITY hide "скриване" >
 <!ENTITY restore "показване" >
-<!ENTITY middle_click.label "Средния бутон на мишката:" >
+<!ENTITY middle_click.label "Средният бутон на мишката:" >
 <!ENTITY middle_click.accesskey "р" >
 <!ENTITY show_hide "Скрива/показва" >
 <!ENTITY activate_last "Активира последния прозорец" >
@@ -70,10 +70,10 @@
 
 <!ENTITY unread_count_folder_exceptions.label "Включени специални папки">
 <!ENTITY unread_count_folder_exceptions.tooltip "Специални папки, които са включени в броя на непрочетените съобщения">
-<!ENTITY excluded_folders_list.tooltip "Използвайте CTRL + левия бутон на мишката за избиране/отмяна на папките, включени броя на непрочетените съобщения">
+<!ENTITY excluded_folders_list.tooltip "Използвайте CTRL + левия бутон на мишката за избиране/отмяна на папките, включени в броя на непрочетените съобщения">
 
 <!ENTITY unread_count_account_exceptions.label "Включени профили">
-<!ENTITY unread_count_account_exceptions.tooltip "Профили, включени в броя на непрочетените съобщесия">
+<!ENTITY unread_count_account_exceptions.tooltip "Профили, включени в броя на непрочетените съобщения">
 <!ENTITY folder_count_recursive.label "Включване на подпапките">
 <!ENTITY folder_count_recursive.accesskey "д">
 <!ENTITY only_favorite_folders.label "Само любимите папки">
