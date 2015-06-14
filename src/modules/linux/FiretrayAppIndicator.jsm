@@ -7,7 +7,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
-// FIXME: can't subscribeLibsForClosing([appind3])
+// FIXME: can't subscribeLibsForClosing([appind])
 // https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256
 Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
@@ -27,14 +27,14 @@ firetray.AppIndicator = {
   indicator: null,
 
   init: function() {
-    this.indicator = appind3.app_indicator_new(
+    this.indicator = appind.app_indicator_new(
       FIRETRAY_APPINDICATOR_ID,
       firetray.StatusIcon.defaultAppIconName,
-      appind3.APP_INDICATOR_CATEGORY_COMMUNICATIONS
+      appind.APP_INDICATOR_CATEGORY_COMMUNICATIONS
     );
-    appind3.app_indicator_set_status(this.indicator,
-                                     appind3.APP_INDICATOR_STATUS_ACTIVE);
-    appind3.app_indicator_set_menu(this.indicator,
+    appind.app_indicator_set_status(this.indicator,
+                                     appind.APP_INDICATOR_STATUS_ACTIVE);
+    appind.app_indicator_set_menu(this.indicator,
                                    firetray.PopupMenu.menu); // mandatory
     log.debug("indicator="+this.indicator);
 
@@ -58,12 +58,12 @@ firetray.AppIndicator = {
   },
 
   addCallbacks: function() {
-    this.callbacks.connChanged = appind3.ConnectionChangedCb_t(
+    this.callbacks.connChanged = appind.ConnectionChangedCb_t(
       firetray.AppIndicator.onConnectionChanged); // void return, no sentinel
     gobject.g_signal_connect(this.indicator, "connection-changed",
                              firetray.AppIndicator.callbacks.connChanged, null);
 
-    this.callbacks.onScroll = appind3.OnScrollCb_t(
+    this.callbacks.onScroll = appind.OnScrollCb_t(
       firetray.AppIndicator.onScroll); // void return, no sentinel
     gobject.g_signal_connect(this.indicator, "scroll-event",
                              firetray.AppIndicator.callbacks.onScroll, null);
@@ -82,7 +82,7 @@ firetray.AppIndicator = {
       return false;
     }
     let menuItemShowHideWidget = ctypes.cast(item, gtk.GtkWidget.ptr);
-    appind3.app_indicator_set_secondary_activate_target(
+    appind.app_indicator_set_secondary_activate_target(
       this.indicator, menuItemShowHideWidget);
     return true;
   },
@@ -108,13 +108,13 @@ firetray.StatusIcon.shutdownImpl =
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
-  appind3.app_indicator_set_icon(firetray.AppIndicator.indicator,
+  appind.app_indicator_set_icon(firetray.AppIndicator.indicator,
                                  firetray.StatusIcon.defaultAppIconName);
 };
 
 firetray.Handler.setIconImageNewMail = function() {
   log.debug("setIconImageNewMail");
-  appind3.app_indicator_set_icon(firetray.AppIndicator.indicator,
+  appind.app_indicator_set_icon(firetray.AppIndicator.indicator,
                                  firetray.StatusIcon.defaultNewMailIconName);
 };
 
@@ -123,7 +123,7 @@ firetray.Handler.setIconImageCustom = function(prefname) {
   // Undocumented: ok to pass a *path* instead of an icon name! Otherwise we
   // should be changing the default icons (which is maybe a better
   // implementation anyway)...
-  appind3.app_indicator_set_icon(firetray.AppIndicator.indicator, prefCustomIconPath);
+  appind.app_indicator_set_icon(firetray.AppIndicator.indicator, prefCustomIconPath);
 };
 
 // No tooltips in AppIndicator
@@ -145,8 +145,8 @@ firetray.Handler.setIconVisibility = function(visible) {
     return false;
 
   let status = visible ?
-        appind3.APP_INDICATOR_STATUS_ACTIVE :
-        appind3.APP_INDICATOR_STATUS_PASSIVE;
-  appind3.app_indicator_set_status(firetray.AppIndicator.indicator, status);
+        appind.APP_INDICATOR_STATUS_ACTIVE :
+        appind.APP_INDICATOR_STATUS_PASSIVE;
+  appind.app_indicator_set_status(firetray.AppIndicator.indicator, status);
   return true;
 };
