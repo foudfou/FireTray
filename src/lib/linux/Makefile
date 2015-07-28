@@ -1,5 +1,5 @@
 deps = gdk-2.0 gdk-pixbuf-2.0 atk
-platform = $(shell uname -p)
+platform = $(shell uname -m)
 
 CC = gcc
 GCCVERSION = $(shell gcc -dumpversion | cut -f1 -d.)
