@@ -1,8 +1,8 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var EXPORTED_SYMBOLS = [ "appind3" ];
+var EXPORTED_SYMBOLS = [ "appind" ];
 
-const APPINDICATOR_LIBNAME = "appindicator3";
+const APPINDICATOR_LIBNAME = "appindicator";
 const APPINDICATOR_ABIS    = [ 1 ];
 
 const Cu = Components.utils;
@@ -55,4 +55,4 @@ function appindicator_defines(lib) {
     ctypes.default_abi, ctypes.void_t, [this.AppIndicator.ptr, gobject.gint, gobject.guint, gobject.gpointer]).ptr;
 };
 
-var appind3 = new ctypes_library(APPINDICATOR_LIBNAME, APPINDICATOR_ABIS, appindicator_defines, this);
+var appind = new ctypes_library(APPINDICATOR_LIBNAME, APPINDICATOR_ABIS, appindicator_defines, this);

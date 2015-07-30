@@ -93,12 +93,12 @@ firetray.StatusIcon = {
 
   appindEnable: function() {
     Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
-    /* FIXME: Ubuntu14.04/Unity: successfully closing appind3 crashes FF/TB
+    /* FIXME: Ubuntu14.04/Unity: successfully closing appind crashes FF/TB
      during exit, in Ubuntu's unity-menubar.patch's code.
      https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256 */
-    // firetray.Handler.subscribeLibsForClosing([appind3]);
+    // firetray.Handler.subscribeLibsForClosing([appind]);
     let canAppIndicator =
-          (appind3.available() && this.dbusNotificationWatcherReady());
+          (appind.available() && this.dbusNotificationWatcherReady());
     /* We can't reliably detect if xembed tray icons are supported, because,
      for instance, Unity/compiz falsely claims to have support for it through
      _NET_SYSTEM_TRAY_Sn (compiz). So we end up using the desktop id as a
@@ -162,9 +162,9 @@ firetray.StatusIcon = {
         gio.G_BUS_TYPE_SESSION,
         flags,
         null, /* GDBusInterfaceInfo */
-        appind3.NOTIFICATION_WATCHER_DBUS_ADDR,
-        appind3.NOTIFICATION_WATCHER_DBUS_OBJ,
-        appind3.NOTIFICATION_WATCHER_DBUS_IFACE,
+        appind.NOTIFICATION_WATCHER_DBUS_ADDR,
+        appind.NOTIFICATION_WATCHER_DBUS_OBJ,
+        appind.NOTIFICATION_WATCHER_DBUS_IFACE,
         null, /* GCancellable */
         err.address());
       if (error(err)) return watcherReady;
