@@ -147,7 +147,7 @@ firetray.Window.attachWndProc = function(procInfo) {
     if (x.name === "RangeError") { // instanceof not working :-(
       let msg = x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
                 +" windows open. This breaks FireTray and most probably "
-                +firetray.Handler.appName+".";
+                +firetray.Handler.app.name+".";
       log.error(msg);
       Cu.reportError(msg);
     }else {

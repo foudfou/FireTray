@@ -44,7 +44,7 @@ Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const is64bit = ctypes.size_t.size == 8; // firetray.Handler.runtimeABI.indexOf('_64') > -1;
+const is64bit = ctypes.size_t.size == 8; // firetray.Handler.app.ABI.indexOf('_64') > -1;
 
 const WinABI   = is64bit ? ctypes.default_abi : ctypes.winapi_abi;
 const WinCbABI = is64bit ? ctypes.default_abi : ctypes.stdcall_abi;

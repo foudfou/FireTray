@@ -182,7 +182,7 @@ firetray.StatusIcon = {
     nid = new shell32.NOTIFYICONDATAW();
     nid.cbSize = shell32.NOTIFYICONDATAW_SIZE();
     log.debug("SIZE="+nid.cbSize);
-    nid.szTip = firetray.Handler.appName;
+    nid.szTip = firetray.Handler.app.name;
     nid.hIcon = this.icons.get('app');
     nid.hWnd = hwnd_hidden;
     nid.uCallbackMessage = firetray.Win32.WM_TRAYMESSAGE;
@@ -494,7 +494,7 @@ firetray.Handler.setIconTooltip = function(toolTipStr) {
 
 firetray.Handler.setIconTooltipDefault = function() {
   log.debug("setIconTooltipDefault");
-  firetray.StatusIcon.setIcon({tip:this.appName});
+  firetray.StatusIcon.setIcon({tip:this.app.name});
 };
 
 firetray.Handler.setIconText = function(text, color) {

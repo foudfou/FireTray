@@ -658,7 +658,7 @@ firetray.Handler.registerWindow = function(win) {
     if (x.name === "RangeError") // instanceof not working :-(
       win.alert(x+"\n\nYou seem to have more than "+FIRETRAY_WINDOW_COUNT_MAX
                 +" windows open. This breaks FireTray and most probably "
-                +firetray.Handler.appName+".");
+                +firetray.Handler.app.name+".");
   }
   log.debug("window "+xid+" registered");
   // NOTE: shouldn't be necessary to gtk_widget_add_events(gtkWin, gdk.GDK_ALL_EVENTS_MASK);

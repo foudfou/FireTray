@@ -70,7 +70,7 @@ firetray.StatusIcon = {
         return "app_default_icon_names";
       }
     })();
-    this.defaultAppIconName = firetray.Handler.appName.toLowerCase();
+    this.defaultAppIconName = firetray.Handler.app.name.toLowerCase();
 
     this.prefNewMailIconNames = "new_mail_icon_names";
     this.defaultNewMailIconName = "mail-unread";
@@ -216,9 +216,9 @@ firetray.StatusIcon = {
 firetray.Handler.useAppind = firetray.StatusIcon.appindEnable();
 
 firetray.Handler.setIconTooltipDefault = function() {
-  if (!this.appName)
+  if (!this.app.name)
     throw "application name not initialized";
-  this.setIconTooltip(this.appName);
+  this.setIconTooltip(this.app.name);
 };
 
 firetray.Handler.setIconTooltip = function(toolTipStr) { };

@@ -35,7 +35,6 @@ firetray.ChatStatusIcon = {
 
   initialized: false,
   trayIcon: null,
-  appId:      (function(){return Services.appinfo.ID;})(),
   themedIcons: (function(){let o = {};
     o[FIRETRAY_IM_STATUS_AVAILABLE] = null;
     o[FIRETRAY_IM_STATUS_AWAY] = null;
@@ -295,7 +294,7 @@ firetray.ChatStatusIcon = {
   },
 
   setIconTooltipDefault: function() {
-    this.setIconTooltip(firetray.Handler.appName+" Chat");
+    this.setIconTooltip(firetray.Handler.app.name+" Chat");
   }
 
   // TODO: onclick/activate -> chatHandler.showCurrentConversation()

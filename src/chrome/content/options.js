@@ -40,7 +40,7 @@ var firetrayUIOptions = {
     if (firetray.Handler.isChatProvided() &&
         firetray.Handler.support['chat'] &&
         !firetray.AppIndicator) {
-      Cu.import("resource://firetray/"+firetray.Handler.runtimeOS+"/FiretrayChat.jsm");
+      Cu.import("resource://firetray/"+firetray.Handler.app.OS+"/FiretrayChat.jsm");
       this.initChatControls();
     } else {
       this.hidePrefPane("pref-pane-chat");
@@ -415,7 +415,7 @@ var firetrayUIOptions = {
     }};
 
     filePicker.init(window, "Select Icon", nsIFilePicker.modeOpen); // FIXME: i18n
-    if (firetray.Handler.runtimeOS === "winnt")
+    if (firetray.Handler.app.OS === "winnt")
       filePicker.appendFilter("Icon", "*.bmp; *.ico"); // TODO: support more formats ?
     else
       filePicker.appendFilters(nsIFilePicker.filterImages);

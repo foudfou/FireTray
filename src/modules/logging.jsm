@@ -8,7 +8,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 
-const FIRETRAY_LOG_LEVEL = "Warn"; // "All" for debugging
+const FIRETRAY_LOG_LEVEL = "All"; // "All" for debugging
 
 const COLOR_NORMAL          = "";
 const COLOR_RESET           = "\033[m";

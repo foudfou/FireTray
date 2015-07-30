@@ -29,7 +29,7 @@ FiretrayWindow.prototype = {
     log.debug("|baseWin.title="+title+"|");
     // FIXME: we should be able to compute the base title from the XUL window
     // attributes.
-    const kTailRe = " (-|\u2014) ((Mozilla )?"+firetray.Handler.appName+"|Nightly)";
+    const kTailRe = " (-|\u2014) ((Mozilla )?"+firetray.Handler.app.name+"|Nightly)";
     let tailIndex = title.search(kTailRe);
     if (tailIndex !== -1)
       return title.substring(0, tailIndex);
