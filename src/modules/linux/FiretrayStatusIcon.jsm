@@ -6,14 +6,14 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
+Cu.import("resource://gre/modules/ctypes.jsm");
+Cu.import("resource://firetray/commons.js"); // first for Handler.app !
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/glib.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/libc.jsm");
 Cu.import("resource://firetray/ctypes/linux/x11.jsm");
-Cu.import("resource://gre/modules/ctypes.jsm");
-Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gdk, gio, glib, gobject]);
 
 let log = firetray.Logging.getLogger("firetray.StatusIcon");
@@ -92,7 +92,7 @@ firetray.StatusIcon = {
   loadImageCustom: function() { }, // done in setIconImageCustom
 
   appindEnable: function() {
-    Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
+    Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/appindicator.jsm");
     /* FIXME: Ubuntu14.04/Unity: successfully closing appind crashes FF/TB
      during exit, in Ubuntu's unity-menubar.patch's code.
      https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256 */

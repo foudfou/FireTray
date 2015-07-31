@@ -6,8 +6,8 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
-Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/commons.js"); // first for Handler.app !
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gtk.jsm");
 firetray.Handler.subscribeLibsForClosing([gtk]);
 
 if ("undefined" == typeof(firetray.StatusIcon))

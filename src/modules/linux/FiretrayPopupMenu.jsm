@@ -9,9 +9,9 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
+Cu.import("resource://firetray/commons.js"); // first for Handler.app !
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
-Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
-Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gtk.jsm");
 firetray.Handler.subscribeLibsForClosing([gobject, gtk]);
 
 let log = firetray.Logging.getLogger("firetray.PopupMenu");

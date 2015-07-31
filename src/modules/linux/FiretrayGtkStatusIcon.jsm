@@ -7,15 +7,15 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
+Cu.import("resource://firetray/commons.js"); // first for Handler.app !
 Cu.import("resource://firetray/ctypes/linux/cairo.jsm");
-Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
-Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
 Cu.import("resource://firetray/ctypes/linux/pangocairo.jsm");
 Cu.import("resource://firetray/linux/FiretrayGtkIcons.jsm");
-Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([cairo, gdk, gio, gobject, gtk, pango,
   pangocairo]);
 

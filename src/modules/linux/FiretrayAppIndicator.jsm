@@ -7,12 +7,12 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
+Cu.import("resource://firetray/commons.js"); // first for Handler.app !
+Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 // FIXME: can't subscribeLibsForClosing([appind])
 // https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256
-Cu.import("resource://firetray/ctypes/linux/appindicator.jsm");
-Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
-Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
-Cu.import("resource://firetray/commons.js");
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/appindicator.jsm");
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gtk.jsm");
 firetray.Handler.subscribeLibsForClosing([gobject, gtk]);
 
 let log = firetray.Logging.getLogger("firetray.AppIndicator");

@@ -12,7 +12,7 @@ const Ci = Components.interfaces;
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
-Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gtk2/gtk.jsm");
 
 function appindicator_defines(lib) {
   this.AppIndicator = ctypes.StructType("AppIndicator");

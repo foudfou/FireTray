@@ -16,14 +16,14 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
+Cu.import("resource://firetray/commons.js"); // first for Handler.app !
 Cu.import("resource://firetray/ctypes/ctypesMap.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
-Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
-Cu.import("resource://firetray/ctypes/linux/gtk.jsm");
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gtk.jsm");
 Cu.import("resource://firetray/ctypes/linux/libc.jsm");
 Cu.import("resource://firetray/ctypes/linux/x11.jsm");
 Cu.import("resource://firetray/FiretrayWindow.jsm");
-Cu.import("resource://firetray/commons.js");
 firetray.Handler.subscribeLibsForClosing([gobject, gdk, gtk, libc, x11, glib]);
 
 let log = firetray.Logging.getLogger("firetray.Window");

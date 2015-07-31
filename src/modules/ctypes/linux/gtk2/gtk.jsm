@@ -11,10 +11,10 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
-Cu.import("resource://firetray/ctypes/linux/gdk.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
+Cu.import("resource://firetray/ctypes/linux/gtk2/gdk.jsm");
 
 function gtk_defines(lib) {
   this.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION = 2;
