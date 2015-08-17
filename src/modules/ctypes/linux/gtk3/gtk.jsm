@@ -2,7 +2,7 @@
 
 var EXPORTED_SYMBOLS = [ "gtk" ];
 
-const GTK_LIBNAME = "gtk-x11-2.0";
+const GTK_LIBNAME = "gtk-3";
 const GTK_ABIS    = [ 0 ];
 
 const Cu = Components.utils;
@@ -14,12 +14,12 @@ Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");
 Cu.import("resource://firetray/ctypes/linux/gio.jsm");
 Cu.import("resource://firetray/ctypes/linux/gobject.jsm");
 Cu.import("resource://firetray/ctypes/linux/pango.jsm");
-Cu.import("resource://firetray/ctypes/linux/gtk2/gdk.jsm");
+Cu.import("resource://firetray/ctypes/linux/gtk3/gdk.jsm");
 
 function gtk_defines(lib) {
 
-  this.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION = 2;
-  this.FIRETRAY_REQUIRED_GTK_MINOR_VERSION = 20;
+  this.FIRETRAY_REQUIRED_GTK_MAJOR_VERSION = 3;
+  this.FIRETRAY_REQUIRED_GTK_MINOR_VERSION = 4;
   this.FIRETRAY_REQUIRED_GTK_MICRO_VERSION = 0;
 
   this.GtkIconSize = ctypes.int; // enum
@@ -99,8 +99,8 @@ function gtk_defines(lib) {
     [this.GtkWidget.ptr, gdk.GdkEventFocus.ptr, gobject.gpointer]).ptr;
 
   lib.lazy_bind("gtk_check_version", gobject.gchar.ptr, gobject.guint, gobject.guint, gobject.guint);
-  this.gtk_get_major_version = function(){return 2;};
-  this.gtk_get_minor_version = function(){}; // undefined
+  lib.lazy_bind("gtk_get_major_version", gobject.guint);
+  lib.lazy_bind("gtk_get_minor_version", gobject.guint);
 
   lib.lazy_bind("gtk_icon_theme_get_default", this.GtkIconTheme.ptr);
   lib.lazy_bind("gtk_icon_theme_get_for_screen", this.GtkIconTheme.ptr, gdk.GdkScreen.ptr);
@@ -109,7 +109,7 @@ function gtk_defines(lib) {
   lib.lazy_bind("gtk_icon_theme_prepend_search_path", ctypes.void_t, this.GtkIconTheme.ptr, gobject.gchar.ptr);
   lib.lazy_bind("gtk_icon_theme_choose_icon", this.GtkIconInfo.ptr, this.GtkIconTheme.ptr, gobject.gchar.ptr.array(), gobject.gint, this.GtkIconLookupFlags);
   lib.lazy_bind("gtk_icon_info_load_icon", gdk.GdkPixbuf.ptr, this.GtkIconInfo.ptr, glib.GError.ptr.ptr);
-  lib.lazy_bind("gtk_icon_info_free", ctypes.void_t, this.GtkIconInfo.ptr);
+  lib.lazy_bind("gtk_icon_info_free", ctypes.void_t, this.GtkIconInfo.ptr); // FIXME: gtk3 deprecated
 
   lib.lazy_bind("gtk_status_icon_new", this.GtkStatusIcon.ptr);
   lib.lazy_bind("gtk_status_icon_set_from_file", ctypes.void_t, this.GtkStatusIcon.ptr, ctypes.char.ptr);

@@ -131,7 +131,11 @@ firetray.ChatStatusIcon = {
 
     // create pixbuf
     let pixbuf = gdk.gdk_pixbuf_copy(gtk.gtk_icon_info_load_icon(icon_info, null));
-    gtk.gtk_icon_info_free(icon_info);   // gobject.g_object_unref(icon_info) in 3.8
+if (gtk.gtk_get_major_version() == 3 && gtk.gtk_get_minor_version() >= 8) { // gtk3
+    gobject.g_object_unref(icon_info);
+} else {
+    gtk.gtk_icon_info_free(icon_info);
+}
 
     // checks
     if (gdk.gdk_pixbuf_get_colorspace(pixbuf) != gdk.GDK_COLORSPACE_RGB)

@@ -203,6 +203,9 @@ firetray.StatusIcon = {
       else if (scroll_mode === "up_hides")
         firetray.Handler.showAllWindows();
       break;
+    case gdk.GDK_SCROLL_SMOOTH:
+      // ignore
+      break;
     default:
       log.error("SCROLL UNKNOWN");
     }

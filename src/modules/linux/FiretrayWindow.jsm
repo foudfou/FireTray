@@ -157,14 +157,33 @@ firetray.Window.getGdkWindowFromGtkWindow = function(gtkWin) {
   return null;
 };
 
-firetray.Window.getXIDFromGdkWindow = function(gdkWin) {
-  return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
-};
+if (firetray.Handler.app.widgetTk == "gtk2") {
 
-firetray.Window.getXIDFromGtkWidget = function(gtkWid) {
-  let gdkWin = gtk.gtk_widget_get_window(gtkWid);
-  return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
-};
+  firetray.Window.getXIDFromGdkWindow = function(gdkWin) {
+    return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
+  };
+
+  firetray.Window.getXIDFromGtkWidget = function(gtkWid) {
+    let gdkWin = gtk.gtk_widget_get_window(gtkWid);
+    return gdk.gdk_x11_drawable_get_xid(ctypes.cast(gdkWin, gdk.GdkDrawable.ptr));
+  };
+
+}
+else if (firetray.Handler.app.widgetTk == "gtk3") {
+
+  firetray.Window.getXIDFromGdkWindow = function(gdkWin) {
+    return gdk.gdk_x11_window_get_xid(gdkWin);
+  };
+
+  firetray.Window.getXIDFromGtkWidget = function(gtkWid) {
+    let gdkWin = gtk.gtk_widget_get_window(gtkWid);
+    return gdk.gdk_x11_window_get_xid(gdkWin);
+  };
+
+}
+else {
+  log.error("Unhandled widgetTk: "+firetray.Handler.app.widgetTk);
+}
 
 firetray.Window.addrPointedByInHex = function(ptr) {
   return "0x"+ctypes.cast(ptr, ctypes.uintptr_t.ptr).contents.toString(16);
@@ -499,16 +518,14 @@ firetray.Window.getXWindowDesktop = function(xwin) {
   return desktop;
 };
 
-firetray.Window.checkSubscribedEventMasks = function(xid) {
-  let xWindowAttributes = new x11.XWindowAttributes;
-  let status = x11.XGetWindowAttributes(x11.current.Display, xid, xWindowAttributes.address());
-  log.debug("xWindowAttributes: "+xWindowAttributes);
-  let xEventMask = xWindowAttributes.your_event_mask;
-  let xEventMaskNeeded = x11.VisibilityChangeMask|x11.StructureNotifyMask|
-        x11.FocusChangeMask|x11.PropertyChangeMask;
-  log.debug("xEventMask="+xEventMask+" xEventMaskNeeded="+xEventMaskNeeded);
-  if ((xEventMask & xEventMaskNeeded) !== xEventMaskNeeded) {
-    log.error("missing mandatory event-masks"); // change with gdk_window_set_events()
+firetray.Window.correctSubscribedEventMasks = function(gdkWin) {
+  let eventMask = gdk.gdk_window_get_events(gdkWin);
+  let eventMaskNeeded = gdk.GDK_STRUCTURE_MASK | gdk.GDK_PROPERTY_CHANGE_MASK |
+        gdk.GDK_VISIBILITY_NOTIFY_MASK;
+  log.debug("eventMask="+eventMask+" eventMaskNeeded="+eventMaskNeeded);
+  if ((eventMask & eventMaskNeeded) !== eventMaskNeeded) {
+    log.info("subscribing window to missing mandatory event-masks");
+    gdk.gdk_window_set_events(gdkWin, eventMask|eventMaskNeeded);
   }
 };
 
@@ -649,7 +666,7 @@ firetray.Handler.registerWindow = function(win) {
   Object.defineProperties(this.windows[xid], {
     "visible": { get: function(){return firetray.Window.getVisibility(xid);} }
   });
-  firetray.Window.checkSubscribedEventMasks(xid);
+  firetray.Window.correctSubscribedEventMasks(gdkWin);
   try {
     this.gtkWindows.insert(xid, gtkWin);
     this.gdkWindows.insert(xid, gdkWin);

@@ -86,8 +86,20 @@ firetray.PopupMenu = {
     this.initialized = false;
   },
 
+  /* FIXME: gtk3 "GtkImageMenuItem has been deprecated since GTK+ 3.10".
+   GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   GtkWidget *icon = gtk_image_new_from_icon_name ("folder-music-symbolic", GTK_ICON_SIZE_MENU);
+   GtkWidget *label = gtk_label_new ("Music");
+   GtkWidget *menu_item = gtk_menu_item_new ();
+   gtk_container_add (GTK_CONTAINER (box), icon);
+   gtk_container_add (GTK_CONTAINER (box), label);
+   gtk_container_add (GTK_CONTAINER (menu_item), box);
+   gtk_widget_show_all (menu_item);
+   */
   addItem: function(it) {
-    var menuItemLabel = firetray.Utils.strings.GetStringFromName("popupMenu.itemLabel."+it.itemName); // shouldn't need to convert to utf8 later thank to js-ctypes
+    // shouldn't need to convert to utf8 later thank to js-ctypes
+    var menuItemLabel = firetray.Utils.strings
+          .GetStringFromName("popupMenu.itemLabel."+it.itemName);
     var menuItem = gtk.gtk_image_menu_item_new_with_label(menuItemLabel);
     var menuItemIcon = gtk.gtk_image_new_from_stock(it.iconName, gtk.GTK_ICON_SIZE_MENU);
     gtk.gtk_image_menu_item_set_image(menuItem, menuItemIcon);
