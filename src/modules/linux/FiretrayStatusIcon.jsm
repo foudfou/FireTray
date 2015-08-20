@@ -92,25 +92,31 @@ firetray.StatusIcon = {
   loadImageCustom: function() { }, // done in setIconImageCustom
 
   appindEnable: function() {
-    Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/appindicator.jsm");
+    Cu.import("resource://firetray/ctypes/linux/"+
+              firetray.Handler.app.widgetTk+"/appindicator.jsm");
     /* FIXME: Ubuntu14.04/Unity: successfully closing appind crashes FF/TB
      during exit, in Ubuntu's unity-menubar.patch's code.
      https://bugs.launchpad.net/ubuntu/+source/firefox/+bug/1393256 */
     // firetray.Handler.subscribeLibsForClosing([appind]);
-    let canAppIndicator =
-          (appind.available() && this.dbusNotificationWatcherReady());
+
     /* We can't reliably detect if xembed tray icons are supported, because,
      for instance, Unity/compiz falsely claims to have support for it through
      _NET_SYSTEM_TRAY_Sn (compiz). So we end up using the desktop id as a
      criteria for enabling appindicator. */
     let desktop = this.getDesktop();
     log.info("desktop="+JSON.stringify(desktop));
-    return (
-      firetray.Utils.prefService.getBoolPref('with_appindicator') &&
-        canAppIndicator &&
-        (desktop.name === 'unity' ||
-         (desktop.name === 'kde' && desktop.ver > 4))
-    );
+    let isAppindDesktop = (desktop.name === 'unity' ||
+                           (desktop.name === 'kde' && desktop.ver > 4));
+    if (isAppindDesktop && !appind.available()) {
+      log.error("Missing libappindicator for "+firetray.Handler.app.widgetTk);
+      return false;
+    }
+
+    let canAppIndicator = (appind.available() &&
+                           this.dbusNotificationWatcherReady());
+
+    return (firetray.Utils.prefService.getBoolPref('with_appindicator') &&
+            canAppIndicator && isAppindDesktop);
   },
 
   getDesktop: function() {
@@ -123,10 +129,12 @@ firetray.StatusIcon = {
     if (XDG_CURRENT_DESKTOP === 'unity' || DESKTOP_SESSION === 'ubuntu') {
       desktop.name = 'unity';
     }
-    else if (XDG_CURRENT_DESKTOP === 'kde') { // DESKTOP_SESSION kde-plasma, plasme, kf5, ...
+    // can't test DESKTOP_SESSION for kde: kde-plasma, plasme, kf5, ...
+    else if (XDG_CURRENT_DESKTOP === 'kde') {
       desktop.name = 'kde';
       let KDE_SESSION_VERSION = env.get("KDE_SESSION_VERSION");
-      if (KDE_SESSION_VERSION) desktop.ver = parseInt(KDE_SESSION_VERSION, 10);
+      if (KDE_SESSION_VERSION)
+        desktop.ver = parseInt(KDE_SESSION_VERSION, 10);
     }
     else if (DESKTOP_SESSION) {
       desktop.name = DESKTOP_SESSION;
