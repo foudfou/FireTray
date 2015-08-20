@@ -106,12 +106,13 @@ chrome_sources := $(chrome_sources_js)								\
 modules_dir := modules
 
 # The sources for the module files.
-modules_sources := $(wildcard $(modules_dir)/*.js)		\
-		$(wildcard $(modules_dir)/*.jsm)		\
-		$(wildcard $(modules_dir)/ctypes/*.jsm)		\
-		$(wildcard $(modules_dir)/ctypes/linux/*.jsm)	\
-		$(wildcard $(modules_dir)/ctypes/winnt/*.jsm)	\
-		$(wildcard $(modules_dir)/linux/*.jsm)		\
+modules_sources := $(wildcard $(modules_dir)/*.js)			\
+		$(wildcard $(modules_dir)/*.jsm)			\
+		$(wildcard $(modules_dir)/ctypes/*.jsm)			\
+		$(wildcard $(modules_dir)/ctypes/linux/*.jsm)		\
+		$(wildcard $(modules_dir)/ctypes/linux/gtk?/*.jsm)	\
+		$(wildcard $(modules_dir)/ctypes/winnt/*.jsm)		\
+		$(wildcard $(modules_dir)/linux/*.jsm)			\
 		$(wildcard $(modules_dir)/winnt/*.jsm)
 
 # The components (JSM) dir.
