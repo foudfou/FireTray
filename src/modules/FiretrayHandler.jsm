@@ -534,10 +534,12 @@ firetray.Handler = {
   disablePrefsTmp: function() {
     this.prefsDisable.forEach(function(pref){
       if (!pref.cond()) return;
-      let branch = Services.prefs.getBranch(pref.branch);
-      pref.bak = branch.getBoolPref(pref.pref);
-      log.debug(pref.pref+" saved. was: "+pref.bak);
-      branch.setBoolPref(pref.pref, false);
+      try {
+        let branch = Services.prefs.getBranch(pref.branch);
+        pref.bak = branch.getBoolPref(pref.pref);
+        log.debug(pref.pref+" saved. was: "+pref.bak);
+        branch.setBoolPref(pref.pref, false);
+      } catch(x) {}
     });
   },
   restorePrefsTmp: function() {
