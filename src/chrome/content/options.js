@@ -29,23 +29,6 @@ var firetrayUIOptions = {
     if (!this.prefwindow)
       log.error("pref window not found");
 
-    if (firetray.Handler.inMailApp) {
-      Cu.import("resource:///modules/mailServices.js");
-      Cu.import("resource://firetray/FiretrayMessaging.jsm");
-      this.initMailControls();
-    } else {
-      this.removePrefPane("pref-pane-mail");
-    }
-
-    if (firetray.Handler.isChatProvided() &&
-        firetray.Handler.support['chat'] &&
-        !firetray.AppIndicator) {
-      Cu.import("resource://firetray/"+firetray.Handler.app.OS+"/FiretrayChat.jsm");
-      this.initChatControls();
-    } else {
-      this.removePrefPane("pref-pane-chat");
-    };
-
     this.updateWindowAndIconOptions();
     this.updateScrollOptions();
     this.initAppIconType();
@@ -65,6 +48,23 @@ var firetrayUIOptions = {
       if (firetray.Handler.inMailApp)
         this.initNewMailIconNames();
     }
+
+    if (firetray.Handler.inMailApp) {
+      Cu.import("resource:///modules/mailServices.js");
+      Cu.import("resource://firetray/FiretrayMessaging.jsm");
+      this.initMailControls();
+    } else {
+      this.removePrefPane("pref-pane-mail");
+    }
+
+    if (firetray.Handler.isChatProvided() &&
+        firetray.Handler.support['chat'] &&
+        !firetray.AppIndicator) {
+      Cu.import("resource://firetray/"+firetray.Handler.app.OS+"/FiretrayChat.jsm");
+      this.initChatControls();
+    } else {
+      this.removePrefPane("pref-pane-chat");
+    };
 
     window.sizeToContent();
   },
@@ -119,7 +119,8 @@ var firetrayUIOptions = {
     let pane = document.getElementById(name);
     pane.parentNode.removeChild(pane);
 
-    let radio = document.getAnonymousElementByAttribute(this.prefwindow, "pane", name);
+    let radio = document
+      .getAnonymousElementByAttribute(this.prefwindow, "pane", name);
     radio.parentNode.removeChild(radio);
   },
 
