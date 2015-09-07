@@ -29,6 +29,8 @@ firetray.StatusIcon = {
   prefNewMailIconNames: null,
   defaultAppIconName: null,
   defaultNewMailIconName: null,
+  THEME_ICON_PATH: (function(){return firetray.Utils.chromeToPath(
+    "chrome://firetray/skin/icons/linux");})(),
 
   init: function() {
     this.defineIconNames();

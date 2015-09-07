@@ -40,8 +40,7 @@ firetray.GtkIcons = {
   },
 
   appendSearchPath: function() {
-    this.GTK_THEME_ICON_PATH = firetray.Utils.chromeToPath("chrome://firetray/skin/icons/linux");
-    log.debug(this.GTK_THEME_ICON_PATH);
+    log.debug(firetray.StatusIcon.THEME_ICON_PATH);
     let gtkIconTheme = gtk.gtk_icon_theme_get_default();
     log.debug("gtkIconTheme="+gtkIconTheme);
     gtk.gtk_icon_theme_append_search_path(gtkIconTheme, this.GTK_THEME_ICON_PATH);

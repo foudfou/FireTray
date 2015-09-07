@@ -40,10 +40,13 @@ function appindicator_defines(lib) {
   this.APP_INDICATOR_STATUS_ATTENTION = 2; /*< nick=NeedsAttention >*/
 
   lib.lazy_bind("app_indicator_new", this.AppIndicator.ptr, gobject.gchar.ptr, gobject.gchar.ptr, this.AppIndicatorCategory);
+  lib.lazy_bind("app_indicator_new_with_path", this.AppIndicator.ptr, gobject.gchar.ptr, gobject.gchar.ptr, this.AppIndicatorCategory, gobject.gchar.ptr);
+  lib.lazy_bind("app_indicator_set_icon_theme_path", ctypes.void_t, this.AppIndicator.ptr, gobject.gchar.ptr);
   lib.lazy_bind("app_indicator_set_status", ctypes.void_t, this.AppIndicator.ptr, this.AppIndicatorStatus);
   lib.lazy_bind("app_indicator_get_status", this.AppIndicatorStatus, this.AppIndicator.ptr);
   lib.lazy_bind("app_indicator_set_menu", ctypes.void_t, this.AppIndicator.ptr, gtk.GtkMenu.ptr);
   lib.lazy_bind("app_indicator_set_icon", ctypes.void_t, this.AppIndicator.ptr, gobject.gchar.ptr);
+  lib.lazy_bind("app_indicator_set_icon_full", ctypes.void_t, this.AppIndicator.ptr, gobject.gchar.ptr, gobject.gchar.ptr);
   lib.lazy_bind("app_indicator_set_attention_icon", ctypes.void_t, this.AppIndicator.ptr, gobject.gchar.ptr);
   lib.lazy_bind("app_indicator_set_label", ctypes.void_t, this.AppIndicator.ptr, gobject.gchar.ptr, gobject.gchar.ptr);
   lib.lazy_bind("app_indicator_set_secondary_activate_target", ctypes.void_t, this.AppIndicator.ptr, gtk.GtkWidget.ptr);

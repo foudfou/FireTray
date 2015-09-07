@@ -32,10 +32,12 @@ firetray.AppIndicator = {
       firetray.StatusIcon.defaultAppIconName,
       appind.APP_INDICATOR_CATEGORY_COMMUNICATIONS
     );
+    appind.app_indicator_set_icon_theme_path(
+      this.indicator, firetray.StatusIcon.THEME_ICON_PATH);
     appind.app_indicator_set_status(this.indicator,
-                                     appind.APP_INDICATOR_STATUS_ACTIVE);
+                                    appind.APP_INDICATOR_STATUS_ACTIVE);
     appind.app_indicator_set_menu(this.indicator,
-                                   firetray.PopupMenu.menu); // mandatory
+                                  firetray.PopupMenu.menu); // mandatory
     log.debug("indicator="+this.indicator);
 
     this.addCallbacks();
@@ -108,14 +110,17 @@ firetray.StatusIcon.shutdownImpl =
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
-  appind.app_indicator_set_icon(firetray.AppIndicator.indicator,
-                                 firetray.StatusIcon.defaultAppIconName);
+  appind.app_indicator_set_icon_full(firetray.AppIndicator.indicator,
+                                     firetray.StatusIcon.defaultAppIconName,
+                                     firetray.Handler.app.name);
 };
 
 firetray.Handler.setIconImageNewMail = function() {
   log.debug("setIconImageNewMail");
-  appind.app_indicator_set_icon(firetray.AppIndicator.indicator,
-                                 firetray.StatusIcon.defaultNewMailIconName);
+  appind.app_indicator_set_icon_full(
+    firetray.AppIndicator.indicator,
+    firetray.StatusIcon.defaultNewMailIconName,
+    firetray.Handler.app.name);
 };
 
 firetray.Handler.setIconImageCustom = function(prefname) {
@@ -123,7 +128,9 @@ firetray.Handler.setIconImageCustom = function(prefname) {
   // Undocumented: ok to pass a *path* instead of an icon name! Otherwise we
   // should be changing the default icons (which is maybe a better
   // implementation anyway)...
-  appind.app_indicator_set_icon(firetray.AppIndicator.indicator, prefCustomIconPath);
+  appind.app_indicator_set_icon_full(
+    firetray.AppIndicator.indicator, prefCustomIconPath,
+    firetray.Handler.app.name);
 };
 
 // No tooltips in AppIndicator
