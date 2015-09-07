@@ -34,7 +34,7 @@ var firetrayUIOptions = {
       Cu.import("resource://firetray/FiretrayMessaging.jsm");
       this.initMailControls();
     } else {
-      this.hidePrefPane("pref-pane-mail");
+      this.removePrefPane("pref-pane-mail");
     }
 
     if (firetray.Handler.isChatProvided() &&
@@ -43,7 +43,7 @@ var firetrayUIOptions = {
       Cu.import("resource://firetray/"+firetray.Handler.app.OS+"/FiretrayChat.jsm");
       this.initChatControls();
     } else {
-      this.hidePrefPane("pref-pane-chat");
+      this.removePrefPane("pref-pane-chat");
     };
 
     this.updateWindowAndIconOptions();
@@ -107,14 +107,20 @@ var firetrayUIOptions = {
       };
     });
 
-
   },
 
-  hidePrefPane: function(name){
+  // addPane would probably be smarter but is hardly achievable (loadOverlay?).
+  removePrefPane: function(name){
+    // FIXME: uncatchable exception "this.preferences.rootBranchInternal is
+    // undefined". See toolkit/content/widgets/preferences.xml during
+    // <preference> destruction. Deleting each preference beforehand doesn't
+    // help.
+
+    let pane = document.getElementById(name);
+    pane.parentNode.removeChild(pane);
+
     let radio = document.getAnonymousElementByAttribute(this.prefwindow, "pane", name);
-    if (radio.selected)
-      this.prefwindow.showPane(document.getElementById(PREF_DEFAULT_PANE));
-    radio.hidden = true;
+    radio.parentNode.removeChild(radio);
   },
 
   hideChildren: function(group, hiddenval) {
