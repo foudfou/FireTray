@@ -91,8 +91,6 @@ firetray.StatusIcon = {
     return newMailIconNames;
   },
 
-  loadImageCustom: function() { }, // done in setIconImageCustom
-
   appindEnable: function() {
     Cu.import("resource://firetray/ctypes/linux/"+
               firetray.Handler.app.widgetTk+"/appindicator.jsm");
@@ -233,5 +231,7 @@ firetray.Handler.setIconTooltipDefault = function() {
     throw "application name not initialized";
   this.setIconTooltip(this.app.name);
 };
+
+firetray.Handler.setIconImageCustom = function(prefname) { };
 
 firetray.Handler.setIconTooltip = function(toolTipStr) { };

@@ -590,7 +590,7 @@ firetray.PrefListener = new PrefListener(
       firetray.Messaging.updateIcon();
       break;
     case 'new_mail_icon_names':
-      this.loadIcons();
+      firetray.Handler.loadIcons();
     case 'excluded_folders_flags':
     case 'folder_count_recursive':
     case 'mail_accounts':
@@ -608,10 +608,10 @@ firetray.PrefListener = new PrefListener(
     case 'app_mail_icon_names':
     case 'app_browser_icon_names':
     case 'app_default_icon_names':
-      this.loadIcons(); // linux
+      firetray.Handler.loadIcons(); // linux
     case 'app_icon_custom':
     case 'mail_icon_custom':
-      firetray.StatusIcon.loadImageCustom(name);
+      firetray.Handler.setIconImageCustom(name);
     case 'app_icon_type':
       firetray.Handler.setIconImageDefault();
       if (firetray.Handler.inMailApp)

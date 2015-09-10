@@ -168,16 +168,22 @@ firetray.GtkStatusIcon = {
     gtk.gtk_status_icon_set_from_gicon(firetray.GtkStatusIcon.trayIcon, gicon);
   },
 
+  setIconImageCustom: function(prefname) {
+    let prefCustomIconPath = firetray.Utils.prefService.getCharPref(prefname);
+    firetray.GtkStatusIcon.setIconImageFromFile(prefCustomIconPath);
+  },
+
 };                              // GtkStatusIcon
 
-firetray.StatusIcon.initImpl =
-  firetray.GtkStatusIcon.init.bind(firetray.GtkStatusIcon);
+firetray.StatusIcon.initImpl = firetray.GtkStatusIcon.init
+  .bind(firetray.GtkStatusIcon);
 
-firetray.StatusIcon.shutdownImpl =
-  firetray.GtkStatusIcon.shutdown.bind(firetray.GtkStatusIcon);
+firetray.StatusIcon.shutdownImpl = firetray.GtkStatusIcon.shutdown
+  .bind(firetray.GtkStatusIcon);
 
 
-firetray.Handler.loadIcons = firetray.GtkStatusIcon.loadThemedIcons;
+firetray.Handler.loadIcons = firetray.GtkStatusIcon.loadThemedIcons
+  .bind(firetray.GtkStatusIcon);
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
@@ -188,7 +194,7 @@ firetray.Handler.setIconImageDefault = function() {
     firetray.GtkStatusIcon.setIconImageFromGIcon(
       firetray.GtkStatusIcon.themedIconApp);
   } else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM) {
-    firetray.Handler.setIconImageCustom("app_icon_custom");
+    firetray.GtkStatusIcon.setIconImageCustom("app_icon_custom");
   }
 };
 
@@ -197,10 +203,7 @@ firetray.Handler.setIconImageNewMail = function() {
     firetray.GtkStatusIcon.themedIconNewMail);
 };
 
-firetray.Handler.setIconImageCustom = function(prefname) {
-  let prefCustomIconPath = firetray.Utils.prefService.getCharPref(prefname);
-  firetray.GtkStatusIcon.setIconImageFromFile(prefCustomIconPath);
-};
+firetray.Handler.setIconImageCustom = firetray.GtkStatusIcon.setIconImageCustom;
 
 // GTK bug: Gdk-CRITICAL **: IA__gdk_window_get_root_coords: assertion `GDK_IS_WINDOW (window)' failed
 firetray.Handler.setIconTooltip = function(toolTipStr) {
