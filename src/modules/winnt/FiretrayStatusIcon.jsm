@@ -463,6 +463,8 @@ firetray.StatusIcon = {
 
 }; // firetray.StatusIcon
 
+firetray.Handler.loadImageCustom = firetray.StatusIcon.loadImageCustom
+  .bind(firetray.StatusIcon);
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");

@@ -340,6 +340,7 @@ firetray.Handler = {
 
   // these get overridden in OS-specific Icon/Window handlers
   loadIcons: function() {},
+  loadImageCustom: function(prefname) {},
   setIconImageDefault: function() {},
   setIconImageNewMail: function() {},
   setIconImageCustom: function(prefname) {},
@@ -611,6 +612,7 @@ firetray.PrefListener = new PrefListener(
       firetray.Handler.loadIcons(); // linux
     case 'app_icon_custom':
     case 'mail_icon_custom':
+      firetray.Handler.loadImageCustom(name); // winnt
       firetray.Handler.setIconImageCustom(name);
     case 'app_icon_type':
       firetray.Handler.setIconImageDefault();

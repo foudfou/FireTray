@@ -397,7 +397,7 @@ var firetrayUIOptions = {
 
   chooseAppIconFile: function() {
     let updateIcon = firetray.Handler.setIconImageDefault.bind(firetray.Handler);
-    this._chooseIconFile("app_icon_custom_filename");
+    this._chooseIconFile("app_icon_custom_filename", updateIcon);
   },
 
   chooseMailIconFile: function() {
