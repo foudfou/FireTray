@@ -1,13 +1,10 @@
 <!-- if you need multiline/carriage return, use a .properties -->
 <!ENTITY prefwindow.title "FireTray вподобання">
-
 <!ENTITY NOT_IMPLEMENTED_YET "ЩЕ НЕ РЕАЛІЗОВАНО.">
-
 <!ENTITY windows_options "Вікна">
 <!ENTITY icon_options "Піктограма">
 <!ENTITY mail_options "Пошта">
 <!ENTITY chat_options "Чат">
-
 <!ENTITY hides_on_close.label "Закрите вікно приховувати до трею">
 <!ENTITY hides_on_close.accesskey "З">
 <!ENTITY hides_on_minimize.label "Згорнуте вікно приховувати до трею">
@@ -25,7 +22,6 @@
 <!ENTITY show_activates.tooltip "відновлені вікна підняти вгору та показати">
 <!ENTITY remember_desktop.label "Відновити вікна у їх вихідному робочому столі">
 <!ENTITY remember_desktop.accesskey "р">
-
 <!ENTITY show_icon_on_hide.label "Показувати піктограму у треї тільки коли вікно приховане">
 <!ENTITY show_icon_on_hide.accesskey "ї">
 <!ENTITY app_icon_type "Тип значку розширення">
@@ -35,7 +31,6 @@
 <!ENTITY icon_themed.tooltip "Назва значків, що надаються графічним середовищем">
 <!ENTITY app_icon_custom.label "Власний">
 <!ENTITY app_icon_custom.accesskey "с">
-
 <!ENTITY mouse_wheel_options "Параметри коліщата миші">
 <!ENTITY enable_mouse_scroll.label "Прокрутка миші на іконці трея">
 <!ENTITY enable_mouse_scroll.accesskey "я">
@@ -43,11 +38,10 @@
 <!ENTITY down "↓">
 <!ENTITY hide "сховати">
 <!ENTITY restore "відновити">
-<!ENTITY middle_click.label "Mouse middle click action :" >
-<!ENTITY middle_click.accesskey "k" >
-<!ENTITY show_hide "Show/hide" >
-<!ENTITY activate_last "Activate last window" >
-
+<!ENTITY middle_click.label "Дія клацання середньої кнопки миші:">
+<!ENTITY middle_click.accesskey "к">
+<!ENTITY show_hide "Показати/сховати">
+<!ENTITY activate_last "Активувати останнє вікно">
 <!ENTITY mail_notification_enabled.label "Включити поштові повідомлення">
 <!ENTITY mail_notification_enabled.accesskey "ю">
 <!ENTITY message_count_type.label "тип лічильника повідомлень:">
@@ -61,17 +55,15 @@
 <!ENTITY mail_notification_unread_count.accesskey "н">
 <!ENTITY mail_notification_newmail_icon.label "показувати значок нових повідомлень">
 <!ENTITY mail_notification_newmail_icon.accesskey "з">
-<!ENTITY mail_notification_mail_icon_custom.label "показувати власний значок">
+<!ENTITY mail_notification_mail_icon_custom.label "показувати вибраний значок">
 <!ENTITY mail_notification_mail_icon_custom.accesskey "в">
 <!ENTITY icon_text_color "Колір тексту">
 <!ENTITY icon_text_color.accesskey "К">
 <!ENTITY choose "Обрати">
 <!ENTITY choose.accesskey "О">
-
 <!ENTITY unread_count_folder_exceptions.label "Включити спеціальні теки">
 <!ENTITY unread_count_folder_exceptions.tooltip "Включити спеціальні теки до підрахунку непрочитаних повідомлень">
 <!ENTITY excluded_folders_list.tooltip "Використовуйте CTRL + ліве клацання мишею, щоб вибрати/скасувати теки для лічильника нових повідомлень">
-
 <!ENTITY unread_count_account_exceptions.label "Включені облікові записи">
 <!ENTITY unread_count_account_exceptions.tooltip "Включені облікові записи для лічильника непрочитаних повідомлень">
 <!ENTITY folder_count_recursive.label "включити вкладені теки">
@@ -79,30 +71,23 @@
 <!ENTITY only_favorite_folders.label "Тільки обрані теки">
 <!ENTITY only_favorite_folders.accesskey "о">
 <!ENTITY only_favorite_folders.tooltip "Підрахунок повідомлень лише у обраних теках">
-
 <!ENTITY account_or_server_type_name "Обліковий запис">
 <!ENTITY account_or_server_type_name.tooltip "Ім'я чи тип облікового запису">
 <!ENTITY account_or_server_type_excluded "Включені">
 <!ENTITY account_or_server_type_excluded.tooltip "Включені облікові записи чи типи до лічильника непрочитаних повідомлень">
 <!ENTITY account_or_server_type_order "Порядок">
 <!ENTITY account_or_server_type_order.tooltip "Порядок в якому відображаються типи поштових серверів. Зробіть подвійне клацання, щоб редагувати.">
-
 <!ENTITY mail_change_trigger.label "Запуск при зміні кількості:">
 <!ENTITY mail_change_trigger.accesskey "З">
 <!ENTITY mail_change_trigger.placeholder "/кошик/повідомити-відправити">
 <!ENTITY mail_change_trigger.tooltip "Абсолютний шлях запуску програми при зміні кількості повідомлень. Ця програма буде отримувати нову кількість повідомлень як перший аргумент.">
-<!ENTITY mail_get_attention.label "Вікно концентрується на нових повідомленнях">
-<!ENTITY mail_get_attention.accesskey "х">
-<!ENTITY nomail_hides_icon.label "Hide icon when no mail">
-<!ENTITY nomail_hides_icon.accesskey "H">
-
-
+<!ENTITY mail_get_attention.label "Вікно привертає увагу до нових повідомлень">
+<!ENTITY mail_get_attention.accesskey "у">
 <!ENTITY chat_icon_enable.label "Включити значок чату">
 <!ENTITY chat_icon_enable.accesskey "ч">
 <!ENTITY chat_icon_blink.label "Значок чату блимає при наявності нових повідомлень">
 <!ENTITY chat_icon_blink.accesskey "б">
 <!ENTITY chat_icon_blink.tooltip "коли приватне повідомлення або цитата в каналі">
-
 <!ENTITY chat_icon_blink_style.label "Стиль блимання">
 <!ENTITY chat_icon_blink_style.accesskey "С">
 <!ENTITY chat_icon_blink_style_normal "Звичайний">
