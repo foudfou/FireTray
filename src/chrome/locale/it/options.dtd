@@ -83,9 +83,9 @@
 <!ENTITY mail_change_trigger.accesskey "L">
 <!ENTITY mail_change_trigger.placeholder "/bin/notify-send">
 <!ENTITY mail_change_trigger.tooltip "Percorso assoluto del programma da lanciare quando viene incrementato il contatore dei messaggi non letti. Il programma utilizzerà il contatore dei nuovi messaggi come primo argomento.">
-<!ENTITY mail_get_attention.label "Window draws attention on new messages">
+<!ENTITY mail_get_attention.label "La finestra attira attenzione su nuovi messaggi">
 <!ENTITY mail_get_attention.accesskey "g">
-<!ENTITY nomail_hides_icon.label "Hide icon when no mail">
+<!ENTITY nomail_hides_icon.label "Nascondi icona quando non c'è posta">
 <!ENTITY nomail_hides_icon.accesskey "H">
 <!ENTITY chat_icon_enable.label "Attiva icona della chat">
 <!ENTITY chat_icon_enable.accesskey "E">
