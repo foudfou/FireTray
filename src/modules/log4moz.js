@@ -4,14 +4,14 @@
 
 this.EXPORTED_SYMBOLS = ['Log4Moz'];
 
-const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
+var {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 
-const ONE_BYTE = 1;
-const ONE_KILOBYTE = 1024 * ONE_BYTE;
-const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
+var ONE_BYTE = 1;
+var ONE_KILOBYTE = 1024 * ONE_BYTE;
+var ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
-const STREAM_SEGMENT_SIZE = 4096;
-const PR_UINT32_MAX = 0xffffffff;
+var STREAM_SEGMENT_SIZE = 4096;
+var PR_UINT32_MAX = 0xffffffff;
 
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource://gre/modules/FileUtils.jsm");

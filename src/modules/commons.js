@@ -18,48 +18,48 @@ var EXPORTED_SYMBOLS =
     "FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE", "FIRETRAY_APPINDICATOR_ID",
     "FIRETRAY_APP_DB", "FIRETRAY_CB_SENTINEL" ];
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cu = Components.utils;
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
 
-const FIRETRAY_VERSION     = "0.6.0"; // needed for sync call of onVersionChange() :(
-const FIRETRAY_OS_SUPPORT  = ['freebsd', 'linux', 'winnt']; // install.rdf sync :(
-const FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
-const FIRETRAY_PREF_BRANCH = "extensions.firetray.";
-const FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
+var FIRETRAY_VERSION     = "0.6.0"; // needed for sync call of onVersionChange() :(
+var FIRETRAY_OS_SUPPORT  = ['freebsd', 'linux', 'winnt']; // install.rdf sync :(
+var FIRETRAY_ID          = "{9533f794-00b4-4354-aa15-c2bbda6989f8}";
+var FIRETRAY_PREF_BRANCH = "extensions.firetray.";
+var FIRETRAY_SPLASH_PAGE = "http://foudfou.github.com/FireTray/";
 
-const FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
-const FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM = 1;
+var FIRETRAY_APPLICATION_ICON_TYPE_THEMED = 0;
+var FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM = 1;
 
-const FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST = 0;
-const FIRETRAY_MIDDLE_CLICK_SHOW_HIDE     = 1;
+var FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST = 0;
+var FIRETRAY_MIDDLE_CLICK_SHOW_HIDE     = 1;
 
-const FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD  = 0;
-const FIRETRAY_MESSAGE_COUNT_TYPE_NEW     = 1;
+var FIRETRAY_MESSAGE_COUNT_TYPE_UNREAD  = 0;
+var FIRETRAY_MESSAGE_COUNT_TYPE_NEW     = 1;
 
-const FIRETRAY_NOTIFICATION_MESSAGE_COUNT = 0;
-const FIRETRAY_NOTIFICATION_NEWMAIL_ICON  = 1;
-const FIRETRAY_NOTIFICATION_CUSTOM_ICON   = 2;
+var FIRETRAY_NOTIFICATION_MESSAGE_COUNT = 0;
+var FIRETRAY_NOTIFICATION_NEWMAIL_ICON  = 1;
+var FIRETRAY_NOTIFICATION_CUSTOM_ICON   = 2;
 
-const FIRETRAY_IM_STATUS_AVAILABLE = "user-available";
-const FIRETRAY_IM_STATUS_AWAY      = "user-away";
-const FIRETRAY_IM_STATUS_BUSY      = "user-busy";
-const FIRETRAY_IM_STATUS_OFFLINE   = "user-offline";
+var FIRETRAY_IM_STATUS_AVAILABLE = "user-available";
+var FIRETRAY_IM_STATUS_AWAY      = "user-away";
+var FIRETRAY_IM_STATUS_BUSY      = "user-busy";
+var FIRETRAY_IM_STATUS_OFFLINE   = "user-offline";
 
-const FIRETRAY_ACCOUNT_SERVER_TYPE_IM = "im";
+var FIRETRAY_ACCOUNT_SERVER_TYPE_IM = "im";
 
-const FIRETRAY_DELAY_STARTUP_MILLISECONDS = 500;
-const FIRETRAY_DELAY_NOWAIT_MILLISECONDS  = 0;
+var FIRETRAY_DELAY_STARTUP_MILLISECONDS = 500;
+var FIRETRAY_DELAY_NOWAIT_MILLISECONDS  = 0;
 
-const FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL = 0;
-const FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE   = 1;
+var FIRETRAY_CHAT_ICON_BLINK_STYLE_NORMAL = 0;
+var FIRETRAY_CHAT_ICON_BLINK_STYLE_FADE   = 1;
 
-const FIRETRAY_APPINDICATOR_ID = "firetray";
+var FIRETRAY_APPINDICATOR_ID = "firetray";
 
-const FIRETRAY_APP_DB = {
+var FIRETRAY_APP_DB = {
 
   firefox: {
     id: "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}",
@@ -111,7 +111,7 @@ const FIRETRAY_APP_DB = {
  * Note: it's not possible to define a sentinel when the return type is void.
  * Note: almost all return types end up as int's (even gboolean).
  */
-const FIRETRAY_CB_SENTINEL = -1;
+var FIRETRAY_CB_SENTINEL = -1;
 
 /**
  * firetray namespace.
@@ -120,7 +120,7 @@ if ("undefined" == typeof(firetray)) {
   var firetray = {};
 };
 
-let log = firetray.Logging.getLogger("firetray.commons");
+var log = firetray.Logging.getLogger("firetray.commons");
 
 firetray.Utils = {
   prefService: Services.prefs.getBranch(FIRETRAY_PREF_BRANCH),
@@ -135,7 +135,6 @@ firetray.Utils = {
 
       Services.obs.addObserver(this, topic, false);
       this.observedTopics[topic] = true;
-      log.debug("registred "+topic+" for "+handler);
     }, handler);
   },
 
@@ -162,7 +161,6 @@ firetray.Utils = {
     return objPref;
   },
   setObjPref: function(prefStr, obj) {
-    log.debug(obj);
     try {
       firetray.Utils.prefService.setCharPref(prefStr, JSON.stringify(obj));
     } catch (x) {
@@ -198,7 +196,6 @@ firetray.Utils = {
     let registeryValue = Cc['@mozilla.org/chrome/chrome-registry;1']
       .getService(Ci.nsIChromeRegistry)
       .convertChromeURL(uri).spec;
-    log.debug(registeryValue);
 
     if (/^file:/.test(registeryValue))
       registeryValue = this._urlToPath(registeryValue);
@@ -238,7 +235,6 @@ firetray.Utils = {
     } catch (x) {
       log.error(x);
     }
-    log.debug("XPathResult="+result.resultType);
 
     switch (result.resultType) {
     case XPathResult.NUMBER_TYPE:
@@ -252,7 +248,6 @@ firetray.Utils = {
     var list = [];
     try {
       for (let node = result.iterateNext(); node; node = result.iterateNext()) {
-        log.debug("node="+node.nodeName);
         switch (node.nodeType) {
         case node.ATTRIBUTE_NODE:
           list.push(node.value);
@@ -268,7 +263,6 @@ firetray.Utils = {
       log.error(x);
     }
 
-    log.debug("len="+list.length);
     return list;
   },
 
