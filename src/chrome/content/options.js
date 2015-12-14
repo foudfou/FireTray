@@ -1,21 +1,21 @@
 /* -*- Mode: js2; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
-var Cc = Components.classes;
-var Ci = Components.interfaces;
-var Cu = Components.utils;
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cu = Components.utils;
 
 Cu.import("resource://firetray/FiretrayHandler.jsm");
 Cu.import("resource://firetray/commons.js");
 
-var TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
-var TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED = 1;
-var TREEROW_ACCOUNT_OR_SERVER_TYPE_ORDER    = 2;
-var TREELEVEL_SERVER_TYPES      = 0;
-var TREELEVEL_EXCLUDED_ACCOUNTS = 1;
+const TREEROW_ACCOUNT_OR_SERVER_TYPE_NAME     = 0;
+const TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED = 1;
+const TREEROW_ACCOUNT_OR_SERVER_TYPE_ORDER    = 2;
+const TREELEVEL_SERVER_TYPES      = 0;
+const TREELEVEL_EXCLUDED_ACCOUNTS = 1;
 
-var PREF_DEFAULT_PANE = "pref-pane-windows";
+const PREF_DEFAULT_PANE = "pref-pane-windows";
 
-var log = firetray.Logging.getLogger("firetray.UIOptions");
+let log = firetray.Logging.getLogger("firetray.UIOptions");
 
 var firetrayUIOptions = {
   strings: null,
@@ -23,6 +23,7 @@ var firetrayUIOptions = {
   listeners: {},
 
   onLoad: function(e) {
+    log.debug("FULL FEATURED="+firetray.Handler.support['full_feat']);
     this.strings = document.getElementById("firetray-options-strings");
     this.prefwindow = document.getElementById("firetray-preferences");
     if (!this.prefwindow)
@@ -157,6 +158,7 @@ var firetrayUIOptions = {
   updateWindowAndIconOptions: function() {
     let hides_on_close    = document.getElementById("ui_hides_on_close").checked;
     let hides_on_minimize = document.getElementById("ui_hides_on_minimize").checked;
+    log.debug("hides_on_close="+hides_on_close+", hides_on_minimize="+hides_on_minimize);
     let doDisable = !(hides_on_close || hides_on_minimize);
     document.getElementById('ui_hides_single_window').disabled = doDisable;
     document.getElementById('ui_hides_last_only').disabled = doDisable;
@@ -191,6 +193,7 @@ var firetrayUIOptions = {
 
   initIconNames: function(prefIconNames, uiIconNameId, defaultIconName) {
     let appIconNames = firetray.Utils.getArrayPref(prefIconNames);
+    log.debug("appIconNames="+appIconNames);
     let len = appIconNames.length;
     if (len>2)
       throw new RangeError("Too many icon names");
@@ -214,8 +217,10 @@ var firetrayUIOptions = {
     for (let i=1; i<3; ++i) {
       let textbox = document.getElementById(uiIconNameId+i);
       let val = textbox.value.trim();
+      log.debug("val="+val);
       if (val) iconNames.push(val);
     }
+    log.debug("iconNames="+iconNames);
     firetray.Utils.setArrayPref(prefIconNames, iconNames); // FIXME: should be a <preference>
   },
 
@@ -306,6 +311,7 @@ var firetrayUIOptions = {
   },
 
   updateNotificationSettings: function() {
+    log.debug("updateNotificationSettings");
     let mailNotifyRadio = document.getElementById("ui_radiogroup_mail_notification");
     let mailNotificationType = +mailNotifyRadio.getItemAtIndex(mailNotifyRadio.selectedIndex).value;
     this.disableNotificationMaybe(mailNotificationType);
@@ -318,6 +324,7 @@ var firetrayUIOptions = {
   },
 
   disableNotificationMaybe: function(notificationSetting) {
+    log.debug("disableNotificationMaybe: "+notificationSetting);
 
     let iconTextColor = document.getElementById("icon_text_color");
     this.disableChildren(iconTextColor,
@@ -335,6 +342,7 @@ var firetrayUIOptions = {
   },
 
   disableMessageCountMaybe: function(msgCountType) {
+    log.debug("disableMessageCountMaybe: "+msgCountType);
     let msgCountTypeIsNewMessages = (msgCountType === FIRETRAY_MESSAGE_COUNT_TYPE_NEW);
 
     let notificationUnreadCount = document.getElementById("ui_mail_notification_unread_count");
@@ -439,12 +447,14 @@ var firetrayUIOptions = {
 
     let prefExcludedFoldersFlags = firetray.Utils.prefService
       .getIntPref("excluded_folders_flags");
+    log.debug("prefExcludedFoldersFlags="+prefExcludedFoldersFlags.toString(16));
     for (let folderType in FLDRS_UNINTERESTING) {
       let localizedFolderType = this.strings.getString(folderType);
       let folderTypeVal = FLDRS_UNINTERESTING[folderType];
       let item = excludedFoldersList.appendItem(localizedFolderType, folderTypeVal);
       item.setAttribute("observes", "broadcaster-notification-disabled");
       let folderTypeSet = (folderTypeVal & prefExcludedFoldersFlags);
+      log.debug("folder: "+folderType+" folderTypeVal="+folderTypeVal+" folderTypeSet="+folderTypeSet);
       if (!folderTypeSet) {
         excludedFoldersList.ensureElementIsVisible(item); // bug 326445
         excludedFoldersList.addItemToSelection(item); // does trigger onselect...
@@ -462,6 +472,7 @@ var firetrayUIOptions = {
   },
 
   saveExcludedFoldersFlags: function(uiElt) {
+    log.debug("LAST SELECTED: "+uiElt.currentItem.label);
     let excludedFoldersFlags = 0;
     for (let i = 0, len=uiElt.itemCount; i<len; ++i) {
       let folder = uiElt.getItemAtIndex(i);
@@ -470,6 +481,7 @@ var firetrayUIOptions = {
       else
         excludedFoldersFlags |= folder.value;  // set
     }
+    log.debug("excluded folders flags: "+excludedFoldersFlags.toString(16));
     return excludedFoldersFlags;
   },
 
@@ -480,7 +492,9 @@ var firetrayUIOptions = {
     let that = this;
     try {
       let cells = row.childNodes; // .getElementsByTagName('treecell');
+      log.debug("CELLS: "+cells);
       for (let i=0, len=cells.length; i<len; ++i) {
+        log.debug("i: "+i+", cell:"+cells[i]);
         if (disable === true) {
           cells[i].setAttribute('properties', "disabled");
           if (i === TREEROW_ACCOUNT_OR_SERVER_TYPE_EXCLUDED) {
@@ -511,6 +525,7 @@ var firetrayUIOptions = {
     let serverTypes = mailAccounts["serverTypes"];
     let accountsExcluded = mailAccounts["excludedAccounts"];
     let accountsByServerType = firetray.Messaging.accountsByServerType();
+    log.debug(JSON.stringify(accountsByServerType));
 
     // sort serverTypes according to order
     let serverTypesSorted = Object.keys(serverTypes);
@@ -523,6 +538,7 @@ var firetrayUIOptions = {
         return 1;
       return 0; // no sorting
     });
+    log.debug("serverTypesSorted: "+serverTypesSorted);
 
     let target = document.getElementById("ui_mail_accounts");
     for (let i=0, len=serverTypesSorted.length; i<len; ++i) {
@@ -556,6 +572,7 @@ var firetrayUIOptions = {
       // add actual accounts as children
       let accountChildren = document.createElement('treechildren');
       let typeAccounts = accountsByServerType[serverTypeName];
+      log.debug("type: "+serverTypeName+", Accounts: "+JSON.stringify(typeAccounts));
       if (typeof(typeAccounts) == "undefined")
         continue;
 
@@ -607,6 +624,7 @@ var firetrayUIOptions = {
         firetray.Messaging.applyToSubfolders(msgAccount.rootFolder, true, function(folder) {
           if (!(folder.flags & Ci.nsMsgFolderFlags.Favorite)) return;
 
+          log.debug("adding folder favorite="+folder.prettyName);
           let folderItem = document.createElement('treeitem');
           let folderRow = document.createElement('treerow');
 
@@ -661,21 +679,25 @@ var firetrayUIOptions = {
   },
 
   onMutation: function(mutation) {
+    log.debug("mutation: type="+mutation.type+" node="+mutation.target.nodeName+" attr="+mutation.attributeName);
     if (mutation.type !== "attributes") return;
 
     if (mutation.attributeName === "value") { // checkbox
+      log.debug("value changed!");
       let checkboxCell = mutation.target;
       let tree = document.getElementById("ui_tree_mail_accounts");
 
       let subRows = firetray.Utils.XPath(
         checkboxCell,
         'ancestor::xul:treeitem[1]/child::xul:treechildren/xul:treeitem/xul:treerow');
+      log.debug("subRows="+subRows);
       for (let i=0, len=subRows.length; i<len; ++i) {
         firetrayUIOptions._disableTreeRow(
           subRows[i], (checkboxCell.getAttribute("value") === "false"));
       }
 
     } else if (mutation.attributeName == "label") { // text
+      log.debug("label changed!");
       log.warn("NOT IMPLEMENTED YET: move row to new rank"); // TODO
     } else {
       return;
@@ -707,6 +729,7 @@ var firetrayUIOptions = {
   saveTreeAccountsOrServerTypes: function() { // FIXME: broken ?
     let tree = document.getElementById("ui_tree_mail_accounts");
 
+    log.debug("VIEW="+ tree.view + ", rowCount="+tree.view.rowCount);
     let prefObj = {"serverTypes":{}, "excludedAccounts":[]};
     for (let i=0, len=tree.view.rowCount; i<len; ++i) {
       let accountOrServerTypeName = tree.view.getCellText(
@@ -718,6 +741,7 @@ var firetrayUIOptions = {
       let accountOrServerTypeOrder = parseInt(
         tree.view.getCellText(
           i, tree.columns.getNamedColumn("account_or_server_type_order")));
+      log.debug("account: "+accountOrServerTypeName+", "+accountOrServerTypeExcluded);
 
       if (tree.view.getLevel(i) === TREELEVEL_SERVER_TYPES) {
         prefObj["serverTypes"][accountOrServerTypeName] =
@@ -737,12 +761,14 @@ var firetrayUIOptions = {
     }
 
     let prefStr = JSON.stringify(prefObj);
+    log.debug("prefStr"+prefStr);
 
     /* return the new prefString to be stored by pref system */
     return prefStr;
   },
 
   onKeyPressTreeAccountsOrServerTypes: function(event) {
+    log.debug("TREE KEYPRESS: "+event.originalTarget);
     let tree = document.getElementById("ui_tree_mail_accounts");
     let col = tree.editingColumn; // col.index
 

@@ -9,7 +9,7 @@ if ("undefined" == typeof(Ci)) var Ci = Components.interfaces;
 if ("undefined" == typeof(Cu)) var Cu = Components.utils;
 
 // can't use 'log': don't pollute global (chrome) namespace
-var firetray_log = firetray.Logging.getLogger("firetray.Chrome");
+let firetray_log = firetray.Logging.getLogger("firetray.Chrome");
 
 // https://groups.google.com/group/mozilla.dev.extensions/browse_thread/thread/e89e9c2a834ff2b6#
 var firetrayChrome = { // each new window gets a new firetrayChrome !
@@ -20,13 +20,16 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   onLoad: function(win) {
     this.strings = document.getElementById("firetray-strings"); // chrome-specific
 
+    firetray_log.debug("Handler initialized: "+firetray.Handler.initialized);
     let init = firetray.Handler.initialized || firetray.Handler.init();
 
+    firetray_log.debug("ONLOAD");
     this.winId = firetray.Handler.registerWindow(win);
 
     win.addEventListener('close', firetrayChrome.onClose, true);
     this.hijackTitlebarButtons();
 
+    firetray_log.debug('Firetray LOADED: ' + init);
     return true;
   },
 
@@ -36,6 +39,8 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   onQuit: function(win) {
     win.removeEventListener('close', firetrayChrome.onClose, true);
     firetray.Handler.unregisterWindow(win);
+    firetray_log.debug("windowsCount="+firetray.Handler.windowsCount+", visibleWindowsCount="+firetray.Handler.visibleWindowsCount);
+    firetray_log.debug('Firetray UNLOADED !');
   },
 
   /* until we find a fix (TODO), we need to set browser.tabs.warnOnClose=false
@@ -44,11 +49,14 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
    use trying to set warnOnClose=false temporarily in onClose, since onClose is
    called *after* the popup */
   onClose: function(event) {
+    firetray_log.debug('Firetray CLOSE');
     let hides_on_close = firetray.Utils.prefService.getBoolPref('hides_on_close');
+    firetray_log.debug('hides_on_close: '+hides_on_close);
     if (!hides_on_close) return false;
 
     let hides_single_window = firetray.Utils.prefService.getBoolPref('hides_single_window');
     let hides_last_only = firetray.Utils.prefService.getBoolPref('hides_last_only');
+    firetray_log.debug('hides_single_window='+hides_single_window+', windowsCount='+firetray.Handler.windowsCount);
     if (hides_last_only && (firetray.Handler.windowsCount > 1)) return true;
 
     if (hides_single_window)
@@ -68,6 +76,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   hijackTitlebarButtons: function() {
     Object.keys(this.titlebarDispatch).forEach(function(id) {
       if (firetrayChrome.replaceCommand(id, this.titlebarDispatch[id])) {
+        firetray_log.debug('replaced command='+id);
       }
     }, this);
   },
@@ -84,6 +93,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
   replaceCommand: function(eltId, gotHidden) {
     let elt = document.getElementById(eltId);
     if (!elt) {
+      firetray_log.debug("Element '"+eltId+"' not found. Command not replaced.");
       return false;
     }
 
@@ -99,6 +109,7 @@ var firetrayChrome = { // each new window gets a new firetrayChrome !
 
     let callback = function(event) {
       if (event.target.id === eltId) {
+        firetray_log.debug(prevent.event +' on '+eltId);
         if (gotHidden())
           prevent.func(event);
       }
