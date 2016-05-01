@@ -89,22 +89,12 @@ firetray.Logging = {
     SimpleFormatter.prototype = Object.create(firetray.Logging.LogMod.Formatter.prototype);
     SimpleFormatter.prototype.constructor = SimpleFormatter;
     SimpleFormatter.prototype.format = function(message) {
-      let messageString = "";
-      if (message.hasOwnProperty("message"))
-        messageString = message.message;
-      else
-        // The trick below prevents errors further down because mo is null or
-        //  undefined.
-        messageString = [
-          ("" + mo) for each
-                    ([,mo] in Iterator(message.messageObjects))].join(" ");
-
       let date = new Date(message.time);
       let dateStr = date.getHours() + ":" + date.getMinutes() + ":" +
             date.getSeconds() + "." + date.getMilliseconds();
       let stringLog = dateStr + " " +
             message.levelDesc + " " + message.loggerName + " " +
-            messageString;
+            message.message;
 
       if (message.exception)
         stringLog += message.stackTrace + "\n";
