@@ -53,6 +53,7 @@ firetray.Window.setVisibility = function(wid, visible) {
   let hwnd = firetray.Win32.hexStrToHwnd(wid);
   let ret = user32.ShowWindow(hwnd, visible ? user32.SW_SHOW : user32.SW_HIDE);
   log.debug("  ShowWindow="+ret+" winLastError="+ctypes.winLastError);
+  if (visible) user32.SetForegroundWindow(hwnd);
 };
 
 firetray.Window.wndProc = function(hWnd, uMsg, wParam, lParam) { // filterWindow
