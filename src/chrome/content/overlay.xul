@@ -2,7 +2,7 @@
 <?xml-stylesheet href="chrome://firetray/skin/overlay.css" type="text/css"?>
 <!DOCTYPE overlay SYSTEM "chrome://firetray/locale/overlay.dtd">
 <overlay id="firetray-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script type="application/javascript;version=1.8" src="overlay.js"/>
+  <script type="application/javascript" src="overlay.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="firetray-strings" src="chrome://firetray/locale/overlay.properties"/>
