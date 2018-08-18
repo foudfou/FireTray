@@ -3,7 +3,7 @@ var EXPORTED_SYMBOLS = [ "kernel32" ];
 const KERNEL32_LIBNAME = "kernel32";
 const KERNEL32_ABIS    = [ "dll" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");

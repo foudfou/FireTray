@@ -3,7 +3,7 @@ var EXPORTED_SYMBOLS = [ "shell32" ];
 const SHELL32_LIBNAME = "shell32";
 const SHELL32_ABIS    = [ "dll" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");

@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "appind" ];
 const APPINDICATOR_LIBNAME = "appindicator";
 const APPINDICATOR_ABIS    = [ 1 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

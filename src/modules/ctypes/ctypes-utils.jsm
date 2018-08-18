@@ -38,7 +38,7 @@
 
 var EXPORTED_SYMBOLS  = [ "ctypes_library", "is64bit", "WinCbABI" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");

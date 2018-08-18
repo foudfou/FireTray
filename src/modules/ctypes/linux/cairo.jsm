@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "cairo" ];
 const CAIRO_LIBNAME = "cairo";
 const CAIRO_ABIS    = [ 2 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

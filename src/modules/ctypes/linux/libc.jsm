@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "libc" ];
 const LIBC_LIBNAME = "c";
 const LIBC_ABIS    = [ 6 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

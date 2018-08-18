@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "FiretrayWindow" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://firetray/commons.js");
 

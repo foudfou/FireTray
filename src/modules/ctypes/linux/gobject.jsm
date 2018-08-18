@@ -42,7 +42,7 @@ var EXPORTED_SYMBOLS = [ "gobject", "glib" ];
 const GOBJECT_LIBNAME = "gobject-2.0";
 const GOBJECT_ABIS = [ 0 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

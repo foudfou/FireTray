@@ -4,7 +4,7 @@ var EXPORTED_SYMBOLS = [ "firetray", "FLDRS_UNINTERESTING" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource:///modules/iteratorUtils.jsm");
 Cu.import("resource:///modules/mailServices.js");

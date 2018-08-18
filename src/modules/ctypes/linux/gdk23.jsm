@@ -4,7 +4,7 @@
  */
 var EXPORTED_SYMBOLS = [ "gdk23_defines" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

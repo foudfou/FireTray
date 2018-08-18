@@ -9,7 +9,7 @@ var EXPORTED_SYMBOLS = [
 const X11_LIBNAME = "X11";
 const X11_ABIS    = [ 6 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

@@ -4,7 +4,7 @@
  */
 var EXPORTED_SYMBOLS = [ "gtk" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
