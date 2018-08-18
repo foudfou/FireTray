@@ -183,7 +183,7 @@ firetray.Utils = {
   },
 
   QueryInterfaces: function(obj) {
-    for each (i in Components.interfaces)
+    for (i of Components.interfaces)
       try {
         if (obj instanceof i) log.debug (i);
       } catch(x) {}

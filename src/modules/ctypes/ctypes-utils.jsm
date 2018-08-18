@@ -117,7 +117,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
 
     var library;
     this.ABI = -1;
-    for each (let abi in aABIs) {
+    for (let abi of aABIs) {
       // FIXME: ABI is in fact SO_VER. Now we're mixing .so versions and the
       // .dll extension :(
       let libname = abi === 'dll' ? aName :
@@ -169,7 +169,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
           } else {
             args.push(ctypes.default_abi);
           }
-          for each (let arg in Array.prototype.slice.call(arguments, 1)) {
+          for (let arg of Array.prototype.slice.call(arguments, 1)) {
             args.push(arg);
           }
 
