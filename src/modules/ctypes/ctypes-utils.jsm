@@ -161,7 +161,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     let lib = {
       declare: function() {
         try {
-          args = [];
+          let args = [];
           args.push(arguments[0]);
           // FIXME: ugly hack. We'll see when we need WinCbABI
           if (this.ABI === 'dll') {

@@ -179,7 +179,7 @@ firetray.StatusIcon = {
   create: function() {
     let hwnd_hidden = this.createProxyWindow();
 
-    nid = new shell32.NOTIFYICONDATAW();
+    let nid = new shell32.NOTIFYICONDATAW();
     nid.cbSize = shell32.NOTIFYICONDATAW_SIZE();
     log.debug("SIZE="+nid.cbSize);
     nid.szTip = firetray.Handler.app.name;
@@ -191,7 +191,7 @@ firetray.StatusIcon = {
     nid.uVersion = shell32.NOTIFYICON_VERSION_4;
 
     // Install the icon
-    rv = shell32.Shell_NotifyIconW(shell32.NIM_ADD, nid.address());
+    let rv = shell32.Shell_NotifyIconW(shell32.NIM_ADD, nid.address());
     log.debug("Shell_NotifyIcon ADD="+rv+" winLastError="+ctypes.winLastError); // ERROR_INVALID_WINDOW_HANDLE(1400)
     rv = shell32.Shell_NotifyIconW(shell32.NIM_SETVERSION, nid.address());
     log.debug("Shell_NotifyIcon SETVERSION="+rv+" winLastError="+ctypes.winLastError);
