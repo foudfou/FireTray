@@ -59,14 +59,7 @@ firetray.Handler = {
     OS: Services.appinfo.OS.toLowerCase(), // "WINNT", "Linux", "Darwin"
     widgetTk: Services.appinfo.widgetToolkit,
   };})(),
-  addonRootDir: (function(){
-    let uri = Services.io.newURI(Components.stack.filename, null, null);
-    if (uri instanceof Ci.nsIFileURL) {
-      log.debug("_directory="+uri.file.parent.parent.path);
-      return uri.file.parent.parent;
-    }
-    throw new Error("not resolved");
-  })(),
+
   support: {chat: false, winnt: false},
 
   init: function() {            // does creates icon
