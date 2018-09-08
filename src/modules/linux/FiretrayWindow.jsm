@@ -478,7 +478,8 @@ firetray.Window.getXWindowStates = function(xwin) {
   log.debug("propsFound, nitems="+propsFound+", "+nitems);
   if (!propsFound) return 0;
 
-  let maximizedHorz = maximizedVert = false;
+  let maximizedVert = false;
+  let maximizedHorz = false;
   for (let i=0, len=nitems.value; i<len; ++i) {
     log.debug("i: "+propsFound.contents[i]);
     let currentProp = propsFound.contents[i];

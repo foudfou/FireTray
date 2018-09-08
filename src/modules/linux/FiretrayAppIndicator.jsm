@@ -73,6 +73,7 @@ firetray.AppIndicator = {
 
   attachMiddleClickCallback: function() {
     let pref = firetray.Utils.prefService.getIntPref("middle_click");
+    let item;
     if (pref === FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST) {
       item = firetray.PopupMenu.menuItem.activateLast;
       firetray.PopupMenu.showItem(firetray.PopupMenu.menuItem.activateLast);
