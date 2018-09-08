@@ -247,8 +247,8 @@ firetray.Handler = {
   // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
   // initAccounts() ourselves...
   existsChatAccount: function() {
-    let accounts = new firetray.Messaging.Accounts();
-    for (let accountServer in accounts)
+    let accounts = firetray.Messaging.Accounts();
+    for (let accountServer of accounts)
       if (accountServer.type === FIRETRAY_ACCOUNT_SERVER_TYPE_IM)  {
         log.debug("found im server: "+accountServer.prettyName);
         return true;

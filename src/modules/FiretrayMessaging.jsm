@@ -263,8 +263,8 @@ firetray.Messaging = {
     let excludedAccounts = mailAccounts["excludedAccounts"];
 
     this.newMsgCount = 0;
-    let accounts = new this.Accounts();
-    for (let accountServer in accounts) { // nsIMsgIncomingServer
+    let accounts = firetray.Messaging.Accounts();
+    for (let accountServer of accounts) { // nsIMsgIncomingServer
 
       if (accountServer.type === FIRETRAY_ACCOUNT_SERVER_TYPE_IM) {
         continue;               // IM messages are counted elsewhere
@@ -365,32 +365,27 @@ firetray.Messaging = {
  * @param sortByTypeAndName: boolean
  * @return a generator over all nsIMsgIncomingServer including hidden and IM ones
  */
-firetray.Messaging.Accounts = function(sortByTypeAndName) {
+firetray.Messaging.Accounts = function*(sortByTypeAndName) {
   if (typeof(sortByTypeAndName) == "undefined") {
-    this.sortByTypeAndName = false;
-    return;
-  }
-  if (typeof(sortByTypeAndName) !== "boolean")
+    sortByTypeAndName = false;
+  } else if (typeof(sortByTypeAndName) !== "boolean") {
     throw new TypeError();
+  }
 
-  this.sortByTypeAndName = sortByTypeAndName;
-};
-
-firetray.Messaging.Accounts.prototype.__iterator__ = function() {
-  log.debug("sortByTypeAndName="+this.sortByTypeAndName);
+  log.debug("sortByTypeAndName=" + sortByTypeAndName);
 
   /* NOTE: sort() not provided by nsIMsgAccountManager.accounts
    (nsISupportsArray or nsIArray if xulrunner >= 20.0). Should be OK to
    re-build a JS-Array for few accounts */
   let accountServers = [];
-  for (let accountServer in fixIterator(MailServices.accounts.accounts,
+  for (let accountServer of fixIterator(MailServices.accounts.accounts,
                                         Ci.nsIMsgAccount)) {
     accountServers.push(accountServer.incomingServer);
   }
 
   let mailAccounts = firetray.Utils.getObjPref('mail_accounts');
   let serverTypes = mailAccounts["serverTypes"];
-  if (this.sortByTypeAndName) {
+  if (sortByTypeAndName) {
     accountServers.sort(function(a,b) {
       if (serverTypes[a.type].order
           < serverTypes[b.type].order)
@@ -419,8 +414,8 @@ firetray.Messaging.Accounts.prototype.__iterator__ = function() {
  */
 firetray.Messaging.accountsByServerType = function() {
   let accountsByServerType = {};
-  let accounts = new firetray.Messaging.Accounts(false);
-  for (let accountServer in accounts) {
+  let accounts = firetray.Messaging.Accounts(false);
+  for (let accountServer of accounts) {
     let accountServerKey = accountServer.key.toString();
     let accountServerName = accountServer.prettyName;
     let accountServerType = accountServer.type;

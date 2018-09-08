@@ -181,7 +181,7 @@ if (gtk.gtk_get_major_version() == 3 && gtk.gtk_get_minor_version() >= 8) { // g
     this.pixBuffer = {};
   },
 
-  fadeGenerator: function() {
+  fadeGenerator: function*() {
     let pixbuf = firetray.ChatStatusIcon.pixBuffer;
 
     for (let a=255; a>0; a-=ALPHA_STEP) {
