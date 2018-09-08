@@ -209,7 +209,10 @@ if (gtk.gtk_get_major_version() == 3 && gtk.gtk_get_minor_version() >= 8) { // g
           { notify: firetray.ChatStatusIcon.fadeStep },
           ALPHA_STEP_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
 
-    } catch (e if e instanceof StopIteration) {
+    } catch (e) {
+      if (!e instanceof StopIteration) {
+        throw e;
+      }
 
       if (firetray.ChatStatusIcon.events['stop-fade']) {
         log.debug("stop-fade");
