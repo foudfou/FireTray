@@ -203,17 +203,12 @@ if (gtk.gtk_get_major_version() == 3 && gtk.gtk_get_minor_version() >= 8) { // g
   },
 
   fadeStep: function() {
-    try {
-      if (firetray.ChatStatusIcon.generators['fade'].next())
-        firetray.ChatStatusIcon.timers['fade-step'].initWithCallback(
-          { notify: firetray.ChatStatusIcon.fadeStep },
-          ALPHA_STEP_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
-
-    } catch (e) {
-      if (!e instanceof StopIteration) {
-        throw e;
-      }
-
+    let step = firetray.ChatStatusIcon.generators['fade'].next();
+    if (!step.done) {
+      firetray.ChatStatusIcon.timers['fade-step'].initWithCallback(
+        { notify: firetray.ChatStatusIcon.fadeStep },
+        ALPHA_STEP_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
+    } else {
       if (firetray.ChatStatusIcon.events['stop-fade']) {
         log.debug("stop-fade");
         delete firetray.ChatStatusIcon.events['stop-fade'];
@@ -236,7 +231,7 @@ if (gtk.gtk_get_major_version() == 3 && gtk.gtk_get_minor_version() >= 8) { // g
           { notify: firetray.ChatStatusIcon.fadeLoop },
           FADE_OVER_SLEEP_MILLISECONDS, Ci.nsITimer.TYPE_ONE_SHOT);
       }
-    };
+    }
   },
 
   fadeLoop: function() {
