@@ -230,22 +230,21 @@ firetray.Utils = {
   XPath: function(ref, xpath) {
     var doc = ref.ownerDocument || ref;
 
-    const XPathResult = Ci.nsIDOMXPathResult;
     try {
       let that = this;
       var result = doc.evaluate(xpath, ref, that._nsResolver,
-                                XPathResult.ANY_TYPE, null);
+                                0 /* XPathResult.ANY_TYPE */, null);
     } catch (x) {
       log.error(x);
     }
     log.debug("XPathResult="+result.resultType);
 
     switch (result.resultType) {
-    case XPathResult.NUMBER_TYPE:
+    case result.NUMBER_TYPE:
       return result.numberValue;
-    case XPathResult.BOOLEAN_TYPE:
+    case result.BOOLEAN_TYPE:
       return result.booleanValue;
-    case XPathResult.STRING_TYPE:
+    case result.STRING_TYPE:
       return result.stringValue;
     } // else XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
 
