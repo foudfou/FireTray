@@ -27,30 +27,6 @@
       </Description>
     </em:targetApplication>
 
-    <em:targetApplication>      <!-- SeaMonkey -->
-      <Description>
-        <em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
-        <em:minVersion>2.4</em:minVersion>
-        <em:maxVersion>2.35</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-
-    <em:targetApplication>      <!-- ChatZilla -->
-      <Description>
-        <em:id>{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}</em:id>
-        <em:minVersion>0.8</em:minVersion>
-        <em:maxVersion>0.9.*</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-
-    <em:targetApplication>      <!-- Zotero -->
-      <Description>
-        <em:id>zotero@chnm.gmu.edu</em:id>
-        <em:minVersion>2.1a1</em:minVersion>
-        <em:maxVersion>4.*</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-
     <em:developer>Jared Forsyth</em:developer>
     <em:developer>Glen Winters</em:developer>
     <em:developer>CubicF</em:developer>
