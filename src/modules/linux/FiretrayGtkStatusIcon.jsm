@@ -228,12 +228,25 @@ firetray.Handler.setIconText = function(text, color) {
 
   try {
     // build background from image
-    let specialIcon = gdk.gdk_pixbuf_new_from_file(
-      firetray.GtkStatusIcon.FILENAME_BLANK, null); // GError **error);
-    let dest = gdk.gdk_pixbuf_copy(specialIcon);
-    let w = gdk.gdk_pixbuf_get_width(specialIcon);
-    let h = gdk.gdk_pixbuf_get_height(specialIcon);
+    //let specialIcon = gdk.gdk_pixbuf_new_from_file(
+    //  firetray.GtkStatusIcon.FILENAME_BLANK, null); // GError **error);
+    //let dest = gdk.gdk_pixbuf_copy(specialIcon);
+    //let w = gdk.gdk_pixbuf_get_width(specialIcon);
+    //let h = gdk.gdk_pixbuf_get_height(specialIcon);
+    // above fails, draw light gray bordered square with cairo
+    var mysurface = cairo.cairo_image_surface_create(cairo.CAIRO_FORMAT_ARGB32, 32, 32);
+    var mycr = cairo.cairo_create(mysurface);
+    cairo.cairo_rectangle(mycr, 2, 2, 28, 28);
+    cairo.cairo_set_source_rgb(mycr, 0.85, 0.85, 0.85);
+    cairo.cairo_fill_preserve(mycr);
 
+    cairo.cairo_set_line_width(mycr, 2);
+    cairo.cairo_set_source_rgb(mycr, 0.4, 0.4, 0.4);
+    cairo.cairo_stroke(mycr);
+
+    let dest = gdk.gdk_pixbuf_get_from_surface(mysurface, 0, 0, 32, 32);
+    let w = 32;
+    let h = 32;
     // prepare colors/alpha
 /* FIXME: draw everything with cairo when dropping gtk2 support. Use
  gdk_pixbuf_get_from_surface(). */
