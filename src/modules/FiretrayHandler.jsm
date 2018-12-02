@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "firetray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/ctypes.jsm");
@@ -59,14 +59,7 @@ firetray.Handler = {
     OS: Services.appinfo.OS.toLowerCase(), // "WINNT", "Linux", "Darwin"
     widgetTk: Services.appinfo.widgetToolkit,
   };})(),
-  addonRootDir: (function(){
-    let uri = Services.io.newURI(Components.stack.filename, null, null);
-    if (uri instanceof Ci.nsIFileURL) {
-      log.debug("_directory="+uri.file.parent.parent.path);
-      return uri.file.parent.parent;
-    }
-    throw new Error("not resolved");
-  })(),
+
   support: {chat: false, winnt: false},
 
   init: function() {            // does creates icon
@@ -254,8 +247,8 @@ firetray.Handler = {
   // [nsISimpleEnumerator::hasMoreElements]"), and we're unsure if we should
   // initAccounts() ourselves...
   existsChatAccount: function() {
-    let accounts = new firetray.Messaging.Accounts();
-    for (let accountServer in accounts)
+    let accounts = firetray.Messaging.Accounts();
+    for (let accountServer of accounts)
       if (accountServer.type === FIRETRAY_ACCOUNT_SERVER_TYPE_IM)  {
         log.debug("found im server: "+accountServer.prettyName);
         return true;

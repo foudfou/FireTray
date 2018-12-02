@@ -4,7 +4,7 @@ var EXPORTED_SYMBOLS = [ "firetray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/commons.js"); // first for Handler.app !
@@ -73,6 +73,7 @@ firetray.AppIndicator = {
 
   attachMiddleClickCallback: function() {
     let pref = firetray.Utils.prefService.getIntPref("middle_click");
+    let item;
     if (pref === FIRETRAY_MIDDLE_CLICK_ACTIVATE_LAST) {
       item = firetray.PopupMenu.menuItem.activateLast;
       firetray.PopupMenu.showItem(firetray.PopupMenu.menuItem.activateLast);
@@ -110,9 +111,14 @@ firetray.StatusIcon.shutdownImpl =
 
 firetray.Handler.setIconImageDefault = function() {
   log.debug("setIconImageDefault");
-  appind.app_indicator_set_icon_full(firetray.AppIndicator.indicator,
-                                     firetray.StatusIcon.defaultAppIconName,
-                                     firetray.Handler.app.name);
+  let appIconType = firetray.Utils.prefService.getIntPref("app_icon_type");
+  if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_THEMED) {
+    appind.app_indicator_set_icon_full(firetray.AppIndicator.indicator,
+                                       firetray.StatusIcon.defaultAppIconName,
+                                       firetray.Handler.app.name);
+  } else if (appIconType === FIRETRAY_APPLICATION_ICON_TYPE_CUSTOM) {
+    firetray.Handler.setIconImageCustom('app_icon_custom');
+  }
 };
 
 firetray.Handler.setIconImageNewMail = function() {

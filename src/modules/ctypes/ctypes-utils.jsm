@@ -38,7 +38,7 @@
 
 var EXPORTED_SYMBOLS  = [ "ctypes_library", "is64bit", "WinCbABI" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
@@ -117,7 +117,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
 
     var library;
     this.ABI = -1;
-    for each (let abi in aABIs) {
+    for (let abi of aABIs) {
       // FIXME: ABI is in fact SO_VER. Now we're mixing .so versions and the
       // .dll extension :(
       let libname = abi === 'dll' ? aName :
@@ -161,7 +161,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
     let lib = {
       declare: function() {
         try {
-          args = [];
+          let args = [];
           args.push(arguments[0]);
           // FIXME: ugly hack. We'll see when we need WinCbABI
           if (this.ABI === 'dll') {
@@ -169,7 +169,7 @@ function ctypes_library(aName, aABIs, aDefines, aGlobal) {
           } else {
             args.push(ctypes.default_abi);
           }
-          for each (let arg in Array.prototype.slice.call(arguments, 1)) {
+          for (let arg of Array.prototype.slice.call(arguments, 1)) {
             args.push(arg);
           }
 

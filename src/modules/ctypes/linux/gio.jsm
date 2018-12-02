@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "gio" ];
 const GIO_LIBNAME = "gio-2.0";
 const GIO_ABIS    = [ "0" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

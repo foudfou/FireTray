@@ -3,7 +3,7 @@ var EXPORTED_SYMBOLS = [ "user32" ];
 const USER32_LIBNAME = "user32";
 const USER32_ABIS    = [ "dll" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");

@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "glib" ];
 const GLIB_LIBNAME = "glib-2.0";
 const GLIB_ABIS    = [ 0 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

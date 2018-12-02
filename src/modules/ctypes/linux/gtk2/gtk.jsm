@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "gtk" ];
 const GTK_LIBNAME = "gtk-x11-2.0";
 const GTK_ABIS    = [ 0 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

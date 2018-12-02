@@ -2,7 +2,7 @@
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://firetray/logging.jsm");

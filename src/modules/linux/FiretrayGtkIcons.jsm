@@ -4,7 +4,7 @@ var EXPORTED_SYMBOLS = [ "firetray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://firetray/commons.js"); // first for Handler.app !
 Cu.import("resource://firetray/ctypes/linux/"+firetray.Handler.app.widgetTk+"/gtk.jsm");

@@ -1,6 +1,6 @@
 var EXPORTED_SYMBOLS = [ "win32" ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/ctypes.jsm");
 Cu.import("resource://firetray/ctypes/ctypes-utils.jsm");

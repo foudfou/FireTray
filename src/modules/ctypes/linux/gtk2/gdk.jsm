@@ -42,7 +42,7 @@ var EXPORTED_SYMBOLS = [ "gdk" ];
 const GDK_LIBNAME = "gdk-x11-2.0";
 const GDK_ABIS    = [ 0 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

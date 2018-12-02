@@ -20,7 +20,7 @@ var EXPORTED_SYMBOLS =
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://firetray/logging.jsm");
@@ -183,7 +183,7 @@ firetray.Utils = {
   },
 
   QueryInterfaces: function(obj) {
-    for each (i in Components.interfaces)
+    for (i of Components.interfaces)
       try {
         if (obj instanceof i) log.debug (i);
       } catch(x) {}
@@ -230,22 +230,21 @@ firetray.Utils = {
   XPath: function(ref, xpath) {
     var doc = ref.ownerDocument || ref;
 
-    const XPathResult = Ci.nsIDOMXPathResult;
     try {
       let that = this;
       var result = doc.evaluate(xpath, ref, that._nsResolver,
-                                XPathResult.ANY_TYPE, null);
+                                0 /* XPathResult.ANY_TYPE */, null);
     } catch (x) {
       log.error(x);
     }
     log.debug("XPathResult="+result.resultType);
 
     switch (result.resultType) {
-    case XPathResult.NUMBER_TYPE:
+    case result.NUMBER_TYPE:
       return result.numberValue;
-    case XPathResult.BOOLEAN_TYPE:
+    case result.BOOLEAN_TYPE:
       return result.booleanValue;
-    case XPathResult.STRING_TYPE:
+    case result.STRING_TYPE:
       return result.stringValue;
     } // else XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
 

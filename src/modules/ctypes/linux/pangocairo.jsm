@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "pangocairo" ];
 const PANGOCAIRO_LIBNAME = "pangocairo-1.0";
 const PANGOCAIRO_ABIS    = [ 0 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 

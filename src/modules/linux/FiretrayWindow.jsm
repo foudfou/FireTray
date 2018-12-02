@@ -11,7 +11,7 @@ var EXPORTED_SYMBOLS = [ "firetray" ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
@@ -478,7 +478,8 @@ firetray.Window.getXWindowStates = function(xwin) {
   log.debug("propsFound, nitems="+propsFound+", "+nitems);
   if (!propsFound) return 0;
 
-  let maximizedHorz = maximizedVert = false;
+  let maximizedVert = false;
+  let maximizedHorz = false;
   for (let i=0, len=nitems.value; i<len; ++i) {
     log.debug("i: "+propsFound.contents[i]);
     let currentProp = propsFound.contents[i];

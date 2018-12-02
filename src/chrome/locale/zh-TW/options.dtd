@@ -83,6 +83,8 @@
 <!ENTITY mail_change_trigger.tooltip "要在訊息數改變時執行程式的絕對路徑。程式會將新的訊息數作為第一個參數。">
 <!ENTITY mail_get_attention.label "有新訊息時視窗發出提醒信號">
 <!ENTITY mail_get_attention.accesskey "g">
+<!ENTITY nomail_hides_icon.label "有新郵件時顯示系統列圖示">
+<!ENTITY nomail_hides_icon.accesskey "t">
 <!ENTITY chat_icon_enable.label "啟用聊天圖示">
 <!ENTITY chat_icon_enable.accesskey "E">
 <!ENTITY chat_icon_blink.label "有新訊息時閃爍聊天圖示">

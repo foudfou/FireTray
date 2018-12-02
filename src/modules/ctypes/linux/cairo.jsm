@@ -5,7 +5,7 @@ var EXPORTED_SYMBOLS = [ "cairo" ];
 const CAIRO_LIBNAME = "cairo";
 const CAIRO_ABIS    = [ 2 ];
 
-const Cu = Components.utils;
+const Cu = ChromeUtils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
@@ -25,6 +25,9 @@ function cairo_defines(lib) {
   lib.lazy_bind("cairo_rectangle", ctypes.void_t, this.cairo_t.ptr, ctypes.double, ctypes.double, ctypes.double, ctypes.double);
   lib.lazy_bind("cairo_set_source_rgb", ctypes.void_t, this.cairo_t.ptr, ctypes.double, ctypes.double, ctypes.double);
   lib.lazy_bind("cairo_fill", ctypes.void_t, this.cairo_t.ptr);
+  lib.lazy_bind("cairo_fill_preserve", ctypes.void_t, this.cairo_t.ptr);
+  lib.lazy_bind("cairo_set_line_width", ctypes.void_t, this.cairo_t.ptr, ctypes.double);
+  lib.lazy_bind("cairo_stroke", ctypes.void_t, this.cairo_t.ptr);
   lib.lazy_bind("cairo_move_to", ctypes.void_t, this.cairo_t.ptr, ctypes.double, ctypes.double);
   lib.lazy_bind("cairo_image_surface_create", this.cairo_surface_t.ptr, this.cairo_format_t, ctypes.int, ctypes.int);
   lib.lazy_bind("cairo_surface_destroy", ctypes.void_t, this.cairo_surface_t.ptr);

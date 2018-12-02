@@ -19,48 +19,17 @@
     <em:targetPlatform>Linux</em:targetPlatform>
     <em:targetPlatform>WINNT</em:targetPlatform>
 
-    <em:targetApplication>
-      <Description>
-        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
-        <em:minVersion>7.0</em:minVersion>
-        <em:maxVersion>38.0</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-
     <em:targetApplication>      <!-- Thunderbird -->
       <Description>
         <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
-        <em:minVersion>7.0</em:minVersion>
-        <em:maxVersion>38.0</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-
-    <em:targetApplication>      <!-- SeaMonkey -->
-      <Description>
-        <em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
-        <em:minVersion>2.4</em:minVersion>
-        <em:maxVersion>2.35</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-
-    <em:targetApplication>      <!-- ChatZilla -->
-      <Description>
-        <em:id>{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}</em:id>
-        <em:minVersion>0.8</em:minVersion>
-        <em:maxVersion>0.9.*</em:maxVersion>
-      </Description>
-    </em:targetApplication>
-
-    <em:targetApplication>      <!-- Zotero -->
-      <Description>
-        <em:id>zotero@chnm.gmu.edu</em:id>
-        <em:minVersion>2.1a1</em:minVersion>
-        <em:maxVersion>4.*</em:maxVersion>
+        <em:minVersion>57.0</em:minVersion>
+        <em:maxVersion>60.*</em:maxVersion>
       </Description>
     </em:targetApplication>
 
     <em:developer>Jared Forsyth</em:developer>
     <em:developer>Glen Winters</em:developer>
+    <em:developer>CubicF</em:developer>
 
     <em:contributor>Simone 'Underpass'</em:contributor>
     <em:contributor>Diego Rodriguez</em:contributor>
